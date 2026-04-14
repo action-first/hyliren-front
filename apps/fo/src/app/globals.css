@@ -1,0 +1,156 @@
+/* FO — Tailwind v4 + Design Tokens */
+@import "tailwindcss";
+@import "@hyliren/ui/src/tokens/shared.css";
+@import "@hyliren/ui/src/tokens/fo.css";
+
+/* Tailwind source for packages/ui components */
+@source "../../../../packages/ui/src/**/*.tsx";
+
+/*
+  중요: 모든 커스텀 CSS를 @layer base 안에 넣어야 함.
+  unlayered CSS는 @layer utilities보다 우선하여
+  Tailwind 유틸리티(px-5, py-8 등)를 덮어쓰는 버그 발생.
+*/
+@layer base {
+
+  body {
+    font-family: var(--app-font);
+    font-size: var(--app-text-body);
+    color: var(--color-text);
+    background: #F0F0F0;
+    line-height: var(--leading-normal);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- FO Shell (무신사/지그재그 스타일) ---- */
+
+  .fo-shell {
+    display: flex;
+    justify-content: center;
+    min-height: 100dvh;
+    background: #F0F0F0;
+  }
+
+  .fo-frame {
+    width: 100%;
+    max-width: var(--fo-frame-max-width);
+    min-height: 100dvh;
+    background: var(--color-bg);
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  @media (min-width: 481px) {
+    .fo-frame {
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.06);
+      border-left: 1px solid var(--color-border-light);
+      border-right: 1px solid var(--color-border-light);
+    }
+  }
+
+  @media (max-width: 480px) {
+    body { background: var(--color-bg); }
+    .fo-shell { background: var(--color-bg); }
+  }
+
+  /* ---- FO Layout ---- */
+
+  .fo-main {
+    flex: 1;
+    padding-bottom: calc(var(--fo-bottom-bar-height) + var(--fo-safe-area-bottom) + 8px);
+  }
+
+  /* ---- FO Header ---- */
+
+  .fo-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 2.75rem;
+    padding: 0 20px;
+    background: var(--color-bg);
+  }
+
+  .fo-header-logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+  }
+
+  .fo-logo-mark {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--color-primary);
+    line-height: 1;
+  }
+
+  .fo-logo-text {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text);
+    letter-spacing: -0.3px;
+  }
+
+  .fo-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .fo-header-icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--color-text);
+    border-radius: 50%;
+  }
+
+  /* ---- FO Tab Bar ---- */
+
+  .fo-tabbar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: var(--fo-frame-max-width);
+    z-index: 40;
+    display: flex;
+    align-items: stretch;
+    height: var(--fo-bottom-bar-height);
+    padding-bottom: var(--fo-safe-area-bottom);
+    background: var(--color-bg);
+    border-top: 1px solid var(--color-border-light);
+  }
+
+  .fo-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    text-decoration: none;
+    color: var(--color-text-dim);
+    transition: color var(--duration-fast);
+  }
+
+  .fo-tab--active {
+    color: var(--color-primary);
+  }
+
+  .fo-tab-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+}

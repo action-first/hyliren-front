@@ -1,0 +1,42 @@
+/* ============================================================
+   HYLIREN — Admin Theme Tokens (PO + BO)
+   Shopify Admin 톤: Neutral, Functional, Productive
+   데스크톱 우선 · 14px body · 기능적
+   ============================================================ */
+
+[data-theme="admin"] {
+  --color-primary: #008060;
+  --color-primary-hover: #006E52;
+  --color-primary-soft: rgba(0, 128, 96, 0.08);
+  --color-primary-muted: rgba(0, 128, 96, 0.6);
+
+  --color-bg: #F6F6F7;
+  --color-bg-secondary: #FFFFFF;
+  --color-bg-tertiary: #F0F0F0;
+  --color-bg-wash: #F0FAF6;
+
+  --color-text: #1A1A1A;
+  --color-text-secondary: #616161;
+  --color-text-dim: #8C8C8C;
+  --color-text-inverse: #FFFFFF;
+
+  --color-border: #E1E1E1;
+  --color-border-light: #F0F0F0;
+
+  --color-surface: #FFFFFF;
+  --color-surface-elevated: #FFFFFF;
+
+  --app-radius: var(--radius-md);
+  --app-radius-sm: var(--radius-sm);
+
+  --app-shadow: var(--shadow-xs);
+  --app-shadow-hover: var(--shadow-sm);
+
+  --app-font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --app-text-body: var(--text-base);
+  --app-text-small: var(--text-sm);
+  --app-text-micro: var(--text-xs);
+
+  /* Admin-specific */
+  --admin-sidebar-width: 240px;
+}

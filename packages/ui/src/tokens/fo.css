@@ -1,0 +1,65 @@
+/* ============================================================
+   HYLIREN — FO Theme Tokens
+   Airbnb Design System 기반 (DESIGN.md 참조)
+
+   핵심 원칙:
+   - Pure white canvas (#ffffff)
+   - Rausch Red (#ff385c) — singular accent
+   - Near-black (#222222) — warm, not cold
+   - Three-layer card shadow
+   - Generous border-radius (8-20px)
+   - Font weight 500-700 (no thin weights)
+   ============================================================ */
+
+[data-theme="fo"],
+:root {
+  /* ---- Brand ---- */
+  --color-primary: #ff385c;
+  --color-primary-hover: #e00b41;
+  --color-primary-soft: rgba(255, 56, 92, 0.08);
+  --color-primary-muted: rgba(255, 56, 92, 0.6);
+
+  /* ---- Surface ---- */
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f7f7f7;
+  --color-bg-tertiary: #f2f2f2;
+  --color-bg-wash: #fff5f7;
+
+  /* ---- Text (warm, not cold) ---- */
+  --color-text: #222222;
+  --color-text-secondary: #6a6a6a;
+  --color-text-dim: #929292;
+  --color-text-inverse: #ffffff;
+  --color-text-disabled: rgba(0, 0, 0, 0.24);
+
+  /* ---- Border ---- */
+  --color-border: #c1c1c1;
+  --color-border-light: #ebebeb;
+
+  /* ---- Surfaces ---- */
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+
+  /* ---- Radius (Airbnb scale) ---- */
+  --app-radius: 12px;         /* cards */
+  --app-radius-sm: 8px;       /* buttons, inputs */
+  --app-radius-badge: 14px;   /* badges */
+  --app-radius-card: 20px;    /* large cards */
+  --app-radius-pill: 32px;    /* pills, search */
+
+  /* ---- Shadow (three-layer Airbnb system) ---- */
+  --app-shadow: rgba(0,0,0,0.02) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 6px, rgba(0,0,0,0.1) 0px 4px 8px;
+  --app-shadow-hover: rgba(0,0,0,0.08) 0px 4px 12px;
+  --app-shadow-focus: rgb(255,255,255) 0px 0px 0px 4px, var(--color-primary) 0px 0px 0px 6px;
+
+  /* ---- Font ---- */
+  --app-font: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --app-text-body: 16px;
+  --app-text-small: 14px;
+  --app-text-micro: 12px;
+
+  /* ---- FO-specific ---- */
+  --fo-bottom-bar-height: 3.5rem;
+  --fo-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --fo-frame-max-width: 480px;
+}

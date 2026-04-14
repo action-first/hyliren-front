@@ -1,0 +1,111 @@
+{
+  "common": {
+    "appName": "韩颜丽人",
+    "appNameZh": "韩颜丽人",
+    "login": "登录",
+    "signup": "注册",
+    "next": "下一步",
+    "back": "返回",
+    "submit": "提交",
+    "cancel": "取消",
+    "save": "保存",
+    "close": "关闭",
+    "loading": "加载中...",
+    "empty": "暂无数据",
+    "verified": "已认证",
+    "currency": "万韩元",
+    "won": "韩元"
+  },
+  "landing": {
+    "heroTitle": "适合你的手术方案，由医院主动推荐",
+    "heroSubtitle": "提交你的困扰，韩国认证医院将为你定制专属方案。轻松比较，放心选择。",
+    "cta": "免费提交咨询",
+    "trustHospitals": "合作医院",
+    "trustResponseRate": "响应率",
+    "trustSatisfaction": "满意度",
+    "howTitle": "如何使用？",
+    "howStep1Title": "提交你的困扰",
+    "howStep1Desc": "选择部位、上传照片、填写预算和时间，3分钟即可完成。",
+    "howStep2Title": "医院发送方案",
+    "howStep2Desc": "认证医院会直接发送包含手术方案、费用和时间的详细提案。",
+    "howStep3Title": "比较并选择",
+    "howStep3Desc": "在统一标准下比较多个方案。价格、恢复期、麻醉方式一目了然。",
+    "whyTitle": "为什么选择韩颜丽人？",
+    "valueCompareTitle": "结构化对比",
+    "valueCompareDesc": "所有方案统一格式，价格、恢复期、麻醉、项目一键对比。",
+    "valueVerifiedTitle": "认证医院",
+    "valueVerifiedDesc": "只有通过认证的合作医院才能发送方案，无中介，直接沟通。",
+    "valueReportTitle": "方案验证报告",
+    "valueReportDesc": "过度治疗分析、价格合理性评估、风险评估，帮你做出正确决定。",
+    "valueExecutionTitle": "一站式服务",
+    "valueExecutionDesc": "翻译、接机、酒店、恢复护理，决定之后的一切我们来安排。"
+  },
+  "concern": {
+    "form": {
+      "bodyAreaTitle": "你对哪个部位有困扰？",
+      "bodyAreaSubtitle": "选择你最想了解的部位",
+      "bodyAreaDetailPlaceholder": "{area}相关详情（如：埋没双眼皮、鼻尖整形）",
+      "photosTitle": "请上传照片",
+      "photosSubtitle": "上传困扰部位的正面和侧面照片，可以获得更精准的方案",
+      "photosHint": "最多5张 · 非必填",
+      "photosAdd": "添加照片",
+      "photosAddMore": "继续添加",
+      "detailsTitle": "请填写详细信息",
+      "detailsSubtitle": "更详细的信息有助于获得更精准的方案",
+      "descriptionLabel": "困扰内容",
+      "descriptionPlaceholder": "请自由描述你的困扰",
+      "budgetLabel": "预算范围（万韩元）",
+      "visitDateLabel": "预计访韩时间",
+      "passportLabel": "我已持有护照",
+      "submitButton": "提交咨询"
+    },
+    "complete": {
+      "title": "咨询已提交成功！",
+      "subtitle": "认证医院正在为你准备方案，通常24小时内会收到第一份方案。",
+      "bodyArea": "部位",
+      "budget": "预算",
+      "visitDate": "访韩",
+      "photos": "照片",
+      "photoCount": "{count}张",
+      "goHome": "返回首页"
+    }
+  },
+  "proposal": {
+    "list": {
+      "title": "{count}家医院发来了方案",
+      "subtitle": "比较各方案，选择最适合你的医院",
+      "compareButton": "对比{count}个方案",
+      "compareHint": "选择2个以上方案即可进行对比",
+      "estimatedCost": "预估费用",
+      "comparing": "对比中"
+    },
+    "compare": {
+      "title": "对比{count}个方案",
+      "selectButton": "选择此方案",
+      "sectionTitle": "逐项对比",
+      "totalPrice": "总费用",
+      "recoveryDays": "恢复期",
+      "anesthesia": "麻醉",
+      "hospitalStay": "住院",
+      "availableDate": "可手术时间",
+      "treatments": "手术项目",
+      "none": "无"
+    },
+    "spec": {
+      "recovery": "恢复",
+      "days": "天",
+      "anesthesiaLocal": "局部麻醉",
+      "anesthesiaSedation": "睡眠麻醉",
+      "anesthesiaGeneral": "全身麻醉",
+      "hospitalStay": "住院"
+    }
+  },
+  "bodyArea": {
+    "눈": "眼部",
+    "코": "鼻部",
+    "리프팅": "提升",
+    "피부": "皮肤",
+    "다이어트": "减肥",
+    "기타": "其他"
+  }
+}

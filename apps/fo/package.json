@@ -1,0 +1,28 @@
+{
+  "name": "@hyliren/fo",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 9000",
+    "build": "next build",
+    "start": "next start --port 9000",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@hyliren/i18n": "workspace:*",
+    "@hyliren/shared": "workspace:*",
+    "@hyliren/ui": "workspace:*",
+    "next": "^15",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/node": "25.6.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "postcss": "^8.5.9",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5"
+  }
+}

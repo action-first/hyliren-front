@@ -1,0 +1,111 @@
+{
+  "common": {
+    "appName": "한옌리런",
+    "appNameZh": "韩颜丽人",
+    "login": "로그인",
+    "signup": "회원가입",
+    "next": "다음",
+    "back": "뒤로",
+    "submit": "등록하기",
+    "cancel": "취소",
+    "save": "저장",
+    "close": "닫기",
+    "loading": "로딩 중...",
+    "empty": "데이터가 없습니다",
+    "verified": "인증",
+    "currency": "만원",
+    "won": "원"
+  },
+  "landing": {
+    "heroTitle": "나에게 맞는 시술, 병원이 먼저 제안합니다",
+    "heroSubtitle": "고민을 등록하면 검증된 한국 병원들이 맞춤 제안서를 보내드립니다. 비교하고, 검증하고, 직접 선택하세요.",
+    "cta": "무료로 고민 등록하기",
+    "trustHospitals": "파트너 병원",
+    "trustResponseRate": "응답률",
+    "trustSatisfaction": "만족도",
+    "howTitle": "어떻게 이용하나요?",
+    "howStep1Title": "고민을 등록하세요",
+    "howStep1Desc": "부위, 사진, 예산, 방문 시기만 입력하면 끝. 3분이면 충분합니다.",
+    "howStep2Title": "병원이 제안서를 보냅니다",
+    "howStep2Desc": "검증된 병원들이 시술 계획, 비용, 일정을 포함한 구조화된 제안서를 직접 보내드립니다.",
+    "howStep3Title": "비교하고 선택하세요",
+    "howStep3Desc": "동일한 기준으로 제안서를 비교하세요. 가격, 회복기간, 마취 방법까지 한눈에 비교 가능합니다.",
+    "whyTitle": "왜 한옌리런인가요?",
+    "valueCompareTitle": "구조화된 비교",
+    "valueCompareDesc": "모든 제안서가 동일한 포맷. 가격, 회복기간, 마취, 시술 항목을 한눈에 비교합니다.",
+    "valueVerifiedTitle": "검증된 병원",
+    "valueVerifiedDesc": "인증된 파트너 병원만 제안서를 보낼 수 있습니다. 브로커 없이 직접 소통하세요.",
+    "valueReportTitle": "플랜 검증 리포트",
+    "valueReportDesc": "과잉진료, 가격 적정성, 리스크를 분석한 검증 리포트로 올바른 결정을 도와드립니다.",
+    "valueExecutionTitle": "원스톱 실행",
+    "valueExecutionDesc": "통역, 픽업, 호텔, 회복 케어까지. 결정 이후 실행의 모든 것을 지원합니다."
+  },
+  "concern": {
+    "form": {
+      "bodyAreaTitle": "어떤 부위가 고민이세요?",
+      "bodyAreaSubtitle": "가장 궁금한 부위를 선택해주세요",
+      "bodyAreaDetailPlaceholder": "{area} 관련 상세 (예: 매몰쌍꺼풀, 코끝 성형)",
+      "photosTitle": "사진을 올려주세요",
+      "photosSubtitle": "고민 부위의 정면·측면 사진을 올리면 더 정확한 제안서를 받을 수 있어요",
+      "photosHint": "최대 5장 · 선택사항",
+      "photosAdd": "사진 추가",
+      "photosAddMore": "추가",
+      "detailsTitle": "상세 정보를 알려주세요",
+      "detailsSubtitle": "더 정확한 제안서를 위한 정보입니다",
+      "descriptionLabel": "고민 내용",
+      "descriptionPlaceholder": "어떤 점이 고민인지 자유롭게 적어주세요",
+      "budgetLabel": "예산 범위 (만원)",
+      "visitDateLabel": "방문 예정 시기",
+      "passportLabel": "여권을 보유하고 있습니다",
+      "submitButton": "고민 등록하기"
+    },
+    "complete": {
+      "title": "고민이 등록되었습니다!",
+      "subtitle": "검증된 병원들이 제안서를 준비하고 있어요. 보통 24시간 이내에 첫 제안서가 도착합니다.",
+      "bodyArea": "부위",
+      "budget": "예산",
+      "visitDate": "방문",
+      "photos": "사진",
+      "photoCount": "{count}장",
+      "goHome": "홈으로"
+    }
+  },
+  "proposal": {
+    "list": {
+      "title": "{count}개 병원이 제안서를 보냈습니다",
+      "subtitle": "제안서를 비교하고 마음에 드는 병원을 선택하세요",
+      "compareButton": "{count}개 제안서 비교하기",
+      "compareHint": "제안서를 2개 이상 선택하면 비교할 수 있어요",
+      "estimatedCost": "예상 비용",
+      "comparing": "비교 중"
+    },
+    "compare": {
+      "title": "{count}개 제안서 비교",
+      "selectButton": "이 제안서 선택하기",
+      "sectionTitle": "항목별 비교",
+      "totalPrice": "총 비용",
+      "recoveryDays": "회복 기간",
+      "anesthesia": "마취",
+      "hospitalStay": "입원",
+      "availableDate": "시술 가능",
+      "treatments": "시술 항목",
+      "none": "없음"
+    },
+    "spec": {
+      "recovery": "회복",
+      "days": "일",
+      "anesthesiaLocal": "부분마취",
+      "anesthesiaSedation": "수면마취",
+      "anesthesiaGeneral": "전신마취",
+      "hospitalStay": "입원"
+    }
+  },
+  "bodyArea": {
+    "눈": "눈",
+    "코": "코",
+    "리프팅": "리프팅",
+    "피부": "피부",
+    "다이어트": "다이어트",
+    "기타": "기타"
+  }
+}
