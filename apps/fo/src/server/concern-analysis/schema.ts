@@ -7,7 +7,7 @@ export const feedbackTurnSchema = z.object({
 
 export const analysisRequestSchema = z.object({
   photos: z
-    .array(z.string().url().or(z.string().startsWith('/')))
+    .array(z.string().url().or(z.string().startsWith('/')).or(z.string().startsWith('blob:')))
     .max(3, '사진은 최대 3장까지 가능합니다')
     .default([]),
   narrative: z

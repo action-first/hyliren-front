@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import { MOCK_CONCERNS, MOCK_PROPOSALS, MOCK_PROPOSAL_ITEMS, MOCK_PARTNER_PROFILES } from '@hyliren/shared';
+import { MOCK_CONCERNS, MOCK_PROPOSALS, MOCK_PROPOSAL_ITEMS, MOCK_PARTNER_PROFILES, track } from '@hyliren/shared';
 import { Button, Badge, MobileBottomCTA } from '@hyliren/ui';
-import { ArrowRight } from 'lucide-react';
-import { ExperienceCard } from '@/components/ExperienceCard';
+import { ArrowRight, Sparkles } from 'lucide-react';
+import { ExperienceCard } from '@/components/common/ExperienceCard';
 import { VALUE_PROPS, CARD_GRADIENTS as GRADIENTS } from '@/lib/constants';
+import { useDecisionStore } from '@/store/decision';
 import { use } from 'react';
 
 interface Props { params: Promise<{ id: string }>; }
@@ -18,20 +18,7 @@ export default function ProposalListPage({ params }: Props) {
     .filter(p => p.concernId === concern.id && p.isActive && p.status !== 'draft')
     .sort((a, b) => a.totalPrice - b.totalPrice);
 
-  const [selected, setSelected] = useState<Set<string>>(() => {
-    const initial = new Set<string>();
-    proposals.forEach(p => { if (p.status === 'shortlisted') initial.add(p.id); });
-    return initial;
-  });
-
-  const toggleSelect = (pid: string) => {
-    setSelected(prev => {
-      const next = new Set(prev);
-      if (next.has(pid)) next.delete(pid);
-      else next.add(pid);
-      return next;
-    });
-  };
+  const { selectedProposalIds: selected, toggleSelect } = useDecisionStore();
 
   return (
     <>
@@ -39,7 +26,7 @@ export default function ProposalListPage({ params }: Props) {
         {/* ── Header ── */}
         <div className="px-5 pt-7 pb-5">
           <div className="flex items-center gap-2 mb-2">
-            <Badge variant="info">{concern.bodyArea}</Badge>
+            <Badge variant="info" size="sm">{concern.primaryArea}</Badge>
             {concern.bodyAreaDetail && (
               <span className="text-[13px] text-[var(--color-text-secondary)]">{concern.bodyAreaDetail}</span>
             )}
@@ -83,6 +70,19 @@ export default function ProposalListPage({ params }: Props) {
             );
           })}
         </div>
+
+        {/* Analysis nudge */}
+        <Link href="/decision" className="no-underline block mt-5"
+          onClick={() => track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: 'proposal_list' } })}>
+          <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[#fff5f7]">
+            <Sparkles size={18} className="text-[var(--color-primary)] shrink-0" />
+            <div className="flex-1">
+              <span className="text-[13px] font-semibold text-[var(--color-text)] block">이 제안들, 괜찮을까요?</span>
+              <span className="text-[11px] text-[var(--color-text-dim)]">가격·리스크를 분석해드립니다</span>
+            </div>
+            <ArrowRight size={16} className="text-[var(--color-primary)]" />
+          </div>
+        </Link>
 
         <div className="h-24" />
       </div>

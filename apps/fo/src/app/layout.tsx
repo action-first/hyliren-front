@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import { FOHeader } from '@/components/FOHeader';
-import { FOTabBar } from '@/components/FOTabBar';
+import { FOHeader } from '@/components/layout/FOHeader';
+import { FOTabBar } from '@/components/layout/FOTabBar';
 
 export const metadata: Metadata = {
   title: '한옌리런 — 나에게 맞는 시술, 병원이 먼저 제안합니다',

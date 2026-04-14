@@ -4,22 +4,11 @@ import Link from 'next/link';
 import { MOCK_PROPOSALS, MOCK_PARTNER_PROFILES, MOCK_PROPOSAL_ITEMS, MOCK_CONCERNS } from '@hyliren/shared';
 import { Button, Badge } from '@hyliren/ui';
 import { ArrowRight, Camera, MessageCircle, FileText, ChevronRight } from 'lucide-react';
-import { ExperienceCard } from '@/components/ExperienceCard';
-import { StickyConsultCTA } from '@/components/StickyConsultCTA';
+import { ExperienceCard } from '@/components/common/ExperienceCard';
+import { StickyConsultCTA } from '@/components/common/StickyConsultCTA';
 import { VALUE_PROPS, CARD_GRADIENTS as G } from '@/lib/constants';
 
-/* ── mock user state ── */
-const USER_ID = 'u-001';
-const userConcerns = MOCK_CONCERNS.filter(c => c.userId === USER_ID && !c.deletedAt && c.status !== 'draft');
-const userProposalCount = MOCK_PROPOSALS.filter(p => p.isActive && p.status === 'sent' && !p.viewedAt).length;
-
 type UserPhase = 'idle' | 'waiting' | 'proposals_ready';
-function getUserPhase(): UserPhase {
-  if (userConcerns.length === 0) return 'idle';
-  if (userProposalCount > 0) return 'proposals_ready';
-  return 'waiting';
-}
-const phase = getUserPhase();
 
 /* ── pain-based concerns (카테고리 대체) ── */
 const CONCERNS = [
@@ -32,6 +21,11 @@ const CONCERNS = [
 ];
 
 export default function HomePage() {
+  /* ── mock user state (inside component for reactivity) ── */
+  const userConcerns = MOCK_CONCERNS.filter(c => c.userId === 'u-001' && !c.deletedAt && c.status !== 'draft');
+  const userProposalCount = MOCK_PROPOSALS.filter(p => p.isActive && p.status === 'sent' && !p.viewedAt).length;
+  const phase: UserPhase = userConcerns.length === 0 ? 'idle' : userProposalCount > 0 ? 'proposals_ready' : 'waiting';
+
   const proposals = MOCK_PROPOSALS
     .filter(p => p.isActive && p.status !== 'draft')
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -210,7 +204,7 @@ export default function HomePage() {
                 <div className={`w-full h-full bg-gradient-to-br ${a.gradient}`} />
               </div>
               <div className="flex flex-col gap-1 justify-center min-w-0">
-                <Badge variant={a.color}>{a.tag}</Badge>
+                <Badge variant={a.color} size="sm">{a.tag}</Badge>
                 <span className="text-[13px] font-medium text-[var(--color-text)] leading-snug line-clamp-2">{a.title}</span>
               </div>
             </Link>

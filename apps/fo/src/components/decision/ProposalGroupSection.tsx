@@ -5,7 +5,7 @@ import { Badge } from '@hyliren/ui';
 import { SelectableProposalCard } from './SelectableProposalCard';
 import { useDecisionStore } from '@/store/decision';
 import { VALUE_PROPS } from '@/lib/constants';
-import { STATUS_LABELS, STATUS_COLORS } from '@/lib/lifecycle';
+import { STATUS_LABELS, STATUS_COLORS } from '@/domain/lifecycle';
 
 interface Props {
   concern: Concern;
@@ -21,8 +21,10 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
   return (
     <section className="mb-7">
       {/* Group header */}
-      <div className="flex items-center gap-2 mb-3">
-        <Badge variant="info">{concern.bodyArea}</Badge>
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
+        {concern.bodyAreas.map(area => (
+          <Badge key={area} variant="info" size="sm">{area}</Badge>
+        ))}
         {concern.bodyAreaDetail && (
           <span className="text-[12px] text-[var(--color-text-dim)]">{concern.bodyAreaDetail}</span>
         )}
@@ -41,7 +43,6 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
             return (
               <div key={p.id} className="min-w-[15rem] max-w-[16rem] shrink-0">
                 <SelectableProposalCard
-                  proposalId={p.id}
                   hospitalName={profile?.hospitalName || ''}
                   verified={profile?.verified || false}
                   valueProp={VALUE_PROPS[p.memberId] || profile?.description || ''}
@@ -67,7 +68,6 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
             return (
               <SelectableProposalCard
                 key={p.id}
-                proposalId={p.id}
                 hospitalName={profile?.hospitalName || ''}
                 verified={profile?.verified || false}
                 valueProp={VALUE_PROPS[p.memberId] || profile?.description || ''}

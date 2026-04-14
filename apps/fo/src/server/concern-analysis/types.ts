@@ -1,5 +1,6 @@
 /* ══════════════════════════════════════
    Concern Analysis — Type Definitions
+   Multi-area concern support
    ══════════════════════════════════════ */
 
 /** Layer 1: Extract output */
@@ -11,7 +12,10 @@ export interface ExtractedTags {
 }
 
 export interface ExtractedSummary {
-  bodyArea?: string;
+  /** 복수 부위 */
+  bodyAreas: string[];
+  /** 대표 부위 (UI용) */
+  primaryArea: string;
   bodyAreaDetail?: string;
   desiredOutcome?: string;
   budgetMax?: number | null;
@@ -47,10 +51,13 @@ export interface MatchedOption {
   name: string;
   description: string;
   score: number;
+  bodyArea: string;
 }
 
 export interface RuleMatchResult {
-  bodyArea: string;
+  /** 복수 부위 */
+  bodyAreas: string[];
+  primaryArea: string;
   bodyAreaDetail: string;
   matchedOptions: MatchedOption[];
   ruleVersion: string;
@@ -64,6 +71,7 @@ export interface GeneratedGuide {
     key: string;
     name: string;
     description: string;
+    bodyArea: string;
   }>;
   disclaimer: string;
 }
@@ -89,6 +97,7 @@ export interface AnalysisResponse {
     key: string;
     name: string;
     description: string;
+    bodyArea: string;
   }>;
   extractedTags: ExtractedTags;
   extractedSummary: ExtractedSummary;

@@ -108,7 +108,9 @@ function getNextActionHref(concern: Concern, status: string, proposalCount: numb
     case 'submitted': return proposalCount > 0 ? `/concerns/${concern.id}/proposals` : `/concerns/${concern.id}`;
     case 'proposal_received': return `/concerns/${concern.id}/proposals`;
     case 'comparing': return `/concerns/${concern.id}/compare`;
+    case 'report_purchased': return `/concerns/${concern.id}/proposals`;
     case 'hospital_selected': return `/concerns/${concern.id}`;
+    case 'service_purchased': return `/concerns/${concern.id}`;
     case 'completed': return '/consult';
     default: return `/concerns/${concern.id}`;
   }

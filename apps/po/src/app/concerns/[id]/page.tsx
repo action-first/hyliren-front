@@ -26,7 +26,7 @@ export default async function ConcernDetailPage({ params }: Props) {
         <div className="po-content">
           {/* Status */}
           <div className="mb-4 flex gap-2">
-            <Badge variant="info">{concern.bodyArea}</Badge>
+            <Badge variant="info">{concern.primaryArea}</Badge>
             {concern.bodyAreaDetail && <Badge>{concern.bodyAreaDetail}</Badge>}
             <Badge variant={concern.status === 'submitted' ? 'warning' : 'success'}>{concern.status}</Badge>
           </div>

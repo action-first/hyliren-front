@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useConcernFlowStore } from '@/store/concern-flow';
-import type { AnalysisResponse } from '@/modules/concern-analysis/types';
+import type { AnalysisResponse } from '@/server/concern-analysis/types';
 
 const COPY_SEQUENCE = [
   '고객님의 사진과 이야기를 분석하고 있어요',
@@ -42,6 +42,7 @@ export function StepAIProcessing() {
         });
 
         if (cancelled) return;
+        if (!res.ok) throw new Error(`API error: ${res.status}`);
 
         const data: AnalysisResponse = await res.json();
         setAnalysisResult(data);

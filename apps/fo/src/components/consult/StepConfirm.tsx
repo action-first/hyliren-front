@@ -23,7 +23,7 @@ export function StepConfirm() {
     setSubmitting(true);
     track({ eventType: 'concern_submitted', actorType: 'user', metadata: {
       source: 'fo', locale: 'ko',
-      label: analysisResult!.extractedSummary.bodyArea || '',
+      label: analysisResult!.extractedSummary.primaryArea || '',
       value: String(analysisCount),
     }});
     await new Promise(r => setTimeout(r, 2000));

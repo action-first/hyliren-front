@@ -4,14 +4,17 @@ import { useState, useEffect } from 'react';
 import { Button } from '@hyliren/ui';
 import { ShieldCheck, TrendingDown, AlertTriangle, X } from 'lucide-react';
 import { track } from '@hyliren/shared';
+import { useReportStore } from '@/store/report';
 
 interface Props {
   concernId: string;
+  proposalId: string;
   /** Delay before auto-show (ms) */
   delay?: number;
 }
 
-export function ReportNudgeSheet({ concernId, delay = 5000 }: Props) {
+export function ReportNudgeSheet({ concernId, proposalId, delay = 5000 }: Props) {
+  const { setActiveProposal, openPaywall } = useReportStore();
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
@@ -31,9 +34,9 @@ export function ReportNudgeSheet({ concernId, delay = 5000 }: Props) {
 
   function handleClick() {
     track({ eventType: 'report_clicked', actorType: 'user', targetType: 'concern', targetId: concernId, metadata: { source: 'fo', locale: 'ko', label: 'nudge_sheet' } });
-    // TODO: navigate to report purchase page
-    alert('리포트 구매 페이지로 이동합니다 (추후 구현)');
+    setActiveProposal(proposalId);
     handleDismiss();
+    openPaywall();
   }
 
   if (!visible) return null;
@@ -47,7 +50,7 @@ export function ReportNudgeSheet({ concernId, delay = 5000 }: Props) {
       />
 
       {/* Sheet */}
-      <div className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-50 animate-[slideUp_0.3s_ease-out]">
+      <div className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-50 rounded-t-3xl overflow-hidden animate-[slideUp_0.3s_ease-out]">
         <div className="bg-white rounded-t-3xl px-6 pt-5 pb-8"
           style={{ boxShadow: '0 -4px 24px rgba(0,0,0,0.12)' }}>
 

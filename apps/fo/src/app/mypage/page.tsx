@@ -1,5 +1,6 @@
 import { MOCK_USERS, MOCK_CONCERNS } from '@hyliren/shared';
 import { Card, Badge, Avatar } from '@hyliren/ui';
+import { STATUS_LABELS, STATUS_COLORS } from '@/domain/lifecycle';
 
 export default function MyPage() {
   const user = MOCK_USERS.find(u => u.role === 'buyer')!;
@@ -38,10 +39,10 @@ export default function MyPage() {
             <Card key={c.id} padding="sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Badge variant="info">{c.bodyArea}</Badge>
+                  <Badge variant="info">{c.primaryArea}</Badge>
                   <span className="text-sm text-[var(--color-text)]">{c.bodyAreaDetail || c.description.slice(0, 20)}</span>
                 </div>
-                <Badge variant={c.status === 'comparing' ? 'warning' : c.status === 'hospital_selected' ? 'success' : 'default'}>{c.status}</Badge>
+                <Badge variant={STATUS_COLORS[c.status] || 'default'}>{STATUS_LABELS[c.status] || c.status}</Badge>
               </div>
             </Card>
           ))}

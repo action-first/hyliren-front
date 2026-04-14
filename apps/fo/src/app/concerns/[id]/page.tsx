@@ -8,7 +8,7 @@ import {
   ArrowRight, Plus, Edit3, Camera, FileText, ChevronRight,
   Sparkles, Clock, ShieldCheck, MessageCircle, BookOpen,
 } from 'lucide-react';
-import { computeConcernActions, getRecommendedArticles, STATUS_LABELS, STATUS_COLORS } from '@/lib/lifecycle';
+import { computeConcernActions, getRecommendedArticles, STATUS_LABELS, STATUS_COLORS } from '@/domain/lifecycle';
 
 interface Props { params: Promise<{ id: string }>; }
 
@@ -18,22 +18,24 @@ export default function ConcernDetailPage({ params }: Props) {
   const proposals = MOCK_PROPOSALS.filter(p => p.concernId === concern.id && p.isActive);
   const photos = MOCK_CONCERN_PHOTOS.filter(p => p.concernId === concern.id);
   const actions = computeConcernActions(concern, MOCK_PROPOSALS);
-  const articles = getRecommendedArticles(concern.bodyArea, concern.status);
+  const articles = getRecommendedArticles(concern.primaryArea, concern.status);
 
   return (
     <div className="flex flex-col px-5 pt-5 pb-10">
 
       {/* ── Header ── */}
       <div className="mb-5">
-        <div className="flex items-center gap-2 mb-2">
-          <Badge variant={STATUS_COLORS[concern.status]}>{STATUS_LABELS[concern.status]}</Badge>
-          <Badge variant="info">{concern.bodyArea}</Badge>
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <Badge variant={STATUS_COLORS[concern.status] || 'default'}>{STATUS_LABELS[concern.status] || concern.status}</Badge>
+          {concern.bodyAreas.map(area => (
+            <Badge key={area} variant="info" size="sm">{area}</Badge>
+          ))}
           {concern.bodyAreaDetail && (
             <span className="text-[12px] text-[var(--color-text-dim)]">{concern.bodyAreaDetail}</span>
           )}
         </div>
         <h1 className="text-[1.375rem] font-bold text-[var(--color-text)] leading-tight">
-          {concern.bodyArea} 고민
+          {concern.bodyAreas.join(' · ')} 고민
         </h1>
       </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import type { AnalysisResponse } from '@/modules/concern-analysis/types';
+import type { AnalysisResponse } from '@/server/concern-analysis/types';
 import { Sparkles, Shield } from 'lucide-react';
 
 interface Props {
@@ -12,7 +12,7 @@ export function AIAnalysisResultCard({ result, compact = false }: Props) {
   const { extractedSummary, options, disclaimer } = result;
 
   const rows = [
-    { label: '고민 부위', value: extractedSummary.bodyArea },
+    { label: '고민 부위', value: extractedSummary.bodyAreas?.join(' · ') || extractedSummary.primaryArea },
     { label: '세부', value: extractedSummary.bodyAreaDetail },
     { label: '원하는 방향', value: extractedSummary.desiredOutcome },
     { label: '예산', value: extractedSummary.budgetMax ? `${extractedSummary.budgetMax.toLocaleString()}만원` : '미정' },

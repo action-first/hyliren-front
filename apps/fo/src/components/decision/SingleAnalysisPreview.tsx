@@ -4,8 +4,11 @@ import { useEffect } from 'react';
 import type { Proposal, PartnerProfile } from '@hyliren/shared';
 import { track } from '@hyliren/shared';
 import { Button } from '@hyliren/ui';
-import { X, TrendingDown, ShieldCheck, AlertTriangle, Lock } from 'lucide-react';
-import { useReportStore, type ReportPreview } from '@/store/report';
+import {
+  X, TrendingDown, ShieldCheck, AlertTriangle, Lock,
+  CheckCircle, XCircle, BarChart3, Activity, FileCheck,
+} from 'lucide-react';
+import { useReportStore, type ReportPreview, type FullReport } from '@/store/report';
 
 interface Props {
   proposal: Proposal;
@@ -13,83 +16,93 @@ interface Props {
   onClose: () => void;
 }
 
-/** Mock analysis preview generator */
-function generatePreview(proposal: Proposal, profile: PartnerProfile | undefined): ReportPreview {
-  const priceAdequacy: ReportPreview['priceAdequacy'] =
-    proposal.totalPrice < 200 ? 'low' : proposal.totalPrice > 400 ? 'high' : 'fair';
-  const riskLevel: ReportPreview['riskLevel'] =
-    proposal.anesthesiaType === 'general' ? 'medium' : 'low';
+/* ── Mock generators ── */
 
+function generatePreview(proposal: Proposal, profile: PartnerProfile | undefined): ReportPreview {
   return {
     proposalId: proposal.id,
     hospitalName: profile?.hospitalName || '',
-    priceAdequacy,
-    riskLevel,
+    priceAdequacy: proposal.totalPrice < 200 ? 'low' : proposal.totalPrice > 400 ? 'high' : 'fair',
+    riskLevel: proposal.anesthesiaType === 'general' ? 'medium' : 'low',
     overtreatment: 'none',
     summary: `${profile?.hospitalName}의 ${proposal.totalPrice}만원 제안에 대한 분석입니다.`,
   };
 }
 
-const ADEQUACY_LABELS: Record<string, { text: string; color: string }> = {
-  low: { text: '평균 이하', color: 'text-emerald-600' },
-  fair: { text: '적정 수준', color: 'text-[var(--color-text)]' },
-  high: { text: '평균 이상', color: 'text-amber-600' },
-};
+function generateFullReport(proposal: Proposal, profile: PartnerProfile | undefined): FullReport {
+  const avgPrice = Math.round(proposal.totalPrice * 1.1);
+  return {
+    proposalId: proposal.id,
+    hospitalName: profile?.hospitalName || '',
+    priceScore: proposal.totalPrice < 200 ? 85 : proposal.totalPrice > 400 ? 55 : 72,
+    priceVerdict: proposal.totalPrice <= avgPrice
+      ? '이 제안의 가격은 시장 평균 대비 합리적인 수준입니다.'
+      : '이 제안의 가격은 시장 평균보다 다소 높은 편입니다. 포함된 시술 항목을 확인해보세요.',
+    priceBreakdown: [
+      { itemName: '주요 시술', proposalPrice: Math.round(proposal.totalPrice * 0.75), marketAvg: Math.round(proposal.totalPrice * 0.8), marketRange: [Math.round(proposal.totalPrice * 0.5), Math.round(proposal.totalPrice * 1.2)], verdict: 'fair' },
+      { itemName: '부가 시술', proposalPrice: Math.round(proposal.totalPrice * 0.25), marketAvg: Math.round(proposal.totalPrice * 0.3), marketRange: [Math.round(proposal.totalPrice * 0.15), Math.round(proposal.totalPrice * 0.4)], verdict: proposal.totalPrice > 300 ? 'above' : 'below' },
+    ],
+    overtreatmentVerdict: '현재 제안에 포함된 시술 항목은 고민 내용에 비추어 일반적으로 적정한 수준으로 판단됩니다.',
+    unnecessaryItems: [],
+    necessaryItems: ['주요 시술은 고민 해결에 직접적으로 관련됩니다', '부가 시술은 결과의 완성도를 높이는 역할을 합니다'],
+    overallRisk: proposal.anesthesiaType === 'general' ? 'medium' : 'low',
+    riskItems: [
+      { procedure: '주요 시술', riskLevel: 'low', description: '일반적으로 안전한 시술이며, 심각한 부작용 사례가 매우 드뭅니다', recoveryDays: `${proposal.recoveryDays}일`, frequency: '한국 내 연간 10만 건 이상 시행' },
+      ...(proposal.anesthesiaType === 'general' ? [{ procedure: '전신마취', riskLevel: 'medium' as const, description: '전신마취에 따른 일반적 위험이 존재하며, 사전 건강 검진이 필요합니다', recoveryDays: '당일~1일', frequency: '정상 범위' }] : []),
+    ],
+    conclusion: `종합적으로, ${profile?.hospitalName}의 이 제안은 가격과 시술 구성 면에서 ${proposal.totalPrice <= avgPrice ? '합리적인' : '검토가 필요한'} 수준입니다. 최종 결정 전 병원 상담을 통해 개인 상태에 맞는 정밀 진단을 받으시기를 권합니다.`,
+    disclaimer: '이 리포트는 일반적인 시장 데이터와 시술 정보를 기반으로 작성되었으며, 개인의 의료 상태에 따라 결과가 달라질 수 있습니다. 정확한 판단은 반드시 병원 상담을 통해 이루어져야 합니다.',
+  };
+}
 
-const RISK_LABELS: Record<string, { text: string; color: string }> = {
-  low: { text: '낮음', color: 'text-emerald-600' },
-  medium: { text: '보통', color: 'text-amber-600' },
-  high: { text: '주의', color: 'text-red-500' },
-};
-
-const OVERTREATMENT_LABELS: Record<string, { text: string; color: string }> = {
-  none: { text: '의심 없음', color: 'text-emerald-600' },
-  suspected: { text: '확인 필요', color: 'text-amber-600' },
-  likely: { text: '주의 필요', color: 'text-red-500' },
-};
+/* ── Label maps ── */
+const ADEQUACY = { low: { text: '평균 이하', color: 'text-emerald-600' }, fair: { text: '적정', color: 'text-[var(--color-text)]' }, high: { text: '평균 이상', color: 'text-amber-600' } };
+const RISK = { low: { text: '낮음', color: 'text-emerald-600' }, medium: { text: '보통', color: 'text-amber-600' }, high: { text: '주의', color: 'text-red-500' } };
+const OVER = { none: { text: '의심 없음', color: 'text-emerald-600' }, suspected: { text: '확인 필요', color: 'text-amber-600' }, likely: { text: '주의 필요', color: 'text-red-500' } };
+const VERDICT_COLOR = { below: 'text-emerald-600', fair: 'text-[var(--color-text)]', above: 'text-amber-600' };
+const VERDICT_LABEL = { below: '저렴', fair: '적정', above: '높음' };
 
 export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
-  const { openPaywall, isPurchased: checkPurchased } = useReportStore();
+  const { openPaywall, isPurchased: checkPurchased, setFullReport } = useReportStore();
   const purchased = checkPurchased(proposal.id);
   const preview = generatePreview(proposal, profile);
 
   useEffect(() => {
-    track({ eventType: 'report_preview_viewed', actorType: 'user', targetType: 'proposal', targetId: proposal.id,
-      metadata: { source: 'fo', locale: 'ko' } });
-  }, [proposal.id]);
+    track({ eventType: 'report_preview_viewed', actorType: 'user', targetType: 'proposal', targetId: proposal.id, metadata: { source: 'fo', locale: 'ko' } });
+    if (purchased) {
+      setFullReport(generateFullReport(proposal, profile));
+    }
+  }, [proposal.id, purchased]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const fullReport = purchased ? generateFullReport(proposal, profile) : null;
 
   function handleUnlock() {
-    track({ eventType: 'report_paywall_viewed', actorType: 'user', targetType: 'proposal', targetId: proposal.id,
-      metadata: { source: 'fo', locale: 'ko' } });
+    track({ eventType: 'report_paywall_viewed', actorType: 'user', targetType: 'proposal', targetId: proposal.id, metadata: { source: 'fo', locale: 'ko' } });
     openPaywall();
   }
-
-  const priceInfo = ADEQUACY_LABELS[preview.priceAdequacy];
-  const riskInfo = RISK_LABELS[preview.riskLevel];
-  const overInfo = OVERTREATMENT_LABELS[preview.overtreatment];
 
   return (
     <>
       <div className="fixed inset-0 bg-black/30 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-50 animate-[slideUp_0.3s_ease-out]">
-        <div className="bg-white rounded-t-3xl max-h-[85vh] overflow-y-auto">
+      <div className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-50 rounded-t-3xl overflow-hidden animate-[slideUp_0.3s_ease-out]">
+        <div className="bg-white rounded-t-3xl max-h-[90vh] overflow-y-auto hide-scrollbar">
           {/* Header */}
-          <div className="flex items-center justify-between px-5 pt-4 pb-3">
+          <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-[var(--color-border-light)]">
             <span className="text-[15px] font-semibold text-[var(--color-text)]">
-              {profile?.hospitalName} 분석
+              {profile?.hospitalName} {purchased ? '검증 리포트' : '분석'}
             </span>
-            <button onClick={onClose} className="w-8 h-8 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center border-0 cursor-pointer">
+            <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center border-0 cursor-pointer">
               <X size={16} className="text-[var(--color-text-dim)]" />
             </button>
           </div>
 
-          <div className="px-5 pb-5">
-            {/* Free preview — 70% visible */}
+          <div className="px-5 py-4">
+            {/* ═══ FREE PREVIEW — 3 metrics ═══ */}
             <div className="flex flex-col gap-2.5 mb-4">
               {[
-                { icon: TrendingDown, label: '가격 적정성', value: priceInfo.text, color: priceInfo.color },
-                { icon: AlertTriangle, label: '리스크 수준', value: riskInfo.text, color: riskInfo.color },
-                { icon: ShieldCheck, label: '과잉진료 여부', value: overInfo.text, color: overInfo.color },
+                { icon: TrendingDown, label: '가격 적정성', value: ADEQUACY[preview.priceAdequacy].text, color: ADEQUACY[preview.priceAdequacy].color },
+                { icon: AlertTriangle, label: '리스크 수준', value: RISK[preview.riskLevel].text, color: RISK[preview.riskLevel].color },
+                { icon: ShieldCheck, label: '과잉진료 여부', value: OVER[preview.overtreatment].text, color: OVER[preview.overtreatment].color },
               ].map(row => {
                 const Icon = row.icon;
                 return (
@@ -102,45 +115,134 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
               })}
             </div>
 
-            {/* Blurred/locked section — 30% hidden */}
-            {!purchased && (
-              <div className="relative rounded-2xl overflow-hidden mb-5">
-                {/* Blurred content */}
-                <div className="filter blur-[6px] pointer-events-none select-none px-4 py-4 bg-[var(--color-bg-secondary)]">
-                  <div className="h-3 w-3/4 bg-[var(--color-border)] rounded mb-2" />
-                  <div className="h-3 w-1/2 bg-[var(--color-border)] rounded mb-4" />
-                  <div className="h-3 w-full bg-[var(--color-border)] rounded mb-2" />
-                  <div className="h-3 w-2/3 bg-[var(--color-border)] rounded mb-2" />
-                  <div className="h-3 w-5/6 bg-[var(--color-border)] rounded mb-4" />
-                  <div className="h-3 w-3/4 bg-[var(--color-border)] rounded mb-2" />
-                  <div className="h-3 w-1/2 bg-[var(--color-border)] rounded" />
-                </div>
-                {/* Lock overlay */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[1px]">
-                  <div className="w-10 h-10 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center mb-2">
-                    <Lock size={18} className="text-[var(--color-text-dim)]" />
+            {/* ═══ PURCHASED — FULL REPORT ═══ */}
+            {purchased && fullReport && (
+              <div className="flex flex-col gap-4 mb-5">
+
+                {/* Section 1: 가격 분석 */}
+                <div className="rounded-2xl bg-white border border-[var(--color-border-light)] overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-3 bg-[var(--color-bg-secondary)]">
+                    <BarChart3 size={15} className="text-[var(--color-primary)]" />
+                    <span className="text-[13px] font-semibold text-[var(--color-text)]">가격 적정성 분석</span>
+                    <span className="ml-auto text-[1rem] font-bold text-[var(--color-primary)]">{fullReport.priceScore}점</span>
                   </div>
-                  <span className="text-[13px] font-semibold text-[var(--color-text)]">상세 분석 잠금</span>
-                  <span className="text-[11px] text-[var(--color-text-dim)] mt-0.5">리포트를 구매하면 전체 내용을 확인할 수 있어요</span>
+                  <div className="px-4 py-3">
+                    <p className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed mb-3">{fullReport.priceVerdict}</p>
+                    {fullReport.priceBreakdown.map(item => (
+                      <div key={item.itemName} className="flex items-center justify-between py-2 border-t border-[var(--color-border-light)]">
+                        <div>
+                          <span className="text-[12px] font-medium text-[var(--color-text)] block">{item.itemName}</span>
+                          <span className="text-[10px] text-[var(--color-text-dim)]">시장 평균 {item.marketAvg}만 ({item.marketRange[0]}~{item.marketRange[1]}만)</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[13px] font-bold text-[var(--color-text)] block">{item.proposalPrice}만</span>
+                          <span className={`text-[10px] font-medium ${VERDICT_COLOR[item.verdict]}`}>{VERDICT_LABEL[item.verdict]}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Section 2: 과잉진료 검증 */}
+                <div className="rounded-2xl bg-white border border-[var(--color-border-light)] overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-3 bg-[var(--color-bg-secondary)]">
+                    <FileCheck size={15} className="text-[var(--color-primary)]" />
+                    <span className="text-[13px] font-semibold text-[var(--color-text)]">과잉진료 검증</span>
+                  </div>
+                  <div className="px-4 py-3">
+                    <p className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed mb-2">{fullReport.overtreatmentVerdict}</p>
+                    {fullReport.necessaryItems.map(item => (
+                      <div key={item} className="flex items-start gap-2 py-1.5">
+                        <CheckCircle size={13} className="text-emerald-500 shrink-0 mt-0.5" />
+                        <span className="text-[11px] text-[var(--color-text)] leading-relaxed">{item}</span>
+                      </div>
+                    ))}
+                    {fullReport.unnecessaryItems.map(item => (
+                      <div key={item} className="flex items-start gap-2 py-1.5">
+                        <XCircle size={13} className="text-red-400 shrink-0 mt-0.5" />
+                        <span className="text-[11px] text-[var(--color-text)] leading-relaxed">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Section 3: 리스크 평가 */}
+                <div className="rounded-2xl bg-white border border-[var(--color-border-light)] overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-3 bg-[var(--color-bg-secondary)]">
+                    <Activity size={15} className="text-[var(--color-primary)]" />
+                    <span className="text-[13px] font-semibold text-[var(--color-text)]">리스크 평가</span>
+                    <span className={`ml-auto text-[12px] font-semibold ${RISK[fullReport.overallRisk].color}`}>
+                      종합: {RISK[fullReport.overallRisk].text}
+                    </span>
+                  </div>
+                  <div className="px-4 py-3">
+                    {fullReport.riskItems.map(item => (
+                      <div key={item.procedure} className="py-2.5 border-t border-[var(--color-border-light)] first:border-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[12px] font-medium text-[var(--color-text)]">{item.procedure}</span>
+                          <span className={`text-[11px] font-semibold ${RISK[item.riskLevel].color}`}>{RISK[item.riskLevel].text}</span>
+                        </div>
+                        <p className="text-[11px] text-[var(--color-text-dim)] leading-relaxed mb-1">{item.description}</p>
+                        <div className="flex gap-3 text-[10px] text-[var(--color-text-dim)]">
+                          <span>회복: {item.recoveryDays}</span>
+                          <span>{item.frequency}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Section 4: 종합 의견 */}
+                <div className="rounded-2xl bg-gradient-to-br from-[var(--color-primary-soft)] to-[#fff5f7] px-4 py-4">
+                  <span className="text-[12px] font-semibold text-[var(--color-primary)] block mb-2">종합 의견</span>
+                  <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{fullReport.conclusion}</p>
+                </div>
+
+                {/* Disclaimer */}
+                <p className="text-[10px] text-[var(--color-text-dim)] leading-relaxed px-1">{fullReport.disclaimer}</p>
               </div>
             )}
 
-            {/* Full report (if purchased) */}
-            {purchased && (
-              <div className="rounded-2xl bg-[var(--color-bg-secondary)] px-4 py-4 mb-5">
-                <span className="text-[12px] font-semibold text-emerald-600 block mb-2">✓ 전체 리포트</span>
-                <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
-                  {preview.summary} 가격은 시장 평균 대비 {ADEQUACY_LABELS[preview.priceAdequacy].text} 수준이며,
-                  리스크는 {RISK_LABELS[preview.riskLevel].text}으로 평가됩니다.
-                  과잉진료 가능성은 현재 {OVERTREATMENT_LABELS[preview.overtreatment].text}입니다.
-                  정확한 적용 여부는 실제 병원 상담을 통해 결정됩니다.
-                </p>
-              </div>
+            {/* ═══ NOT PURCHASED — BLUR SECTIONS ═══ */}
+            {!purchased && (
+              <>
+                {/* Locked: 상세 분석 */}
+                <div className="relative rounded-2xl overflow-hidden mb-3">
+                  <div className="filter blur-[6px] pointer-events-none select-none px-4 py-4 bg-[var(--color-bg-secondary)]">
+                    <div className="h-3 w-3/4 bg-[var(--color-border)] rounded mb-2" />
+                    <div className="h-3 w-1/2 bg-[var(--color-border)] rounded mb-3" />
+                    <div className="h-3 w-full bg-[var(--color-border)] rounded mb-2" />
+                    <div className="h-3 w-2/3 bg-[var(--color-border)] rounded mb-2" />
+                    <div className="h-3 w-5/6 bg-[var(--color-border)] rounded mb-3" />
+                    <div className="h-3 w-3/4 bg-[var(--color-border)] rounded mb-2" />
+                    <div className="h-3 w-1/2 bg-[var(--color-border)] rounded" />
+                  </div>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[1px]">
+                    <div className="w-10 h-10 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center mb-2">
+                      <Lock size={18} className="text-[var(--color-text-dim)]" />
+                    </div>
+                    <span className="text-[13px] font-semibold text-[var(--color-text)]">가격·과잉진료·리스크 상세 분석</span>
+                    <span className="text-[11px] text-[var(--color-text-dim)] mt-0.5">리포트를 구매하면 전체 내용을 확인할 수 있어요</span>
+                  </div>
+                </div>
+
+                {/* Locked: 비교 우위 */}
+                <div className="relative rounded-2xl overflow-hidden mb-5">
+                  <div className="filter blur-[6px] pointer-events-none select-none px-4 py-3.5 bg-[var(--color-bg-secondary)]">
+                    <div className="h-3 w-2/3 bg-[var(--color-border)] rounded mb-2" />
+                    <div className="h-3 w-full bg-[var(--color-border)] rounded mb-2" />
+                    <div className="h-3 w-3/4 bg-[var(--color-border)] rounded" />
+                  </div>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[1px]">
+                    <Lock size={14} className="text-[var(--color-text-dim)] mb-1" />
+                    <span className="text-[12px] font-semibold text-[var(--color-text)]">다른 제안과 비교 시 우위 분석</span>
+                  </div>
+                </div>
+              </>
             )}
           </div>
 
-          {/* CTA */}
+          {/* Sticky CTA */}
           <div className="sticky bottom-0 bg-white border-t border-[var(--color-border-light)] px-5 py-4">
             {purchased ? (
               <Button variant="primary" size="lg" fullWidth onClick={onClose}>
@@ -152,7 +254,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
                   전체 리포트 보기 (₩4,900)
                 </Button>
                 <p className="text-center text-[10px] text-[var(--color-text-dim)] mt-1.5">
-                  정확한 적용 여부는 실제 병원 상담을 통해 결정됩니다
+                  이 제안이 평균보다 비쌀 수도 있습니다
                 </p>
               </>
             )}

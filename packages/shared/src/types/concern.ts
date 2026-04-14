@@ -5,6 +5,11 @@ export interface Concern {
   userId: string;
   status: ConcernStatus;
   source: ConcernSource;
+  /** 복수 부위 지원 — 최소 1개 */
+  bodyAreas: BodyArea[];
+  /** 대표 부위 (UI 표시용) */
+  primaryArea: BodyArea;
+  /** @deprecated bodyAreas[0]으로 대체 — 하위 호환용 getter */
   bodyArea: BodyArea;
   bodyAreaDetail: string | null;
   description: string;

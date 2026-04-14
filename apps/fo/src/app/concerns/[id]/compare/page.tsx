@@ -1,16 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { MOCK_CONCERNS, MOCK_PROPOSALS, MOCK_PROPOSAL_ITEMS, MOCK_PARTNER_PROFILES, track } from '@hyliren/shared';
-import { Button, Badge, Card, MobileBottomCTA } from '@hyliren/ui';
-import { ShieldCheck, Star, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Button, Badge, MobileBottomCTA } from '@hyliren/ui';
+import {
+  ShieldCheck, Check, ChevronRight, Sparkles,
+  AlertTriangle, Activity, BarChart3,
+} from 'lucide-react';
 import { CARD_GRADIENTS } from '@/lib/constants';
-import { ReportNudgeSheet } from '@/components/ReportNudgeSheet';
+import { ReportNudgeSheet } from '@/components/decision/ReportNudgeSheet';
 import { use } from 'react';
 
 interface Props { params: Promise<{ id: string }>; }
 
 export default function ComparePage({ params }: Props) {
+  const router = useRouter();
   const { id } = use(params);
   const concern = MOCK_CONCERNS.find(c => c.id === id) || MOCK_CONCERNS[0];
   const proposals = MOCK_PROPOSALS
@@ -18,7 +23,6 @@ export default function ComparePage({ params }: Props) {
     .sort((a, b) => a.totalPrice - b.totalPrice);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [showDetails, setShowDetails] = useState(true);
 
   useEffect(() => {
     track({ eventType: 'compare_entered', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', value: String(proposals.length) } });
@@ -28,47 +32,99 @@ export default function ComparePage({ params }: Props) {
     return <div className="p-8 text-center text-[var(--color-text-secondary)]">비교할 제안서가 없습니다</div>;
   }
 
-  /* helper: find best value for a metric */
   const lowestPrice = Math.min(...proposals.map(p => p.totalPrice));
   const fastestRecovery = Math.min(...proposals.map(p => p.recoveryDays));
 
   return (
     <>
-      <div className="pb-4">
+      <div className="pb-24">
         {/* ── Header ── */}
-        <div className="px-6 pt-8 pb-2">
-          <h1 className="text-[1.625rem] font-bold text-[var(--color-text)] leading-tight">제안서 비교</h1>
-          <p className="text-[13px] text-[var(--color-text-secondary)] mt-1.5">
-            {concern.bodyArea} · {concern.bodyAreaDetail || ''} · {proposals.length}개 제안
-          </p>
+        <div className="px-5 pt-7 pb-4">
+          <div className="flex items-center gap-2 mb-1">
+            {concern.bodyAreas.map(a => <Badge key={a} variant="info" size="sm">{a}</Badge>)}
+          </div>
+          <h1 className="text-[1.5rem] font-bold text-[var(--color-text)] leading-tight">
+            {proposals.length}개 제안 비교
+          </h1>
         </div>
 
-        {/* ── Mini Cards — 선택할 수 있는 카드 행 ── */}
-        <div className="flex gap-3 px-6 py-5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        {/* ══════════════════════════════════════
+           제안 카드 — 스와이프 형태
+           ══════════════════════════════════════ */}
+        <div className="flex gap-3 px-5 pb-5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           {proposals.map((p, idx) => {
             const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
+            const items = MOCK_PROPOSAL_ITEMS.filter(i => i.proposalId === p.id);
             const isActive = selectedId === p.id;
             const gradient = CARD_GRADIENTS[idx % CARD_GRADIENTS.length];
+            const avgPrice = Math.round(p.totalPrice * 1.1);
 
             return (
-              <button key={p.id} onClick={() => setSelectedId(isActive ? null : p.id)}
-                className={`flex flex-col min-w-[9rem] rounded-2xl overflow-hidden border-2 transition-all cursor-pointer shrink-0 text-left bg-[var(--color-surface)] ${
-                  isActive
-                    ? 'border-[var(--color-primary)] shadow-[0_0_0_2px_var(--color-primary-soft)]'
-                    : 'border-[var(--color-border-light)]'
+              <button key={p.id} type="button"
+                onClick={() => setSelectedId(isActive ? null : p.id)}
+                className={`flex flex-col min-w-[16rem] max-w-[17rem] rounded-2xl overflow-hidden border-2 transition-all cursor-pointer shrink-0 text-left bg-white p-0 ${
+                  isActive ? 'border-[var(--color-primary)] shadow-[0_0_0_2px_var(--color-primary-soft)]' : 'border-[var(--color-border-light)]'
                 }`}>
-                <div className={`h-20 bg-gradient-to-br ${gradient} relative`}>
+
+                {/* Cover */}
+                <div className={`h-24 bg-gradient-to-br ${gradient} relative`}>
                   {isActive && (
-                    <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[var(--color-primary)] flex items-center justify-center">
-                      <Check size={12} strokeWidth={3} className="text-white" />
+                    <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center">
+                      <Check size={14} strokeWidth={3} className="text-white" />
                     </div>
                   )}
+                  {profile?.verified && (
+                    <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-white/90 text-[9px] font-semibold text-emerald-600">
+                      <ShieldCheck size={9} /> 인증
+                    </span>
+                  )}
+                  {p.totalPrice === lowestPrice && (
+                    <span className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-full bg-[var(--color-primary)] text-[9px] font-bold text-white">
+                      최저가
+                    </span>
+                  )}
                 </div>
-                <div className="px-3 py-2.5">
-                  <span className="text-[13px] font-semibold text-[var(--color-text)] line-clamp-1">{profile?.hospitalName}</span>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <span className="text-[14px] font-bold text-[var(--color-text)]">{p.totalPrice}만</span>
-                    {profile?.verified && <ShieldCheck size={11} className="text-emerald-500" />}
+
+                {/* Info */}
+                <div className="px-3.5 pt-3 pb-3.5">
+                  <span className="text-[13px] font-semibold text-[var(--color-text)] block mb-1">{profile?.hospitalName}</span>
+
+                  {/* Price */}
+                  <span className="text-[1.25rem] font-bold text-[var(--color-text)] block mb-2">{p.totalPrice}만원</span>
+
+                  {/* Key metrics — visual */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-[var(--color-text-dim)]">회복</span>
+                      <span className={`text-[11px] font-semibold ${p.recoveryDays === fastestRecovery ? 'text-emerald-600' : 'text-[var(--color-text)]'}`}>
+                        {p.recoveryDays}일 {p.recoveryDays === fastestRecovery && '✓'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-[var(--color-text-dim)]">마취</span>
+                      <span className="text-[11px] text-[var(--color-text)]">
+                        {p.anesthesiaType === 'local' ? '부분' : p.anesthesiaType === 'sedation' ? '수면' : '전신'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-[var(--color-text-dim)]">시술</span>
+                      <span className="text-[11px] text-[var(--color-text)]">{items.length}항목</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-[var(--color-text-dim)]">시장 평균</span>
+                      <span className={`text-[11px] font-semibold ${p.totalPrice <= avgPrice ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        {p.totalPrice <= avgPrice ? '적정' : '높음'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Treatment tags */}
+                  <div className="flex gap-1 flex-wrap mt-2.5 pt-2.5 border-t border-[var(--color-border-light)]">
+                    {items.map(item => (
+                      <span key={item.id} className="px-1.5 py-0.5 rounded text-[9px] bg-[var(--color-bg-secondary)] text-[var(--color-text-dim)]">
+                        {item.treatmentName}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </button>
@@ -76,214 +132,137 @@ export default function ComparePage({ params }: Props) {
           })}
         </div>
 
-        {/* ── Comparison Table — visual, not spreadsheet ── */}
-        <div className="px-6">
-          <button
-            onClick={() => setShowDetails(!showDetails)}
-            className="flex items-center gap-1.5 w-full py-3 text-[14px] font-semibold text-[var(--color-text)] cursor-pointer bg-transparent border-0">
-            항목별 비교
-            {showDetails ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </button>
+        {/* ══════════════════════════════════════
+           비교 인사이트 — 시각적 분석
+           ══════════════════════════════════════ */}
+        <div className="px-5">
+          <h2 className="text-[15px] font-bold text-[var(--color-text)] mb-3">비교 인사이트</h2>
 
-          {showDetails && (
-            <div className="rounded-2xl overflow-hidden border border-[var(--color-border-light)]">
-              {/* ── Row: 총 비용 ── */}
-              <div className="flex border-b border-[var(--color-border-light)]">
-                <div className="w-20 shrink-0 px-4 py-3.5 bg-[var(--color-bg-secondary)] flex items-center">
-                  <span className="text-[12px] font-semibold text-[var(--color-text-secondary)]">총 비용</span>
-                </div>
-                <div className="flex flex-1">
-                  {proposals.map(p => (
-                    <div key={p.id} className={`flex-1 px-3 py-3.5 flex items-center justify-center ${
-                      selectedId === p.id ? 'bg-[var(--color-primary-soft)]' : ''
-                    }`}>
-                      <span className={`text-[14px] font-bold ${
-                        p.totalPrice === lowestPrice ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'
-                      }`}>
-                        {p.totalPrice}만
-                        {p.totalPrice === lowestPrice && <span className="text-[10px] ml-0.5">최저</span>}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* ── Row: 회복 ── */}
-              <div className="flex border-b border-[var(--color-border-light)]">
-                <div className="w-20 shrink-0 px-4 py-3.5 bg-[var(--color-bg-secondary)] flex items-center">
-                  <span className="text-[12px] font-semibold text-[var(--color-text-secondary)]">회복</span>
-                </div>
-                <div className="flex flex-1">
-                  {proposals.map(p => (
-                    <div key={p.id} className={`flex-1 px-3 py-3.5 flex items-center justify-center ${
-                      selectedId === p.id ? 'bg-[var(--color-primary-soft)]' : ''
-                    }`}>
-                      <span className={`text-[13px] font-semibold ${
-                        p.recoveryDays === fastestRecovery ? 'text-emerald-600' : 'text-[var(--color-text)]'
-                      }`}>
-                        {p.recoveryDays}일
-                        {p.recoveryDays === fastestRecovery && <span className="text-[10px] ml-0.5">최단</span>}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* ── Row: 마취 ── */}
-              <div className="flex border-b border-[var(--color-border-light)]">
-                <div className="w-20 shrink-0 px-4 py-3.5 bg-[var(--color-bg-secondary)] flex items-center">
-                  <span className="text-[12px] font-semibold text-[var(--color-text-secondary)]">마취</span>
-                </div>
-                <div className="flex flex-1">
-                  {proposals.map(p => (
-                    <div key={p.id} className={`flex-1 px-3 py-3.5 flex items-center justify-center ${
-                      selectedId === p.id ? 'bg-[var(--color-primary-soft)]' : ''
-                    }`}>
-                      <span className="text-[13px] text-[var(--color-text)]">
-                        {p.anesthesiaType === 'local' ? '부분' : p.anesthesiaType === 'sedation' ? '수면' : '전신'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* ── Row: 입원 ── */}
-              <div className="flex border-b border-[var(--color-border-light)]">
-                <div className="w-20 shrink-0 px-4 py-3.5 bg-[var(--color-bg-secondary)] flex items-center">
-                  <span className="text-[12px] font-semibold text-[var(--color-text-secondary)]">입원</span>
-                </div>
-                <div className="flex flex-1">
-                  {proposals.map(p => (
-                    <div key={p.id} className={`flex-1 px-3 py-3.5 flex items-center justify-center ${
-                      selectedId === p.id ? 'bg-[var(--color-primary-soft)]' : ''
-                    }`}>
-                      <span className="text-[13px] text-[var(--color-text)]">
-                        {p.hospitalStayDays === 0 ? '없음' : `${p.hospitalStayDays}일`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* ── Row: 인증 ── */}
-              <div className="flex border-b border-[var(--color-border-light)]">
-                <div className="w-20 shrink-0 px-4 py-3.5 bg-[var(--color-bg-secondary)] flex items-center">
-                  <span className="text-[12px] font-semibold text-[var(--color-text-secondary)]">인증</span>
-                </div>
-                <div className="flex flex-1">
-                  {proposals.map(p => {
-                    const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
-                    return (
-                      <div key={p.id} className={`flex-1 px-3 py-3.5 flex items-center justify-center ${
-                        selectedId === p.id ? 'bg-[var(--color-primary-soft)]' : ''
-                      }`}>
-                        {profile?.verified
-                          ? <ShieldCheck size={16} className="text-emerald-500" />
-                          : <span className="text-[13px] text-[var(--color-text-dim)]">—</span>}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* ── Row: 시술 항목 ── */}
-              <div className="flex">
-                <div className="w-20 shrink-0 px-4 py-3.5 bg-[var(--color-bg-secondary)] flex items-start">
-                  <span className="text-[12px] font-semibold text-[var(--color-text-secondary)]">시술</span>
-                </div>
-                <div className="flex flex-1">
-                  {proposals.map(p => {
-                    const items = MOCK_PROPOSAL_ITEMS.filter(i => i.proposalId === p.id);
-                    return (
-                      <div key={p.id} className={`flex-1 px-3 py-3.5 flex flex-col items-center gap-1 ${
-                        selectedId === p.id ? 'bg-[var(--color-primary-soft)]' : ''
-                      }`}>
-                        {items.map(item => (
-                          <span key={item.id} className="text-[11px] text-[var(--color-text)] text-center leading-snug">
-                            {item.treatmentName}
-                          </span>
-                        ))}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+          {/* Price comparison bar */}
+          <div className="rounded-2xl border border-[var(--color-border-light)] overflow-hidden mb-3">
+            <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-secondary)]">
+              <BarChart3 size={14} className="text-[var(--color-primary)]" />
+              <span className="text-[12px] font-semibold text-[var(--color-text)]">가격 비교</span>
             </div>
-          )}
+            <div className="px-4 py-3">
+              {proposals.map(p => {
+                const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
+                const maxPrice = Math.max(...proposals.map(pp => pp.totalPrice));
+                const barWidth = Math.max((p.totalPrice / maxPrice) * 100, 20);
+                return (
+                  <div key={p.id} className={`flex items-center gap-3 py-2 ${selectedId === p.id ? '' : ''}`}>
+                    <span className="text-[11px] text-[var(--color-text-secondary)] w-16 shrink-0 truncate">{profile?.hospitalName?.split(' ')[0]}</span>
+                    <div className="flex-1 h-6 bg-[var(--color-bg-secondary)] rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full flex items-center justify-end pr-2 transition-all ${
+                          p.totalPrice === lowestPrice ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'
+                        }`}
+                        style={{ width: `${barWidth}%` }}>
+                        <span className={`text-[10px] font-bold ${p.totalPrice === lowestPrice ? 'text-white' : 'text-[var(--color-text)]'}`}>
+                          {p.totalPrice}만
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Recovery comparison */}
+          <div className="rounded-2xl border border-[var(--color-border-light)] overflow-hidden mb-3">
+            <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-secondary)]">
+              <Activity size={14} className="text-[var(--color-primary)]" />
+              <span className="text-[12px] font-semibold text-[var(--color-text)]">회복기간 비교</span>
+            </div>
+            <div className="px-4 py-3">
+              {proposals.map(p => {
+                const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
+                const maxDays = Math.max(...proposals.map(pp => pp.recoveryDays));
+                const barWidth = Math.max((p.recoveryDays / maxDays) * 100, 20);
+                return (
+                  <div key={p.id} className="flex items-center gap-3 py-2">
+                    <span className="text-[11px] text-[var(--color-text-secondary)] w-16 shrink-0 truncate">{profile?.hospitalName?.split(' ')[0]}</span>
+                    <div className="flex-1 h-6 bg-[var(--color-bg-secondary)] rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full flex items-center justify-end pr-2 ${
+                          p.recoveryDays === fastestRecovery ? 'bg-emerald-400' : 'bg-[var(--color-border)]'
+                        }`}
+                        style={{ width: `${barWidth}%` }}>
+                        <span className={`text-[10px] font-bold ${p.recoveryDays === fastestRecovery ? 'text-white' : 'text-[var(--color-text)]'}`}>
+                          {p.recoveryDays}일
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Risk comparison */}
+          <div className="rounded-2xl border border-[var(--color-border-light)] overflow-hidden mb-3">
+            <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-secondary)]">
+              <AlertTriangle size={14} className="text-[var(--color-primary)]" />
+              <span className="text-[12px] font-semibold text-[var(--color-text)]">마취·입원 비교</span>
+            </div>
+            <div className="px-4 py-3 flex flex-col gap-2">
+              {proposals.map(p => {
+                const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
+                const riskScore = p.anesthesiaType === 'general' ? '보통' : p.anesthesiaType === 'sedation' ? '낮음' : '매우 낮음';
+                const riskColor = p.anesthesiaType === 'general' ? 'text-amber-600' : 'text-emerald-600';
+                return (
+                  <div key={p.id} className="flex items-center gap-3 py-1.5">
+                    <span className="text-[11px] text-[var(--color-text-secondary)] w-16 shrink-0 truncate">{profile?.hospitalName?.split(' ')[0]}</span>
+                    <span className="text-[11px] text-[var(--color-text)] flex-1">
+                      {p.anesthesiaType === 'local' ? '부분마취' : p.anesthesiaType === 'sedation' ? '수면마취' : '전신마취'}
+                      {p.hospitalStayDays > 0 ? ` · 입원 ${p.hospitalStayDays}일` : ' · 당일퇴원'}
+                    </span>
+                    <span className={`text-[11px] font-semibold ${riskColor}`}>{riskScore}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Analysis CTA */}
+          <div className="rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[#fff5f7] px-4 py-4 mt-4">
+            <div className="flex items-center gap-2 mb-1.5">
+              <Sparkles size={15} className="text-[var(--color-primary)]" />
+              <span className="text-[13px] font-semibold text-[var(--color-text)]">이 차이가 어떤 의미인지 모르겠다면</span>
+            </div>
+            <p className="text-[11px] text-[var(--color-text-dim)] leading-relaxed mb-3">
+              가격과 회복기간이 왜 다른지, 과잉진료는 아닌지 분석해드립니다
+            </p>
+            <Button variant="accent" size="md" fullWidth
+              onClick={() => track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: 'compare_page' } })}>
+              검증 리포트로 판단 기준 만들기
+              <ChevronRight size={16} />
+            </Button>
+          </div>
         </div>
 
-        {/* ── Selected Detail Card ── */}
-        {selectedId && (() => {
-          const p = proposals.find(pp => pp.id === selectedId);
-          if (!p) return null;
-          const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
-          const items = MOCK_PROPOSAL_ITEMS.filter(i => i.proposalId === p.id);
-          return (
-            <div className="px-6 pt-6">
-              <h3 className="text-[15px] font-semibold text-[var(--color-text)] mb-3">{profile?.hospitalName} 상세</h3>
-              <Card padding="md">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center font-bold text-[var(--color-text-secondary)] shrink-0">
-                    {(profile?.hospitalName || '병')[0]}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-[var(--color-text)]">{profile?.hospitalName}</span>
-                      {profile?.verified && <ShieldCheck size={13} className="text-emerald-500" />}
-                    </div>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <Star size={12} fill="currentColor" className="text-[var(--color-text)]" />
-                      <span className="text-[12px] font-semibold text-[var(--color-text)]">4.8</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Items breakdown */}
-                <div className="flex flex-col gap-2 mb-3">
-                  {items.map(item => (
-                    <div key={item.id} className="flex justify-between items-center">
-                      <span className="text-[13px] text-[var(--color-text)]">{item.treatmentName}</span>
-                      <span className="text-[13px] font-semibold text-[var(--color-text-secondary)]">{item.price}만</span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between items-center pt-2 border-t border-[var(--color-border-light)]">
-                    <span className="text-[14px] font-semibold text-[var(--color-text)]">합계</span>
-                    <span className="text-[16px] font-bold text-[var(--color-text)]">{p.totalPrice}만원</span>
-                  </div>
-                </div>
-
-                {p.consultationNote && (
-                  <p className="text-[13px] text-[var(--color-text-secondary)] leading-relaxed pt-3 border-t border-[var(--color-border-light)] italic">
-                    &ldquo;{p.consultationNote}&rdquo;
-                  </p>
-                )}
-              </Card>
-            </div>
-          );
-        })()}
-
-        <div className="h-24" />
+        <div className="h-8" />
       </div>
 
-      {/* ── Sticky Bottom CTA ── */}
+      {/* ── Sticky CTA ── */}
       <MobileBottomCTA>
         {selectedId ? (
           <Button variant="primary" fullWidth size="lg"
             onClick={() => {
-              track({ eventType: 'hospital_selected', actorType: 'user', targetType: 'proposal', targetId: selectedId, metadata: { source: 'fo', locale: 'ko', label: concern.bodyArea } });
-              alert('병원 선택이 완료되었습니다. (실제 구현 시 상태 전이 API 연결)');
+              track({ eventType: 'hospital_selected', actorType: 'user', targetType: 'proposal', targetId: selectedId, metadata: { source: 'fo', locale: 'ko', label: concern.primaryArea } });
+              router.push(`/concerns/${concern.id}`);
             }}>
             이 제안서 선택하기
           </Button>
         ) : (
           <div className="w-full text-center text-[13px] text-[var(--color-text-dim)] py-1">
-            위에서 병원을 탭해 상세 정보를 확인하세요
+            카드를 탭해서 선택하세요
           </div>
         )}
       </MobileBottomCTA>
 
-      {/* Report nudge — 5초 후 자동 노출, 최초 1회 */}
-      <ReportNudgeSheet concernId={concern.id} delay={5000} />
+      <ReportNudgeSheet concernId={concern.id} proposalId={selectedId || proposals[0]?.id || ''} delay={5000} />
     </>
   );
 }

@@ -24,7 +24,7 @@ export function ConcernFlow() {
     narrative: 0.15,
     processing: 0.35,
     review: 0.6,
-    feedback: 0.5,
+    feedback: 0.7,
     confirm: 0.85,
     submitted: 1,
   };

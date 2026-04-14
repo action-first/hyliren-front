@@ -68,8 +68,19 @@ export function extractMock(
     '지방_고민': { area: '다이어트', detail: '지방흡입' },
   };
 
-  const primarySymptom = symptoms.find(s => bodyAreaMap[s]) || symptoms[0];
-  const areaInfo = bodyAreaMap[primarySymptom] || { area: '기타', detail: '종합' };
+  // Collect ALL body areas from symptoms (multi-area support)
+  const areaSet = new Set<string>();
+  const details: string[] = [];
+  for (const s of symptoms) {
+    const info = bodyAreaMap[s];
+    if (info) {
+      areaSet.add(info.area);
+      if (!details.includes(info.detail)) details.push(info.detail);
+    }
+  }
+  const bodyAreas = areaSet.size > 0 ? [...areaSet] : ['기타'];
+  const primaryArea = bodyAreas[0];
+  const bodyAreaDetail = details.length > 1 ? details.join('+') + ' 복합' : details[0] || '종합';
 
   let desiredOutcome = '자연스러운 개선';
   if (preferences.includes('확실한변화_선호')) desiredOutcome = '확실한 변화';
@@ -93,8 +104,9 @@ export function extractMock(
   return {
     tags: { symptoms, preferences, budget, timing },
     summary: {
-      bodyArea: areaInfo.area,
-      bodyAreaDetail: areaInfo.detail,
+      bodyAreas,
+      primaryArea,
+      bodyAreaDetail,
       desiredOutcome,
       budgetMax,
       visitDate,

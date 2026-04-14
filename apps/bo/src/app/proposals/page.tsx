@@ -24,7 +24,7 @@ export default function ProposalsPage() {
                   const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
                   return (
                     <tr key={p.id}>
-                      <td><Badge variant="info">{concern?.bodyArea || '-'}</Badge></td>
+                      <td><Badge variant="info">{concern?.primaryArea || '-'}</Badge></td>
                       <td className="font-medium">{profile?.hospitalName || '-'}</td>
                       <td className="font-semibold">{p.totalPrice}만</td>
                       <td>{p.recoveryDays}일</td>

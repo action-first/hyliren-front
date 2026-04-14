@@ -158,4 +158,14 @@
     from { transform: translateY(100%); }
     to { transform: translateY(0); }
   }
+
+}
+
+/* Bottom sheet 스크롤바 숨김 — @layer 밖 (우선순위 확보) */
+.hide-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none !important;
 }

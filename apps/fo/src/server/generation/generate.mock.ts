@@ -44,18 +44,31 @@ export function generateMock(
   ruleResult: RuleMatchResult,
   feedbackTurns: FeedbackTurn[] = [],
 ): GeneratedGuide {
-  const area = ruleResult.bodyArea;
-  const detail = ruleResult.bodyAreaDetail;
+  const areas = ruleResult.bodyAreas;
+  const primaryArea = ruleResult.primaryArea;
 
-  // Empathy
-  let empathy = EMPATHY[area]?.[detail]
-    || EMPATHY[area]?._default
-    || '고민을 나눠주셔서 감사해요. 어떤 변화를 원하시는지 충분히 이해했습니다.';
+  // Empathy — multi-area: combine empathy from each area
+  let empathy: string;
+  if (areas.length > 1) {
+    empathy = `${areas.join('과 ')} 부위를 함께 고민하고 계시군요. 복합적으로 개선하면 전체 인상이 더 조화롭게 바뀔 수 있습니다.`;
+  } else {
+    empathy = EMPATHY[primaryArea]?._default
+      || '고민을 나눠주셔서 감사해요. 어떤 변화를 원하시는지 충분히 이해했습니다.';
+  }
 
-  // Education
-  let education = EDUCATION[area]?.[detail]
-    || EDUCATION[area]?._default
-    || '한국은 다양한 미용 시술 분야에서 세계적인 수준을 갖추고 있어요. 고객님의 상황에 맞는 최적의 방법을 찾는 것이 일반적으로 가장 중요하게 고려됩니다.';
+  // Education — multi-area: combine education from each area
+  let education: string;
+  if (areas.length > 1) {
+    const parts = areas
+      .map(a => EDUCATION[a]?._default)
+      .filter(Boolean);
+    education = parts.length > 0
+      ? parts.join(' ') + ' 여러 부위를 함께 진행하면 회복 기간과 비용 면에서 효율적일 수 있습니다.'
+      : '한국은 복합 시술 경험이 풍부하며, 여러 부위를 함께 고려할 때 전체적인 조화를 중시합니다.';
+  } else {
+    education = EDUCATION[primaryArea]?._default
+      || '한국은 다양한 미용 시술 분야에서 세계적인 수준을 갖추고 있어요. 고객님의 상황에 맞는 최적의 방법을 찾는 것이 일반적으로 가장 중요하게 고려됩니다.';
+  }
 
   // Apply feedback refinements
   const userFeedback = feedbackTurns
@@ -70,11 +83,12 @@ export function generateMock(
     education += ' 회복이 빠른 옵션을 우선적으로 안내해 드립니다.';
   }
 
-  // Options from rule result
+  // Options from rule result (with bodyArea for grouping)
   const options = ruleResult.matchedOptions.map(opt => ({
     key: opt.key,
     name: opt.name,
     description: opt.description,
+    bodyArea: opt.bodyArea,
   }));
 
   return {

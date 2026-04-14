@@ -35,7 +35,7 @@ export default function ConcernListPage() {
               <tbody>
                 {concerns.map(c => (
                   <tr key={c.id}>
-                    <td><Badge variant="info">{c.bodyArea}</Badge></td>
+                    <td><Badge variant="info">{c.primaryArea}</Badge></td>
                     <td>{c.bodyAreaDetail || '-'}</td>
                     <td className="max-w-64 truncate">
                       {c.description}

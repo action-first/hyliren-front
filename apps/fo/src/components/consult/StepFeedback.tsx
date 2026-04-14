@@ -3,7 +3,7 @@
 import { useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import { useConcernFlowStore } from '@/store/concern-flow';
-import type { FeedbackTurn } from '@/modules/concern-analysis/types';
+import type { FeedbackTurn } from '@/server/concern-analysis/types';
 
 export function StepFeedback() {
   const {

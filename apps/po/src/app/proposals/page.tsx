@@ -37,7 +37,7 @@ export default function ProposalListPage() {
                   return (
                     <tr key={p.id}>
                       <td>
-                        <Badge variant="info">{concern?.bodyArea || '-'}</Badge>
+                        <Badge variant="info">{concern?.primaryArea || '-'}</Badge>
                         {' '}{concern?.bodyAreaDetail || ''}
                       </td>
                       <td className="font-semibold">{p.totalPrice}만</td>

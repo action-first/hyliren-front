@@ -9,20 +9,22 @@ import {
   Sparkles, ShieldCheck, BookOpen, MessageCircle,
 } from 'lucide-react';
 import {
+  type DashboardState,
   computeDashboardState, computeConcernActions,
   getRecommendedArticles, STATUS_LABELS, STATUS_COLORS,
-} from '@/lib/lifecycle';
+} from '@/domain/lifecycle';
 
-/* ── Mock: current user's concerns ── */
 const USER_ID = 'u-001';
-const userConcerns = MOCK_CONCERNS.filter(c => c.userId === USER_ID && !c.deletedAt);
-const userProposals = MOCK_PROPOSALS.filter(p => p.isActive);
-const dashboard = computeDashboardState(userConcerns, userProposals);
 
 export default function DashboardPage() {
+  /* ── Mock data (inside component for reactivity) ── */
+  const userConcerns = MOCK_CONCERNS.filter(c => c.userId === USER_ID && !c.deletedAt);
+  const userProposals = MOCK_PROPOSALS.filter(p => p.isActive);
+  const dashboard = computeDashboardState(userConcerns, userProposals);
+
   useEffect(() => {
     track({ eventType: 'dashboard_viewed', actorType: 'user', targetType: 'user', targetId: USER_ID, metadata: { source: 'fo', locale: 'ko', value: dashboard.phase } });
-  }, []);
+  }, [dashboard.phase]);
 
   return (
     <div className="flex flex-col px-5 pt-5 pb-10">
@@ -47,7 +49,7 @@ export default function DashboardPage() {
                 return (
                   <ConcernStatusCard
                     key={concern.id}
-                    bodyArea={concern.bodyArea}
+                    bodyAreas={concern.bodyAreas}
                     bodyAreaDetail={concern.bodyAreaDetail}
                     status={concern.status}
                     proposalCount={proposalCount}
@@ -81,7 +83,7 @@ export default function DashboardPage() {
 
       {/* ═══ WAITING STATE PANEL ═══ */}
       {dashboard.phase === 'waiting' && (
-        <WaitingStatePanel bodyArea={dashboard.primaryConcern?.bodyArea || '기타'} />
+        <WaitingStatePanel bodyArea={dashboard.primaryConcern?.primaryArea || '기타'} />
       )}
 
       {/* ═══ DECISION ASSIST ═══ */}
@@ -92,7 +94,7 @@ export default function DashboardPage() {
       {/* ═══ RECOMMENDED ARTICLES ═══ */}
       {dashboard.hasConcern && dashboard.primaryConcern && (
         <RecommendedArticlesSection
-          bodyArea={dashboard.primaryConcern.bodyArea}
+          bodyArea={dashboard.primaryConcern.primaryArea}
           status={dashboard.primaryConcern.status}
         />
       )}
@@ -109,7 +111,7 @@ export default function DashboardPage() {
    Dashboard Components
    ════════════════════════════════════════════════ */
 
-function DashboardHero({ phase, state }: { phase: string; state: typeof dashboard }) {
+function DashboardHero({ phase, state }: { phase: string; state: DashboardState }) {
   const configs: Record<string, { title: string; subtitle: string; cta: string; ctaHref: string; gradient: string }> = {
     empty: {
       title: '어떤 시술을\n고민하고 계신가요?',
@@ -176,10 +178,10 @@ function DashboardHero({ phase, state }: { phase: string; state: typeof dashboar
 }
 
 function ConcernStatusCard({
-  bodyArea, bodyAreaDetail, status, proposalCount,
+  bodyAreas, bodyAreaDetail, status, proposalCount,
   nextAction, nextActionHref, hasNewProposal,
 }: {
-  bodyArea: string;
+  bodyAreas: string[];
   bodyAreaDetail: string | null;
   status: string;
   proposalCount: number;
@@ -197,8 +199,10 @@ function ConcernStatusCard({
         </div>
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[14px] font-semibold text-[var(--color-text)]">{bodyArea}</span>
+          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+            {bodyAreas.map(area => (
+              <Badge key={area} variant="info" size="sm">{area}</Badge>
+            ))}
             {bodyAreaDetail && <span className="text-[12px] text-[var(--color-text-dim)]">{bodyAreaDetail}</span>}
           </div>
           <div className="flex items-center gap-2">
@@ -238,7 +242,7 @@ function ProposalInboxPreview() {
               </div>
               <div className="flex-1 min-w-0">
                 <span className="text-[13px] font-medium text-[var(--color-text)] line-clamp-1">{profile?.hospitalName}</span>
-                <span className="text-[11px] text-[var(--color-text-dim)]">{concern?.bodyArea} · {p.totalPrice}만원</span>
+                <span className="text-[11px] text-[var(--color-text-dim)]">{concern?.primaryArea} · {p.totalPrice}만원</span>
               </div>
               <span className="text-[12px] font-medium text-[var(--color-primary)]">확인</span>
             </div>
@@ -298,11 +302,13 @@ function DecisionAssistCTA() {
             가격 차이가 왜 나는지, 과잉진료는 아닌지<br />
             검증 리포트로 확인해보세요
           </p>
-          <Button variant="primary" size="md" fullWidth
+          <Link href="/decision" className="no-underline block"
             onClick={() => track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'user', targetId: USER_ID, metadata: { source: 'fo', locale: 'ko', label: 'dashboard' } })}>
+          <Button variant="primary" size="md" fullWidth>
             검증 리포트 알아보기
             <ArrowRight size={16} />
           </Button>
+          </Link>
         </div>
       </div>
     </section>
@@ -329,7 +335,7 @@ function RecommendedArticlesSection({ bodyArea, status }: { bodyArea: string; st
               <div className={`w-full h-full bg-gradient-to-br ${a.gradient}`} />
             </div>
             <div className="flex flex-col gap-1 justify-center min-w-0">
-              <Badge variant={a.tagColor}>{a.tag}</Badge>
+              <Badge variant={a.tagColor} size="sm">{a.tag}</Badge>
               <span className="text-[13px] font-medium text-[var(--color-text)] leading-snug line-clamp-2">{a.title}</span>
             </div>
           </Link>

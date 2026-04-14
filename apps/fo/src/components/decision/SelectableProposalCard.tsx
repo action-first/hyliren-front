@@ -1,10 +1,9 @@
 'use client';
 
 import { ShieldCheck, Star, Check } from 'lucide-react';
-import { CARD_GRADIENTS, VALUE_PROPS } from '@/lib/constants';
+import { CARD_GRADIENTS } from '@/lib/constants';
 
 interface Props {
-  proposalId: string;
   hospitalName: string;
   verified: boolean;
   valueProp: string;

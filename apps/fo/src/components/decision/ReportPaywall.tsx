@@ -19,8 +19,9 @@ export function ReportPaywall() {
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-[60]" onClick={closePaywall} />
-      <div className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-[60] animate-[slideUp_0.3s_ease-out]">
-        <div className="bg-white rounded-t-3xl px-6 pt-5 pb-8">
+      <div className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-[60] rounded-t-3xl overflow-hidden animate-[slideUp_0.3s_ease-out]"
+        style={{ boxShadow: '0 -4px 24px rgba(0,0,0,0.12)' }}>
+        <div className="bg-white px-6 pt-5 pb-8">
           {/* Handle + close */}
           <div className="relative mb-4">
             <div className="w-10 h-1 rounded-full bg-[var(--color-border-light)] mx-auto" />

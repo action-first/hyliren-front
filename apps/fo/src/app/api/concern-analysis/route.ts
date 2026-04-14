@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analysisRequestSchema } from '@/modules/concern-analysis/schema';
-import { analyzeConcernService } from '@/modules/concern-analysis/service';
+import { analysisRequestSchema } from '@/server/concern-analysis/schema';
+import { analyzeConcernService } from '@/server/concern-analysis/service';
 import { log } from '@/lib/logger';
 
 /**
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     log('info', 'analysis_response_sent', {
       duration,
-      bodyArea: result.extractedSummary.bodyArea,
+      bodyArea: result.extractedSummary.primaryArea,
       optionCount: result.options.length,
       ruleVersion: result.ruleVersion,
       tagCount: result.extractedTags.symptoms.length,
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
         description: '고객님의 상황에 맞는 최적의 방법을 병원과 함께 찾아보세요.',
       }],
       extractedTags: { symptoms: [], preferences: [], budget: [], timing: [] },
-      extractedSummary: {},
+      extractedSummary: { bodyAreas: ['기타'], primaryArea: '기타' },
       disclaimer: '정확한 적용 여부는 실제 병원의 상담과 진단을 통해 결정됩니다.',
       ruleVersion: 'fallback',
     });

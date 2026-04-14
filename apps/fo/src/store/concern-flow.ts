@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { AnalysisResponse, FeedbackTurn } from '@/modules/concern-analysis/types';
+import type { AnalysisResponse, FeedbackTurn } from '@/server/concern-analysis/types';
 
 /* ══════════════════════════════════════
    Concern Flow Store

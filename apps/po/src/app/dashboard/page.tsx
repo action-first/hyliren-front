@@ -58,7 +58,7 @@ export default function DashboardPage() {
               <tbody>
                 {openConcerns.slice(0, 5).map(c => (
                   <tr key={c.id}>
-                    <td><Badge variant="info">{c.bodyArea}</Badge></td>
+                    <td><Badge variant="info">{c.primaryArea}</Badge></td>
                     <td>{c.bodyAreaDetail || '-'}</td>
                     <td>{c.budgetMin}~{c.budgetMax}만</td>
                     <td>{c.visitDateFrom ? c.visitDateFrom.slice(5) : '-'}</td>

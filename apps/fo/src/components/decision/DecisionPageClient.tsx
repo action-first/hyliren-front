@@ -11,7 +11,9 @@ import { StickyBottomBar } from './StickyBottomBar';
 import { ProposalDetailSheet } from './ProposalDetailSheet';
 import { SingleAnalysisPreview } from './SingleAnalysisPreview';
 import { ReportPaywall } from './ReportPaywall';
+import { CompareIntentModal } from './CompareIntentModal';
 import { useReportStore } from '@/store/report';
+import { useDecisionStore } from '@/store/decision';
 
 interface ProposalGroup {
   concern: Concern;
@@ -38,6 +40,9 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
   /* ── Sheet state ── */
   const [detailProposalId, setDetailProposalId] = useState<string | null>(null);
   const [analysisProposalId, setAnalysisProposalId] = useState<string | null>(null);
+  const [showCompareIntent, setShowCompareIntent] = useState(false);
+  /** 비교 의도 모달에서 리포트로 넘길 때 사용할 proposal ID */
+  const [compareIntentProposalId, setCompareIntentProposalId] = useState<string | null>(null);
 
   const detailProposal = detailProposalId ? allProposals.find(p => p.id === detailProposalId) : null;
   const analysisProposal = analysisProposalId ? allProposals.find(p => p.id === analysisProposalId) : null;
@@ -46,8 +51,26 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
     setDetailProposalId(proposalId);
   }
 
+  function handleCompareIntent(proposalId: string) {
+    setDetailProposalId(null);
+    setCompareIntentProposalId(proposalId);
+    setShowCompareIntent(true);
+    track({ eventType: 'compare_intent_clicked', actorType: 'user', targetType: 'proposal', targetId: proposalId,
+      metadata: { source: 'fo', locale: 'ko' } });
+  }
+
+  function handleCompareIntentProceed() {
+    const targetId = compareIntentProposalId
+      || [...useDecisionStore.getState().selectedProposalIds][0]
+      || allProposals[0]?.id;
+    if (targetId) {
+      handleAnalyze(targetId);
+    }
+  }
+
   function handleAnalyze(proposalId: string) {
     setDetailProposalId(null);
+    setShowCompareIntent(false);
     setActiveProposal(proposalId);
     setAnalysisProposalId(proposalId);
     track({ eventType: 'analysis_clicked', actorType: 'user', targetType: 'proposal', targetId: proposalId,
@@ -111,7 +134,7 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
         </div>
 
         {/* Sticky CTA */}
-        <StickyBottomBar primaryConcernId={primaryConcernId} />
+        <StickyBottomBar onCompareClick={() => setShowCompareIntent(true)} />
       </div>
 
       {/* ── Sheets ── */}
@@ -124,6 +147,7 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
           items={items.filter(i => i.proposalId === detailProposal.id)}
           onClose={() => setDetailProposalId(null)}
           onAnalyze={() => handleAnalyze(detailProposal.id)}
+          onCompareIntent={() => handleCompareIntent(detailProposal.id)}
         />
       )}
 
@@ -133,6 +157,14 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
           proposal={analysisProposal}
           profile={profiles.find(p => p.memberId === analysisProposal.memberId)}
           onClose={() => setAnalysisProposalId(null)}
+        />
+      )}
+
+      {/* Compare Intent Modal */}
+      {showCompareIntent && (
+        <CompareIntentModal
+          onClose={() => setShowCompareIntent(false)}
+          onProceedToReport={handleCompareIntentProceed}
         />
       )}
 
