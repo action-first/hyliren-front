@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, FileText, BookOpen, User } from 'lucide-react';
+import { Home, LayoutDashboard, FileText, BookOpen, User } from 'lucide-react';
 
 const TABS = [
   { href: '/', icon: Home, label: '홈' },
+  { href: '/dashboard', icon: LayoutDashboard, label: '내 상담' },
   { href: '/proposals', icon: FileText, label: '제안서' },
   { href: '/articles', icon: BookOpen, label: '아티클' },
   { href: '/mypage', icon: User, label: '마이' },
@@ -30,7 +31,7 @@ export function FOTabBar() {
             href={tab.href}
             className={`fo-tab ${active ? 'fo-tab--active' : ''}`}
           >
-            <Icon size={22} strokeWidth={active ? 2.5 : 1.5} />
+            <Icon size={20} strokeWidth={active ? 2.5 : 1.5} />
             <span className="fo-tab-label">{tab.label}</span>
           </Link>
         );
