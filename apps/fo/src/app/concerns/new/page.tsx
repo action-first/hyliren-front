@@ -21,7 +21,7 @@ export interface ConcernFormData {
   budgetMax: number;
   visitDateFrom: string;
   visitDateTo: string;
-  hasPassport: boolean;
+  hasPassport: boolean;2
 }
 
 const INITIAL: ConcernFormData = {

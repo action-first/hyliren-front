@@ -1,7 +1,15 @@
 import type { NextConfig } from 'next';
+import path from 'path';
 
 const config: NextConfig = {
-  transpilePackages: ['@hyliren/shared', '@hyliren/ui', 'lucide-react'],
+  transpilePackages: ['@hyliren/shared', '@hyliren/ui', '@hyliren/i18n', 'lucide-react'],
+  outputFileTracingRoot: path.join(__dirname, '../../'),
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.cache = false;
+    }
+    return config;
+  },
 };
 
 export default config;

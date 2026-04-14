@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, LayoutDashboard, FileText, BookOpen, User } from 'lucide-react';
+import { Home, LayoutDashboard, Scale, BookOpen, User } from 'lucide-react';
 
 const TABS = [
   { href: '/', icon: Home, label: '홈' },
   { href: '/dashboard', icon: LayoutDashboard, label: '내 상담' },
-  { href: '/proposals', icon: FileText, label: '제안서' },
+  { href: '/decision', icon: Scale, label: '결정함' },
   { href: '/articles', icon: BookOpen, label: '아티클' },
   { href: '/mypage', icon: User, label: '마이' },
 ] as const;

@@ -14,7 +14,7 @@ interface StickyConsultCTAProps {
 export function StickyConsultCTA({ phase, proposalCount = 0 }: StickyConsultCTAProps) {
   if (phase === 'idle') {
     return (
-      <div className="fixed bottom-[calc(var(--fo-bottom-bar-height)+var(--fo-safe-area-bottom))] left-1/2 -translate-x-1/2 w-full max-w-[var(--fo-frame-max-width)] z-30 px-5 pb-2 pt-3 bg-gradient-to-t from-white via-white/95 to-white/0">
+      <div className="fixed bottom-[calc(var(--fo-bottom-bar-height)+var(--fo-safe-area-bottom))] inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-30 px-5 pb-2 pt-3 bg-gradient-to-t from-white via-white/95 to-white/0">
         <Link href="/consult" className="no-underline block">
           <Button variant="accent" size="lg" fullWidth>
             무료 고민 상담 시작하기
@@ -30,7 +30,7 @@ export function StickyConsultCTA({ phase, proposalCount = 0 }: StickyConsultCTAP
 
   if (phase === 'waiting') {
     return (
-      <div className="fixed bottom-[calc(var(--fo-bottom-bar-height)+var(--fo-safe-area-bottom))] left-1/2 -translate-x-1/2 w-full max-w-[var(--fo-frame-max-width)] z-30 px-5 pb-2 pt-3 bg-gradient-to-t from-white via-white/95 to-white/0">
+      <div className="fixed bottom-[calc(var(--fo-bottom-bar-height)+var(--fo-safe-area-bottom))] inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-30 px-5 pb-2 pt-3 bg-gradient-to-t from-white via-white/95 to-white/0">
         <Link href="/dashboard" className="no-underline block">
           <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-[var(--color-bg-secondary)]"
             style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
@@ -48,8 +48,8 @@ export function StickyConsultCTA({ phase, proposalCount = 0 }: StickyConsultCTAP
 
   // proposals_ready
   return (
-    <div className="fixed bottom-[calc(var(--fo-bottom-bar-height)+var(--fo-safe-area-bottom))] left-1/2 -translate-x-1/2 w-full max-w-[var(--fo-frame-max-width)] z-30 px-5 pb-2 pt-3 bg-gradient-to-t from-white via-white/95 to-white/0">
-      <Link href="/proposals" className="no-underline block">
+    <div className="fixed bottom-[calc(var(--fo-bottom-bar-height)+var(--fo-safe-area-bottom))] inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-30 px-5 pb-2 pt-3 bg-gradient-to-t from-white via-white/95 to-white/0">
+      <Link href="/decision" className="no-underline block">
         <Button variant="accent" size="lg" fullWidth>
           <Bell size={16} />
           새로운 제안 {proposalCount}개 도착

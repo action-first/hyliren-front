@@ -71,7 +71,7 @@ export default function DashboardPage() {
                 {dashboard.unreadProposalCount}
               </span>
             </div>
-            <Link href="/proposals" className="flex items-center gap-0.5 text-[11px] text-[var(--color-text-dim)] no-underline">
+            <Link href="/decision" className="flex items-center gap-0.5 text-[11px] text-[var(--color-text-dim)] no-underline">
               전체보기 <ChevronRight size={14} />
             </Link>
           </div>

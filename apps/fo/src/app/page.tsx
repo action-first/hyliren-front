@@ -6,6 +6,7 @@ import { Button, Badge } from '@hyliren/ui';
 import { ArrowRight, Camera, MessageCircle, FileText, ChevronRight } from 'lucide-react';
 import { ExperienceCard } from '@/components/ExperienceCard';
 import { StickyConsultCTA } from '@/components/StickyConsultCTA';
+import { VALUE_PROPS, CARD_GRADIENTS as G } from '@/lib/constants';
 
 /* ── mock user state ── */
 const USER_ID = 'u-001';
@@ -20,14 +21,6 @@ function getUserPhase(): UserPhase {
 }
 const phase = getUserPhase();
 
-/* ── value propositions ── */
-const VALUE_PROPS: Record<string, string> = {
-  'm-001': '자연스러운 눈매 전문 · 15년 경력',
-  'm-002': '날렵한 코 라인 전문',
-  'm-003': '프리미엄 리프팅 · 안면윤곽 전문',
-  'm-004': '피부 시술 + 리프팅 복합 케어',
-};
-
 /* ── pain-based concerns (카테고리 대체) ── */
 const CONCERNS = [
   { label: '눈이 답답해 보여요', area: '눈', detail: '쌍꺼풀' },
@@ -36,14 +29,6 @@ const CONCERNS = [
   { label: '피부가 칙칙하고 흉터가 있어요', area: '피부', detail: '피부관리' },
   { label: '얼굴 라인을 정리하고 싶어요', area: '리프팅', detail: '안면윤곽' },
   { label: '눈밑이 피곤해 보여요', area: '눈', detail: '눈밑지방' },
-];
-
-/* ── gradients ── */
-const G = [
-  'from-[#fce4ec] via-[#f3e5f5] to-[#e8eaf6]',
-  'from-[#e0f2f1] via-[#e8f5e9] to-[#f1f8e9]',
-  'from-[#fff3e0] via-[#fbe9e7] to-[#fce4ec]',
-  'from-[#e3f2fd] via-[#e8eaf6] to-[#ede7f6]',
 ];
 
 export default function HomePage() {
@@ -140,7 +125,7 @@ export default function HomePage() {
         <section className="px-5 pb-10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[1.0625rem] font-bold text-[var(--color-text)] tracking-[-0.18px]">요즘 많이 상담하는 변화</h2>
-            <Link href="/proposals" className="flex items-center gap-0.5 text-[11px] text-[var(--color-text-dim)] no-underline">
+            <Link href="/decision" className="flex items-center gap-0.5 text-[11px] text-[var(--color-text-dim)] no-underline">
               전체보기 <ChevronRight size={14} />
             </Link>
           </div>

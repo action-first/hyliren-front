@@ -4,14 +4,9 @@ import { useState, useEffect } from 'react';
 import { MOCK_CONCERNS, MOCK_PROPOSALS, MOCK_PROPOSAL_ITEMS, MOCK_PARTNER_PROFILES, track } from '@hyliren/shared';
 import { Button, Badge, Card, MobileBottomCTA } from '@hyliren/ui';
 import { ShieldCheck, Star, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { CARD_GRADIENTS } from '@/lib/constants';
+import { ReportNudgeSheet } from '@/components/ReportNudgeSheet';
 import { use } from 'react';
-
-const CARD_GRADIENTS = [
-  'from-[#fce4ec] via-[#f3e5f5] to-[#e8eaf6]',
-  'from-[#e0f2f1] via-[#e8f5e9] to-[#f1f8e9]',
-  'from-[#fff3e0] via-[#fbe9e7] to-[#fce4ec]',
-  'from-[#e3f2fd] via-[#e8eaf6] to-[#ede7f6]',
-];
 
 interface Props { params: Promise<{ id: string }>; }
 
@@ -273,7 +268,11 @@ export default function ComparePage({ params }: Props) {
       {/* ── Sticky Bottom CTA ── */}
       <MobileBottomCTA>
         {selectedId ? (
-          <Button variant="primary" fullWidth size="lg">
+          <Button variant="primary" fullWidth size="lg"
+            onClick={() => {
+              track({ eventType: 'hospital_selected', actorType: 'user', targetType: 'proposal', targetId: selectedId, metadata: { source: 'fo', locale: 'ko', label: concern.bodyArea } });
+              alert('병원 선택이 완료되었습니다. (실제 구현 시 상태 전이 API 연결)');
+            }}>
             이 제안서 선택하기
           </Button>
         ) : (
@@ -282,6 +281,9 @@ export default function ComparePage({ params }: Props) {
           </div>
         )}
       </MobileBottomCTA>
+
+      {/* Report nudge — 5초 후 자동 노출, 최초 1회 */}
+      <ReportNudgeSheet concernId={concern.id} delay={5000} />
     </>
   );
 }
