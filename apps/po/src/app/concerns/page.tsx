@@ -18,7 +18,7 @@ export default function ConcernListPage() {
         <div className="po-content">
           <SectionHeader title={`${concerns.length}건의 고민`} subtitle="고민을 확인하고 제안서를 보내세요" />
 
-          <Card padding="sm" className="data-table-wrapper" style={{ marginTop: 'var(--space-4)' }}>
+          <Card padding="sm" className="data-table-wrapper mt-4">
             <table className="data-table">
               <thead>
                 <tr>
@@ -37,7 +37,7 @@ export default function ConcernListPage() {
                   <tr key={c.id}>
                     <td><Badge variant="info">{c.bodyArea}</Badge></td>
                     <td>{c.bodyAreaDetail || '-'}</td>
-                    <td style={{ maxWidth: '16rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td className="max-w-64 truncate">
                       {c.description}
                     </td>
                     <td>{c.budgetMin}~{c.budgetMax}만</td>

@@ -18,7 +18,7 @@ export default function ProposalListPage() {
         <div className="po-content">
           <SectionHeader title={`${myProposals.length}건의 제안서`} />
 
-          <Card padding="sm" style={{ marginTop: 'var(--space-4)' }}>
+          <Card padding="sm" className="mt-4">
             <table className="data-table">
               <thead>
                 <tr>
@@ -40,7 +40,7 @@ export default function ProposalListPage() {
                         <Badge variant="info">{concern?.bodyArea || '-'}</Badge>
                         {' '}{concern?.bodyAreaDetail || ''}
                       </td>
-                      <td style={{ fontWeight: 600 }}>{p.totalPrice}만</td>
+                      <td className="font-semibold">{p.totalPrice}만</td>
                       <td>{p.recoveryDays}일</td>
                       <td>{p.anesthesiaType}</td>
                       <td>

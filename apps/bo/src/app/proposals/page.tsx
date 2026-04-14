@@ -13,7 +13,7 @@ export default function ProposalsPage() {
         <div className="bo-topbar"><span className="bo-topbar-title">제안서 관리</span></div>
         <div className="bo-content">
           <SectionHeader title={`${proposals.length}건의 제안서`} />
-          <Card padding="sm" style={{ marginTop: 'var(--space-4)' }}>
+          <Card padding="sm" className="mt-4">
             <table className="data-table">
               <thead>
                 <tr><th>고민</th><th>병원</th><th>가격</th><th>회복</th><th>마취</th><th>상태</th><th>품질</th><th>발송일</th></tr>
@@ -25,8 +25,8 @@ export default function ProposalsPage() {
                   return (
                     <tr key={p.id}>
                       <td><Badge variant="info">{concern?.bodyArea || '-'}</Badge></td>
-                      <td style={{ fontWeight: 500 }}>{profile?.hospitalName || '-'}</td>
-                      <td style={{ fontWeight: 600 }}>{p.totalPrice}만</td>
+                      <td className="font-medium">{profile?.hospitalName || '-'}</td>
+                      <td className="font-semibold">{p.totalPrice}만</td>
                       <td>{p.recoveryDays}일</td>
                       <td>{p.anesthesiaType}</td>
                       <td>

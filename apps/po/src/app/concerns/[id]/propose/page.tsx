@@ -54,10 +54,10 @@ export default function ProposePage({ params }: Props) {
         <POSidebar active="/concerns" />
         <div className="po-main">
           <div className="po-topbar"><span className="po-topbar-title">제안서 발송 완료</span></div>
-          <div className="po-content" style={{ textAlign: 'center', paddingTop: 'var(--space-12)' }}>
-            <div style={{ fontSize: '3rem', marginBottom: 'var(--space-4)' }}>✅</div>
+          <div className="po-content text-center pt-12">
+            <div className="text-5xl mb-4">✅</div>
             <h2>제안서가 발송되었습니다</h2>
-            <p style={{ color: 'var(--admin-text-secondary)', marginTop: 'var(--space-2)' }}>
+            <p className="text-[var(--color-text-secondary)] mt-2">
               크레딧 3개가 차감되었습니다. 고객이 열람하면 알려드리겠습니다.
             </p>
           </div>
@@ -81,7 +81,7 @@ export default function ProposePage({ params }: Props) {
                 title="시술 항목"
                 action={<Button variant="ghost" size="sm" onClick={addItem}>+ 항목 추가</Button>}
               />
-              <div className="propose-items-list" style={{ marginTop: 'var(--space-4)' }}>
+              <div className="propose-items-list mt-4">
                 {items.map((item, idx) => (
                   <div key={idx} className="propose-item-row">
                     <Input
@@ -108,9 +108,9 @@ export default function ProposePage({ params }: Props) {
             {/* Total Price (권위 값) */}
             <Card padding="md">
               <SectionHeader title="총 비용" subtitle="총 비용은 직접 입력합니다 (항목 합계와 다를 수 있음)" />
-              <div className="propose-total-row" style={{ marginTop: 'var(--space-4)' }}>
+              <div className="propose-total-row mt-4">
                 <span className="propose-total-label">총 예상 비용</span>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-2)' }}>
+                <div className="flex items-baseline gap-2">
                   <input
                     type="number"
                     value={totalPrice || ''}
@@ -121,7 +121,7 @@ export default function ProposePage({ params }: Props) {
                       fontSize: 'var(--admin-text-h2)', fontWeight: 700, color: 'var(--admin-accent)', outline: 'none',
                     }}
                   />
-                  <span style={{ color: 'var(--admin-text-secondary)' }}>만원</span>
+                  <span className="text-[var(--color-text-secondary)]">만원</span>
                 </div>
               </div>
             </Card>
@@ -129,7 +129,7 @@ export default function ProposePage({ params }: Props) {
             {/* Specs */}
             <Card padding="md">
               <SectionHeader title="시술 정보" />
-              <div className="propose-form-row" style={{ marginTop: 'var(--space-4)' }}>
+              <div className="propose-form-row mt-4">
                 <Input
                   label="회복 기간 (일)"
                   type="number"
@@ -149,7 +149,7 @@ export default function ProposePage({ params }: Props) {
                   </select>
                 </div>
               </div>
-              <div className="propose-form-row" style={{ marginTop: 'var(--space-4)' }}>
+              <div className="propose-form-row mt-4">
                 <Input
                   label="입원 기간 (일)"
                   type="number"
@@ -158,7 +158,7 @@ export default function ProposePage({ params }: Props) {
                 />
                 <div />
               </div>
-              <div className="propose-form-row" style={{ marginTop: 'var(--space-4)' }}>
+              <div className="propose-form-row mt-4">
                 <Input label="시술 가능 시작일" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
                 <Input label="시술 가능 종료일" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
               </div>
@@ -176,7 +176,7 @@ export default function ProposePage({ params }: Props) {
             </Card>
 
             {/* Send */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)' }}>
+            <div className="flex justify-end gap-3">
               <Button variant="secondary">임시 저장</Button>
               <Button variant="primary" onClick={handleSend} disabled={!canSend}>
                 제안서 발송 (크레딧 3개)

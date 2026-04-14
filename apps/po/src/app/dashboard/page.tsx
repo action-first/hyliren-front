@@ -15,28 +15,26 @@ export default function DashboardPage() {
       <div className="po-main">
         <div className="po-topbar">
           <span className="po-topbar-title">대시보드</span>
-          <span style={{ fontSize: 'var(--admin-text-small)', color: 'var(--admin-text-secondary)' }}>
-            {currentMember.name}
-          </span>
+          <span className="text-sm text-[var(--color-text-secondary)]">{currentMember.name}</span>
         </div>
         <div className="po-content">
           {/* KPI */}
           <div className="kpi-grid">
             <Card padding="md">
-              <span className="kpi-value">{openConcerns.length}</span>
               <span className="kpi-label">새 고민</span>
+              <span className="kpi-value">{openConcerns.length}</span>
             </Card>
             <Card padding="md">
-              <span className="kpi-value">{sentCount}</span>
               <span className="kpi-label">발송 제안서</span>
+              <span className="kpi-value">{sentCount}</span>
             </Card>
             <Card padding="md">
-              <span className="kpi-value">47</span>
               <span className="kpi-label">크레딧 잔액</span>
+              <span className="kpi-value">47</span>
             </Card>
             <Card padding="md">
-              <span className="kpi-value">72%</span>
               <span className="kpi-label">열람률</span>
+              <span className="kpi-value">72%</span>
             </Card>
           </div>
 
@@ -46,7 +44,7 @@ export default function DashboardPage() {
               title="최근 고민"
               action={<Link href="/concerns"><Button variant="ghost" size="sm">전체보기</Button></Link>}
             />
-            <table className="data-table" style={{ marginTop: 'var(--space-4)' }}>
+            <table className="data-table mt-4">
               <thead>
                 <tr>
                   <th>부위</th>

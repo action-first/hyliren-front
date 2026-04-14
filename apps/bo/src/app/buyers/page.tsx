@@ -15,7 +15,7 @@ export default function BuyersPage() {
         </div>
         <div className="bo-content">
           <SectionHeader title={`${buyers.length}명의 고객`} />
-          <Card padding="sm" style={{ marginTop: 'var(--space-4)' }}>
+          <Card padding="sm" className="mt-4">
             <table className="data-table">
               <thead>
                 <tr>
@@ -35,7 +35,7 @@ export default function BuyersPage() {
                   const latest = userConcerns.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
                   return (
                     <tr key={user.id}>
-                      <td style={{ fontWeight: 500 }}>{user.name}</td>
+                      <td className="font-medium">{user.name}</td>
                       <td>{user.phone || user.email || '-'}</td>
                       <td><Badge>{user.locale}</Badge></td>
                       <td>{userConcerns.length}</td>

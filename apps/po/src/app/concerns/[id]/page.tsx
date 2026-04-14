@@ -25,7 +25,7 @@ export default async function ConcernDetailPage({ params }: Props) {
         </div>
         <div className="po-content">
           {/* Status */}
-          <div style={{ marginBottom: 'var(--space-4)', display: 'flex', gap: 'var(--space-2)' }}>
+          <div className="mb-4 flex gap-2">
             <Badge variant="info">{concern.bodyArea}</Badge>
             {concern.bodyAreaDetail && <Badge>{concern.bodyAreaDetail}</Badge>}
             <Badge variant={concern.status === 'submitted' ? 'warning' : 'success'}>{concern.status}</Badge>
@@ -41,9 +41,9 @@ export default async function ConcernDetailPage({ params }: Props) {
           )}
 
           {/* Details */}
-          <Card padding="md" style={{ marginBottom: 'var(--space-6)' }}>
+          <Card padding="md" className="mb-6">
             <SectionHeader title="고민 정보" />
-            <div className="concern-detail-grid" style={{ marginTop: 'var(--space-4)' }}>
+            <div className="concern-detail-grid mt-4">
               <div>
                 <div className="concern-detail-label">고민 내용</div>
                 <div className="concern-detail-value">{concern.description}</div>
@@ -69,7 +69,7 @@ export default async function ConcernDetailPage({ params }: Props) {
           {existingProposals.length > 0 && (
             <Card padding="md">
               <SectionHeader title={`기존 제안서 ${existingProposals.length}건`} />
-              <table className="data-table" style={{ marginTop: 'var(--space-4)' }}>
+              <table className="data-table mt-4">
                 <thead>
                   <tr>
                     <th>병원</th>

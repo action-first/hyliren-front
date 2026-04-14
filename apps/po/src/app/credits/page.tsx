@@ -19,12 +19,12 @@ export default function CreditsPage() {
         </div>
         <div className="po-content">
           {/* Balance */}
-          <Card padding="md" style={{ marginBottom: 'var(--space-6)' }}>
+          <Card padding="md" className="mb-6">
             <SectionHeader
               title="현재 잔액"
               action={<Button variant="primary" size="sm">크레딧 충전</Button>}
             />
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-2)', marginTop: 'var(--space-4)' }}>
+            <div className="flex items-baseline gap-2 mt-4">
               <span className="credit-balance">{balance}</span>
               <span className="credit-unit">크레딧</span>
             </div>
@@ -33,7 +33,7 @@ export default function CreditsPage() {
           {/* Transaction history */}
           <Card padding="sm">
             <SectionHeader title="거래 내역" />
-            <table className="data-table" style={{ marginTop: 'var(--space-4)' }}>
+            <table className="data-table mt-4">
               <thead>
                 <tr>
                   <th>날짜</th>

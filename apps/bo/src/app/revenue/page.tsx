@@ -25,10 +25,10 @@ export default function RevenuePage() {
         <div className="bo-topbar"><span className="bo-topbar-title">매출 현황</span></div>
         <div className="bo-content">
           {/* Total */}
-          <Card padding="md" style={{ marginBottom: 'var(--space-6)' }}>
+          <Card padding="md" className="mb-6">
             <SectionHeader title="총 매출" />
-            <div style={{ marginTop: 'var(--space-3)' }}>
-              <span style={{ fontSize: 'var(--admin-text-h1)', fontWeight: 700, color: 'var(--admin-accent)' }}>
+            <div className="mt-3">
+              <span className="text-3xl font-bold text-[var(--color-primary)]">
                 ₩{total.toLocaleString()}
               </span>
             </div>
@@ -39,7 +39,7 @@ export default function RevenuePage() {
             {REVENUE_SUMMARY.map(r => (
               <Card key={r.label} padding="md">
                 <span className="kpi-label">{r.label}</span>
-                <span className="kpi-value" style={{ fontSize: 'var(--admin-text-h2)' }}>₩{r.amount}</span>
+                <span className="kpi-value text-2xl font-bold">₩{r.amount}</span>
                 <span className="kpi-label">{r.count}건</span>
               </Card>
             ))}
@@ -48,7 +48,7 @@ export default function RevenuePage() {
           {/* Recent orders */}
           <Card padding="sm">
             <SectionHeader title="최근 주문" />
-            <table className="data-table" style={{ marginTop: 'var(--space-4)' }}>
+            <table className="data-table mt-4">
               <thead>
                 <tr><th>유형</th><th>고객</th><th>고민</th><th>금액</th><th>상태</th><th>날짜</th></tr>
               </thead>
@@ -58,7 +58,7 @@ export default function RevenuePage() {
                     <td><Badge variant={o.type === 'report' ? 'info' : 'default'}>{o.type}</Badge></td>
                     <td>{o.buyer}</td>
                     <td>{o.concern}</td>
-                    <td style={{ fontWeight: 600 }}>₩{o.price}</td>
+                    <td className="font-semibold">₩{o.price}</td>
                     <td>
                       <Badge variant={
                         o.status === 'paid' ? 'success' :

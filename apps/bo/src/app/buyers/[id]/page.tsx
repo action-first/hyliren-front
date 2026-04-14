@@ -35,28 +35,28 @@ export default async function BuyerDetailPage({ params }: Props) {
         </div>
         <div className="bo-content">
           {/* Profile */}
-          <Card padding="md" style={{ marginBottom: 'var(--space-6)' }}>
+          <Card padding="md" className="mb-6">
             <SectionHeader title="프로필" />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--space-4)', marginTop: 'var(--space-4)' }}>
+            <div className="grid grid-cols-3 gap-4 mt-4">
               <div>
-                <div style={{ fontSize: 'var(--admin-text-small)', color: 'var(--admin-text-secondary)' }}>연락처</div>
+                <div className="text-sm text-[var(--color-text-secondary)]">연락처</div>
                 <div>{user.phone || user.email || '-'}</div>
               </div>
               <div>
-                <div style={{ fontSize: 'var(--admin-text-small)', color: 'var(--admin-text-secondary)' }}>국가/도시</div>
+                <div className="text-sm text-[var(--color-text-secondary)]">국가/도시</div>
                 <div>{profile?.country || '-'} {profile?.city || ''}</div>
               </div>
               <div>
-                <div style={{ fontSize: 'var(--admin-text-small)', color: 'var(--admin-text-secondary)' }}>언어</div>
+                <div className="text-sm text-[var(--color-text-secondary)]">언어</div>
                 <Badge>{user.locale}</Badge>
               </div>
             </div>
           </Card>
 
           {/* Concerns */}
-          <Card padding="md" style={{ marginBottom: 'var(--space-6)' }}>
+          <Card padding="md" className="mb-6">
             <SectionHeader title={`고민 ${concerns.length}건`} />
-            <table className="data-table" style={{ marginTop: 'var(--space-4)' }}>
+            <table className="data-table mt-4">
               <thead>
                 <tr><th>부위</th><th>예산</th><th>상태</th><th>등록일</th></tr>
               </thead>
@@ -76,7 +76,7 @@ export default async function BuyerDetailPage({ params }: Props) {
           {/* Timeline */}
           <Card padding="md">
             <SectionHeader title="활동 타임라인" />
-            <div className="timeline" style={{ marginTop: 'var(--space-4)' }}>
+            <div className="timeline mt-4">
               {events.slice(0, 10).map((ev, i) => (
                 <div key={i} className="timeline-item">
                   <span className="timeline-time">{new Date(ev.time).toLocaleDateString('ko')}</span>

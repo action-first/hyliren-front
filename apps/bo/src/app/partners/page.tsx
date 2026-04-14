@@ -12,7 +12,7 @@ export default function PartnersPage() {
         <div className="bo-topbar"><span className="bo-topbar-title">병원 관리</span></div>
         <div className="bo-content">
           <SectionHeader title={`${partners.length}개 파트너 병원`} />
-          <Card padding="sm" style={{ marginTop: 'var(--space-4)' }}>
+          <Card padding="sm" className="mt-4">
             <table className="data-table">
               <thead>
                 <tr><th>병원명</th><th>전문분야</th><th>인증</th><th>제안서 수</th><th>선택률</th></tr>
@@ -25,9 +25,9 @@ export default function PartnersPage() {
                   const rate = proposals.length > 0 ? Math.round((selected / proposals.length) * 100) : 0;
                   return (
                     <tr key={m.id}>
-                      <td style={{ fontWeight: 500 }}>{profile?.hospitalName || m.name}</td>
+                      <td className="font-medium">{profile?.hospitalName || m.name}</td>
                       <td>
-                        {profile?.specialties.map(s => <Badge key={s} variant="info" style={{ marginRight: 'var(--space-1)' }}>{s}</Badge>)}
+                        {profile?.specialties.map(s => <span key={s} className="mr-1 inline-block"><Badge variant="info">{s}</Badge></span>)}
                       </td>
                       <td>{profile?.verified ? <Badge variant="success">인증</Badge> : <Badge variant="warning">미인증</Badge>}</td>
                       <td>{proposals.length}</td>

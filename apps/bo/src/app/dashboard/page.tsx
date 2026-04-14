@@ -2,13 +2,20 @@ import { MOCK_CONCERNS, MOCK_PROPOSALS, MOCK_MEMBERS, MOCK_USERS } from '@hylire
 import { Card, Badge, SectionHeader } from '@hyliren/ui';
 import { BOSidebar } from '@/components/BOSidebar';
 
+const STATUS_LABELS: Record<string, string> = {
+  submitted: '등록',
+  proposal_received: '제안 도착',
+  comparing: '비교 중',
+  hospital_selected: '병원 선택',
+  completed: '완료',
+};
+
 export default function DashboardPage() {
   const buyers = MOCK_USERS.filter(u => u.role === 'buyer');
   const partners = MOCK_MEMBERS.filter(m => m.role === 'partner');
   const concerns = MOCK_CONCERNS.filter(c => !c.deletedAt);
   const proposals = MOCK_PROPOSALS.filter(p => p.isActive);
 
-  // Funnel counts
   const funnel = [
     { label: '고민 등록', value: concerns.filter(c => c.status !== 'draft').length },
     { label: '제안서 발송', value: proposals.filter(p => p.status !== 'draft').length },
@@ -27,29 +34,29 @@ export default function DashboardPage() {
           {/* KPI */}
           <div className="kpi-grid">
             <Card padding="md">
-              <span className="kpi-value">{buyers.length}</span>
               <span className="kpi-label">총 고객</span>
+              <span className="kpi-value">{buyers.length}</span>
             </Card>
             <Card padding="md">
-              <span className="kpi-value">{partners.length}</span>
               <span className="kpi-label">파트너 병원</span>
+              <span className="kpi-value">{partners.length}</span>
             </Card>
             <Card padding="md">
-              <span className="kpi-value">{concerns.length}</span>
               <span className="kpi-label">총 고민</span>
+              <span className="kpi-value">{concerns.length}</span>
             </Card>
             <Card padding="md">
-              <span className="kpi-value">{proposals.length}</span>
               <span className="kpi-label">총 제안서</span>
+              <span className="kpi-value">{proposals.length}</span>
             </Card>
           </div>
 
           {/* Funnel */}
-          <Card padding="md" style={{ marginBottom: 'var(--space-6)' }}>
+          <Card padding="md" className="mb-6">
             <SectionHeader title="전환 퍼널" />
-            <div className="funnel-bar" style={{ marginTop: 'var(--space-4)' }}>
+            <div className="funnel-bar mt-4">
               {funnel.map((f, i) => (
-                <div key={f.label} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                <div key={f.label} className="flex items-center flex-1">
                   <div className="funnel-segment">
                     <span className="funnel-segment-value">{f.value}</span>
                     <span className="funnel-segment-label">{f.label}</span>
@@ -63,12 +70,12 @@ export default function DashboardPage() {
           {/* Status Distribution */}
           <Card padding="md">
             <SectionHeader title="고민 상태 분포" />
-            <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', marginTop: 'var(--space-4)' }}>
+            <div className="flex gap-2 flex-wrap mt-4">
               {['submitted', 'proposal_received', 'comparing', 'hospital_selected', 'completed'].map(status => {
                 const count = concerns.filter(c => c.status === status).length;
                 return (
                   <Badge key={status} variant={count > 0 ? 'info' : 'default'}>
-                    {status}: {count}
+                    {STATUS_LABELS[status] || status}: {count}
                   </Badge>
                 );
               })}

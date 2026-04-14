@@ -4,7 +4,8 @@
    데스크톱 우선 · 14px body · 기능적
    ============================================================ */
 
-[data-theme="admin"] {
+[data-theme="admin"],
+:root[data-theme="admin"] {
   --color-primary: #008060;
   --color-primary-hover: #006E52;
   --color-primary-soft: rgba(0, 128, 96, 0.08);
