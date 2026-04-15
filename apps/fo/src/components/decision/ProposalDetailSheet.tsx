@@ -13,10 +13,9 @@ interface Props {
   items: ProposalItem[];
   onClose: () => void;
   onAnalyze: () => void;
-  onCompareIntent: () => void;
 }
 
-export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnalyze, onCompareIntent }: Props) {
+export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnalyze }: Props) {
 
   useEffect(() => {
     track({ eventType: 'proposal_viewed', actorType: 'user', targetType: 'proposal', targetId: proposal.id,
@@ -116,7 +115,7 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
               이 제안 검증하기
             </Button>
             <button type="button"
-              onClick={onCompareIntent}
+              onClick={onClose}
               className="w-full mt-2 py-2 text-[13px] font-medium text-[var(--color-text-secondary)] bg-transparent border-0 cursor-pointer">
               다른 제안도 보고 싶어요
             </button>

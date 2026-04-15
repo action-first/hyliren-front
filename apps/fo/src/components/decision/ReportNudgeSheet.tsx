@@ -14,7 +14,7 @@ interface Props {
 }
 
 export function ReportNudgeSheet({ concernId, proposalId, delay = 5000 }: Props) {
-  const { setActiveProposal, openPaywall } = useReportStore();
+  const { markPurchased } = useReportStore();
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
@@ -34,9 +34,10 @@ export function ReportNudgeSheet({ concernId, proposalId, delay = 5000 }: Props)
 
   function handleClick() {
     track({ eventType: 'report_clicked', actorType: 'user', targetType: 'concern', targetId: concernId, metadata: { source: 'fo', locale: 'ko', label: 'nudge_sheet' } });
-    setActiveProposal(proposalId);
+    track({ eventType: 'report_purchased', actorType: 'user', targetType: 'proposal', targetId: proposalId,
+      metadata: { source: 'fo', locale: 'ko', value: '4900', label: 'nudge' } });
+    markPurchased(proposalId);
     handleDismiss();
-    openPaywall();
   }
 
   if (!visible) return null;

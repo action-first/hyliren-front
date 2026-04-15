@@ -1,0 +1,286 @@
+'use client';
+
+import { useEffect } from 'react';
+import type { Proposal, PartnerProfile, ProposalItem } from '@hyliren/shared';
+import { track } from '@hyliren/shared';
+import { Button } from '@hyliren/ui';
+import {
+  X, BarChart3, Activity, ShieldCheck, AlertTriangle,
+  CheckCircle, Crown, Lock,
+} from 'lucide-react';
+import { useReportStore } from '@/store/report';
+
+interface Props {
+  proposals: Proposal[];
+  profiles: PartnerProfile[];
+  items: ProposalItem[];
+  concernId: string;
+  onClose: () => void;
+}
+
+/* ── Mock compare data ── */
+
+interface ProposalScore {
+  proposalId: string;
+  hospitalName: string;
+  priceScore: number;
+  riskScore: number;
+  valueScore: number;
+  totalScore: number;
+  priceVerdict: string;
+  riskVerdict: string;
+  bestAt: string[];
+}
+
+function generateCompareScores(proposals: Proposal[], profiles: PartnerProfile[]): ProposalScore[] {
+  const lowestPrice = Math.min(...proposals.map(p => p.totalPrice));
+  const fastestRecovery = Math.min(...proposals.map(p => p.recoveryDays));
+
+  return proposals.map(p => {
+    const profile = profiles.find(pp => pp.memberId === p.memberId);
+    const priceScore = p.totalPrice === lowestPrice ? 90 : Math.max(50, 90 - Math.round((p.totalPrice - lowestPrice) / lowestPrice * 40));
+    const riskScore = p.anesthesiaType === 'local' ? 95 : p.anesthesiaType === 'sedation' ? 85 : 70;
+    const valueScore = Math.round((priceScore * 0.4 + riskScore * 0.3 + (p.recoveryDays === fastestRecovery ? 90 : 70) * 0.3));
+    const totalScore = Math.round((priceScore + riskScore + valueScore) / 3);
+
+    const bestAt: string[] = [];
+    if (p.totalPrice === lowestPrice) bestAt.push('최저 가격');
+    if (p.recoveryDays === fastestRecovery) bestAt.push('빠른 회복');
+    if (profile?.verified) bestAt.push('인증 병원');
+
+    return {
+      proposalId: p.id,
+      hospitalName: profile?.hospitalName || '',
+      priceScore,
+      riskScore,
+      valueScore,
+      totalScore,
+      priceVerdict: p.totalPrice === lowestPrice ? '가장 합리적인 가격입니다' : `최저가 대비 ${Math.round((p.totalPrice - lowestPrice) / lowestPrice * 100)}% 높습니다`,
+      riskVerdict: p.anesthesiaType === 'local' ? '부분마취로 리스크가 매우 낮습니다' : p.anesthesiaType === 'sedation' ? '수면마취로 리스크가 낮은 편입니다' : '전신마취로 사전 검진이 필요합니다',
+      bestAt,
+    };
+  }).sort((a, b) => b.totalScore - a.totalScore);
+}
+
+const SCORE_COLOR = (s: number) => s >= 80 ? 'text-emerald-600' : s >= 60 ? 'text-[var(--color-text)]' : 'text-amber-600';
+const BAR_COLOR = (s: number) => s >= 80 ? 'bg-emerald-400' : s >= 60 ? 'bg-[var(--color-border)]' : 'bg-amber-400';
+
+export function CompareReport({ proposals, profiles, items, concernId, onClose }: Props) {
+  const { isPurchased: checkPurchased, markPurchased } = useReportStore();
+
+  // "compare report" 는 concernId 기준으로 구매 여부 판단
+  const purchased = checkPurchased(`compare-${concernId}`);
+  const scores = generateCompareScores(proposals, profiles);
+  const winner = scores[0];
+
+  useEffect(() => {
+    track({ eventType: 'compare_report_viewed', actorType: 'user', targetType: 'concern', targetId: concernId,
+      metadata: { source: 'fo', locale: 'ko', value: String(proposals.length) } });
+  }, [concernId, proposals.length]);
+
+  function handlePurchase() {
+    track({ eventType: 'report_purchased', actorType: 'user', targetType: 'concern', targetId: concernId,
+      metadata: { source: 'fo', locale: 'ko', value: '6900', label: 'compare_report' } });
+    markPurchased(`compare-${concernId}`);
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/30 z-50" onClick={onClose} />
+      <div className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-50 rounded-t-3xl overflow-hidden animate-[slideUp_0.3s_ease-out]">
+        <div className="bg-white max-h-[90vh] overflow-y-auto hide-scrollbar">
+          {/* Header */}
+          <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-[var(--color-border-light)]">
+            <span className="text-[15px] font-semibold text-[var(--color-text)]">
+              {proposals.length}개 제안 비교 리포트
+            </span>
+            <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center border-0 cursor-pointer">
+              <X size={16} className="text-[var(--color-text-dim)]" />
+            </button>
+          </div>
+
+          <div className="px-5 py-4">
+            {/* ═══ FREE: 종합 순위 ═══ */}
+            <div className="rounded-2xl border border-[var(--color-border-light)] overflow-hidden mb-4">
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-secondary)]">
+                <Crown size={14} className="text-[var(--color-primary)]" />
+                <span className="text-[12px] font-semibold text-[var(--color-text)]">종합 순위</span>
+              </div>
+              <div className="px-4 py-3">
+                {scores.map((s, rank) => (
+                  <div key={s.proposalId} className={`flex items-center gap-3 py-2.5 ${rank > 0 ? 'border-t border-[var(--color-border-light)]' : ''}`}>
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                      rank === 0 ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-dim)]'
+                    }`}>{rank + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[13px] font-medium text-[var(--color-text)] block truncate">{s.hospitalName}</span>
+                      <div className="flex gap-1 mt-0.5">
+                        {s.bestAt.map(b => (
+                          <span key={b} className="text-[9px] px-1.5 py-px rounded bg-[var(--color-bg-secondary)] text-[var(--color-text-dim)]">{b}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <span className={`text-[1rem] font-bold ${SCORE_COLOR(s.totalScore)}`}>{s.totalScore}점</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ═══ FREE: 가격 비교 바 ═══ */}
+            <div className="rounded-2xl border border-[var(--color-border-light)] overflow-hidden mb-4">
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-secondary)]">
+                <BarChart3 size={14} className="text-[var(--color-primary)]" />
+                <span className="text-[12px] font-semibold text-[var(--color-text)]">가격 비교</span>
+              </div>
+              <div className="px-4 py-3">
+                {scores.map(s => {
+                  const proposal = proposals.find(p => p.id === s.proposalId)!;
+                  const maxPrice = Math.max(...proposals.map(p => p.totalPrice));
+                  const barW = Math.max((proposal.totalPrice / maxPrice) * 100, 25);
+                  return (
+                    <div key={s.proposalId} className="flex items-center gap-3 py-2">
+                      <span className="text-[11px] text-[var(--color-text-secondary)] w-14 shrink-0 truncate">{s.hospitalName.split(' ')[0]}</span>
+                      <div className="flex-1 h-6 bg-[var(--color-bg-secondary)] rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full flex items-center justify-end pr-2 ${BAR_COLOR(s.priceScore)}`}
+                          style={{ width: `${barW}%` }}>
+                          <span className="text-[10px] font-bold text-white">{proposal.totalPrice}만</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ═══ PURCHASED: 상세 비교 분석 ═══ */}
+            {purchased ? (
+              <>
+                {/* A vs B 나란히 비교표 */}
+                <div className="rounded-2xl border border-[var(--color-border-light)] overflow-hidden mb-4">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-secondary)]">
+                    <Activity size={14} className="text-[var(--color-primary)]" />
+                    <span className="text-[12px] font-semibold text-[var(--color-text)]">제안서 비교표</span>
+                  </div>
+
+                  {/* Column headers */}
+                  <div className="flex border-b border-[var(--color-border-light)]">
+                    <div className="w-20 shrink-0 px-3 py-2.5 bg-[var(--color-bg-secondary)]" />
+                    {scores.map((s, i) => (
+                      <div key={s.proposalId} className={`flex-1 px-2 py-2.5 text-center ${i === 0 ? 'bg-[var(--color-primary-soft)]' : ''}`}>
+                        <span className="text-[11px] font-semibold text-[var(--color-text)] block truncate">{s.hospitalName.split(' ')[0]}</span>
+                        {i === 0 && <span className="text-[9px] text-[var(--color-primary)] font-bold">추천</span>}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Rows */}
+                  {[
+                    { label: '총 가격', render: (s: ProposalScore) => { const p = proposals.find(pp => pp.id === s.proposalId)!; return `${p.totalPrice}만`; }, best: (s: ProposalScore) => s.priceScore >= 80 },
+                    { label: '가격 점수', render: (s: ProposalScore) => `${s.priceScore}점`, best: (s: ProposalScore) => s.priceScore >= 80 },
+                    { label: '리스크', render: (s: ProposalScore) => `${s.riskScore}점`, best: (s: ProposalScore) => s.riskScore >= 80 },
+                    { label: '가성비', render: (s: ProposalScore) => `${s.valueScore}점`, best: (s: ProposalScore) => s.valueScore >= 80 },
+                    { label: '종합', render: (s: ProposalScore) => `${s.totalScore}점`, best: (s: ProposalScore) => s.totalScore >= 80 },
+                    { label: '회복', render: (s: ProposalScore) => { const p = proposals.find(pp => pp.id === s.proposalId)!; return `${p.recoveryDays}일`; }, best: (s: ProposalScore) => { const p = proposals.find(pp => pp.id === s.proposalId)!; return p.recoveryDays === Math.min(...proposals.map(pp => pp.recoveryDays)); } },
+                    { label: '마취', render: (s: ProposalScore) => { const p = proposals.find(pp => pp.id === s.proposalId)!; return p.anesthesiaType === 'local' ? '부분' : p.anesthesiaType === 'sedation' ? '수면' : '전신'; }, best: (s: ProposalScore) => { const p = proposals.find(pp => pp.id === s.proposalId)!; return p.anesthesiaType !== 'general'; } },
+                    { label: '인증', render: (s: ProposalScore) => { const profile = profiles.find(pp => pp.hospitalName === s.hospitalName); return profile?.verified ? '✓' : '—'; }, best: (s: ProposalScore) => { const profile = profiles.find(pp => pp.hospitalName === s.hospitalName); return !!profile?.verified; } },
+                  ].map(row => (
+                    <div key={row.label} className="flex border-b border-[var(--color-border-light)] last:border-0">
+                      <div className="w-20 shrink-0 px-3 py-2.5 bg-[var(--color-bg-secondary)] flex items-center">
+                        <span className="text-[11px] font-semibold text-[var(--color-text-dim)]">{row.label}</span>
+                      </div>
+                      {scores.map((s, i) => (
+                        <div key={s.proposalId} className={`flex-1 px-2 py-2.5 flex items-center justify-center ${i === 0 ? 'bg-[var(--color-primary-soft)]/30' : ''}`}>
+                          <span className={`text-[12px] font-semibold ${row.best(s) ? 'text-emerald-600' : 'text-[var(--color-text)]'}`}>
+                            {row.render(s)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+
+                {/* 병원별 한 줄 평가 */}
+                <div className="rounded-2xl border border-[var(--color-border-light)] overflow-hidden mb-4">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-secondary)]">
+                    <ShieldCheck size={14} className="text-[var(--color-primary)]" />
+                    <span className="text-[12px] font-semibold text-[var(--color-text)]">병원별 평가</span>
+                  </div>
+                  <div className="px-4 py-3">
+                    {scores.map((s, i) => (
+                      <div key={s.proposalId} className={`py-3 ${i > 0 ? 'border-t border-[var(--color-border-light)]' : ''}`}>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-[13px] font-semibold text-[var(--color-text)]">{s.hospitalName}</span>
+                          <span className={`text-[11px] font-bold ${SCORE_COLOR(s.totalScore)}`}>{s.totalScore}점</span>
+                        </div>
+                        <div className="flex items-start gap-1.5 mb-1">
+                          <CheckCircle size={12} className="text-emerald-500 shrink-0 mt-0.5" />
+                          <span className="text-[11px] text-[var(--color-text-secondary)] leading-relaxed">{s.priceVerdict}</span>
+                        </div>
+                        <div className="flex items-start gap-1.5">
+                          <AlertTriangle size={12} className="text-amber-500 shrink-0 mt-0.5" />
+                          <span className="text-[11px] text-[var(--color-text-secondary)] leading-relaxed">{s.riskVerdict}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 종합 의견 */}
+                <div className="rounded-2xl bg-gradient-to-br from-[var(--color-primary-soft)] to-[#fff5f7] px-4 py-4 mb-3">
+                  <span className="text-[12px] font-semibold text-[var(--color-primary)] block mb-2">종합 의견</span>
+                  <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
+                    {proposals.length}개 제안을 종합 분석한 결과, {winner.hospitalName}이 가격과 리스크 면에서 가장 균형 잡힌 제안입니다.
+                    최종 결정 전 병원 상담을 통해 개인 상태에 맞는 정밀 진단을 받으시기를 권합니다.
+                  </p>
+                </div>
+
+                <p className="text-[10px] text-[var(--color-text-dim)] leading-relaxed px-1 mb-4">
+                  이 리포트는 일반적인 시장 데이터와 시술 정보를 기반으로 작성되었으며, 개인의 의료 상태에 따라 결과가 달라질 수 있습니다.
+                </p>
+              </>
+            ) : (
+              /* ═══ NOT PURCHASED: Blur ═══ */
+              <>
+                <div className="relative rounded-2xl overflow-hidden mb-3">
+                  <div className="filter blur-[6px] pointer-events-none select-none px-4 py-4 bg-[var(--color-bg-secondary)]">
+                    <div className="h-3 w-3/4 bg-[var(--color-border)] rounded mb-2" />
+                    <div className="h-3 w-1/2 bg-[var(--color-border)] rounded mb-3" />
+                    <div className="h-3 w-full bg-[var(--color-border)] rounded mb-2" />
+                    <div className="h-3 w-2/3 bg-[var(--color-border)] rounded mb-2" />
+                    <div className="h-3 w-5/6 bg-[var(--color-border)] rounded mb-3" />
+                    <div className="h-3 w-3/4 bg-[var(--color-border)] rounded" />
+                  </div>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[1px]">
+                    <div className="w-10 h-10 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center mb-2">
+                      <Lock size={18} className="text-[var(--color-text-dim)]" />
+                    </div>
+                    <span className="text-[13px] font-semibold text-[var(--color-text)]">항목별 점수 · 병원별 평가 · 종합 의견</span>
+                    <span className="text-[11px] text-[var(--color-text-dim)] mt-0.5">비교 리포트를 구매하면 확인할 수 있어요</span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Sticky CTA */}
+          <div className="sticky bottom-0 bg-white border-t border-[var(--color-border-light)] px-5 py-4">
+            {purchased ? (
+              <Button variant="primary" size="lg" fullWidth onClick={onClose}>
+                확인 완료
+              </Button>
+            ) : (
+              <>
+                <Button variant="accent" size="lg" fullWidth onClick={handlePurchase}>
+                  비교 리포트 보기 (₩6,900)
+                </Button>
+                <p className="text-center text-[10px] text-[var(--color-text-dim)] mt-1.5">
+                  어떤 제안이 더 합리적인지 객관적으로 분석합니다
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

@@ -10,9 +10,7 @@ import { ProposalGroupSection } from './ProposalGroupSection';
 import { StickyBottomBar } from './StickyBottomBar';
 import { ProposalDetailSheet } from './ProposalDetailSheet';
 import { SingleAnalysisPreview } from './SingleAnalysisPreview';
-import { ReportPaywall } from './ReportPaywall';
 import { CompareIntentModal } from './CompareIntentModal';
-import { useReportStore } from '@/store/report';
 import { useDecisionStore } from '@/store/decision';
 
 interface ProposalGroup {
@@ -28,7 +26,7 @@ interface Props {
 }
 
 export function DecisionPageClient({ groups, profiles, items, totalProposalCount }: Props) {
-  const { setActiveProposal } = useReportStore();
+  
 
   useEffect(() => {
     track({ eventType: 'decision_page_viewed', actorType: 'user', metadata: { source: 'fo', locale: 'ko', value: String(totalProposalCount) } });
@@ -71,7 +69,6 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
   function handleAnalyze(proposalId: string) {
     setDetailProposalId(null);
     setShowCompareIntent(false);
-    setActiveProposal(proposalId);
     setAnalysisProposalId(proposalId);
     track({ eventType: 'analysis_clicked', actorType: 'user', targetType: 'proposal', targetId: proposalId,
       metadata: { source: 'fo', locale: 'ko' } });
@@ -147,7 +144,6 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
           items={items.filter(i => i.proposalId === detailProposal.id)}
           onClose={() => setDetailProposalId(null)}
           onAnalyze={() => handleAnalyze(detailProposal.id)}
-          onCompareIntent={() => handleCompareIntent(detailProposal.id)}
         />
       )}
 
@@ -163,13 +159,13 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
       {/* Compare Intent Modal */}
       {showCompareIntent && (
         <CompareIntentModal
+          prices={allProposals.map(p => p.totalPrice)}
+          hospitalNames={allProposals.map(p => profiles.find(pp => pp.memberId === p.memberId)?.hospitalName || '')}
           onClose={() => setShowCompareIntent(false)}
           onProceedToReport={handleCompareIntentProceed}
         />
       )}
 
-      {/* Paywall */}
-      <ReportPaywall />
     </>
   );
 }

@@ -63,7 +63,7 @@ const VERDICT_COLOR = { below: 'text-emerald-600', fair: 'text-[var(--color-text
 const VERDICT_LABEL = { below: '저렴', fair: '적정', above: '높음' };
 
 export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
-  const { openPaywall, isPurchased: checkPurchased, setFullReport } = useReportStore();
+  const { markPurchased, isPurchased: checkPurchased, setFullReport } = useReportStore();
   const purchased = checkPurchased(proposal.id);
   const preview = generatePreview(proposal, profile);
 
@@ -76,9 +76,9 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
 
   const fullReport = purchased ? generateFullReport(proposal, profile) : null;
 
-  function handleUnlock() {
-    track({ eventType: 'report_paywall_viewed', actorType: 'user', targetType: 'proposal', targetId: proposal.id, metadata: { source: 'fo', locale: 'ko' } });
-    openPaywall();
+  function handlePurchase() {
+    track({ eventType: 'report_purchased', actorType: 'user', targetType: 'proposal', targetId: proposal.id, metadata: { source: 'fo', locale: 'ko', value: '4900' } });
+    markPurchased(proposal.id);
   }
 
   return (
@@ -250,7 +250,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
               </Button>
             ) : (
               <>
-                <Button variant="accent" size="lg" fullWidth onClick={handleUnlock}>
+                <Button variant="accent" size="lg" fullWidth onClick={handlePurchase}>
                   전체 리포트 보기 (₩4,900)
                 </Button>
                 <p className="text-center text-[10px] text-[var(--color-text-dim)] mt-1.5">

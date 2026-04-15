@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { CARD_GRADIENTS } from '@/lib/constants';
 import { ReportNudgeSheet } from '@/components/decision/ReportNudgeSheet';
+import { CompareReport } from '@/components/decision/CompareReport';
 import { use } from 'react';
 
 interface Props { params: Promise<{ id: string }>; }
@@ -23,6 +24,7 @@ export default function ComparePage({ params }: Props) {
     .sort((a, b) => a.totalPrice - b.totalPrice);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showCompareReport, setShowCompareReport] = useState(false);
 
   useEffect(() => {
     track({ eventType: 'compare_entered', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', value: String(proposals.length) } });
@@ -235,7 +237,10 @@ export default function ComparePage({ params }: Props) {
               가격과 회복기간이 왜 다른지, 과잉진료는 아닌지 분석해드립니다
             </p>
             <Button variant="accent" size="md" fullWidth
-              onClick={() => track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: 'compare_page' } })}>
+              onClick={() => {
+                track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: 'compare_page' } });
+                setShowCompareReport(true);
+              }}>
               검증 리포트로 판단 기준 만들기
               <ChevronRight size={16} />
             </Button>
@@ -263,6 +268,18 @@ export default function ComparePage({ params }: Props) {
       </MobileBottomCTA>
 
       <ReportNudgeSheet concernId={concern.id} proposalId={selectedId || proposals[0]?.id || ''} delay={5000} />
+
+      {/* Compare Report */}
+      {showCompareReport && (
+        <CompareReport
+          proposals={proposals}
+          profiles={MOCK_PARTNER_PROFILES}
+          items={MOCK_PROPOSAL_ITEMS}
+          concernId={concern.id}
+          onClose={() => setShowCompareReport(false)}
+        />
+      )}
+
     </>
   );
 }
