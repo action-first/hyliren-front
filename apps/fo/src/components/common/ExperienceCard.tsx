@@ -18,6 +18,7 @@ interface ExperienceCardProps {
   selected?: boolean;
   onToggleSelect?: () => void;
   quote?: string | null;
+  unread?: boolean;
   children?: ReactNode;
 }
 
@@ -34,6 +35,7 @@ export function ExperienceCard({
   selected,
   onToggleSelect,
   quote,
+  unread = false,
   children,
 }: ExperienceCardProps) {
   const isPrimary = variant === 'primary';
@@ -54,8 +56,15 @@ export function ExperienceCard({
           isPrimary ? 'h-24' : 'h-16'
         }`} />
 
+        {/* Unread badge */}
+        {unread && (
+          <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-[var(--color-primary)] text-[9px] font-bold text-white tracking-wider z-10">
+            NEW
+          </span>
+        )}
+
         {verified && (
-          <span className="absolute top-3 right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm text-[11px] font-semibold text-emerald-600">
+          <span className={`absolute ${unread ? 'top-10' : 'top-3'} right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm text-[11px] font-semibold text-emerald-600`}>
             <ShieldCheck size={12} /> 인증
           </span>
         )}
@@ -86,9 +95,9 @@ export function ExperienceCard({
       {/* ── Content ── */}
       <div className={isPrimary ? 'px-4 pt-3.5 pb-4' : 'px-4 pt-3 pb-3.5'}>
         {/* 1. Value proposition — 가장 중요 */}
-        <p className={`font-medium text-[var(--color-text)] leading-snug ${
+        <p className={`text-[var(--color-text)] leading-snug ${
           isPrimary ? 'text-[1rem] mb-1.5' : 'text-[15px] mb-1'
-        }`}>{valueProp}</p>
+        } ${unread ? 'font-bold' : 'font-medium'}`}>{valueProp}</p>
 
         {/* 2. Price — 강조 */}
         <div className="flex items-baseline gap-1.5 mb-1">

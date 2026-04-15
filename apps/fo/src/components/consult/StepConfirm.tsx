@@ -5,10 +5,13 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@hyliren/ui';
 import { ArrowRight, Edit3, Sparkles, Clock, Loader2, Shield } from 'lucide-react';
 import { useConcernFlowStore } from '@/store/concern-flow';
+import { useUserConcernsStore } from '@/store/user-concerns';
+import { useLocaleStore } from '@/store/locale';
 import { AIAnalysisResultCard } from './ConcernSummaryCard';
 import { track } from '@hyliren/shared';
 
 export function StepConfirm() {
+  const t = useLocaleStore(s => s.t);
   const router = useRouter();
   const {
     analysisResult, photos, narrativeInput, feedbackTurns, analysisCount,
@@ -27,6 +30,10 @@ export function StepConfirm() {
       value: String(analysisCount),
     }});
     await new Promise(r => setTimeout(r, 2000));
+
+    // Save concern to client store (future: POST /api/concerns)
+    useUserConcernsStore.getState().addFromAnalysis(analysisResult!, narrativeInput, photos);
+
     setSubmitting(false);
     setDone(true);
     setTimeout(() => { resetFlow(); router.push('/dashboard'); }, 2500);
@@ -38,13 +45,13 @@ export function StepConfirm() {
         <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mb-5">
           <Sparkles size={28} className="text-emerald-500" />
         </div>
-        <h2 className="text-[1.25rem] font-bold text-[var(--color-text)] mb-2">상담이 등록되었어요!</h2>
+        <h2 className="text-[1.25rem] font-bold text-[var(--color-text)] mb-2">{t('consult.completeTitle')}</h2>
         <p className="text-[13px] text-[var(--color-text-dim)] text-center leading-relaxed mb-4">
-          보통 2~5개 병원이 맞춤 제안서를 보내드립니다
+          {t('consult.completeDesc')}
         </p>
         <div className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--color-bg-secondary)]">
           <Clock size={14} className="text-[var(--color-text-dim)]" />
-          <span className="text-[12px] text-[var(--color-text-secondary)]">평균 24~48시간 내 도착</span>
+          <span className="text-[12px] text-[var(--color-text-secondary)]">{t('consult.completeDelivery')}</span>
         </div>
       </div>
     );
@@ -56,8 +63,8 @@ export function StepConfirm() {
         <div className="w-16 h-16 rounded-full bg-[var(--color-primary-soft)] flex items-center justify-center mb-5">
           <Loader2 size={28} className="text-[var(--color-primary)] animate-spin" />
         </div>
-        <h2 className="text-[1.125rem] font-bold text-[var(--color-text)] mb-1.5">제출 중입니다...</h2>
-        <p className="text-[13px] text-[var(--color-text-dim)]">검증된 병원에 전달하고 있어요</p>
+        <h2 className="text-[1.125rem] font-bold text-[var(--color-text)] mb-1.5">{t('consult.confirmSubmitting')}</h2>
+        <p className="text-[13px] text-[var(--color-text-dim)]">{t('consult.confirmSubmittingDesc')}</p>
       </div>
     );
   }
@@ -66,9 +73,9 @@ export function StepConfirm() {
     <div className="flex flex-col min-h-full">
       <div className="mb-5">
         <h1 className="text-[1.375rem] font-extrabold text-[var(--color-text)] leading-tight tracking-[-0.3px] mb-1.5">
-          최종 확인
+          {t('consult.confirmTitle')}
         </h1>
-        <p className="text-[12px] text-[var(--color-text-dim)]">아래 내용으로 병원에 전달됩니다</p>
+        <p className="text-[12px] text-[var(--color-text-dim)]">{t('consult.confirmDesc')}</p>
       </div>
 
       {photos.length > 0 && (
@@ -82,17 +89,17 @@ export function StepConfirm() {
       )}
 
       <div className="rounded-2xl bg-[var(--color-bg-secondary)] px-4 py-3 mb-3">
-        <span className="text-[10px] text-[var(--color-text-dim)] block mb-1">고객님의 고민</span>
+        <span className="text-[10px] text-[var(--color-text-dim)] block mb-1">{t('consult.confirmYourConcern')}</span>
         <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{narrativeInput}</p>
       </div>
 
       {feedbackTurns.length > 0 && (
         <div className="rounded-2xl bg-[var(--color-bg-secondary)] px-4 py-3 mb-3">
           <span className="text-[10px] text-[var(--color-text-dim)] block mb-1.5">
-            추가 요청 ({feedbackTurns.filter(t => t.role === 'user').length}회)
+            {t('consult.confirmAdditional')} ({feedbackTurns.filter(ft => ft.role === 'user').length}{t('common.times')})
           </span>
-          {feedbackTurns.filter(t => t.role === 'user').map((t, i) => (
-            <p key={i} className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed mb-1">· {t.message}</p>
+          {feedbackTurns.filter(ft => ft.role === 'user').map((ft, i) => (
+            <p key={i} className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed mb-1">· {ft.message}</p>
           ))}
         </div>
       )}
@@ -103,14 +110,14 @@ export function StepConfirm() {
 
       <div className="mt-auto flex flex-col gap-2 pb-2">
         <Button variant="accent" size="lg" fullWidth onClick={handleConfirm}>
-          이 내용으로 제안서 받기
+          {t('consult.confirmCta')}
           <ArrowRight size={18} />
         </Button>
         <button
           onClick={() => setStep('feedback')}
           className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-transparent border-0 cursor-pointer text-[12px] text-[var(--color-text-dim)]">
           <Edit3 size={12} />
-          조금 더 설명하기
+          {t('consult.confirmExplainMore')}
         </button>
       </div>
     </div>

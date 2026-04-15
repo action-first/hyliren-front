@@ -3,13 +3,16 @@
 import { Button } from '@hyliren/ui';
 import { Scale } from 'lucide-react';
 import { useDecisionStore } from '@/store/decision';
+import { useLocaleStore } from '@/store/locale';
 import { track } from '@hyliren/shared';
 
 interface Props {
   onCompareClick: () => void;
+  onAnalyzeClick?: (proposalId: string) => void;
 }
 
-export function StickyBottomBar({ onCompareClick }: Props) {
+export function StickyBottomBar({ onCompareClick, onAnalyzeClick }: Props) {
+  const t = useLocaleStore(s => s.t);
   const { selectedProposalIds } = useDecisionStore();
   const count = selectedProposalIds.size;
 
@@ -24,14 +27,23 @@ export function StickyBottomBar({ onCompareClick }: Props) {
             onCompareClick();
           }}>
           <Scale size={16} />
-          {count}개 비교하기
+          {t('decision.compareCount', { count })}
         </Button>
       ) : (
-        <div className="flex items-center gap-3">
-          <div className="flex-1 text-[13px] text-[var(--color-text-secondary)]">
-            <span className="font-semibold text-[var(--color-primary)]">{count}개</span> 선택됨 — 1개 더 선택하면 비교 가능
+        <div className="flex gap-2">
+          <div className="flex-1 flex items-center text-[13px] text-[var(--color-text-secondary)]">
+            {t('decision.selectedCount', { count })}
           </div>
-          <span className="text-[12px] text-[var(--color-text-dim)] shrink-0">탭해서 분석하기</span>
+          <Button variant="primary" size="md"
+            onClick={() => {
+              const id = Array.from(selectedProposalIds)[0];
+              if (id && onAnalyzeClick) {
+                track({ eventType: 'single_analyze_clicked', actorType: 'user', metadata: { source: 'fo', locale: 'ko' } });
+                onAnalyzeClick(id);
+              }
+            }}>
+            {t('decision.verifyThis')}
+          </Button>
         </div>
       )}
     </div>

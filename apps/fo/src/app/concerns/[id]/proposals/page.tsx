@@ -7,13 +7,18 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import { ExperienceCard } from '@/components/common/ExperienceCard';
 import { VALUE_PROPS, CARD_GRADIENTS as GRADIENTS } from '@/lib/constants';
 import { useDecisionStore } from '@/store/decision';
+import { useLocaleStore } from '@/store/locale';
 import { use } from 'react';
 
 interface Props { params: Promise<{ id: string }>; }
 
 export default function ProposalListPage({ params }: Props) {
   const { id } = use(params);
-  const concern = MOCK_CONCERNS.find(c => c.id === id) || MOCK_CONCERNS[0];
+  const concern = MOCK_CONCERNS.find(c => c.id === id);
+  const t = useLocaleStore(s => s.t);
+  if (!concern) {
+    return <div className="p-8 text-center text-[var(--color-text-secondary)]">{t('concern.notFound')}</div>;
+  }
   const proposals = MOCK_PROPOSALS
     .filter(p => p.concernId === concern.id && p.isActive && p.status !== 'draft')
     .sort((a, b) => a.totalPrice - b.totalPrice);
@@ -32,10 +37,10 @@ export default function ProposalListPage({ params }: Props) {
             )}
           </div>
           <h1 className="text-[1.5rem] font-bold text-[var(--color-text)] leading-tight">
-            {proposals.length}개 병원의 제안
+            {t('proposal.list.title', { count: proposals.length })}
           </h1>
           <p className="text-[13px] text-[var(--color-text-secondary)] mt-1.5">
-            마음에 드는 제안을 선택해 비교해보세요
+            {t('proposal.list.subtitle')}
           </p>
         </div>
 
@@ -66,6 +71,7 @@ export default function ProposalListPage({ params }: Props) {
                 quote={proposal.consultationNote}
                 selected={isSelected}
                 onToggleSelect={() => toggleSelect(proposal.id)}
+                unread={!proposal.viewedAt}
               />
             );
           })}
@@ -77,8 +83,8 @@ export default function ProposalListPage({ params }: Props) {
           <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[#fff5f7]">
             <Sparkles size={18} className="text-[var(--color-primary)] shrink-0" />
             <div className="flex-1">
-              <span className="text-[13px] font-semibold text-[var(--color-text)] block">이 제안들, 괜찮을까요?</span>
-              <span className="text-[11px] text-[var(--color-text-dim)]">가격·리스크를 분석해드립니다</span>
+              <span className="text-[13px] font-semibold text-[var(--color-text)] block">{t('proposal.list.analysisCta')}</span>
+              <span className="text-[11px] text-[var(--color-text-dim)]">{t('proposal.list.analysisDesc')}</span>
             </div>
             <ArrowRight size={16} className="text-[var(--color-primary)]" />
           </div>
@@ -92,15 +98,15 @@ export default function ProposalListPage({ params }: Props) {
         {selected.size >= 2 ? (
           <Link href={`/concerns/${concern.id}/compare`} className="w-full no-underline">
             <Button variant="primary" fullWidth size="lg">
-              {selected.size}개 제안서 비교하기
+              {t('proposal.list.compareButton', { count: selected.size })}
               <ArrowRight size={18} />
             </Button>
           </Link>
         ) : (
           <div className="w-full text-center text-[13px] text-[var(--color-text-dim)] py-1">
             {selected.size === 0
-              ? '제안서를 선택해 비교해보세요'
-              : `${selected.size}개 선택됨 — 1개 더 선택하면 비교할 수 있어요`}
+              ? t('decision.selectToCompare')
+              : t('decision.selectedNeedMore', { count: selected.size })}
           </div>
         )}
       </MobileBottomCTA>

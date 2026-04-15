@@ -2,23 +2,29 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { MOCK_CONCERNS, MOCK_PROPOSALS, MOCK_PARTNER_PROFILES, MOCK_PROPOSAL_ITEMS, track } from '@hyliren/shared';
+import { MOCK_CONCERNS, MOCK_PROPOSALS, track } from '@hyliren/shared';
+import { useUserConcernsStore } from '@/store/user-concerns';
 import { Button, Badge } from '@hyliren/ui';
 import {
-  ArrowRight, Plus, FileText, Clock, Bell, ChevronRight,
-  Sparkles, ShieldCheck, BookOpen, MessageCircle,
+  ArrowRight, Plus, FileText, Clock, ChevronRight,
+  BookOpen, MessageCircle, Inbox, Scale,
 } from 'lucide-react';
 import {
   type DashboardState,
   computeDashboardState, computeConcernActions,
   getRecommendedArticles, STATUS_LABELS, STATUS_COLORS,
 } from '@/domain/lifecycle';
+import { useLocaleStore } from '@/store/locale';
 
 const USER_ID = 'u-001';
 
 export default function DashboardPage() {
-  /* ── Mock data (inside component for reactivity) ── */
-  const userConcerns = MOCK_CONCERNS.filter(c => c.userId === USER_ID && !c.deletedAt);
+  const t = useLocaleStore(s => s.t);
+  const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
+  const userConcerns = [
+    ...MOCK_CONCERNS.filter(c => c.userId === USER_ID && !c.deletedAt),
+    ...userCreatedConcerns,
+  ];
   const userProposals = MOCK_PROPOSALS.filter(p => p.isActive);
   const dashboard = computeDashboardState(userConcerns, userProposals);
 
@@ -29,15 +35,15 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col px-5 pt-5 pb-10">
 
-      {/* ═══ HERO — 상태 기반 ═══ */}
+      {/* ═══ HERO ═══ */}
       <DashboardHero phase={dashboard.phase} state={dashboard} />
 
-      {/* ═══ ACTIVE CONCERNS ═══ */}
+      {/* ═══ 내 고민 ═══ */}
       {dashboard.hasConcern && (
         <section className="mt-7">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[1.0625rem] font-bold text-[var(--color-text)]">내 고민</h2>
-            <span className="text-[11px] text-[var(--color-text-dim)]">{dashboard.activeConcernCount}건</span>
+            <h2 className="text-[1.0625rem] font-bold text-[var(--color-text)]">{t('dashboard.myConcerns')}</h2>
+            <span className="text-[11px] text-[var(--color-text-dim)]">{dashboard.activeConcernCount}{t('common.items')}</span>
           </div>
           <div className="flex flex-col gap-3">
             {userConcerns
@@ -49,12 +55,11 @@ export default function DashboardPage() {
                 return (
                   <ConcernStatusCard
                     key={concern.id}
+                    concernId={concern.id}
                     bodyAreas={concern.bodyAreas}
-                    bodyAreaDetail={concern.bodyAreaDetail}
+                    description={concern.description}
                     status={concern.status}
                     proposalCount={proposalCount}
-                    nextAction={actions.nextAction}
-                    nextActionHref={actions.nextActionHref}
                     hasNewProposal={actions.hasNewProposal}
                   />
                 );
@@ -63,35 +68,12 @@ export default function DashboardPage() {
         </section>
       )}
 
-      {/* ═══ PROPOSAL INBOX PREVIEW ═══ */}
-      {dashboard.unreadProposalCount > 0 && (
-        <section className="mt-7">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <h2 className="text-[1.0625rem] font-bold text-[var(--color-text)]">새 제안서</h2>
-              <span className="w-5 h-5 rounded-full bg-[var(--color-primary)] text-white text-[10px] font-bold flex items-center justify-center">
-                {dashboard.unreadProposalCount}
-              </span>
-            </div>
-            <Link href="/decision" className="flex items-center gap-0.5 text-[11px] text-[var(--color-text-dim)] no-underline">
-              전체보기 <ChevronRight size={14} />
-            </Link>
-          </div>
-          <ProposalInboxPreview />
-        </section>
-      )}
-
-      {/* ═══ WAITING STATE PANEL ═══ */}
+      {/* ═══ 대기 중 패널 ═══ */}
       {dashboard.phase === 'waiting' && (
-        <WaitingStatePanel bodyArea={dashboard.primaryConcern?.primaryArea || '기타'} />
+        <WaitingStatePanel bodyArea={dashboard.primaryConcern?.primaryArea || t('bodyArea.기타')} />
       )}
 
-      {/* ═══ DECISION ASSIST ═══ */}
-      {(dashboard.phase === 'comparing' || dashboard.phase === 'proposals_arrived') && (
-        <DecisionAssistCTA />
-      )}
-
-      {/* ═══ RECOMMENDED ARTICLES ═══ */}
+      {/* ═══ 맞춤 추천 정보 ═══ */}
       {dashboard.hasConcern && dashboard.primaryConcern && (
         <RecommendedArticlesSection
           bodyArea={dashboard.primaryConcern.primaryArea}
@@ -99,7 +81,7 @@ export default function DashboardPage() {
         />
       )}
 
-      {/* ═══ RE-ENTRY CTA ═══ */}
+      {/* ═══ 재진입 CTA ═══ */}
       {dashboard.hasConcern && (
         <ReEntryCTA />
       )}
@@ -108,50 +90,51 @@ export default function DashboardPage() {
 }
 
 /* ════════════════════════════════════════════════
-   Dashboard Components
+   Components
    ════════════════════════════════════════════════ */
 
 function DashboardHero({ phase, state }: { phase: string; state: DashboardState }) {
+  const t = useLocaleStore(s => s.t);
   const configs: Record<string, { title: string; subtitle: string; cta: string; ctaHref: string; gradient: string }> = {
     empty: {
-      title: '어떤 시술을\n고민하고 계신가요?',
-      subtitle: '사진과 고민을 남기면 병원이 맞춤 제안을 보내드려요',
-      cta: '고민 등록 시작',
+      title: t('dashboard.emptyTitle'),
+      subtitle: t('dashboard.emptyDesc'),
+      cta: t('dashboard.emptyAction'),
       ctaHref: '/consult',
       gradient: 'from-[#fff5f7] via-white to-white',
     },
     waiting: {
-      title: `현재 ${state.waitingProposalCount}건의 고민이\n병원에 전달되었습니다`,
-      subtitle: '보통 24~48시간 내 제안이 도착합니다',
-      cta: '고민 상세 보기',
-      ctaHref: state.primaryConcern ? `/concerns/${state.primaryConcern.id}` : '/concerns',
+      title: t('dashboard.waitingPhaseTitle', { count: state.waitingProposalCount }),
+      subtitle: t('dashboard.waitingPhaseDesc'),
+      cta: t('dashboard.waitingPhaseAction'),
+      ctaHref: state.primaryConcern ? `/concerns/${state.primaryConcern.id}` : '/consult',
       gradient: 'from-[#fff8e1] via-white to-white',
     },
     proposals_arrived: {
-      title: `새로운 제안서가\n도착했습니다`,
-      subtitle: `${state.unreadProposalCount}개 병원의 맞춤 제안을 확인하세요`,
-      cta: '제안서 확인하기',
-      ctaHref: state.primaryConcern ? `/concerns/${state.primaryConcern.id}/proposals` : '/proposals',
+      title: t('dashboard.arrivedPhaseTitle'),
+      subtitle: t('dashboard.arrivedPhaseDesc', { count: state.unreadProposalCount }),
+      cta: t('dashboard.arrivedPhaseAction'),
+      ctaHref: '/decision',
       gradient: 'from-[#e8f5e9] via-white to-white',
     },
     comparing: {
-      title: '어떤 선택이 맞을지\n고민 중이신가요?',
-      subtitle: '검증 리포트로 더 확실한 판단을 해보세요',
-      cta: '비교 계속하기',
-      ctaHref: state.primaryConcern ? `/concerns/${state.primaryConcern.id}/compare` : '/proposals',
+      title: t('dashboard.comparingPhaseTitle'),
+      subtitle: t('dashboard.comparingPhaseDesc'),
+      cta: t('dashboard.comparingPhaseAction'),
+      ctaHref: '/decision',
       gradient: 'from-[#e3f2fd] via-white to-white',
     },
     selected: {
-      title: '다음 준비를\n시작해보세요',
-      subtitle: '일정, 통역, 픽업 서비스를 확인하세요',
-      cta: '서비스 보기',
-      ctaHref: state.primaryConcern ? `/concerns/${state.primaryConcern.id}` : '/concerns',
+      title: t('dashboard.selectedPhaseTitle'),
+      subtitle: t('dashboard.selectedPhaseDesc'),
+      cta: t('dashboard.selectedPhaseAction'),
+      ctaHref: state.primaryConcern ? `/concerns/${state.primaryConcern.id}` : '/consult',
       gradient: 'from-[#f3e5f5] via-white to-white',
     },
     completed: {
-      title: '시술이 완료되었어요',
-      subtitle: '다른 부위도 고민 중이시라면 상담을 시작해보세요',
-      cta: '새 고민 등록',
+      title: t('dashboard.completedPhaseTitle'),
+      subtitle: t('dashboard.completedPhaseDesc'),
+      cta: t('dashboard.completedPhaseAction'),
       ctaHref: '/consult',
       gradient: 'from-[#e8f5e9] via-white to-white',
     },
@@ -178,82 +161,69 @@ function DashboardHero({ phase, state }: { phase: string; state: DashboardState 
 }
 
 function ConcernStatusCard({
-  bodyAreas, bodyAreaDetail, status, proposalCount,
-  nextAction, nextActionHref, hasNewProposal,
+  concernId, bodyAreas, description, status, proposalCount, hasNewProposal,
 }: {
+  concernId: string;
   bodyAreas: string[];
-  bodyAreaDetail: string | null;
+  description: string;
   status: string;
   proposalCount: number;
-  nextAction: string;
-  nextActionHref: string;
   hasNewProposal: boolean;
 }) {
+  const t = useLocaleStore(s => s.t);
+  // 상태에 따라 CTA 결정: 제안 도착 → 결정함, 그 외 → 고민 상세
+  const hasProposals = proposalCount > 0 && (status === 'proposal_received' || status === 'comparing' || status === 'report_purchased');
+  const href = hasProposals ? '/decision' : `/concerns/${concernId}`;
+  const statusIcon = hasProposals ? Scale : status === 'submitted' ? Clock : FileText;
+  const Icon = statusIcon;
+
   return (
-    <Link href={nextActionHref} className="no-underline block">
-      <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white"
+    <Link href={href} className="no-underline block">
+      <div className="rounded-2xl bg-white px-4 py-4"
         style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-        {/* Left indicator */}
-        <div className="w-10 h-10 rounded-full bg-[var(--color-primary-soft)] flex items-center justify-center shrink-0">
-          <FileText size={18} className="text-[var(--color-primary)]" />
-        </div>
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+        {/* Top: tags + status */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5">
             {bodyAreas.map(area => (
               <Badge key={area} variant="info" size="sm">{area}</Badge>
             ))}
-            {bodyAreaDetail && <span className="text-[12px] text-[var(--color-text-dim)]">{bodyAreaDetail}</span>}
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant={STATUS_COLORS[status] || 'default'}>{STATUS_LABELS[status] || status}</Badge>
-            {proposalCount > 0 && (
-              <span className="text-[11px] text-[var(--color-text-dim)]">제안 {proposalCount}건</span>
-            )}
+          <div className="flex items-center gap-1.5">
+            {hasNewProposal && <span className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />}
+            <Badge variant={STATUS_COLORS[status] || 'default'} size="sm">
+              {STATUS_LABELS[status] || status}
+            </Badge>
           </div>
         </div>
-        {/* Action */}
-        <div className="flex items-center gap-1 shrink-0">
-          {hasNewProposal && (
-            <span className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />
-          )}
-          <span className="text-[12px] font-medium text-[var(--color-primary)]">{nextAction}</span>
-          <ChevronRight size={14} className="text-[var(--color-text-dim)]" />
+
+        {/* Description */}
+        <p className="text-[13px] text-[var(--color-text)] leading-snug line-clamp-2 mb-3">
+          {description}
+        </p>
+
+        {/* Bottom: action */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-[11px] text-[var(--color-text-dim)]">
+            <Icon size={13} />
+            {status === 'submitted' && t('dashboard.hospitalReviewing')}
+            {status === 'proposal_received' && t('dashboard.proposalsArrived', { count: proposalCount })}
+            {status === 'comparing' && t('dashboard.comparing', { count: proposalCount })}
+            {status === 'hospital_selected' && t('dashboard.hospitalSelected')}
+            {status === 'completed' && t('dashboard.procedureCompleted')}
+            {status === 'draft' && t('dashboard.writing')}
+          </div>
+          <div className="flex items-center gap-0.5 text-[12px] font-medium text-[var(--color-primary)]">
+            {hasProposals ? t('dashboard.checkInDecision') : t('common.viewDetails')}
+            <ChevronRight size={14} />
+          </div>
         </div>
       </div>
     </Link>
   );
 }
 
-function ProposalInboxPreview() {
-  const unread = MOCK_PROPOSALS.filter(p => p.isActive && p.status === 'sent' && !p.viewedAt).slice(0, 3);
-
-  return (
-    <div className="flex flex-col gap-2.5">
-      {unread.map(p => {
-        const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
-        const concern = MOCK_CONCERNS.find(c => c.id === p.concernId);
-        return (
-          <Link key={p.id} href={`/concerns/${p.concernId}/proposals`} className="no-underline block">
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white"
-              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-              <div className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                {profile?.verified ? <ShieldCheck size={16} className="text-emerald-500" /> : <Bell size={16} className="text-[var(--color-text-dim)]" />}
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-[13px] font-medium text-[var(--color-text)] line-clamp-1">{profile?.hospitalName}</span>
-                <span className="text-[11px] text-[var(--color-text-dim)]">{concern?.primaryArea} · {p.totalPrice}만원</span>
-              </div>
-              <span className="text-[12px] font-medium text-[var(--color-primary)]">확인</span>
-            </div>
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
-
 function WaitingStatePanel({ bodyArea }: { bodyArea: string }) {
+  const t = useLocaleStore(s => s.t);
   useEffect(() => {
     track({ eventType: 'waiting_panel_viewed', actorType: 'user', targetType: 'user', targetId: USER_ID, metadata: { source: 'fo', locale: 'ko' } });
   }, []);
@@ -263,51 +233,22 @@ function WaitingStatePanel({ bodyArea }: { bodyArea: string }) {
       <div className="rounded-2xl bg-[var(--color-bg-secondary)] px-5 py-5">
         <div className="flex items-center gap-2 mb-3">
           <Clock size={16} className="text-[var(--color-primary)]" />
-          <span className="text-[14px] font-semibold text-[var(--color-text)]">제안 대기 중</span>
+          <span className="text-[14px] font-semibold text-[var(--color-text)]">{t('dashboard.waitingTitle')}</span>
         </div>
         <p className="text-[13px] text-[var(--color-text-dim)] leading-relaxed mb-4">
-          병원들이 고민을 검토하고 있어요.<br />
-          대기 중에 관련 정보를 확인해보세요.
+          {t('dashboard.waitingDesc')}<br />
+          {t('dashboard.waitingHint')}
         </p>
         <div className="flex flex-col gap-2">
           <Link href="/consult" className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-white no-underline"
-            style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}
-            onClick={() => track({ eventType: 'additional_concern_started', actorType: 'user', targetType: 'user', targetId: USER_ID, metadata: { source: 'fo', locale: 'ko', label: 'waiting_panel' } })}>
+            style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}>
             <Plus size={16} className="text-[var(--color-primary)]" />
-            <span className="text-[13px] font-medium text-[var(--color-text)]">다른 고민도 등록하기</span>
+            <span className="text-[13px] font-medium text-[var(--color-text)]">{t('dashboard.addAnother')}</span>
           </Link>
           <Link href="/articles" className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-white no-underline"
-            style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}
-            onClick={() => track({ eventType: 'article_clicked_from_dashboard', actorType: 'user', targetType: 'article', targetId: '', metadata: { source: 'fo', locale: 'ko', label: 'waiting_panel' } })}>
+            style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}>
             <BookOpen size={16} className="text-[var(--color-text-dim)]" />
-            <span className="text-[13px] font-medium text-[var(--color-text)]">{bodyArea} 관련 정보 읽기</span>
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function DecisionAssistCTA() {
-  return (
-    <section className="mt-7">
-      <div className="rounded-2xl overflow-hidden"
-        style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-        <div className="bg-gradient-to-r from-[var(--color-primary-soft)] to-[#fff5f7] px-5 py-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles size={16} className="text-[var(--color-primary)]" />
-            <span className="text-[14px] font-semibold text-[var(--color-text)]">판단이 어려우신가요?</span>
-          </div>
-          <p className="text-[12px] text-[var(--color-text-dim)] leading-relaxed mb-3">
-            가격 차이가 왜 나는지, 과잉진료는 아닌지<br />
-            검증 리포트로 확인해보세요
-          </p>
-          <Link href="/decision" className="no-underline block"
-            onClick={() => track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'user', targetId: USER_ID, metadata: { source: 'fo', locale: 'ko', label: 'dashboard' } })}>
-          <Button variant="primary" size="md" fullWidth>
-            검증 리포트 알아보기
-            <ArrowRight size={16} />
-          </Button>
+            <span className="text-[13px] font-medium text-[var(--color-text)]">{t('dashboard.readInfo')}</span>
           </Link>
         </div>
       </div>
@@ -316,21 +257,21 @@ function DecisionAssistCTA() {
 }
 
 function RecommendedArticlesSection({ bodyArea, status }: { bodyArea: string; status: string }) {
+  const t = useLocaleStore(s => s.t);
   const articles = getRecommendedArticles(bodyArea, status);
 
   return (
     <section className="mt-7">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[1.0625rem] font-bold text-[var(--color-text)]">맞춤 추천 정보</h2>
+        <h2 className="text-[1.0625rem] font-bold text-[var(--color-text)]">{t('dashboard.recommendedInfo')}</h2>
         <Link href="/articles" className="flex items-center gap-0.5 text-[11px] text-[var(--color-text-dim)] no-underline">
-          더보기 <ChevronRight size={14} />
+          {t('common.seeMore')} <ChevronRight size={14} />
         </Link>
       </div>
       <div className="flex flex-col gap-2.5">
         {articles.map((a, i) => (
           <Link key={i} href="/articles" className="flex gap-3 p-3 rounded-xl bg-white no-underline"
-            style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)' }}
-            onClick={() => track({ eventType: 'article_clicked_from_dashboard', actorType: 'user', targetType: 'article', targetId: '', metadata: { source: 'fo', locale: 'ko', label: bodyArea } })}>
+            style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)' }}>
             <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0">
               <div className={`w-full h-full bg-gradient-to-br ${a.gradient}`} />
             </div>
@@ -346,19 +287,19 @@ function RecommendedArticlesSection({ bodyArea, status }: { bodyArea: string; st
 }
 
 function ReEntryCTA() {
+  const t = useLocaleStore(s => s.t);
   return (
     <section className="mt-8">
       <div className="flex flex-col items-center gap-3 px-5 py-5 rounded-2xl bg-[var(--color-bg-secondary)]">
         <MessageCircle size={24} className="text-[var(--color-text-dim)]" />
         <p className="text-[13px] text-[var(--color-text-secondary)] text-center leading-relaxed">
-          다른 부위도 고민 중이신가요?<br />
-          함께 상담하면 더 좋은 제안을 받을 수 있어요
+          {t('dashboard.otherAreaQuestion')}<br />
+          {t('dashboard.otherAreaHint')}
         </p>
-        <Link href="/consult" className="no-underline"
-          onClick={() => track({ eventType: 'reentry_cta_clicked', actorType: 'user', targetType: 'user', targetId: USER_ID, metadata: { source: 'fo', locale: 'ko', label: 'dashboard' } })}>
+        <Link href="/consult" className="no-underline">
           <Button variant="secondary" size="md">
             <Plus size={16} />
-            새 고민 등록하기
+            {t('dashboard.newConcern')}
           </Button>
         </Link>
       </div>

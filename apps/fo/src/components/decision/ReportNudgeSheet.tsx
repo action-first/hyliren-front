@@ -5,6 +5,7 @@ import { Button } from '@hyliren/ui';
 import { ShieldCheck, TrendingDown, AlertTriangle, X } from 'lucide-react';
 import { track } from '@hyliren/shared';
 import { useReportStore } from '@/store/report';
+import { useLocaleStore } from '@/store/locale';
 
 interface Props {
   concernId: string;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function ReportNudgeSheet({ concernId, proposalId, delay = 5000 }: Props) {
+  const t = useLocaleStore(s => s.t);
   const { markPurchased } = useReportStore();
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -66,19 +68,18 @@ export function ReportNudgeSheet({ concernId, proposalId, delay = 5000 }: Props)
 
           {/* Title */}
           <h2 className="text-[1.25rem] font-bold text-[var(--color-text)] leading-tight mb-1.5">
-            이 선택, 괜찮을까요?
+            {t('nudge.title')}
           </h2>
-          <p className="text-[13px] text-[var(--color-text-dim)] leading-relaxed mb-5">
-            가격 · 과잉진료 · 리스크를<br />
-            전문 기준으로 검증해드립니다
+          <p className="text-[13px] text-[var(--color-text-dim)] leading-relaxed whitespace-pre-line mb-5">
+            {t('nudge.desc')}
           </p>
 
           {/* Preview list */}
           <div className="flex flex-col gap-2.5 mb-6">
             {[
-              { icon: TrendingDown, label: '가격 적정성 분석', desc: '제안 가격이 시장 평균 대비 적정한지 확인' },
-              { icon: ShieldCheck, label: '과잉 진료 여부', desc: '불필요한 시술이 포함되어 있지 않은지 검증' },
-              { icon: AlertTriangle, label: '리스크 평가', desc: '시술별 부작용 가능성과 회복 기간 분석' },
+              { icon: TrendingDown, label: t('nudge.benefit1Title'), desc: t('nudge.benefit1Desc') },
+              { icon: ShieldCheck, label: t('nudge.benefit2Title'), desc: t('nudge.benefit2Desc') },
+              { icon: AlertTriangle, label: t('nudge.benefit3Title'), desc: t('nudge.benefit3Desc') },
             ].map(item => {
               const Icon = item.icon;
               return (
@@ -97,10 +98,10 @@ export function ReportNudgeSheet({ concernId, proposalId, delay = 5000 }: Props)
 
           {/* CTA */}
           <Button variant="accent" size="lg" fullWidth onClick={handleClick}>
-            리포트 확인하기
+            {t('nudge.cta')}
           </Button>
           <p className="text-center text-[10px] text-[var(--color-text-dim)] mt-2">
-            정확한 적용 여부는 실제 병원 상담을 통해 결정됩니다
+            {t('nudge.social')}
           </p>
         </div>
       </div>

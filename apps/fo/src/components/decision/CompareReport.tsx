@@ -9,6 +9,7 @@ import {
   CheckCircle, Crown, Lock,
 } from 'lucide-react';
 import { useReportStore } from '@/store/report';
+import { useLocaleStore } from '@/store/locale';
 
 interface Props {
   proposals: Proposal[];
@@ -44,9 +45,9 @@ function generateCompareScores(proposals: Proposal[], profiles: PartnerProfile[]
     const totalScore = Math.round((priceScore + riskScore + valueScore) / 3);
 
     const bestAt: string[] = [];
-    if (p.totalPrice === lowestPrice) bestAt.push('최저 가격');
-    if (p.recoveryDays === fastestRecovery) bestAt.push('빠른 회복');
-    if (profile?.verified) bestAt.push('인증 병원');
+    if (p.totalPrice === lowestPrice) bestAt.push('lowestPrice');
+    if (p.recoveryDays === fastestRecovery) bestAt.push('fastRecovery');
+    if (profile?.verified) bestAt.push('verifiedHospital');
 
     return {
       proposalId: p.id,
@@ -66,6 +67,7 @@ const SCORE_COLOR = (s: number) => s >= 80 ? 'text-emerald-600' : s >= 60 ? 'tex
 const BAR_COLOR = (s: number) => s >= 80 ? 'bg-emerald-400' : s >= 60 ? 'bg-[var(--color-border)]' : 'bg-amber-400';
 
 export function CompareReport({ proposals, profiles, items, concernId, onClose }: Props) {
+  const t = useLocaleStore(s => s.t);
   const { isPurchased: checkPurchased, markPurchased } = useReportStore();
 
   // "compare report" 는 concernId 기준으로 구매 여부 판단
@@ -92,7 +94,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
           {/* Header */}
           <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-[var(--color-border-light)]">
             <span className="text-[15px] font-semibold text-[var(--color-text)]">
-              {proposals.length}개 제안 비교 리포트
+              {t('report.compareTitle', { count: proposals.length })}
             </span>
             <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center border-0 cursor-pointer">
               <X size={16} className="text-[var(--color-text-dim)]" />
@@ -104,7 +106,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
             <div className="rounded-2xl border border-[var(--color-border-light)] overflow-hidden mb-4">
               <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-secondary)]">
                 <Crown size={14} className="text-[var(--color-primary)]" />
-                <span className="text-[12px] font-semibold text-[var(--color-text)]">종합 순위</span>
+                <span className="text-[12px] font-semibold text-[var(--color-text)]">{t('report.ranking')}</span>
               </div>
               <div className="px-4 py-3">
                 {scores.map((s, rank) => (
@@ -116,11 +118,11 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
                       <span className="text-[13px] font-medium text-[var(--color-text)] block truncate">{s.hospitalName}</span>
                       <div className="flex gap-1 mt-0.5">
                         {s.bestAt.map(b => (
-                          <span key={b} className="text-[9px] px-1.5 py-px rounded bg-[var(--color-bg-secondary)] text-[var(--color-text-dim)]">{b}</span>
+                          <span key={b} className="text-[9px] px-1.5 py-px rounded bg-[var(--color-bg-secondary)] text-[var(--color-text-dim)]">{t(`report.${b}`)}</span>
                         ))}
                       </div>
                     </div>
-                    <span className={`text-[1rem] font-bold ${SCORE_COLOR(s.totalScore)}`}>{s.totalScore}점</span>
+                    <span className={`text-[1rem] font-bold ${SCORE_COLOR(s.totalScore)}`}>{s.totalScore}{t('common.score')}</span>
                   </div>
                 ))}
               </div>
@@ -130,11 +132,12 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
             <div className="rounded-2xl border border-[var(--color-border-light)] overflow-hidden mb-4">
               <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-secondary)]">
                 <BarChart3 size={14} className="text-[var(--color-primary)]" />
-                <span className="text-[12px] font-semibold text-[var(--color-text)]">가격 비교</span>
+                <span className="text-[12px] font-semibold text-[var(--color-text)]">{t('report.priceCompare')}</span>
               </div>
               <div className="px-4 py-3">
                 {scores.map(s => {
-                  const proposal = proposals.find(p => p.id === s.proposalId)!;
+                  const proposal = proposals.find(p => p.id === s.proposalId);
+                  if (!proposal) return null;
                   const maxPrice = Math.max(...proposals.map(p => p.totalPrice));
                   const barW = Math.max((proposal.totalPrice / maxPrice) * 100, 25);
                   return (
@@ -143,7 +146,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
                       <div className="flex-1 h-6 bg-[var(--color-bg-secondary)] rounded-full overflow-hidden">
                         <div className={`h-full rounded-full flex items-center justify-end pr-2 ${BAR_COLOR(s.priceScore)}`}
                           style={{ width: `${barW}%` }}>
-                          <span className="text-[10px] font-bold text-white">{proposal.totalPrice}만</span>
+                          <span className="text-[10px] font-bold text-white">{proposal.totalPrice}{t('common.man')}</span>
                         </div>
                       </div>
                     </div>
@@ -159,7 +162,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
                 <div className="rounded-2xl border border-[var(--color-border-light)] overflow-hidden mb-4">
                   <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-secondary)]">
                     <Activity size={14} className="text-[var(--color-primary)]" />
-                    <span className="text-[12px] font-semibold text-[var(--color-text)]">제안서 비교표</span>
+                    <span className="text-[12px] font-semibold text-[var(--color-text)]">{t('report.comparisonTable')}</span>
                   </div>
 
                   {/* Column headers */}
@@ -168,22 +171,25 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
                     {scores.map((s, i) => (
                       <div key={s.proposalId} className={`flex-1 px-2 py-2.5 text-center ${i === 0 ? 'bg-[var(--color-primary-soft)]' : ''}`}>
                         <span className="text-[11px] font-semibold text-[var(--color-text)] block truncate">{s.hospitalName.split(' ')[0]}</span>
-                        {i === 0 && <span className="text-[9px] text-[var(--color-primary)] font-bold">추천</span>}
+                        {i === 0 && <span className="text-[9px] text-[var(--color-primary)] font-bold">{t('common.recommended')}</span>}
                       </div>
                     ))}
                   </div>
 
                   {/* Rows */}
-                  {[
-                    { label: '총 가격', render: (s: ProposalScore) => { const p = proposals.find(pp => pp.id === s.proposalId)!; return `${p.totalPrice}만`; }, best: (s: ProposalScore) => s.priceScore >= 80 },
-                    { label: '가격 점수', render: (s: ProposalScore) => `${s.priceScore}점`, best: (s: ProposalScore) => s.priceScore >= 80 },
-                    { label: '리스크', render: (s: ProposalScore) => `${s.riskScore}점`, best: (s: ProposalScore) => s.riskScore >= 80 },
-                    { label: '가성비', render: (s: ProposalScore) => `${s.valueScore}점`, best: (s: ProposalScore) => s.valueScore >= 80 },
-                    { label: '종합', render: (s: ProposalScore) => `${s.totalScore}점`, best: (s: ProposalScore) => s.totalScore >= 80 },
-                    { label: '회복', render: (s: ProposalScore) => { const p = proposals.find(pp => pp.id === s.proposalId)!; return `${p.recoveryDays}일`; }, best: (s: ProposalScore) => { const p = proposals.find(pp => pp.id === s.proposalId)!; return p.recoveryDays === Math.min(...proposals.map(pp => pp.recoveryDays)); } },
-                    { label: '마취', render: (s: ProposalScore) => { const p = proposals.find(pp => pp.id === s.proposalId)!; return p.anesthesiaType === 'local' ? '부분' : p.anesthesiaType === 'sedation' ? '수면' : '전신'; }, best: (s: ProposalScore) => { const p = proposals.find(pp => pp.id === s.proposalId)!; return p.anesthesiaType !== 'general'; } },
-                    { label: '인증', render: (s: ProposalScore) => { const profile = profiles.find(pp => pp.hospitalName === s.hospitalName); return profile?.verified ? '✓' : '—'; }, best: (s: ProposalScore) => { const profile = profiles.find(pp => pp.hospitalName === s.hospitalName); return !!profile?.verified; } },
-                  ].map(row => (
+                  {(() => {
+                    const findProposal = (s: ProposalScore) => proposals.find(pp => pp.id === s.proposalId);
+                    const fastestRecovery = Math.min(...proposals.map(pp => pp.recoveryDays));
+                    return [
+                    { label: t('report.totalPrice'), render: (s: ProposalScore) => { const p = findProposal(s); return p ? `${p.totalPrice}${t('common.man')}` : '—'; }, best: (s: ProposalScore) => s.priceScore >= 80 },
+                    { label: t('report.priceScore'), render: (s: ProposalScore) => `${s.priceScore}${t('common.score')}`, best: (s: ProposalScore) => s.priceScore >= 80 },
+                    { label: t('report.risk'), render: (s: ProposalScore) => `${s.riskScore}${t('common.score')}`, best: (s: ProposalScore) => s.riskScore >= 80 },
+                    { label: t('report.valueScore'), render: (s: ProposalScore) => `${s.valueScore}${t('common.score')}`, best: (s: ProposalScore) => s.valueScore >= 80 },
+                    { label: t('report.overall'), render: (s: ProposalScore) => `${s.totalScore}${t('common.score')}`, best: (s: ProposalScore) => s.totalScore >= 80 },
+                    { label: t('common.recovery'), render: (s: ProposalScore) => { const p = findProposal(s); return p ? `${p.recoveryDays}${t('common.days')}` : '—'; }, best: (s: ProposalScore) => { const p = findProposal(s); return p ? p.recoveryDays === fastestRecovery : false; } },
+                    { label: t('common.anesthesia'), render: (s: ProposalScore) => { const p = findProposal(s); return !p ? '—' : p.anesthesiaType === 'local' ? t('common.anesthesiaLocalShort') : p.anesthesiaType === 'sedation' ? t('common.anesthesiaSedationShort') : t('common.anesthesiaGeneralShort'); }, best: (s: ProposalScore) => { const p = findProposal(s); return p ? p.anesthesiaType !== 'general' : false; } },
+                    { label: t('common.verified'), render: (s: ProposalScore) => { const profile = profiles.find(pp => pp.hospitalName === s.hospitalName); return profile?.verified ? '✓' : '—'; }, best: (s: ProposalScore) => { const profile = profiles.find(pp => pp.hospitalName === s.hospitalName); return !!profile?.verified; } },
+                  ]; })().map(row => (
                     <div key={row.label} className="flex border-b border-[var(--color-border-light)] last:border-0">
                       <div className="w-20 shrink-0 px-3 py-2.5 bg-[var(--color-bg-secondary)] flex items-center">
                         <span className="text-[11px] font-semibold text-[var(--color-text-dim)]">{row.label}</span>
@@ -203,14 +209,14 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
                 <div className="rounded-2xl border border-[var(--color-border-light)] overflow-hidden mb-4">
                   <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-secondary)]">
                     <ShieldCheck size={14} className="text-[var(--color-primary)]" />
-                    <span className="text-[12px] font-semibold text-[var(--color-text)]">병원별 평가</span>
+                    <span className="text-[12px] font-semibold text-[var(--color-text)]">{t('report.hospitalEval')}</span>
                   </div>
                   <div className="px-4 py-3">
                     {scores.map((s, i) => (
                       <div key={s.proposalId} className={`py-3 ${i > 0 ? 'border-t border-[var(--color-border-light)]' : ''}`}>
                         <div className="flex items-center gap-2 mb-1.5">
                           <span className="text-[13px] font-semibold text-[var(--color-text)]">{s.hospitalName}</span>
-                          <span className={`text-[11px] font-bold ${SCORE_COLOR(s.totalScore)}`}>{s.totalScore}점</span>
+                          <span className={`text-[11px] font-bold ${SCORE_COLOR(s.totalScore)}`}>{s.totalScore}{t('common.score')}</span>
                         </div>
                         <div className="flex items-start gap-1.5 mb-1">
                           <CheckCircle size={12} className="text-emerald-500 shrink-0 mt-0.5" />
@@ -227,7 +233,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
 
                 {/* 종합 의견 */}
                 <div className="rounded-2xl bg-gradient-to-br from-[var(--color-primary-soft)] to-[#fff5f7] px-4 py-4 mb-3">
-                  <span className="text-[12px] font-semibold text-[var(--color-primary)] block mb-2">종합 의견</span>
+                  <span className="text-[12px] font-semibold text-[var(--color-primary)] block mb-2">{t('report.overallOpinion')}</span>
                   <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
                     {proposals.length}개 제안을 종합 분석한 결과, {winner.hospitalName}이 가격과 리스크 면에서 가장 균형 잡힌 제안입니다.
                     최종 결정 전 병원 상담을 통해 개인 상태에 맞는 정밀 진단을 받으시기를 권합니다.
@@ -254,8 +260,8 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
                     <div className="w-10 h-10 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center mb-2">
                       <Lock size={18} className="text-[var(--color-text-dim)]" />
                     </div>
-                    <span className="text-[13px] font-semibold text-[var(--color-text)]">항목별 점수 · 병원별 평가 · 종합 의견</span>
-                    <span className="text-[11px] text-[var(--color-text-dim)] mt-0.5">비교 리포트를 구매하면 확인할 수 있어요</span>
+                    <span className="text-[13px] font-semibold text-[var(--color-text)]">{t('report.blurItems')}</span>
+                    <span className="text-[11px] text-[var(--color-text-dim)] mt-0.5">{t('report.blurPurchase')}</span>
                   </div>
                 </div>
               </>
@@ -266,15 +272,15 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
           <div className="sticky bottom-0 bg-white border-t border-[var(--color-border-light)] px-5 py-4">
             {purchased ? (
               <Button variant="primary" size="lg" fullWidth onClick={onClose}>
-                확인 완료
+                {t('common.confirm')}
               </Button>
             ) : (
               <>
                 <Button variant="accent" size="lg" fullWidth onClick={handlePurchase}>
-                  비교 리포트 보기 (₩6,900)
+                  {t('report.compareCta')}
                 </Button>
                 <p className="text-center text-[10px] text-[var(--color-text-dim)] mt-1.5">
-                  어떤 제안이 더 합리적인지 객관적으로 분석합니다
+                  {t('report.compareSocial')}
                 </p>
               </>
             )}

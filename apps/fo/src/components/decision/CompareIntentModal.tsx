@@ -3,6 +3,7 @@
 import { Button } from '@hyliren/ui';
 import { X, AlertTriangle } from 'lucide-react';
 import { track } from '@hyliren/shared';
+import { useLocaleStore } from '@/store/locale';
 
 interface Props {
   /** 비교 대상 제안서 가격들 — 구체적 불안 시각화용 */
@@ -13,6 +14,9 @@ interface Props {
 }
 
 export function CompareIntentModal({ prices, hospitalNames, onClose, onProceedToReport }: Props) {
+  const t = useLocaleStore(s => s.t);
+  if (prices.length === 0) { onClose(); return null; }
+
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
   const diff = maxPrice - minPrice;
@@ -46,11 +50,11 @@ export function CompareIntentModal({ prices, hospitalNames, onClose, onProceedTo
             </div>
             <div>
               <h2 className="text-[1.25rem] font-bold text-[var(--color-text)] leading-tight mb-1">
-                {diff > 0 ? `${diff}만원 차이,` : '가격은 비슷한데'}<br />
-                왜 다를까요?
+                {diff > 0 ? t('compare.priceDiff', { diff }) : t('compare.priceSimilar')}<br />
+                {t('compare.whyDifferent')}
               </h2>
               <p className="text-[13px] text-[var(--color-text-dim)] leading-relaxed">
-                같은 시술인데 가격이 다르면 이유가 있습니다
+                {t('compare.priceReason')}
               </p>
             </div>
           </div>
@@ -61,7 +65,7 @@ export function CompareIntentModal({ prices, hospitalNames, onClose, onProceedTo
               <div key={name} className={`flex items-center justify-between py-2 ${i > 0 ? 'border-t border-[var(--color-border-light)]' : ''}`}>
                 <span className="text-[13px] text-[var(--color-text)]">{name}</span>
                 <span className={`text-[15px] font-bold ${prices[i] === minPrice ? 'text-emerald-600' : prices[i] === maxPrice ? 'text-amber-600' : 'text-[var(--color-text)]'}`}>
-                  {prices[i]}만원
+                  {prices[i]}{t('common.currency')}
                 </span>
               </div>
             ))}
@@ -70,22 +74,22 @@ export function CompareIntentModal({ prices, hospitalNames, onClose, onProceedTo
           {/* What you'll know */}
           <div className="flex flex-col gap-2 mb-6">
             <p className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed">
-              · 비싼 곳이 과잉진료인지, 싼 곳이 부실한 건지
+              · {t('compare.benefit1')}
             </p>
             <p className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed">
-              · 가격 차이만큼 시술 구성이 다른 건지
+              · {t('compare.benefit2')}
             </p>
             <p className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed">
-              · 어떤 제안이 내 상황에 더 합리적인지
+              · {t('compare.benefit3')}
             </p>
           </div>
 
           {/* CTA */}
           <Button variant="accent" size="lg" fullWidth onClick={handleProceed}>
-            비교 리포트로 확인하기
+            {t('compare.cta')}
           </Button>
           <p className="text-center text-[10px] text-[var(--color-text-dim)] mt-2">
-            모르고 선택하면 후회할 수 있습니다
+            {t('compare.social')}
           </p>
         </div>
       </div>

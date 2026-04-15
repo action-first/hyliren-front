@@ -3,9 +3,11 @@
 import { Button } from '@hyliren/ui';
 import { MessageCircle } from 'lucide-react';
 import { useConcernFlowStore } from '@/store/concern-flow';
+import { useLocaleStore } from '@/store/locale';
 import { AIAnalysisResultCard } from './ConcernSummaryCard';
 
 export function StepAIReview() {
+  const t = useLocaleStore(s => s.t);
   const { analysisResult, analysisCount, setStep } = useConcernFlowStore();
 
   if (!analysisResult) return null;
@@ -14,10 +16,10 @@ export function StepAIReview() {
     <div className="flex flex-col min-h-full">
       <div className="mb-5">
         <h1 className="text-[1.375rem] font-extrabold text-[var(--color-text)] leading-tight tracking-[-0.3px] mb-1.5">
-          {analysisCount > 1 ? '다시 정리했어요' : '분석이 완료되었어요'}
+          {analysisCount > 1 ? t('consult.reviewReanalysisTitle') : t('consult.reviewTitle')}
         </h1>
         <p className="text-[12px] text-[var(--color-text-dim)]">
-          내용을 확인하고, 수정할 부분이 있으면 알려주세요
+          {t('consult.reviewDesc')}
         </p>
       </div>
 
@@ -45,13 +47,13 @@ export function StepAIReview() {
       {/* CTA */}
       <div className="mt-auto flex flex-col gap-2 pb-2">
         <Button variant="accent" size="lg" fullWidth onClick={() => setStep('confirm')}>
-          이 내용으로 제안서 받기
+          {t('consult.reviewCta')}
         </Button>
         <button
           onClick={() => setStep('feedback')}
           className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl bg-transparent border-0 cursor-pointer text-[13px] font-medium text-[var(--color-text-secondary)]">
           <MessageCircle size={14} />
-          수정할 부분이 있어요
+          {t('consult.reviewEdit')}
         </button>
       </div>
     </div>

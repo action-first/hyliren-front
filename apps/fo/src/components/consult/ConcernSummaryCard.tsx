@@ -2,6 +2,7 @@
 
 import type { AnalysisResponse } from '@/server/concern-analysis/types';
 import { Sparkles, Shield } from 'lucide-react';
+import { useLocaleStore } from '@/store/locale';
 
 interface Props {
   result: AnalysisResponse;
@@ -9,21 +10,22 @@ interface Props {
 }
 
 export function AIAnalysisResultCard({ result, compact = false }: Props) {
+  const t = useLocaleStore(s => s.t);
   const { extractedSummary, options, disclaimer } = result;
 
   const rows = [
-    { label: '고민 부위', value: extractedSummary.bodyAreas?.join(' · ') || extractedSummary.primaryArea },
-    { label: '세부', value: extractedSummary.bodyAreaDetail },
-    { label: '원하는 방향', value: extractedSummary.desiredOutcome },
-    { label: '예산', value: extractedSummary.budgetMax ? `${extractedSummary.budgetMax.toLocaleString()}만원` : '미정' },
-    { label: '방문 시기', value: extractedSummary.visitDate || '미정' },
+    { label: t('consult.summaryArea'), value: extractedSummary.bodyAreas?.join(' · ') || extractedSummary.primaryArea },
+    { label: t('consult.summaryDetail'), value: extractedSummary.bodyAreaDetail },
+    { label: t('consult.summaryDirection'), value: extractedSummary.desiredOutcome },
+    { label: t('consult.summaryBudget'), value: extractedSummary.budgetMax ? `${extractedSummary.budgetMax.toLocaleString()}${t('common.currency')}` : t('common.tbd') },
+    { label: t('consult.summaryTiming'), value: extractedSummary.visitDate || t('common.tbd') },
   ].filter(r => r.value);
 
   return (
     <div className="rounded-2xl bg-white overflow-hidden" style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04)' }}>
       <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[var(--color-primary-soft)] to-[#fff5f7]">
         <Sparkles size={14} className="text-[var(--color-primary)]" />
-        <span className="text-[12px] font-semibold text-[var(--color-text)]">분석 요약</span>
+        <span className="text-[12px] font-semibold text-[var(--color-text)]">{t('consult.summaryTitle')}</span>
       </div>
 
       <div className={compact ? 'px-4 py-2.5' : 'px-4 py-3'}>
@@ -38,7 +40,7 @@ export function AIAnalysisResultCard({ result, compact = false }: Props) {
 
         {options.length > 0 && (
           <div className="mt-3 pt-3 border-t border-[var(--color-border-light)]">
-            <span className="text-[10px] text-[var(--color-text-dim)] block mb-2">일반적으로 고려되는 시술</span>
+            <span className="text-[10px] text-[var(--color-text-dim)] block mb-2">{t('consult.summaryProcedures')}</span>
             <div className="flex flex-col gap-2">
               {options.map(opt => (
                 <div key={opt.key} className="px-3 py-2.5 rounded-xl bg-[var(--color-bg-secondary)]">

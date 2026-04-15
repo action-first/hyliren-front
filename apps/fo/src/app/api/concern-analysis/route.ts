@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
         description: '고객님의 상황에 맞는 최적의 방법을 병원과 함께 찾아보세요.',
       }],
       extractedTags: { symptoms: [], preferences: [], budget: [], timing: [] },
-      extractedSummary: { bodyAreas: ['기타'], primaryArea: '기타' },
+      extractedSummary: { bodyAreas: ['기타'], primaryArea: '기타', bodyAreaDetail: '일반 상담' },
       disclaimer: '정확한 적용 여부는 실제 병원의 상담과 진단을 통해 결정됩니다.',
       ruleVersion: 'fallback',
     });

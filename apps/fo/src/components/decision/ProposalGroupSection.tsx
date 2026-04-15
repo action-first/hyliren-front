@@ -20,17 +20,30 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
 
   return (
     <section className="mb-7">
-      {/* Group header */}
-      <div className="flex items-center gap-2 mb-3 flex-wrap">
-        {concern.bodyAreas.map(area => (
-          <Badge key={area} variant="info" size="sm">{area}</Badge>
-        ))}
-        {concern.bodyAreaDetail && (
-          <span className="text-[12px] text-[var(--color-text-dim)]">{concern.bodyAreaDetail}</span>
-        )}
-        <span className="ml-auto text-[10px] font-medium text-[var(--color-primary)] bg-[var(--color-primary-soft)] px-2 py-0.5 rounded-full">
-          {STATUS_LABELS[concern.status] || concern.status}
-        </span>
+      {/* 고민 요약 카드 */}
+      <div className="rounded-xl bg-[var(--color-bg-secondary)] px-4 py-3.5 mb-3">
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-1.5">
+            {concern.bodyAreas.map(area => (
+              <Badge key={area} variant="info" size="sm">{area}</Badge>
+            ))}
+          </div>
+          <Badge variant={STATUS_COLORS[concern.status] || 'default'} size="sm">
+            {STATUS_LABELS[concern.status] || concern.status}
+          </Badge>
+        </div>
+        <p className="text-[13px] text-[var(--color-text)] leading-snug line-clamp-2 mb-1.5">
+          {concern.description}
+        </p>
+        <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-dim)]">
+          {concern.budgetMin && concern.budgetMax && (
+            <span>예산 {concern.budgetMin}~{concern.budgetMax}만</span>
+          )}
+          {concern.visitDateFrom && (
+            <span>{concern.visitDateFrom.slice(5)}~ 방문</span>
+          )}
+          <span className="ml-auto">제안 {proposals.length}건</span>
+        </div>
       </div>
 
       {/* Proposal cards — horizontal scroll if 3+, vertical if 1-2 */}
@@ -54,6 +67,7 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
                   selected={selectedProposalIds.has(p.id)}
                   onToggle={() => toggleSelect(p.id)}
                   onCardClick={onCardClick ? () => onCardClick(p.id) : undefined}
+                  unread={!p.viewedAt}
                 />
               </div>
             );
@@ -78,7 +92,8 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
                 gradientIndex={idx}
                 selected={selectedProposalIds.has(p.id)}
                 onToggle={() => toggleSelect(p.id)}
-                  onCardClick={onCardClick ? () => onCardClick(p.id) : undefined}
+                onCardClick={onCardClick ? () => onCardClick(p.id) : undefined}
+                unread={!p.viewedAt}
               />
             );
           })}

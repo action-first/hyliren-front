@@ -3,17 +3,19 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, LayoutDashboard, Scale, BookOpen, User } from 'lucide-react';
+import { useLocaleStore } from '@/store/locale';
 
-const TABS = [
-  { href: '/', icon: Home, label: '홈' },
-  { href: '/dashboard', icon: LayoutDashboard, label: '내 상담' },
-  { href: '/decision', icon: Scale, label: '결정함' },
-  { href: '/articles', icon: BookOpen, label: '아티클' },
-  { href: '/mypage', icon: User, label: '마이' },
-] as const;
+const TAB_DEFS = [
+  { href: '/', icon: Home, key: 'nav.home' },
+  { href: '/dashboard', icon: LayoutDashboard, key: 'nav.myConsult' },
+  { href: '/decision', icon: Scale, key: 'nav.decision' },
+  { href: '/articles', icon: BookOpen, key: 'nav.articles' },
+  { href: '/mypage', icon: User, key: 'nav.my' },
+];
 
 export function FOTabBar() {
   const pathname = usePathname();
+  const t = useLocaleStore(s => s.t);
 
   function isActive(href: string) {
     if (href === '/') return pathname === '/';
@@ -22,7 +24,7 @@ export function FOTabBar() {
 
   return (
     <nav className="fo-tabbar">
-      {TABS.map(tab => {
+      {TAB_DEFS.map(tab => {
         const Icon = tab.icon;
         const active = isActive(tab.href);
         return (
@@ -32,7 +34,7 @@ export function FOTabBar() {
             className={`fo-tab ${active ? 'fo-tab--active' : ''}`}
           >
             <Icon size={20} strokeWidth={active ? 2.5 : 1.5} />
-            <span className="fo-tab-label">{tab.label}</span>
+            <span className="fo-tab-label">{t(tab.key)}</span>
           </Link>
         );
       })}

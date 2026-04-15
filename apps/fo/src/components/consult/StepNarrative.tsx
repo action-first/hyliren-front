@@ -5,9 +5,11 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@hyliren/ui';
 import { ArrowRight } from 'lucide-react';
 import { useConcernFlowStore } from '@/store/concern-flow';
+import { useLocaleStore } from '@/store/locale';
 import { PhotoUploadPanel } from './PhotoUploadPanel';
 
 export function StepNarrative() {
+  const t = useLocaleStore(s => s.t);
   const { photos, narrativeInput, addPhoto, removePhoto, setNarrativeInput, setStep } = useConcernFlowStore();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const searchParams = useSearchParams();
@@ -41,12 +43,11 @@ export function StepNarrative() {
     <div className="flex flex-col min-h-full">
       {/* Header copy */}
       <div className="mb-6">
-        <h1 className="text-[1.5rem] font-extrabold text-[var(--color-text)] leading-tight tracking-[-0.3px] mb-2">
-          어떤 점이 가장<br />고민이신가요?
+        <h1 className="text-[1.5rem] font-extrabold text-[var(--color-text)] leading-tight tracking-[-0.3px] whitespace-pre-line mb-2">
+          {t('consult.narrativeTitle')}
         </h1>
-        <p className="text-[13px] text-[var(--color-text-dim)] leading-[1.6]">
-          사진과 고민을 자유롭게 남겨주세요.<br />
-          예산, 원하는 느낌, 방문 시기까지 편하게 적어주세요.
+        <p className="text-[13px] text-[var(--color-text-dim)] leading-[1.6] whitespace-pre-line">
+          {t('consult.narrativeDesc')}
         </p>
       </div>
 
@@ -72,7 +73,7 @@ export function StepNarrative() {
       {/* CTA */}
       <div className="mt-auto pb-2">
         <Button variant="accent" size="lg" fullWidth onClick={handleStart} disabled={!canProceed}>
-          AI와 상담 시작하기
+          {t('consult.narrativeCta')}
           <ArrowRight size={18} />
         </Button>
       </div>

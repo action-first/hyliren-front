@@ -2,22 +2,23 @@
 
 import { useEffect, useState } from 'react';
 import { useConcernFlowStore } from '@/store/concern-flow';
+import { useLocaleStore } from '@/store/locale';
 import type { AnalysisResponse } from '@/server/concern-analysis/types';
 
-const COPY_SEQUENCE = [
-  '고객님의 사진과 이야기를 분석하고 있어요',
-  '원하시는 변화와 예산, 방문 시기를 함께 정리하고 있습니다',
-  '자연스러운 방향으로 어떤 옵션이 가능한지 살펴보고 있어요',
-];
-
 export function StepAIProcessing() {
+  const t = useLocaleStore(s => s.t);
+
+  const COPY_SEQUENCE = [
+    t('consult.processingCopy1'),
+    t('consult.processingCopy2'),
+    t('consult.processingCopy3'),
+  ];
   const {
     narrativeInput, photos, feedbackTurns, analysisCount,
     setAnalysisResult, setStep, incrementAnalysis,
   } = useConcernFlowStore();
 
   const [copyIdx, setCopyIdx] = useState(0);
-  const isReanalysis = analysisCount > 0;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -71,7 +72,7 @@ export function StepAIProcessing() {
         {COPY_SEQUENCE[copyIdx]}
       </p>
       <p className="text-[12px] text-[var(--color-text-dim)] text-center">
-        {isReanalysis ? '피드백을 반영해 다시 정리하고 있어요' : '잠시만 기다려주세요'}
+        {analysisCount > 0 ? t('consult.processingReanalysis') : t('consult.processingWait')}
       </p>
 
       <div className="flex gap-1.5 mt-6">

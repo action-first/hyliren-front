@@ -15,11 +15,13 @@ interface Props {
   selected: boolean;
   onToggle: () => void;
   onCardClick?: () => void;
+  rating?: number;
+  unread?: boolean;
 }
 
 export function SelectableProposalCard({
   hospitalName, verified, valueProp, price, meta,
-  coverTags, quote, gradientIndex, selected, onToggle, onCardClick,
+  coverTags, quote, gradientIndex, selected, onToggle, onCardClick, rating = 4.8, unread = false,
 }: Props) {
   const gradient = CARD_GRADIENTS[gradientIndex % CARD_GRADIENTS.length];
 
@@ -48,9 +50,16 @@ export function SelectableProposalCard({
           {selected && <Check size={14} strokeWidth={3} />}
         </div>
 
+        {/* Unread */}
+        {unread && (
+          <span className="absolute top-3 left-3 px-2 py-0.5 rounded-full bg-[var(--color-primary)] text-[9px] font-bold text-white tracking-wider z-10">
+            NEW
+          </span>
+        )}
+
         {/* Verified */}
         {verified && (
-          <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 backdrop-blur-sm text-[10px] font-semibold text-emerald-600">
+          <span className={`absolute ${unread ? 'top-8' : 'top-3'} left-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 backdrop-blur-sm text-[10px] font-semibold text-emerald-600`}>
             <ShieldCheck size={10} /> 인증
           </span>
         )}
@@ -67,21 +76,21 @@ export function SelectableProposalCard({
         )}
       </div>
 
-      {/* Content */}
-      <div className="px-3.5 pt-2.5 pb-3">
-        <p className="text-[14px] font-medium text-[var(--color-text)] leading-snug mb-0.5 line-clamp-1">{valueProp}</p>
+      {/* Content — 고정 높이 */}
+      <div className="px-3.5 pt-2.5 pb-3 h-[6.5rem] flex flex-col">
+        <p className={`text-[14px] text-[var(--color-text)] leading-snug mb-0.5 line-clamp-1 ${unread ? 'font-bold' : 'font-medium'}`}>{valueProp}</p>
         <div className="flex items-baseline gap-1.5 mb-1">
           <span className="text-[15px] font-bold text-[var(--color-text)]">{price}만원</span>
-          <span className="text-[10px] text-[var(--color-text-dim)]">· {meta}</span>
+          <span className="text-[10px] text-[var(--color-text-dim)] truncate">· {meta}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-[11px] text-[var(--color-text-secondary)]">{hospitalName}</span>
-          <div className="flex items-center gap-0.5 text-[10px] text-[var(--color-text-dim)]">
-            <Star size={9} fill="currentColor" /> 4.8
+          <span className="text-[11px] text-[var(--color-text-secondary)] truncate">{hospitalName}</span>
+          <div className="flex items-center gap-0.5 text-[10px] text-[var(--color-text-dim)] shrink-0">
+            <Star size={9} fill="currentColor" /> {rating}
           </div>
         </div>
         {quote && (
-          <p className="text-[10px] text-[var(--color-text-dim)] italic mt-1 line-clamp-1">&ldquo;{quote}&rdquo;</p>
+          <p className="text-[10px] text-[var(--color-text-dim)] italic mt-auto line-clamp-1">&ldquo;{quote}&rdquo;</p>
         )}
       </div>
     </button>

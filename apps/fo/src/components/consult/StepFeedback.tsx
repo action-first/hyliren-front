@@ -3,9 +3,11 @@
 import { useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import { useConcernFlowStore } from '@/store/concern-flow';
+import { useLocaleStore } from '@/store/locale';
 import type { FeedbackTurn } from '@/server/concern-analysis/types';
 
 export function StepFeedback() {
+  const t = useLocaleStore(s => s.t);
   const {
     analysisResult, feedbackInput, feedbackTurns,
     setFeedbackInput, addFeedbackTurn, setStep,
@@ -44,10 +46,10 @@ export function StepFeedback() {
     <div className="flex flex-col min-h-full">
       <div className="mb-4">
         <h1 className="text-[1.375rem] font-extrabold text-[var(--color-text)] leading-tight tracking-[-0.3px] mb-1.5">
-          추가로 알려주세요
+          {t('consult.feedbackTitle')}
         </h1>
         <p className="text-[12px] text-[var(--color-text-dim)]">
-          AI가 잘못 이해한 부분이나 더 알려주고 싶은 점을 적어주세요
+          {t('consult.feedbackDesc')}
         </p>
       </div>
 
@@ -96,7 +98,7 @@ export function StepFeedback() {
           </button>
         </div>
         <p className="text-center text-[10.5px] text-[var(--color-text-dim)] mt-1.5">
-          보내면 AI가 피드백을 반영해 다시 정리합니다
+          {t('consult.feedbackHint')}
         </p>
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import { Camera, X, User, ScanFace } from 'lucide-react';
+import { useLocaleStore } from '@/store/locale';
 
 interface Props {
   photos: string[];
@@ -9,13 +10,14 @@ interface Props {
   onRemove: (index: number) => void;
 }
 
-const SLOTS = [
-  { label: '정면', icon: User, guide: '얼굴 정면' },
-  { label: '측면', icon: ScanFace, guide: '45도 측면' },
-  { label: '확대', icon: Camera, guide: '고민 부위' },
-] as const;
-
 export function PhotoUploadPanel({ photos, onAdd, onRemove }: Props) {
+  const t = useLocaleStore(s => s.t);
+
+  const SLOTS = [
+    { label: t('consult.photoFront'), icon: User, guide: t('consult.photoFrontDesc') },
+    { label: t('consult.photoSide'), icon: ScanFace, guide: t('consult.photoSideDesc') },
+    { label: t('consult.photoZoom'), icon: Camera, guide: t('consult.photoZoomDesc') },
+  ] as const;
   const inputRef = useRef<HTMLInputElement>(null);
 
   function handleSlotClick(index: number) {
@@ -65,7 +67,7 @@ export function PhotoUploadPanel({ photos, onAdd, onRemove }: Props) {
       </div>
       <div className="flex items-center gap-1.5 px-0.5">
         <span className="text-[10px]">🔒</span>
-        <span className="text-[10.5px] text-[var(--color-text-dim)]">사진은 병원 외 공개되지 않으며 익명 처리됩니다</span>
+        <span className="text-[10.5px] text-[var(--color-text-dim)]">{t('consult.photoPrivacy')}</span>
       </div>
       <input ref={inputRef} type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" />
     </div>
