@@ -78,7 +78,7 @@ export default function ProposalListPage({ params }: Props) {
         </div>
 
         {/* Analysis nudge */}
-        <Link href="/decision" className="no-underline block mt-5"
+        <Link href={`/concerns/${concern.id}/compare`} className="no-underline block mt-5"
           onClick={() => track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: 'proposal_list' } })}>
           <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[#fff5f7]">
             <Sparkles size={18} className="text-[var(--color-primary)] shrink-0" />

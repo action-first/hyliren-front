@@ -69,19 +69,30 @@ export default function HomePage() {
             {t('landing.heroSubtitle')}
           </p>
 
-          {/* CTA — 행동 */}
-          <Link href="/consult" className="w-full no-underline block">
-            <Button variant="accent" size="lg" fullWidth>
-              {t('landing.cta')}
-              <ArrowRight size={18} />
-            </Button>
-          </Link>
+          {/* CTA — phase에 따라 분기 */}
+          {phase === 'proposals_ready' ? (
+            <Link href="/decision" className="w-full no-underline block">
+              <Button variant="accent" size="lg" fullWidth>
+                {t('sticky.checkProposals')}
+                <ArrowRight size={18} />
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/consult" className="w-full no-underline block">
+              <Button variant="accent" size="lg" fullWidth>
+                {t('landing.cta')}
+                <ArrowRight size={18} />
+              </Button>
+            </Link>
+          )}
 
           {/* 신뢰 마이크로카피 */}
           <div className="flex items-center justify-center gap-1.5 mt-3">
             <ShieldCheck size={12} className="text-[var(--color-text-dim)]" />
             <span className="text-[10.5px] text-[var(--color-text-dim)]">
-              {t('landing.trustMicrocopy')}
+              {phase === 'proposals_ready'
+                ? `${userProposalCount}개 병원의 맞춤 제안이 대기 중`
+                : t('landing.trustMicrocopy')}
             </span>
           </div>
         </div>
@@ -148,7 +159,7 @@ export default function HomePage() {
             const items = MOCK_PROPOSAL_ITEMS.filter(i => i.proposalId === p.id);
             const meta = `회복 ${p.recoveryDays}일 · ${p.anesthesiaType === 'local' ? '부분' : p.anesthesiaType === 'sedation' ? '수면' : '전신'}마취`;
             return (
-              <Link href={`/concerns/${p.concernId}/proposals`} className="no-underline block mb-3">
+              <Link href="/decision" className="no-underline block mb-3">
                 <ExperienceCard
                   variant="primary"
                   gradient={G[0]}
@@ -172,7 +183,7 @@ export default function HomePage() {
               const items = MOCK_PROPOSAL_ITEMS.filter(i => i.proposalId === p.id);
               const meta = `회복 ${p.recoveryDays}일 · ${p.anesthesiaType === 'local' ? '부분' : p.anesthesiaType === 'sedation' ? '수면' : '전신'}마취`;
               return (
-                <Link key={p.id} href={`/concerns/${p.concernId}/proposals`} className="no-underline block">
+                <Link key={p.id} href="/decision" className="no-underline block">
                   <ExperienceCard
                     variant="secondary"
                     gradient={G[(idx + 1) % G.length]}
@@ -247,7 +258,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══ Sticky CTA ═══ */}
-      <StickyConsultCTA phase={phase} />
+      <StickyConsultCTA phase={phase} unreadCount={userProposalCount} />
     </div>
   );
 }

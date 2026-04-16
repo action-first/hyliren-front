@@ -121,8 +121,8 @@ export function computeConcernActions(concern: Concern, proposals: Proposal[]): 
       break;
 
     case 'proposal_received':
-      primaryAction = { label: '제안 확인하고 분석하기', href: `/concerns/${cid}/proposals`, variant: 'primary' };
-      helperMessage = '바로 선택하지 말고 먼저 검증해보세요';
+      primaryAction = { label: '받은 제안 확인하기', href: `/concerns/${cid}/proposals`, variant: 'primary' };
+      helperMessage = '바로 선택하지 말고 먼저 분석해보세요';
       if (unread.length > 0) {
         extraActions.push({ label: `새 제안 ${unread.length}건 도착`, href: `/concerns/${cid}/proposals`, variant: 'ghost' });
       }
@@ -134,8 +134,8 @@ export function computeConcernActions(concern: Concern, proposals: Proposal[]): 
       break;
 
     case 'report_purchased':
-      primaryAction = { label: '리포트 결과 확인하기', href: '/decision', variant: 'primary' };
-      secondaryAction = { label: '제안 다시 보기', href: `/concerns/${cid}/proposals`, variant: 'secondary' };
+      primaryAction = { label: '분석 결과 확인하기', href: '/decision', variant: 'primary' };
+      secondaryAction = { label: '받은 제안 다시 보기', href: `/concerns/${cid}/proposals`, variant: 'secondary' };
       helperMessage = '분석 결과를 바탕으로 선택을 정리해보세요';
       break;
 

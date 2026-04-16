@@ -114,7 +114,7 @@ function DashboardHero({ phase, state }: { phase: string; state: DashboardState 
       title: t('dashboard.arrivedPhaseTitle'),
       subtitle: t('dashboard.arrivedPhaseDesc', { count: state.unreadProposalCount }),
       cta: t('dashboard.arrivedPhaseAction'),
-      ctaHref: '/decision',
+      ctaHref: state.primaryConcern ? `/concerns/${state.primaryConcern.id}/proposals` : '/decision',
       gradient: 'from-[#e8f5e9] via-white to-white',
     },
     comparing: {

@@ -264,6 +264,7 @@ export default function ComparePage({ params }: Props) {
           <Button variant="primary" fullWidth size="lg"
             onClick={() => {
               track({ eventType: 'hospital_selected', actorType: 'user', targetType: 'proposal', targetId: selectedId, metadata: { source: 'fo', locale: 'ko', label: concern.primaryArea } });
+              useDecisionStore.getState().selectHospital(selectedId);
               router.push(`/concerns/${concern.id}`);
             }}>
             {t('proposal.compare.selectButton')}
