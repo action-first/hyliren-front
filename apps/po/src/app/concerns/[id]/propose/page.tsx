@@ -1,12 +1,19 @@
 'use client';
 
-import { useState, use } from 'react';
-import { MOCK_CONCERNS, ANESTHESIA_TYPES } from '@hyliren/shared';
-import type { AnesthesiaType } from '@hyliren/shared';
-import { Card, Button, Input, Textarea, SectionHeader } from '@hyliren/ui';
+import { useState, useEffect, use } from 'react';
+import { useRouter } from 'next/navigation';
+import type { AnesthesiaType, Concern } from '@hyliren/shared';
+import { Card, Button, Input, Textarea, SectionHeader, AdminPage } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
+import { usePOAuthStore } from '@/store/po-auth';
+import { useTreatmentsStore } from '@/store/treatments';
+import { useSubmittedProposalsStore } from '@/store/submitted-proposals';
+import { useCreditsStore } from '@/store/credits';
+import { useToastStore } from '@/store/toast';
+import { ChevronDown } from 'lucide-react';
+import { CREDIT_COST } from '@/lib/display';
 
-interface TreatmentItem {
+interface FormItem {
   name: string;
   nameZh: string;
   price: number;
@@ -18,9 +25,24 @@ interface Props {
 
 export default function ProposePage({ params }: Props) {
   const { id } = use(params);
-  const concern = MOCK_CONCERNS.find(c => c.id === id) || MOCK_CONCERNS[0];
+  const router = useRouter();
 
-  const [items, setItems] = useState<TreatmentItem[]>([{ name: '', nameZh: '', price: 0 }]);
+  const [concern, setConcern] = useState<Concern | null>(null);
+  useEffect(() => {
+    fetch('/api/concerns')
+      .then(r => r.json())
+      .then(data => {
+        const found = (data.concerns ?? []).find((c: Concern) => c.id === id);
+        if (found) setConcern(found);
+      });
+  }, [id]);
+  const { member } = usePOAuthStore();
+  const { treatments } = useTreatmentsStore();
+  const { submit } = useSubmittedProposalsStore();
+  const { balance, deduct } = useCreditsStore();
+  const { showToast } = useToastStore();
+
+  const [items, setItems] = useState<FormItem[]>([{ name: '', nameZh: '', price: 0 }]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [recoveryDays, setRecoveryDays] = useState(7);
   const [anesthesia, setAnesthesia] = useState<AnesthesiaType>('sedation');
@@ -28,58 +50,138 @@ export default function ProposePage({ params }: Props) {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [note, setNote] = useState('');
-  const [sent, setSent] = useState(false);
+  const [showCatalog, setShowCatalog] = useState(false);
+
+  const activeTreatments = treatments.filter(t => t.isActive);
 
   function addItem() {
-    setItems([...items, { name: '', nameZh: '', price: 0 }]);
+    setItems(prev => [...prev, { name: '', nameZh: '', price: 0 }]);
   }
 
   function removeItem(idx: number) {
-    setItems(items.filter((_, i) => i !== idx));
+    setItems(prev => prev.filter((_, i) => i !== idx));
   }
 
-  function updateItem(idx: number, field: keyof TreatmentItem, value: string | number) {
-    setItems(items.map((item, i) => i === idx ? { ...item, [field]: value } : item));
+  function updateItem(idx: number, field: keyof FormItem, value: string | number) {
+    setItems(prev => prev.map((item, i) => i === idx ? { ...item, [field]: value } : item));
   }
 
-  function handleSend() {
-    setSent(true);
+  function addFromCatalog(t: { name: string; nameZh: string; priceMin: number; priceMax: number }) {
+    const midPrice = Math.round((t.priceMin + t.priceMax) / 2);
+    setItems(prev => {
+      const hasEmpty = prev.some(i => !i.name.trim());
+      if (hasEmpty) {
+        return prev.map((item, idx) =>
+          idx === prev.findIndex(i => !i.name.trim())
+            ? { name: t.name, nameZh: t.nameZh, price: midPrice }
+            : item
+        );
+      }
+      return [...prev, { name: t.name, nameZh: t.nameZh, price: midPrice }];
+    });
+    setShowCatalog(false);
   }
 
-  const canSend = totalPrice > 0 && recoveryDays > 0 && items.some(i => i.name.trim());
+  const canSend = totalPrice > 0 && recoveryDays > 0 && items.some(i => i.name.trim()) && balance >= CREDIT_COST;
+  const [sending, setSending] = useState(false);
 
-  if (sent) {
-    return (
-      <div className="po-layout">
-        <POSidebar active="/concerns" />
-        <div className="po-main">
-          <div className="po-topbar"><span className="po-topbar-title">제안서 발송 완료</span></div>
-          <div className="po-content text-center pt-12">
-            <div className="text-5xl mb-4">✅</div>
-            <h2>제안서가 발송되었습니다</h2>
-            <p className="text-[var(--color-text-secondary)] mt-2">
-              크레딧 3개가 차감되었습니다. 고객이 열람하면 알려드리겠습니다.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+  async function handleSend() {
+    if (balance < CREDIT_COST) {
+      showToast(`크레딧이 부족합니다. 현재 잔액: ${balance}개`, 'error');
+      return;
+    }
+    if (sending) return;
+    setSending(true);
+
+    const payload = {
+      concernId: id,
+      memberId: member?.id ?? 'm-001',
+      items: items.filter(i => i.name.trim()),
+      totalPrice,
+      recoveryDays,
+      anesthesiaType: anesthesia,
+      hospitalStayDays: stayDays,
+      availableDateFrom: dateFrom || null,
+      availableDateTo: dateTo || null,
+      consultationNote: note.trim() || null,
+      creditsCharged: CREDIT_COST,
+    };
+
+    try {
+      const res = await fetch('/api/proposals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.error || '제안서 발송에 실패했습니다.', 'error');
+        return;
+      }
+
+      // API 성공 후에만 크레딧 차감 + 로컬 저장
+      const ok = deduct(CREDIT_COST, `제안서 발송 (${id})`);
+      if (!ok) {
+        showToast('크레딧 차감에 실패했습니다.', 'error');
+        return;
+      }
+      submit(payload);
+      showToast('제안서가 발송되었습니다. 크레딧 3개 차감.', 'success');
+      router.push('/proposals');
+    } catch {
+      showToast('네트워크 오류가 발생했습니다. 다시 시도해주세요.', 'error');
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
-    <div className="po-layout">
-      <POSidebar active="/concerns" />
-      <div className="po-main">
-        <div className="po-topbar">
-          <span className="po-topbar-title">제안서 작성 — {concern.bodyArea} {concern.bodyAreaDetail || ''}</span>
-        </div>
-        <div className="po-content">
+    <AdminPage
+      sidebar={<POSidebar active="/concerns" />}
+      title={`제안서 작성 — ${concern?.primaryArea ?? ''} ${concern?.bodyAreaDetail ?? ''}`}
+      prefix="po"
+      actions={
+        <span style={{ fontSize: 13, color: '#6b7280' }}>
+          잔액 <strong style={{ color: '#0f172a' }}>{balance}</strong>크레딧 · 발송 시 {CREDIT_COST}개 차감
+        </span>
+      }
+    >
           <div className="propose-form">
-            {/* Treatment Items */}
+
+            {/* 시술 항목 */}
             <Card padding="md">
               <SectionHeader
                 title="시술 항목"
-                action={<Button variant="ghost" size="sm" onClick={addItem}>+ 항목 추가</Button>}
+                action={
+                  <div className="flex gap-2">
+                    <div className="relative">
+                      <Button variant="ghost" size="sm" onClick={() => setShowCatalog(v => !v)}>
+                        카탈로그에서 추가 <ChevronDown size={13} className="ml-1" />
+                      </Button>
+                      {showCatalog && (
+                        <div className="catalog-dropdown">
+                          {activeTreatments.length === 0 ? (
+                            <p className="catalog-empty">등록된 시술이 없습니다.</p>
+                          ) : (
+                            activeTreatments.map(t => (
+                              <button
+                                key={t.id}
+                                type="button"
+                                className="catalog-item"
+                                onClick={() => addFromCatalog(t)}
+                              >
+                                <span className="font-medium">{t.name}</span>
+                                <span className="text-[var(--color-text-dim)] ml-2 text-xs">{t.priceMin}~{t.priceMax}만</span>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={addItem}>+ 직접 추가</Button>
+                  </div>
+                }
               />
               <div className="propose-items-list mt-4">
                 {items.map((item, idx) => (
@@ -105,7 +207,7 @@ export default function ProposePage({ params }: Props) {
               </div>
             </Card>
 
-            {/* Total Price (권위 값) */}
+            {/* 총 비용 */}
             <Card padding="md">
               <SectionHeader title="총 비용" subtitle="총 비용은 직접 입력합니다 (항목 합계와 다를 수 있음)" />
               <div className="propose-total-row mt-4">
@@ -116,17 +218,14 @@ export default function ProposePage({ params }: Props) {
                     value={totalPrice || ''}
                     onChange={e => setTotalPrice(Number(e.target.value))}
                     placeholder="0"
-                    style={{
-                      width: '6rem', textAlign: 'right', border: 'none', background: 'transparent',
-                      fontSize: 'var(--admin-text-h2)', fontWeight: 700, color: 'var(--admin-accent)', outline: 'none',
-                    }}
+                    className="propose-total-input"
                   />
                   <span className="text-[var(--color-text-secondary)]">만원</span>
                 </div>
               </div>
             </Card>
 
-            {/* Specs */}
+            {/* 시술 정보 */}
             <Card padding="md">
               <SectionHeader title="시술 정보" />
               <div className="propose-form-row mt-4">
@@ -164,7 +263,7 @@ export default function ProposePage({ params }: Props) {
               </div>
             </Card>
 
-            {/* Note */}
+            {/* 부연 설명 */}
             <Card padding="md">
               <Textarea
                 label="부연 설명 (선택)"
@@ -175,16 +274,20 @@ export default function ProposePage({ params }: Props) {
               />
             </Card>
 
-            {/* Send */}
+            {/* 발송 */}
             <div className="flex justify-end gap-3">
-              <Button variant="secondary">임시 저장</Button>
-              <Button variant="primary" onClick={handleSend} disabled={!canSend}>
-                제안서 발송 (크레딧 3개)
+              <Button variant="secondary" onClick={() => router.back()}>취소</Button>
+              <Button variant="accent" onClick={handleSend} disabled={!canSend || sending}>
+                {sending ? '발송 중...' : `제안서 발송 (크레딧 ${CREDIT_COST}개)`}
               </Button>
             </div>
+
+            {balance < CREDIT_COST && (
+              <p className="text-right text-sm text-[var(--color-danger)]">
+                크레딧이 부족합니다. 현재 잔액: {balance}개
+              </p>
+            )}
           </div>
-        </div>
-      </div>
-    </div>
+    </AdminPage>
   );
 }

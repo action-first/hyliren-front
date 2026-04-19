@@ -11,10 +11,18 @@ interface ModalProps {
 
 function Modal({ open, onClose, children, title }: ModalProps) {
   useEffect(() => {
-    if (open) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
-    return () => { document.body.style.overflow = ''; };
-  }, [open]);
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+      window.addEventListener('keydown', handleKey);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKey);
+      };
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [open, onClose]);
 
   if (!open) return null;
 

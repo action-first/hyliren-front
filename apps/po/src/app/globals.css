@@ -1,139 +1,149 @@
-/* PO — Tailwind v4 + Admin Design Tokens */
+/* PO — Tailwind v4 + Admin Design System */
 @import "tailwindcss";
 @import "@hyliren/ui/src/tokens/shared.css";
 @import "@hyliren/ui/src/tokens/admin.css";
+@import "@hyliren/ui/src/tokens/admin-layout.css";
+@import "ag-grid-community/styles/ag-grid.css";
+@import "ag-grid-community/styles/ag-theme-alpine.css";
+@import "@hyliren/ui/src/tokens/datagrid.css";
 
 @source "../../../../packages/ui/src/**/*.tsx";
 
 @layer base {
-
   body {
     font-family: var(--app-font);
     font-size: var(--app-text-body);
-    color: var(--color-text);
-    background: var(--color-bg);
-    line-height: var(--leading-normal);
+    color: var(--text-default);
+    background: var(--surface-bg);
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
   }
 
-  /* ---- PO Layout ---- */
-  .po-layout { display: flex; min-height: 100dvh; }
-
-  .po-sidebar {
-    width: var(--admin-sidebar-width);
-    background: var(--color-surface);
-    border-right: 1px solid var(--color-border-light);
-    display: flex; flex-direction: column; flex-shrink: 0;
-    position: sticky; top: 0; height: 100dvh;
-  }
-  .po-sidebar-logo {
-    padding: 1.25rem 1.25rem;
-    font-size: 1rem; font-weight: 700;
-    border-bottom: 1px solid var(--color-border-light);
-    text-decoration: none; display: block; color: var(--color-text);
-  }
   .po-sidebar-nav {
-    display: flex; flex-direction: column;
-    padding: 0.75rem 0.5rem; gap: 2px; flex: 1;
+    gap: 6px;
+    padding: 12px 10px 10px;
   }
+
   .po-sidebar-link {
-    display: flex; align-items: center; gap: 0.625rem;
-    padding: 0.5rem 0.75rem; font-size: 0.875rem;
-    color: var(--color-text-secondary); text-decoration: none;
-    border-radius: 8px; transition: background 150ms;
-  }
-  .po-sidebar-link:hover { background: var(--color-bg-tertiary); color: var(--color-text); }
-  .po-sidebar-link--active { background: var(--color-primary-soft); color: var(--color-primary); font-weight: 600; }
-
-  .po-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .po-topbar {
-    height: 3.25rem; display: flex; align-items: center; justify-content: space-between;
-    padding: 0 1.5rem; background: var(--color-surface);
-    border-bottom: 1px solid var(--color-border-light);
-  }
-  .po-topbar-title { font-size: 0.9375rem; font-weight: 600; color: var(--color-text); }
-  .po-content { flex: 1; padding: 1.5rem; overflow-y: auto; }
-
-  /* ---- KPI Grid ---- */
-  .kpi-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 1rem; margin-bottom: 1.5rem;
-  }
-  .kpi-value {
-    display: block; font-size: 1.75rem; font-weight: 700;
-    color: var(--color-text); line-height: 1.2;
-  }
-  .kpi-label {
-    display: block; font-size: 0.8125rem;
-    color: var(--color-text-secondary); margin-top: 0.25rem;
+    min-height: 44px;
+    padding: 10px 12px;
+    gap: 10px;
   }
 
-  /* ---- Data Table ---- */
-  .data-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-  .data-table th {
-    text-align: left; padding: 0.625rem 0.75rem;
-    font-weight: 600; font-size: 0.75rem;
-    color: var(--color-text-dim); border-bottom: 1px solid var(--color-border);
-    white-space: nowrap; text-transform: uppercase; letter-spacing: 0.02em;
+  .po-sidebar-footer {
+    margin-top: auto;
+    padding-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
-  .data-table td {
-    padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--color-border-light);
-    color: var(--color-text);
-  }
-  .data-table tr:hover td { background: var(--color-bg-tertiary); }
-  .data-table-link { color: var(--color-primary); text-decoration: none; font-weight: 500; }
-  .data-table-link:hover { text-decoration: underline; }
 
-  /* ---- Propose Form ---- */
-  .propose-form { display: flex; flex-direction: column; gap: 1.5rem; }
-  .propose-items-list { display: flex; flex-direction: column; gap: 0.75rem; }
-  .propose-item-row {
-    display: grid; grid-template-columns: 1fr 8rem 2rem;
-    gap: 0.75rem; align-items: end;
+  .po-sidebar-credit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px;
   }
-  .propose-item-remove {
-    width: 2rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;
-    border: 1px solid var(--color-border-light); border-radius: 6px;
-    background: none; cursor: pointer; color: var(--color-text-dim);
-    font-size: 1.125rem;
-  }
-  .propose-item-remove:hover { background: var(--color-bg-tertiary); color: var(--color-text); }
-  .propose-total-row {
-    display: flex; align-items: baseline; justify-content: space-between;
-  }
-  .propose-total-label { font-size: 0.875rem; color: var(--color-text-secondary); }
-  .propose-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
-  /* ---- Input overrides for select ---- */
-  .input-wrapper { display: flex; flex-direction: column; gap: 0.25rem; }
-  .input-label { font-size: 0.875rem; font-weight: 500; color: var(--color-text); }
-  .input-field {
-    height: 2.5rem; padding: 0 0.75rem; font-size: 0.875rem;
-    border: 1px solid var(--color-border); border-radius: 8px;
-    background: var(--color-bg); color: var(--color-text);
-    outline: none;
+  .po-sidebar-credit__label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-disabled);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
   }
-  .input-field:focus { border-color: var(--color-primary); }
 
-  /* ---- Concern Detail ---- */
-  .concern-photos-row {
-    display: flex; gap: 0.75rem; margin-bottom: 1.5rem;
+  .po-sidebar-credit__value {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-subdued);
   }
-  .concern-photo-thumb {
-    width: 5rem; height: 5rem; border-radius: 8px;
-    background: var(--color-bg-tertiary); display: flex;
-    align-items: center; justify-content: center; font-size: 1.5rem;
-  }
-  .concern-detail-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
-  }
-  .concern-detail-label {
-    font-size: 0.75rem; color: var(--color-text-dim);
-    margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.02em;
-  }
-  .concern-detail-value { font-size: 0.875rem; color: var(--color-text); }
 
-  /* ---- Credit ---- */
-  .credit-balance { font-size: 2.5rem; font-weight: 700; color: var(--color-primary); }
-  .credit-unit { font-size: 1rem; color: var(--color-text-secondary); }
+  .po-sidebar-credit__unit {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-disabled);
+    text-transform: uppercase;
+  }
+
+  .po-sidebar-account {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border-subdued);
+    border-radius: 0;
+    background: var(--surface-default);
+    text-decoration: none;
+    transition: background 120ms;
+  }
+
+  .po-sidebar-account:hover {
+    background: var(--surface-hovered);
+  }
+
+  .po-sidebar-account__avatar {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--surface-subdued);
+    color: var(--text-subdued);
+  }
+
+  .po-sidebar-account__body {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1;
+  }
+
+  .po-sidebar-account__topline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .po-sidebar-account__verified {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+    background: color-mix(in srgb, var(--color-success-soft) 82%, white 18%);
+    color: var(--color-success);
+  }
+
+  .po-sidebar-account__hospital,
+  .po-sidebar-account__identity {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .po-sidebar-account__hospital {
+    font-size: 13px;
+    color: var(--text-default);
+  }
+
+  .po-sidebar-account__identity {
+    font-size: 11px;
+    color: var(--text-disabled);
+  }
 }

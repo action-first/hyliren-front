@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { onLogout } from '@/store/auth';
 
 /* ── Report Data Models ── */
 
@@ -100,3 +101,6 @@ export const useReportStore = create<ReportState>()(
     },
   ),
 );
+
+// 로그아웃 시 리포트 상태 초기화
+onLogout(() => useReportStore.setState({ preview: null, fullReport: null, purchasedIds: new Set() }));

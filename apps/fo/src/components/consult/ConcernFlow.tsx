@@ -6,6 +6,8 @@ import { useAuthStore } from '@/store/auth';
 import { useLocaleStore } from '@/store/locale';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { StepNarrative } from './StepNarrative';
+import { StepBudget } from './StepBudget';
+import { StepVisitPlan } from './StepVisitPlan';
 import { StepAIProcessing } from './StepAIProcessing';
 import { StepAIReview } from './StepAIReview';
 import { StepFeedback } from './StepFeedback';
@@ -13,20 +15,24 @@ import { StepConfirm } from './StepConfirm';
 
 export function ConcernFlow() {
   const t = useLocaleStore(s => s.t);
-  const { step, analysisCount, photos, setStep } = useConcernFlowStore();
+  const { step, analysisCount, photos, setStep, resetFlow } = useConcernFlowStore();
   const { isLoggedIn } = useAuthStore();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingStep, setPendingStep] = useState<string | null>(null);
 
+  // 이전 상담이 완료(submitted)된 상태에서 재진입 시 초기화
+  useEffect(() => {
+    if (step === 'submitted') resetFlow();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Auth gate: narrative → processing 전환 시 guest + 사진 있으면 로그인 유도
+  // step을 리셋하지 않고 모달만 오버레이 → 로그인 완료 후 그대로 진행
   useEffect(() => {
     if (step === 'processing' && !isLoggedIn && photos.length > 0 && !pendingStep) {
-      // processing으로 왔지만 로그인 안됨 → auth modal 먼저
       setPendingStep('processing');
-      setStep('narrative'); // 되돌리기
       setShowAuthModal(true);
     }
-  }, [step, isLoggedIn, photos.length, pendingStep, setStep]);
+  }, [step, isLoggedIn, photos.length, pendingStep]);
 
   function handleAuthSuccess() {
     setShowAuthModal(false);
@@ -47,6 +53,8 @@ export function ConcernFlow() {
 
   const STEP_LABELS: Record<string, string> = {
     narrative: t('consult.stepNarrative'),
+    budget: '예산',
+    'visit-plan': '방문 계획',
     processing: t('consult.stepProcessing'),
     review: t('consult.stepReview'),
     feedback: t('consult.stepFeedback'),
@@ -56,10 +64,12 @@ export function ConcernFlow() {
 
   const progressMap: Record<string, number> = {
     narrative: 0.15,
-    processing: 0.35,
-    review: 0.6,
-    feedback: 0.7,
-    confirm: 0.85,
+    budget: 0.35,
+    'visit-plan': 0.5,
+    processing: 0.55,
+    review: 0.7,
+    feedback: 0.8,
+    confirm: 0.9,
     submitted: 1,
   };
   const progress = progressMap[step] || 0;
@@ -94,6 +104,8 @@ export function ConcernFlow() {
         {/* Step content */}
         <div className="flex-1 px-5 pt-4 pb-4 flex flex-col">
           {step === 'narrative' && <StepNarrative />}
+          {step === 'budget' && <StepBudget />}
+          {step === 'visit-plan' && <StepVisitPlan />}
           {step === 'processing' && <StepAIProcessing />}
           {step === 'review' && <StepAIReview />}
           {step === 'feedback' && <StepFeedback />}

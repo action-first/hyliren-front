@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import Link from 'next/link';
 import { MOCK_CONCERNS, MOCK_PROPOSALS, MOCK_CONCERN_PHOTOS, MOCK_PARTNER_PROFILES, track } from '@hyliren/shared';
 import { Button, Badge } from '@hyliren/ui';
@@ -10,13 +10,31 @@ import {
 } from 'lucide-react';
 import { computeConcernActions, getRecommendedArticles } from '@/domain/lifecycle';
 import { useLocaleStore } from '@/store/locale';
+import { useUserConcernsStore } from '@/store/user-concerns';
+
+function ConcernPhoto({ url }: { url: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <div className="w-24 h-28 rounded-xl bg-[var(--color-bg-secondary)] flex items-center justify-center shrink-0">
+        <Camera size={28} className="text-[var(--color-text-dim)]" />
+      </div>
+    );
+  }
+  return (
+    <div className="w-24 h-28 rounded-xl bg-[var(--color-bg-secondary)] overflow-hidden shrink-0">
+      <img src={url} alt="" className="w-full h-full object-cover" onError={() => setFailed(true)} />
+    </div>
+  );
+}
 
 interface Props { params: Promise<{ id: string }>; }
 
 export default function ConcernDetailPage({ params }: Props) {
   const t = useLocaleStore(s => s.t);
   const { id } = use(params);
-  const concern = MOCK_CONCERNS.find(c => c.id === id);
+  const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
+  const concern = MOCK_CONCERNS.find(c => c.id === id) || userCreatedConcerns.find(c => c.id === id);
   if (!concern) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-5 text-center">
@@ -79,9 +97,7 @@ export default function ConcernDetailPage({ params }: Props) {
         {(photos.length > 0 || actions.canAddPhotos) && (
           <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
             {photos.map(p => (
-              <div key={p.id} className="w-24 h-28 rounded-xl bg-[var(--color-bg-secondary)] flex items-center justify-center shrink-0">
-                <Camera size={28} className="text-[var(--color-text-dim)]" />
-              </div>
+              <ConcernPhoto key={p.id} url={p.url} />
             ))}
             {actions.canAddPhotos && photos.length < 3 && (
               <button type="button"

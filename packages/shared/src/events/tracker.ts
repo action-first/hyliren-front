@@ -40,12 +40,22 @@ const REQUIRED_EVENTS = [
 export type RequiredEventType = typeof REQUIRED_EVENTS[number];
 
 export function track(event: TrackEvent): void {
-  // MVP: console output. Replace with API call later.
   if (typeof window !== 'undefined') {
-    console.log('[HYLIREN_EVENT]', JSON.stringify({
-      ...event,
-      timestamp: new Date().toISOString(),
-    }));
+    // 콘솔 로그
+    console.log('[HYLIREN_EVENT]', JSON.stringify({ ...event, timestamp: new Date().toISOString() }));
+
+    // data-store에 이벤트 기록 (fire-and-forget)
+    fetch('/api/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventType: event.eventType,
+        actorType: event.actorType,
+        targetType: event.targetType,
+        targetId: event.targetId,
+        metadata: event.metadata ? Object.fromEntries(Object.entries(event.metadata).map(([k, v]) => [k, String(v)])) : undefined,
+      }),
+    }).catch(() => {}); // 실패해도 무시
   }
 }
 

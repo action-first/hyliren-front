@@ -23,10 +23,11 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           className={`
             w-full py-[var(--spacing-3)] px-[var(--spacing-4)] min-h-24 resize-y
             text-[var(--app-text-body)] text-[var(--color-text)]
-            bg-[var(--color-bg)] border rounded-[var(--app-radius)]
+            bg-[var(--input-bg)] border rounded-[var(--app-radius)]
             outline-none transition-colors duration-[var(--duration-fast)]
             placeholder:text-[var(--color-text-dim)]
-            ${error ? 'border-[var(--color-danger)]' : 'border-[var(--color-border)] focus:border-[var(--color-primary)]'}
+            disabled:bg-[var(--input-bg-disabled)] disabled:opacity-[var(--opacity-disabled)] disabled:cursor-not-allowed
+            ${error ? 'border-[var(--color-danger)]' : 'border-[var(--input-border)] hover:border-[var(--color-text-dim)] focus:border-[var(--input-border-focus)] focus:shadow-[0_0_0_3px_var(--input-focus-ring)]'}
             ${className}
           `}
           {...props}

@@ -1,43 +1,106 @@
 /* ============================================================
-   HYLIREN — Admin Theme Tokens (PO + BO)
-   Shopify Admin 톤: Neutral, Functional, Productive
-   데스크톱 우선 · 14px body · 기능적
+   HYLIREN — Admin Design Tokens (BO + PO)
+   Reference: Shopify Polaris
+   Neutral · Functional · High-density
    ============================================================ */
 
-[data-theme="admin"],
-:root[data-theme="admin"] {
-  --color-primary: #008060;
-  --color-primary-hover: #006E52;
-  --color-primary-soft: rgba(0, 128, 96, 0.08);
-  --color-primary-muted: rgba(0, 128, 96, 0.6);
+[data-theme="admin"] {
+  /* ── Surface ── */
+  --surface-bg: #F6F6F7;
+  --surface-default: #FFFFFF;
+  --surface-subdued: #FAFBFB;
+  --surface-hovered: #F1F2F3;
+  --surface-pressed: #EDEEEF;
+  --surface-selected: rgba(44, 110, 203, 0.04);
 
-  --color-bg: #F6F6F7;
-  --color-bg-secondary: #FFFFFF;
-  --color-bg-tertiary: #F0F0F0;
-  --color-bg-wash: #F0FAF6;
+  /* ── Border ── */
+  --border-default: #E1E3E5;
+  --border-subdued: #F1F1F1;
+  --border-strong: #C9CCCF;
 
-  --color-text: #1A1A1A;
-  --color-text-secondary: #616161;
-  --color-text-dim: #8C8C8C;
+  /* ── Text ── */
+  --text-default: #202223;
+  --text-subdued: #6D7175;
+  --text-disabled: #8C9196;
+
+  /* ── Interactive ── */
+  --interactive-default: #2C6ECB;
+  --interactive-hovered: #1F5199;
+  --interactive-pressed: #103262;
+
+  /* ── Action ── */
+  --action-primary-bg: #202223;
+  --action-primary-text: #FFFFFF;
+  --action-primary-hovered: #44474A;
+  --action-secondary-bg: transparent;
+  --action-secondary-border: #C9CCCF;
+
+  /* ── Semantic ── */
+  --color-success: #008060;
+  --color-success-soft: rgba(0, 128, 96, 0.1);
+  --color-warning: #B98900;
+  --color-warning-soft: rgba(185, 137, 0, 0.1);
+  --color-danger: #D72C0D;
+  --color-danger-soft: rgba(215, 44, 13, 0.08);
+  --color-info: #2C6ECB;
+  --color-info-soft: rgba(44, 110, 203, 0.08);
+
+  /* ── Legacy aliases (기존 코드 호환) ── */
+  --color-primary: #2C6ECB;
+  --color-primary-hover: #1F5199;
+  --color-primary-soft: rgba(44, 110, 203, 0.08);
+  --color-primary-muted: rgba(44, 110, 203, 0.6);
+  --color-bg: var(--surface-bg);
+  --color-bg-secondary: var(--surface-default);
+  --color-bg-tertiary: var(--surface-subdued);
+  --color-bg-wash: #F0F2FA;
+  --color-text: var(--text-default);
+  --color-text-secondary: var(--text-subdued);
+  --color-text-dim: var(--text-disabled);
   --color-text-inverse: #FFFFFF;
+  --color-border: var(--border-default);
+  --color-border-light: var(--border-subdued);
+  --color-surface: var(--surface-default);
+  --color-surface-elevated: var(--surface-default);
 
-  --color-border: #E1E1E1;
-  --color-border-light: #F0F0F0;
+  /* ── Component tokens ── */
+  --app-radius: 8px;
+  --app-radius-sm: 4px;
+  --app-shadow: 0 0 0 1px rgba(63, 63, 68, 0.05), 0 1px 3px rgba(63, 63, 68, 0.15);
+  --app-shadow-hover: 0 0 0 1px rgba(63, 63, 68, 0.05), 0 2px 6px rgba(63, 63, 68, 0.2);
+  --app-font: 'Pretendard Variable', 'Pretendard', system-ui, 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  --app-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  --color-surface: #FFFFFF;
-  --color-surface-elevated: #FFFFFF;
+  /* ── Font Size (레퍼런스 기준) ── */
+  --app-text-xs: 12px;      /* 보조 정보, 날짜, 힌트 */
+  --app-text-sm: 14px;      /* 기본 텍스트, 라벨, 테이블 셀 */
+  --app-text-base: 16px;    /* 중요 텍스트, 강조 값 */
+  --app-text-lg: 18px;      /* 소제목, 섹션 타이틀 */
+  --app-text-xl: 20px;      /* 페이지 제목 */
+  --app-text-2xl: 32px;     /* 대형 제목, KPI 값 */
 
-  --app-radius: var(--radius-md);
-  --app-radius-sm: var(--radius-sm);
+  /* 기존 alias (호환) */
+  --app-text-body: var(--app-text-sm);
+  --app-text-small: var(--app-text-xs);
+  --app-text-micro: 11px;
 
-  --app-shadow: var(--shadow-xs);
-  --app-shadow-hover: var(--shadow-sm);
+  /* ── Input ── */
+  --input-height: 32px;
+  --input-bg: var(--surface-default);
+  --input-bg-disabled: var(--surface-subdued);
+  --input-border: var(--border-default);
+  --input-border-focus: var(--interactive-default);
+  --input-focus-ring: rgba(44, 110, 203, 0.15);
+  --input-radius: 4px;
 
-  --app-font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --app-text-body: var(--text-base);
-  --app-text-small: var(--text-sm);
-  --app-text-micro: var(--text-xs);
+  /* ── Typography hierarchy ── */
+  --app-text-page-title: var(--app-text-xl);       /* 20px — 페이지 헤더 */
+  --app-text-section-title: var(--app-text-lg);     /* 18px — 카드 섹션 헤더 */
+  --app-text-label: var(--app-text-xs);             /* 12px — 폼 라벨 */
 
-  /* Admin-specific */
-  --admin-sidebar-width: 240px;
+  /* ── Admin Layout ── */
+  --admin-sidebar-w: 240px;
+  --admin-sidebar-width: 240px; /* legacy */
+  --admin-topbar-h: 52px;
+  --admin-content-max-w: 1200px;
 }

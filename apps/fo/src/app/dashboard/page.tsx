@@ -9,27 +9,35 @@ import {
   ArrowRight, Plus, FileText, Clock, ChevronRight,
   BookOpen, MessageCircle, Inbox, Scale,
 } from 'lucide-react';
+import { ARTICLES } from '@/lib/articles-data';
+
+const AREA_ACCENT: Record<string, string> = {
+  '눈': 'bg-blue-50 text-blue-600',
+  '코': 'bg-pink-50 text-pink-600',
+  '리프팅': 'bg-purple-50 text-purple-600',
+  '피부': 'bg-emerald-50 text-emerald-600',
+};
 import {
   type DashboardState,
   computeDashboardState, computeConcernActions,
   getRecommendedArticles, STATUS_LABELS, STATUS_COLORS,
 } from '@/domain/lifecycle';
 import { useLocaleStore } from '@/store/locale';
-
-const USER_ID = 'u-001';
+import { useAuthStore } from '@/store/auth';
 
 export default function DashboardPage() {
   const t = useLocaleStore(s => s.t);
+  const userId = useAuthStore(s => s.user?.id) ?? 'u-001';
   const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
   const userConcerns = [
-    ...MOCK_CONCERNS.filter(c => c.userId === USER_ID && !c.deletedAt),
+    ...MOCK_CONCERNS.filter(c => c.userId === userId && !c.deletedAt),
     ...userCreatedConcerns,
   ];
   const userProposals = MOCK_PROPOSALS.filter(p => p.isActive);
   const dashboard = computeDashboardState(userConcerns, userProposals);
 
   useEffect(() => {
-    track({ eventType: 'dashboard_viewed', actorType: 'user', targetType: 'user', targetId: USER_ID, metadata: { source: 'fo', locale: 'ko', value: dashboard.phase } });
+    track({ eventType: 'dashboard_viewed', actorType: 'user', targetType: 'user', targetId: userId, metadata: { source: 'fo', locale: 'ko', value: dashboard.phase } });
   }, [dashboard.phase]);
 
   return (
@@ -61,6 +69,9 @@ export default function DashboardPage() {
                     status={concern.status}
                     proposalCount={proposalCount}
                     hasNewProposal={actions.hasNewProposal}
+                    budgetMin={concern.budgetMin}
+                    budgetMax={concern.budgetMax}
+                    visitDateFrom={concern.visitDateFrom}
                   />
                 );
               })}
@@ -101,7 +112,7 @@ function DashboardHero({ phase, state }: { phase: string; state: DashboardState 
       subtitle: t('dashboard.emptyDesc'),
       cta: t('dashboard.emptyAction'),
       ctaHref: '/consult',
-      gradient: 'from-[#fff5f7] via-white to-white',
+      gradient: 'from-[var(--color-bg-wash)] via-white to-white',
     },
     waiting: {
       title: t('dashboard.waitingPhaseTitle', { count: state.waitingProposalCount }),
@@ -143,17 +154,17 @@ function DashboardHero({ phase, state }: { phase: string; state: DashboardState 
   const config = configs[phase] || configs.empty;
 
   return (
-    <div className={`relative rounded-2xl overflow-hidden px-5 pt-7 pb-6 bg-gradient-to-b ${config.gradient}`}>
-      <h1 className="text-[1.5rem] font-bold text-[var(--color-text)] leading-tight whitespace-pre-line mb-2">
+    <div className={`relative rounded-2xl overflow-hidden px-5 pt-5 pb-5 bg-gradient-to-b ${config.gradient}`}>
+      <h1 className="text-[1.25rem] font-bold text-[var(--color-text)] leading-tight whitespace-pre-line mb-1">
         {config.title}
       </h1>
-      <p className="text-[13px] text-[var(--color-text-dim)] leading-relaxed mb-5">
+      <p className="text-[12px] text-[var(--color-text-dim)] leading-relaxed mb-4">
         {config.subtitle}
       </p>
       <Link href={config.ctaHref} className="no-underline">
         <Button variant="accent" size="lg" fullWidth>
           {config.cta}
-          <ArrowRight size={18} />
+          <ArrowRight size={16} />
         </Button>
       </Link>
     </div>
@@ -162,6 +173,7 @@ function DashboardHero({ phase, state }: { phase: string; state: DashboardState 
 
 function ConcernStatusCard({
   concernId, bodyAreas, description, status, proposalCount, hasNewProposal,
+  budgetMin, budgetMax, visitDateFrom,
 }: {
   concernId: string;
   bodyAreas: string[];
@@ -169,9 +181,11 @@ function ConcernStatusCard({
   status: string;
   proposalCount: number;
   hasNewProposal: boolean;
+  budgetMin?: number | null;
+  budgetMax?: number | null;
+  visitDateFrom?: string | null;
 }) {
   const t = useLocaleStore(s => s.t);
-  // 상태에 따라 CTA 결정: 제안 도착 → 결정함, 그 외 → 고민 상세
   const hasProposals = proposalCount > 0 && (status === 'proposal_received' || status === 'comparing' || status === 'report_purchased');
   const href = hasProposals ? '/decision' : `/concerns/${concernId}`;
   const statusIcon = hasProposals ? Scale : status === 'submitted' ? Clock : FileText;
@@ -180,29 +194,51 @@ function ConcernStatusCard({
   return (
     <Link href={href} className="no-underline block">
       <div className="rounded-2xl bg-white px-4 py-4"
-        style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-        {/* Top: tags + status */}
+        style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
+        {/* 1행: bodyArea 컬러 뱃지 + 상태 + NEW */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
             {bodyAreas.map(area => (
-              <Badge key={area} variant="info" size="sm">{area}</Badge>
+              <span key={area} className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${AREA_ACCENT[area] || 'bg-gray-50 text-gray-600'}`}>
+                {area}
+              </span>
             ))}
           </div>
           <div className="flex items-center gap-1.5">
-            {hasNewProposal && <span className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />}
+            {hasNewProposal && (
+              <span className="px-1.5 py-0.5 rounded bg-[var(--color-primary)] text-[8px] font-bold text-white">
+                NEW
+              </span>
+            )}
             <Badge variant={STATUS_COLORS[status] || 'default'} size="sm">
               {STATUS_LABELS[status] || status}
             </Badge>
           </div>
         </div>
 
-        {/* Description */}
-        <p className="text-[13px] text-[var(--color-text)] leading-snug line-clamp-2 mb-3">
+        {/* 2행: 설명 */}
+        <p className="text-[13px] text-[var(--color-text-secondary)] leading-snug line-clamp-2 mb-2">
           {description}
         </p>
 
-        {/* Bottom: action */}
-        <div className="flex items-center justify-between">
+        {/* 3행: 예산/방문 칩 */}
+        {(budgetMin || visitDateFrom) && (
+          <div className="flex items-center gap-2 mb-2.5">
+            {budgetMin && budgetMax && (
+              <span className="px-2 py-0.5 rounded-md bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)]">
+                💰 {budgetMin}~{budgetMax}만
+              </span>
+            )}
+            {visitDateFrom && (
+              <span className="px-2 py-0.5 rounded-md bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)]">
+                📅 {visitDateFrom.slice(5)}~
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* 4행: 상태 액션 */}
+        <div className="flex items-center justify-between pt-2.5 border-t border-[var(--color-border-light)]">
           <div className="flex items-center gap-1.5 text-[11px] text-[var(--color-text-dim)]">
             <Icon size={13} />
             {status === 'submitted' && t('dashboard.hospitalReviewing')}
@@ -212,7 +248,7 @@ function ConcernStatusCard({
             {status === 'completed' && t('dashboard.procedureCompleted')}
             {status === 'draft' && t('dashboard.writing')}
           </div>
-          <div className="flex items-center gap-0.5 text-[12px] font-medium text-[var(--color-primary)]">
+          <div className="flex items-center gap-0.5 text-[12px] font-semibold text-[var(--color-primary)]">
             {hasProposals ? t('dashboard.checkInDecision') : t('common.viewDetails')}
             <ChevronRight size={14} />
           </div>
@@ -224,8 +260,9 @@ function ConcernStatusCard({
 
 function WaitingStatePanel({ bodyArea }: { bodyArea: string }) {
   const t = useLocaleStore(s => s.t);
+  const waitUserId = useAuthStore(s => s.user?.id) ?? 'u-001';
   useEffect(() => {
-    track({ eventType: 'waiting_panel_viewed', actorType: 'user', targetType: 'user', targetId: USER_ID, metadata: { source: 'fo', locale: 'ko' } });
+    track({ eventType: 'waiting_panel_viewed', actorType: 'user', targetType: 'user', targetId: waitUserId, metadata: { source: 'fo', locale: 'ko' } });
   }, []);
 
   return (
@@ -258,7 +295,10 @@ function WaitingStatePanel({ bodyArea }: { bodyArea: string }) {
 
 function RecommendedArticlesSection({ bodyArea, status }: { bodyArea: string; status: string }) {
   const t = useLocaleStore(s => s.t);
-  const articles = getRecommendedArticles(bodyArea, status);
+
+  // 실제 아티클 데이터에서 bodyArea 매칭 우선, 없으면 전체에서 3개
+  const matched = ARTICLES.filter(a => a.bodyArea === bodyArea || a.bodyArea === '전체').slice(0, 3);
+  const displayArticles = matched.length > 0 ? matched : ARTICLES.slice(0, 3);
 
   return (
     <section className="mt-7">
@@ -269,14 +309,17 @@ function RecommendedArticlesSection({ bodyArea, status }: { bodyArea: string; st
         </Link>
       </div>
       <div className="flex flex-col gap-2.5">
-        {articles.map((a, i) => (
-          <Link key={i} href="/articles" className="flex gap-3 p-3 rounded-xl bg-white no-underline"
+        {displayArticles.map(a => (
+          <Link key={a.id} href={`/articles/${a.slug}`} className="flex gap-3 p-3 rounded-xl bg-white no-underline"
             style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)' }}>
-            <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0">
-              <div className={`w-full h-full bg-gradient-to-br ${a.gradient}`} />
+            <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 relative">
+              <img src={a.heroImage} alt={a.title} className="w-full h-full object-cover" />
+              <div className={`absolute bottom-0 left-0 right-0 h-1 ${
+                a.bodyArea === '눈' ? 'bg-blue-400' : a.bodyArea === '코' ? 'bg-pink-400' : a.bodyArea === '리프팅' ? 'bg-purple-400' : a.bodyArea === '피부' ? 'bg-emerald-400' : 'bg-amber-400'
+              }`} />
             </div>
             <div className="flex flex-col gap-1 justify-center min-w-0">
-              <Badge variant={a.tagColor} size="sm">{a.tag}</Badge>
+              <Badge variant={a.tagColor} size="sm">{a.category}</Badge>
               <span className="text-[13px] font-medium text-[var(--color-text)] leading-snug line-clamp-2">{a.title}</span>
             </div>
           </Link>
@@ -289,20 +332,19 @@ function RecommendedArticlesSection({ bodyArea, status }: { bodyArea: string; st
 function ReEntryCTA() {
   const t = useLocaleStore(s => s.t);
   return (
-    <section className="mt-8">
-      <div className="flex flex-col items-center gap-3 px-5 py-5 rounded-2xl bg-[var(--color-bg-secondary)]">
-        <MessageCircle size={24} className="text-[var(--color-text-dim)]" />
-        <p className="text-[13px] text-[var(--color-text-secondary)] text-center leading-relaxed">
-          {t('dashboard.otherAreaQuestion')}<br />
-          {t('dashboard.otherAreaHint')}
-        </p>
-        <Link href="/consult" className="no-underline">
-          <Button variant="secondary" size="md">
-            <Plus size={16} />
-            {t('dashboard.newConcern')}
-          </Button>
-        </Link>
-      </div>
+    <section className="mt-7">
+      <Link href="/consult" className="no-underline block">
+        <div className="flex items-center gap-3 px-4 py-4 rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[var(--color-bg-wash)]">
+          <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0">
+            <Plus size={16} className="text-[var(--color-primary)]" />
+          </div>
+          <div className="flex-1">
+            <span className="text-[13px] font-semibold text-[var(--color-text)] block">{t('dashboard.otherAreaQuestion')}</span>
+            <span className="text-[11px] text-[var(--color-text-dim)]">{t('dashboard.otherAreaHint')}</span>
+          </div>
+          <ArrowRight size={16} className="text-[var(--color-text-dim)]" />
+        </div>
+      </Link>
     </section>
   );
 }

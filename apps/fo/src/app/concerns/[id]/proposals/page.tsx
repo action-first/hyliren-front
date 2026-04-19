@@ -1,29 +1,47 @@
 'use client';
 
 import Link from 'next/link';
-import { MOCK_CONCERNS, MOCK_PROPOSALS, MOCK_PROPOSAL_ITEMS, MOCK_PARTNER_PROFILES, track } from '@hyliren/shared';
-import { Button, Badge, MobileBottomCTA } from '@hyliren/ui';
+import { useState, useEffect, use } from 'react';
+import { MOCK_CONCERNS, MOCK_PARTNER_PROFILES, track } from '@hyliren/shared';
+import type { Proposal, ProposalItem } from '@hyliren/shared';
+import { Button, Badge, MobileBottomCTA, Spinner } from '@hyliren/ui';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { ExperienceCard } from '@/components/common/ExperienceCard';
 import { VALUE_PROPS, CARD_GRADIENTS as GRADIENTS } from '@/lib/constants';
 import { useDecisionStore } from '@/store/decision';
 import { useLocaleStore } from '@/store/locale';
-import { use } from 'react';
+import { useUserConcernsStore } from '@/store/user-concerns';
 
 interface Props { params: Promise<{ id: string }>; }
 
 export default function ProposalListPage({ params }: Props) {
   const { id } = use(params);
-  const concern = MOCK_CONCERNS.find(c => c.id === id);
+  const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
+  const concern = MOCK_CONCERNS.find(c => c.id === id) || userCreatedConcerns.find(c => c.id === id);
   const t = useLocaleStore(s => s.t);
+  const { selectedProposalIds: selected, toggleSelect } = useDecisionStore();
+
+  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [allItems, setAllItems] = useState<ProposalItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/proposals?concernId=${id}`)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => {
+        setProposals(data.proposals ?? []);
+        setAllItems(data.items ?? []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [id]);
+
   if (!concern) {
     return <div className="p-8 text-center text-[var(--color-text-secondary)]">{t('concern.notFound')}</div>;
   }
-  const proposals = MOCK_PROPOSALS
-    .filter(p => p.concernId === concern.id && p.isActive && p.status !== 'draft')
-    .sort((a, b) => a.totalPrice - b.totalPrice);
-
-  const { selectedProposalIds: selected, toggleSelect } = useDecisionStore();
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-[60vh]"><Spinner /></div>;
+  }
 
   return (
     <>
@@ -48,7 +66,7 @@ export default function ProposalListPage({ params }: Props) {
         <div className="flex flex-col gap-4 px-5">
           {proposals.map((proposal, idx) => {
             const profile = MOCK_PARTNER_PROFILES.find(p => p.memberId === proposal.memberId);
-            const items = MOCK_PROPOSAL_ITEMS.filter(i => i.proposalId === proposal.id);
+            const items = allItems.filter(i => i.proposalId === proposal.id);
             const isSelected = selected.has(proposal.id);
             const valueProp = VALUE_PROPS[proposal.memberId] || profile?.description || '';
             const meta = [
@@ -78,9 +96,9 @@ export default function ProposalListPage({ params }: Props) {
         </div>
 
         {/* Analysis nudge */}
-        <Link href={`/concerns/${concern.id}/compare`} className="no-underline block mt-5"
+        <Link href={`/concerns/${concern.id}/compare`} className="no-underline block mt-5 px-5"
           onClick={() => track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: 'proposal_list' } })}>
-          <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[#fff5f7]">
+          <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[var(--color-bg-wash)]">
             <Sparkles size={18} className="text-[var(--color-primary)] shrink-0" />
             <div className="flex-1">
               <span className="text-[13px] font-semibold text-[var(--color-text)] block">{t('proposal.list.analysisCta')}</span>

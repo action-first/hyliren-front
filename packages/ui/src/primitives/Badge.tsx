@@ -12,22 +12,22 @@ interface BadgeProps {
 const variantStyles: Record<Variant, Record<Size, string>> = {
   default: {
     sm: 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-dim)]',
-    md: 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]',
+    md: 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)]',
   },
   success: {
-    sm: 'bg-emerald-50 text-emerald-600',
+    sm: 'bg-[var(--color-success-soft)] text-[var(--color-success)]',
     md: 'bg-[var(--color-success-soft)] text-[var(--color-success)]',
   },
   warning: {
-    sm: 'bg-amber-50 text-amber-600',
-    md: 'bg-[var(--color-warning-soft)] text-amber-700',
+    sm: 'bg-[var(--color-warning-soft)] text-[var(--color-warning)]',
+    md: 'bg-[var(--color-warning-soft)] text-[var(--color-warning)]',
   },
   danger: {
-    sm: 'bg-red-50 text-red-500',
+    sm: 'bg-[var(--color-danger-soft)] text-[var(--color-danger)]',
     md: 'bg-[var(--color-danger-soft)] text-[var(--color-danger)]',
   },
   info: {
-    sm: 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)]',
+    sm: 'bg-[var(--color-info-soft)] text-[var(--color-info)]',
     md: 'bg-[var(--color-info-soft)] text-[var(--color-info)]',
   },
   primary: {
@@ -37,14 +37,14 @@ const variantStyles: Record<Variant, Record<Size, string>> = {
 };
 
 const sizeStyles: Record<Size, string> = {
-  sm: 'px-1.5 py-px text-[10px]',
-  md: 'px-2 py-0.5 text-[11px]',
+  sm: 'px-2 py-1 text-[11px]',
+  md: 'px-2.5 py-1.5 text-[12px]',
 };
 
 function Badge({ children, variant = 'default', size = 'md', className = '' }: BadgeProps) {
   return (
     <span className={`
-      inline-flex items-center font-medium rounded-full whitespace-nowrap
+      inline-flex items-center font-medium rounded-[var(--app-radius-sm)] whitespace-nowrap
       ${sizeStyles[size]}
       ${variantStyles[variant][size]}
       ${className}

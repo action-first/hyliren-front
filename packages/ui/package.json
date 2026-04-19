@@ -6,11 +6,16 @@
   "types": "./src/index.ts",
   "peerDependencies": {
     "react": "^18 || ^19",
-    "react-dom": "^18 || ^19"
+    "react-dom": "^18 || ^19",
+    "ag-grid-community": ">=35",
+    "ag-grid-react": ">=35",
+    "react-datepicker": ">=7"
   },
   "devDependencies": {
     "@types/react": "^19",
-    "react": "^19.0.0"
+    "react": "^19.0.0",
+    "ag-grid-community": "^35.2.1",
+    "ag-grid-react": "^35.2.1"
   },
   "scripts": {
     "lint": "echo 'no lint configured yet'"

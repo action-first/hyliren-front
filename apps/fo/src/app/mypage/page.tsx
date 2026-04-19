@@ -1,19 +1,51 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { MOCK_USERS, MOCK_CONCERNS, MOCK_PROPOSALS } from '@hyliren/shared';
+import { MOCK_CONCERNS, MOCK_PROPOSALS } from '@hyliren/shared';
+import { useAuthStore } from '@/store/auth';
 import { Badge, Button } from '@hyliren/ui';
 import { ChevronRight, FileText, Globe, Bell, HelpCircle, LogOut, ShieldCheck } from 'lucide-react';
 import { STATUS_LABELS, STATUS_COLORS } from '@/domain/lifecycle';
+
+const AREA_ACCENT: Record<string, string> = {
+  '눈': 'bg-blue-50 text-blue-600',
+  '코': 'bg-pink-50 text-pink-600',
+  '리프팅': 'bg-purple-50 text-purple-600',
+  '피부': 'bg-emerald-50 text-emerald-600',
+};
 import { useReportStore } from '@/store/report';
 import { useLocaleStore } from '@/store/locale';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 export default function MyPage() {
-  const user = MOCK_USERS.find(u => u.role === 'buyer');
+  const { user, isGuest, logout } = useAuthStore();
   const { purchasedIds } = useReportStore();
   const { locale, setLocale, t } = useLocaleStore();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
-  if (!user) return null;
+  if (isGuest || !user) {
+    return (
+      <>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] px-5 gap-4">
+          <p className="text-[15px] font-medium text-[var(--color-text)] text-center">
+            로그인하고 내 고민과 제안을<br/>한 곳에서 관리하세요
+          </p>
+          <p className="text-[12px] text-[var(--color-text-dim)] text-center mb-2">
+            상담 등록 후 자동으로 로그인 화면이 안내됩니다
+          </p>
+          <Button variant="accent" size="lg" onClick={() => setShowAuthModal(true)}>
+            로그인 / 회원가입
+          </Button>
+        </div>
+        <AuthModal
+          open={showAuthModal}
+          onSuccess={() => setShowAuthModal(false)}
+          onClose={() => setShowAuthModal(false)}
+        />
+      </>
+    );
+  }
 
   const concerns = MOCK_CONCERNS.filter(c => c.userId === user.id && !c.deletedAt && c.status !== 'draft');
   const proposalCount = MOCK_PROPOSALS.filter(p => p.isActive && p.status !== 'draft').length;
@@ -25,36 +57,33 @@ export default function MyPage() {
       {/* ── Profile ── */}
       <div className="px-5 pt-6 pb-5">
         <div className="flex items-center gap-3.5">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[var(--color-primary-soft)] to-[#fff5f7] flex items-center justify-center text-[1.25rem] font-bold text-[var(--color-primary)]">
+          <div className="w-14 h-14 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-[1.25rem] font-bold text-white ring-2 ring-[var(--color-primary-soft)] ring-offset-2">
             {user.name[0]}
           </div>
           <div>
-            <h1 className="text-[1.125rem] font-bold text-[var(--color-text)] leading-tight">{user.name}</h1>
-            <span className="text-[12px] text-[var(--color-text-dim)]">{user.email}</span>
+            <h1 className="text-[1.125rem] font-bold text-[var(--color-text)] leading-tight mb-0.5">{user.name}</h1>
+            <span className="text-[11px] text-[var(--color-text-dim)]">{user.email}</span>
           </div>
         </div>
       </div>
 
       {/* ── Stats ── */}
       <div className="px-5 mb-5">
-        <div className="flex items-center justify-center px-3 py-4 rounded-xl bg-[var(--color-bg-secondary)]">
-          <Link href="/dashboard" className="flex-1 flex flex-col items-center gap-0.5 no-underline">
-            <span className="text-[1rem] font-bold text-[var(--color-text)]">{concerns.length}</span>
+        <div className="grid grid-cols-4 rounded-xl bg-[var(--color-bg-secondary)] py-4">
+          <Link href="/dashboard" className="flex flex-col items-center gap-1 no-underline">
+            <span className="text-[1.125rem] font-bold text-[var(--color-text)]">{concerns.length}</span>
             <span className="text-[10px] text-[var(--color-text-dim)]">{t('mypage.registeredConcerns')}</span>
           </Link>
-          <div className="w-px h-7 bg-[var(--color-border-light)]" />
-          <Link href="/decision" className="flex-1 flex flex-col items-center gap-0.5 no-underline">
-            <span className="text-[1rem] font-bold text-[var(--color-text)]">{proposalCount}</span>
+          <Link href="/decision" className="flex flex-col items-center gap-1 no-underline border-l border-[var(--color-border-light)]">
+            <span className="text-[1.125rem] font-bold text-[var(--color-text)]">{proposalCount}</span>
             <span className="text-[10px] text-[var(--color-text-dim)]">{t('mypage.receivedProposals')}</span>
           </Link>
-          <div className="w-px h-7 bg-[var(--color-border-light)]" />
-          <Link href="/decision" className="flex-1 flex flex-col items-center gap-0.5 no-underline">
-            <span className="text-[1rem] font-bold text-[var(--color-text)]">{purchasedIds.size}</span>
+          <Link href="/mypage/reports" className="flex flex-col items-center gap-1 no-underline border-l border-[var(--color-border-light)]">
+            <span className="text-[1.125rem] font-bold text-[var(--color-text)]">{purchasedIds.size}</span>
             <span className="text-[10px] text-[var(--color-text-dim)]">{t('mypage.purchasedReports')}</span>
           </Link>
-          <div className="w-px h-7 bg-[var(--color-border-light)]" />
-          <Link href="/dashboard" className="flex-1 flex flex-col items-center gap-0.5 no-underline">
-            <span className="text-[1rem] font-bold text-[var(--color-text)]">{completedCount}</span>
+          <Link href="/dashboard" className="flex flex-col items-center gap-1 no-underline border-l border-[var(--color-border-light)]">
+            <span className="text-[1.125rem] font-bold text-[var(--color-text)]">{completedCount}</span>
             <span className="text-[10px] text-[var(--color-text-dim)]">{t('mypage.completed')}</span>
           </Link>
         </div>
@@ -76,25 +105,38 @@ export default function MyPage() {
             </Link>
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
-            {concerns.slice(0, 3).map(c => (
-              <Link key={c.id} href={`/concerns/${c.id}`} className="no-underline block">
-                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white"
-                  style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)' }}>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      {c.bodyAreas.slice(0, 2).map(area => (
-                        <Badge key={area} variant="info" size="sm">{area}</Badge>
-                      ))}
+          <div className="flex flex-col gap-2.5">
+            {concerns.slice(0, 3).map(c => {
+              const cProposalCount = MOCK_PROPOSALS.filter(p => p.concernId === c.id && p.isActive).length;
+              return (
+                <Link key={c.id} href={`/concerns/${c.id}`} className="no-underline block">
+                  <div className="px-4 py-3.5 rounded-xl bg-white"
+                    style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-1.5">
+                        {c.bodyAreas.slice(0, 2).map(area => (
+                          <span key={area} className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${AREA_ACCENT[area] || 'bg-gray-50 text-gray-600'}`}>
+                            {area}
+                          </span>
+                        ))}
+                      </div>
+                      <Badge variant={STATUS_COLORS[c.status] || 'default'} size="sm">
+                        {STATUS_LABELS[c.status] || c.status}
+                      </Badge>
                     </div>
-                    <p className="text-[13px] text-[var(--color-text)] line-clamp-1">{c.description}</p>
+                    <p className="text-[13px] text-[var(--color-text-secondary)] line-clamp-1 mb-1.5">{c.description}</p>
+                    <div className="flex items-center justify-between">
+                      {cProposalCount > 0 ? (
+                        <span className="text-[11px] text-[var(--color-text-dim)]">제안 {cProposalCount}건</span>
+                      ) : (
+                        <span className="text-[11px] text-[var(--color-text-dim)]">대기 중</span>
+                      )}
+                      <ChevronRight size={14} className="text-[var(--color-text-dim)]" />
+                    </div>
                   </div>
-                  <Badge variant={STATUS_COLORS[c.status] || 'default'} size="sm">
-                    {STATUS_LABELS[c.status] || c.status}
-                  </Badge>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>
@@ -103,18 +145,18 @@ export default function MyPage() {
       <section className="px-5">
         <h2 className="text-[15px] font-bold text-[var(--color-text)] mb-3">{t('mypage.settings')}</h2>
         <div className="rounded-xl bg-white overflow-hidden"
-          style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)' }}>
+          style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
           {[
-            { icon: FileText, label: t('mypage.purchasedReportsMenu'), value: `${purchasedIds.size}${t('common.items')}`, href: '/decision' },
-            { icon: Globe, label: t('mypage.language'), value: locale === 'ko' ? t('common.langKo') : t('common.langZh'), action: () => setLocale(locale === 'ko' ? 'zh-CN' : 'ko') },
-            { icon: Bell, label: t('mypage.notifications'), value: '' },
-            { icon: ShieldCheck, label: t('mypage.privacy'), value: '' },
-            { icon: HelpCircle, label: t('mypage.support'), value: '' },
+            { icon: FileText, label: t('mypage.purchasedReportsMenu'), value: `${purchasedIds.size}${t('common.items')}`, href: '/mypage/reports', iconColor: 'text-[var(--color-primary)]' },
+            { icon: Globe, label: t('mypage.language'), value: locale === 'ko' ? t('common.langKo') : t('common.langZh'), action: () => setLocale(locale === 'ko' ? 'zh-CN' : 'ko'), iconColor: 'text-[var(--color-primary)]' },
+            { icon: Bell, label: t('mypage.notifications'), value: '', iconColor: 'text-[var(--color-text-dim)]' },
+            { icon: ShieldCheck, label: t('mypage.privacy'), value: '', iconColor: 'text-[var(--color-text-dim)]' },
+            { icon: HelpCircle, label: t('mypage.support'), value: '', iconColor: 'text-[var(--color-text-dim)]' },
           ].map((item, i) => {
             const Icon = item.icon;
             const inner = (
               <div className={`flex items-center gap-3 px-4 py-3.5 ${i > 0 ? 'border-t border-[var(--color-border-light)]' : ''}`}>
-                <Icon size={16} className="text-[var(--color-text-dim)] shrink-0" />
+                <Icon size={16} className={`${item.iconColor} shrink-0`} />
                 <span className="text-[13px] text-[var(--color-text)] flex-1">{item.label}</span>
                 {item.value && <span className="text-[12px] text-[var(--color-text-dim)]">{item.value}</span>}
                 <ChevronRight size={14} className="text-[var(--color-text-dim)]" />
@@ -128,10 +170,11 @@ export default function MyPage() {
 
         {/* Logout */}
         <button type="button"
-          className="flex items-center gap-3 w-full px-4 py-3.5 mt-3 rounded-xl bg-white border-0 cursor-pointer"
-          style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}>
-          <LogOut size={16} className="text-red-400" />
-          <span className="text-[13px] text-red-400">{t('mypage.logout')}</span>
+          onClick={logout}
+          className="flex items-center justify-center gap-2 w-full py-3.5 mt-6 rounded-xl bg-transparent border border-[var(--color-border-light)] cursor-pointer"
+        >
+          <LogOut size={14} className="text-[var(--color-text-dim)]" />
+          <span className="text-[13px] text-[var(--color-text-dim)]">{t('mypage.logout')}</span>
         </button>
       </section>
     </div>

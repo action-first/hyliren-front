@@ -1,8 +1,16 @@
-import { MOCK_CONCERNS, MOCK_PROPOSALS, MOCK_PARTNER_PROFILES, MOCK_PROPOSAL_ITEMS } from '@hyliren/shared';
+import { MOCK_PARTNER_PROFILES } from '@hyliren/shared';
+import { getConcerns } from '@hyliren/shared/src/server/data-store';
+import { getProposals, getProposalItems } from '@hyliren/shared/src/server/data-store';
 import { DecisionPageClient } from '@/components/decision/DecisionPageClient';
 
+export const dynamic = 'force-dynamic';
+
 export default function DecisionPage() {
-  const activeProposals = MOCK_PROPOSALS
+  const allProposals = getProposals();
+  const allConcerns = getConcerns();
+  const allItems = getProposalItems();
+
+  const activeProposals = allProposals
     .filter(p => p.isActive && p.status !== 'draft')
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
@@ -10,7 +18,7 @@ export default function DecisionPage() {
 
   const groups = concernIds
     .map(cid => {
-      const concern = MOCK_CONCERNS.find(c => c.id === cid);
+      const concern = allConcerns.find(c => c.id === cid);
       if (!concern) return null;
       return {
         concern,
@@ -23,7 +31,7 @@ export default function DecisionPage() {
     <DecisionPageClient
       groups={groups}
       profiles={MOCK_PARTNER_PROFILES}
-      items={MOCK_PROPOSAL_ITEMS}
+      items={allItems}
       totalProposalCount={activeProposals.length}
     />
   );

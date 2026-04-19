@@ -36,7 +36,7 @@ export function StepNarrative() {
 
   function handleStart() {
     if (!canProceed) return;
-    setStep('processing');
+    setStep('budget');
   }
 
   return (

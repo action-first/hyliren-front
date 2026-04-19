@@ -232,7 +232,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
                 </div>
 
                 {/* 종합 의견 */}
-                <div className="rounded-2xl bg-gradient-to-br from-[var(--color-primary-soft)] to-[#fff5f7] px-4 py-4 mb-3">
+                <div className="rounded-2xl bg-gradient-to-br from-[var(--color-primary-soft)] to-[var(--color-bg-wash)] px-4 py-4 mb-3">
                   <span className="text-[12px] font-semibold text-[var(--color-primary)] block mb-2">{t('report.overallOpinion')}</span>
                   <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
                     {proposals.length}개 제안을 종합 분석한 결과, {winner.hospitalName}이 가격과 리스크 면에서 가장 균형 잡힌 제안입니다.

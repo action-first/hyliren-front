@@ -30,21 +30,16 @@ export function StickyBottomBar({ onCompareClick, onAnalyzeClick }: Props) {
           {t('decision.compareCount', { count })}
         </Button>
       ) : (
-        <div className="flex gap-2">
-          <div className="flex-1 flex items-center text-[13px] text-[var(--color-text-secondary)]">
-            {t('decision.selectedCount', { count })}
-          </div>
-          <Button variant="primary" size="md"
-            onClick={() => {
-              const id = Array.from(selectedProposalIds)[0];
-              if (id && onAnalyzeClick) {
-                track({ eventType: 'single_analyze_clicked', actorType: 'user', metadata: { source: 'fo', locale: 'ko' } });
-                onAnalyzeClick(id);
-              }
-            }}>
-            {t('decision.verifyThis')}
-          </Button>
-        </div>
+        <Button variant="primary" size="lg" fullWidth
+          onClick={() => {
+            const id = Array.from(selectedProposalIds)[0];
+            if (id && onAnalyzeClick) {
+              track({ eventType: 'single_analyze_clicked', actorType: 'user', metadata: { source: 'fo', locale: 'ko' } });
+              onAnalyzeClick(id);
+            }
+          }}>
+          {t('decision.selectedNeedMore', { count })}
+        </Button>
       )}
     </div>
   );

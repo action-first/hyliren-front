@@ -1,0 +1,468 @@
+/* ============================================================
+   HYLIREN — DataGrid + AG Grid Override (표준)
+   PO /concerns 기준 — BO/PO 공통 적용
+   ============================================================ */
+
+/* ══ 검색 카드 ══ */
+.datagrid-search-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: visible;
+  position: relative;
+}
+.datagrid-search-row {
+  display: flex; gap: 12px; align-items: flex-end;
+}
+.datagrid-search-group {
+  display: flex; flex-direction: column; gap: 6px; flex: 1;
+}
+.datagrid-search-group--fixed { flex: none; width: 150px; }
+.datagrid-search-group label {
+  font-size: 13px; font-weight: 500; color: #6b7280;
+}
+.datagrid-search-group input,
+.datagrid-search-group select {
+  height: 34px; padding: 0 10px; font-size: 13px; font-family: inherit;
+  border: 1px solid #e5e7eb; border-radius: 6px;
+  background: #fff; color: #374151; outline: none; width: 100%;
+  transition: border-color 120ms;
+}
+.datagrid-search-group input:focus,
+.datagrid-search-group select:focus {
+  border-color: var(--interactive-default, #2C6ECB); box-shadow: 0 0 0 2px rgba(44,110,203,0.08);
+}
+.datagrid-search-group input::placeholder { color: #c0c5cc; }
+.datagrid-search-group select {
+  padding-right: 36px; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+}
+.datagrid-search-group .search-input-with-icon { position: relative; }
+.datagrid-search-group .search-input-with-icon input { padding-left: 36px; }
+.datagrid-search-group .search-input-with-icon svg {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: #9ca3af; pointer-events: none;
+}
+/* 검색/초기화 — 2줄 우측에 인라인 */
+.datagrid-search-actions {
+  display: flex; gap: 8px; flex-shrink: 0; align-items: flex-end;
+}
+
+/* ══ 데이트피커 ══ */
+.datepicker-wrapper {
+  position: relative; flex: 1; min-width: 0;
+}
+.datepicker-wrapper .react-datepicker-wrapper {
+  display: block !important; width: 100% !important;
+}
+.datepicker-wrapper .react-datepicker__input-container {
+  display: block !important; width: 100% !important;
+}
+.datepicker-icon {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  color: #9ca3af; pointer-events: none; z-index: 1;
+}
+.datepicker-input {
+  width: 100% !important; height: 34px !important; padding: 0 28px 0 10px !important;
+  font-size: 13px !important; font-family: inherit !important;
+  border: 1px solid #e5e7eb !important; border-radius: 6px !important;
+  background: #fff !important; color: #374151 !important; outline: none !important;
+  cursor: pointer !important; box-sizing: border-box !important;
+}
+.datepicker-input:focus {
+  border-color: var(--interactive-default, #2C6ECB) !important; box-shadow: 0 0 0 2px rgba(44,110,203,0.08) !important;
+}
+.datepicker-input::placeholder { color: #c0c5cc !important; }
+
+/* react-datepicker 팝업 커스텀 */
+.react-datepicker {
+  font-family: 'Pretendard Variable', 'Pretendard', sans-serif !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+  overflow: hidden;
+  font-size: 12px !important;
+}
+.react-datepicker__month-container { width: 240px !important; }
+.react-datepicker__header {
+  background: #fff !important;
+  border-bottom: none !important;
+  padding: 10px 12px 4px !important;
+}
+.react-datepicker__current-month {
+  font-size: 14px !important; font-weight: 600 !important; color: #111827 !important;
+}
+.react-datepicker__day-names { margin-top: 8px !important; }
+.react-datepicker__day-name {
+  font-size: 11px !important; color: #9ca3af !important; font-weight: 500 !important;
+  width: 30px !important; line-height: 30px !important; margin: 1px !important;
+}
+.react-datepicker__day {
+  font-size: 12px !important; color: #374151 !important;
+  width: 30px !important; line-height: 30px !important; margin: 1px !important;
+  border-radius: 6px !important;
+  transition: all 100ms !important;
+}
+.react-datepicker__day:hover {
+  background: #f3f4f6 !important; color: #111827 !important;
+}
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background: var(--interactive-default, #2C6ECB) !important; color: #fff !important; font-weight: 600 !important;
+}
+.react-datepicker__day--today {
+  font-weight: 700 !important;
+  border: 1px solid var(--interactive-default, #2C6ECB) !important;
+  background: transparent !important;
+  color: var(--interactive-default, #2C6ECB) !important;
+}
+.react-datepicker__day--today.react-datepicker__day--selected {
+  background: var(--interactive-default, #2C6ECB) !important; color: #fff !important; border-color: var(--interactive-default, #2C6ECB) !important;
+}
+.react-datepicker__day--outside-month { color: #d1d5db !important; }
+.react-datepicker__navigation {
+  top: 12px !important;
+}
+.react-datepicker__navigation-icon::before {
+  border-color: #6b7280 !important; border-width: 2px 2px 0 0 !important;
+  width: 8px !important; height: 8px !important;
+}
+.react-datepicker-popper {
+  z-index: 100 !important;
+  position: absolute !important;
+}
+
+/* ══ 결과 바 ══ */
+.datagrid-result-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; padding: 0 2px;
+}
+.datagrid-result-bar h3 {
+  font-size: 15px; font-weight: 600; color: #111827; margin: 0;
+  line-height: 1;
+}
+.datagrid-result-bar .result-count {
+  font-size: 13px; color: #9ca3af; margin-left: 6px; font-weight: 400;
+}
+
+/* ══ 버튼 — 검색용(lg) vs 결과바용(sm) ══ */
+.datagrid-btn {
+  padding: 0 14px; font-size: 13px; font-weight: 500; font-family: inherit;
+  border: 1px solid #d1d5db; border-radius: 6px;
+  background: #fff; color: #6b7280; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: all 100ms; white-space: nowrap;
+  height: 32px;
+}
+.datagrid-btn:hover { background: #f9fafb; color: #374151; border-color: #9ca3af; }
+.datagrid-btn--primary {
+  background: var(--interactive-default, #2C6ECB); color: #fff; border-color: var(--interactive-default, #2C6ECB);
+}
+.datagrid-btn--primary:hover { background: #1F5199; border-color: #1F5199; }
+/* 검색 카드 안 버튼 — 인풋과 동일 높이 */
+.datagrid-search-actions .datagrid-btn {
+  height: 34px; padding: 0 16px; font-size: 13px; font-weight: 600;
+  border-radius: 6px;
+}
+
+/* ══ AG Grid 컨테이너 ══ */
+.datagrid-grid-wrapper {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════════
+   AG Grid 테마 — 표준
+   ══════════════════════════════════════ */
+.ag-theme-alpine {
+  --ag-font-size: 13px !important;
+  --ag-font-family: 'Pretendard Variable', 'Pretendard', -apple-system, system-ui, sans-serif !important;
+
+  /* 행 — 36px 컴팩트 */
+  --ag-row-height: 36px !important;
+  --ag-background-color: #ffffff !important;
+  --ag-odd-row-background-color: #ffffff !important;
+  --ag-row-hover-color: #f9fafb !important;
+  --ag-selected-row-background-color: #eff6ff !important;
+
+  /* 헤더 — 미세 배경 + 진한 하단선으로 바디와 구분 */
+  --ag-header-height: 36px !important;
+  --ag-header-background-color: #f9fafb !important;
+  --ag-header-foreground-color: #6b7280 !important;
+  --ag-header-cell-hover-background-color: #f3f4f6 !important;
+
+  /* 구분선 — 바디는 연하게, 헤더 세로선은 중간 */
+  --ag-border-color: #f3f4f6 !important;
+  --ag-row-border-color: #f3f4f6 !important;
+
+  /* 헤더 세로 구분선 — resize handle로 대체 */
+  --ag-header-column-separator-display: none !important;
+  --ag-header-column-resize-handle-display: block !important;
+  --ag-header-column-resize-handle-color: #e5e7eb !important;
+  --ag-header-column-resize-handle-height: 50% !important;
+  --ag-header-column-resize-handle-width: 1px !important;
+
+  /* 셀 */
+  --ag-cell-horizontal-padding: 14px !important;
+  --ag-foreground-color: #374151 !important;
+
+  /* 체크박스/인터랙션 */
+  --ag-checkbox-checked-color: #2563eb !important;
+  --ag-alpine-active-color: #2563eb !important;
+
+  /* 래퍼 */
+  --ag-wrapper-border-radius: 0 !important;
+  --ag-borders: none !important;
+}
+
+.ag-theme-alpine .ag-root-wrapper { border: none !important; }
+
+/* 헤더 하단선 — 바디 라인(#f3f4f6)보다 진하게 */
+.ag-theme-alpine .ag-header {
+  border-bottom: 1px solid #d1d5db !important;
+}
+.ag-theme-alpine .ag-header-cell-label {
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  color: #6b7280 !important;
+}
+
+/* 소터 아이콘 — 연하게 */
+.ag-theme-alpine .ag-sort-ascending-icon,
+.ag-theme-alpine .ag-sort-descending-icon,
+.ag-theme-alpine .ag-sort-none-icon {
+  color: #d1d5db !important;
+}
+.ag-theme-alpine .ag-header-cell:hover .ag-sort-ascending-icon,
+.ag-theme-alpine .ag-header-cell:hover .ag-sort-descending-icon {
+  color: #9ca3af !important;
+}
+/* 활성 소터만 진하게 */
+.ag-theme-alpine .ag-header-cell-sorted-asc .ag-sort-ascending-icon,
+.ag-theme-alpine .ag-header-cell-sorted-desc .ag-sort-descending-icon {
+  color: #374151 !important;
+}
+
+/* 필터/메뉴 아이콘 */
+.ag-theme-alpine .ag-header-icon {
+  color: #d1d5db !important;
+  opacity: 0.5 !important;
+  font-size: 12px !important;
+}
+.ag-theme-alpine .ag-header-cell:hover .ag-header-icon {
+  color: #9ca3af !important;
+  opacity: 0.8 !important;
+}
+.ag-theme-alpine .ag-header-cell-filtered .ag-header-icon {
+  color: #2563eb !important;
+  opacity: 1 !important;
+}
+/* 필터 아이콘 — 3줄 수평선 (funnel → horizontal lines) */
+.ag-theme-alpine .ag-icon-filter::before,
+.ag-theme-alpine .ag-icon-menu::before {
+  content: '' !important;
+  display: block !important;
+  width: 14px !important;
+  height: 10px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' fill='none'%3E%3Cline x1='0' y1='1' x2='14' y2='1' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='2' y1='5' x2='12' y2='5' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='4' y1='9' x2='10' y2='9' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  font-size: 0 !important;
+}
+.ag-theme-alpine .ag-icon-filter,
+.ag-theme-alpine .ag-icon-menu {
+  font-size: 0 !important;
+  width: 14px !important;
+  height: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+/* 소터 아이콘도 축소 */
+.ag-theme-alpine .ag-icon-asc,
+.ag-theme-alpine .ag-icon-desc,
+.ag-theme-alpine .ag-icon-none {
+  font-size: 10px !important;
+  color: #d1d5db !important;
+}
+
+/* 필터 팝오버 */
+.ag-theme-alpine .ag-filter,
+.ag-theme-alpine .ag-popup-child {
+  font-family: 'Pretendard Variable', 'Pretendard', sans-serif !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important;
+  border: 1px solid #e5e7eb !important;
+  background: #ffffff !important;
+}
+.ag-theme-alpine .ag-menu {
+  background: #ffffff !important;
+}
+.ag-theme-alpine .ag-tabs,
+.ag-theme-alpine .ag-tabs-body,
+.ag-theme-alpine .ag-filter-wrapper,
+.ag-theme-alpine .ag-filter-body,
+.ag-theme-alpine .ag-simple-filter-body-wrapper {
+  background: #ffffff !important;
+}
+/* AG Grid popup z-index 보장 */
+.ag-popup { z-index: 100 !important; }
+.ag-theme-alpine .ag-filter-body-wrapper {
+  padding: 12px !important;
+}
+.ag-theme-alpine .ag-filter-apply-panel {
+  padding: 8px 12px !important;
+  border-top: 1px solid #f3f4f6 !important;
+}
+.ag-theme-alpine .ag-filter-apply-panel button {
+  font-size: 12px !important;
+  padding: 4px 12px !important;
+  border-radius: 4px !important;
+}
+
+/* 필터 인풋 + 셀렉트 통일 */
+.ag-theme-alpine .ag-filter input[type="text"],
+.ag-theme-alpine .ag-filter input[type="number"],
+.ag-theme-alpine .ag-filter select,
+.ag-theme-alpine .ag-picker-field-wrapper {
+  height: 32px !important;
+  font-size: 13px !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 4px !important;
+  padding: 0 10px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  background: #fff !important;
+}
+.ag-theme-alpine .ag-filter input[type="text"]:focus,
+.ag-theme-alpine .ag-filter input[type="number"]:focus,
+.ag-theme-alpine .ag-filter select:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.1) !important;
+  outline: none !important;
+}
+/* 필터 인풋 아이콘 겹침 완전 제거 */
+.ag-theme-alpine .ag-filter .ag-icon,
+.ag-theme-alpine .ag-filter .ag-input-wrapper .ag-icon,
+.ag-theme-alpine .ag-filter .ag-input-wrapper::before,
+.ag-theme-alpine .ag-filter .ag-input-wrapper::after,
+.ag-theme-alpine .ag-filter [class*="ag-icon"] {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+.ag-theme-alpine .ag-filter .ag-input-field-input,
+.ag-theme-alpine .ag-filter .ag-input-wrapper input,
+.ag-theme-alpine .ag-filter input[class*="ag-input"] {
+  padding-left: 10px !important;
+  text-indent: 0 !important;
+}
+/* 필터 body 간격 */
+.ag-theme-alpine .ag-filter-body-wrapper > * {
+  margin-bottom: 8px !important;
+}
+.ag-theme-alpine .ag-filter-body-wrapper > *:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* 셀 */
+.ag-theme-alpine .ag-row { font-size: 13px !important; cursor: pointer; }
+.ag-theme-alpine .ag-cell {
+  line-height: 36px !important;
+  font-size: 13px !important;
+  color: #4b5563 !important;
+}
+
+/* 마지막 행 */
+.ag-theme-alpine .ag-row-last .ag-cell { border-bottom: none !important; }
+
+/* 포커스 */
+.ag-theme-alpine .ag-cell-focus,
+.ag-theme-alpine .ag-cell:focus { outline: none !important; box-shadow: none !important; }
+
+/* 페이지네이션 */
+.ag-theme-alpine .ag-paging-panel {
+  font-size: 12px !important; height: 36px !important;
+  border-top: 1px solid #f3f4f6 !important; color: #9ca3af !important;
+}
+
+/* 빈 상태 */
+.ag-theme-alpine .ag-overlay-no-rows-wrapper {
+  padding: 40px 0 !important; font-size: 14px !important; color: #9ca3af !important;
+}
+
+/* ══ 엑셀 다운로드 모달 ══ */
+.export-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 200;
+}
+.export-modal {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  z-index: 201; background: #fff; border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+  width: 380px; max-width: 90vw;
+  padding: 20px 22px;
+}
+.export-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 2px;
+}
+.export-modal-header h2 {
+  font-size: 15px; font-weight: 700; color: #111827; margin: 0;
+}
+.export-modal-close {
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  border: none; background: none; cursor: pointer; color: #9ca3af; border-radius: 4px;
+}
+.export-modal-close:hover { background: #f3f4f6; color: #374151; }
+.export-modal-desc {
+  font-size: 12px; color: #9ca3af; margin: 0 0 12px 0;
+}
+.export-modal-options {
+  display: flex; flex-direction: column; gap: 0;
+  border-top: 1px solid #f3f4f6;
+}
+.export-modal-option {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid #f3f4f6;
+  cursor: pointer; transition: background 100ms;
+}
+.export-modal-option:hover { background: #fafafa; margin: 0 -22px; padding: 10px 22px; }
+.export-modal-option input[type="radio"] {
+  margin-top: 2px; accent-color: var(--interactive-default, #2C6ECB); width: 14px; height: 14px; flex-shrink: 0;
+}
+.export-modal-option-title {
+  display: block; font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 1px;
+}
+.export-modal-option-desc {
+  display: block; font-size: 11px; color: #9ca3af; line-height: 1.4;
+}
+.export-modal-option--active .export-modal-option-title { color: #111827; }
+.export-modal-footer {
+  display: flex; justify-content: flex-end; gap: 6px;
+  margin-top: 14px; padding-top: 12px; border-top: 1px solid #f3f4f6;
+}
+.export-modal-confirm {
+  height: 34px; padding: 0 18px; font-size: 13px; font-weight: 600;
+  font-family: inherit; border: none; border-radius: 6px;
+  background: #111827; color: #fff; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background 100ms;
+}
+.export-modal-confirm:hover { background: #1f2937; }
+
+/* 유틸 */
+.ds-table-text { text-align: left !important; }
+.ds-table-numeric { text-align: right !important; font-variant-numeric: tabular-nums !important; }
+.ds-table-center { text-align: center !important; }

@@ -76,6 +76,11 @@
   --color-info: #0099FF;
   --color-info-soft: rgba(0, 153, 255, 0.1);
 
+  /* ---- Interactive States ---- */
+  --color-focus-ring: rgba(0, 153, 255, 0.15);
+  --color-active-overlay: rgba(0, 0, 0, 0.04);
+  --opacity-disabled: 0.4;
+
   /* ---- Transition ---- */
   --duration-fast: 150ms;
   --duration-normal: 200ms;

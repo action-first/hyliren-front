@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useConcernFlowStore } from '@/store/concern-flow';
 import { useLocaleStore } from '@/store/locale';
+import { useToastStore } from '@/store/toast';
 import type { AnalysisResponse } from '@/server/concern-analysis/types';
 
 export function StepAIProcessing() {
@@ -17,6 +18,7 @@ export function StepAIProcessing() {
     narrativeInput, photos, feedbackTurns, analysisCount,
     setAnalysisResult, setStep, incrementAnalysis,
   } = useConcernFlowStore();
+  const { showToast } = useToastStore();
 
   const [copyIdx, setCopyIdx] = useState(0);
 
@@ -50,9 +52,21 @@ export function StepAIProcessing() {
         incrementAnalysis();
         setStep('review');
       } catch {
-        // TODO: feedback 시 extract skip 최적화
-        // API route has internal fallback, this catch is for network errors
-        if (!cancelled) setStep('review');
+        // 네트워크 오류 시 fallback 분석 결과 세팅
+        if (!cancelled) {
+          showToast('분석 중 연결 오류가 발생했습니다. 기본 안내로 대체합니다.', 'error');
+          setAnalysisResult({
+            empathy: '고민을 나눠주셔서 감사합니다.',
+            education: '한국은 다양한 미용 시술에서 세계적인 수준을 갖추고 있습니다.',
+            options: [{ key: 'generic', name: '맞춤 상담', description: '병원과 함께 최적의 방법을 찾아보세요.', bodyArea: '기타' }],
+            extractedTags: { symptoms: [], preferences: [], budget: [], timing: [] },
+            extractedSummary: { bodyAreas: ['기타'], primaryArea: '기타', bodyAreaDetail: '일반 상담' },
+            disclaimer: '정확한 진단은 실제 병원 상담을 통해 결정됩니다.',
+            ruleVersion: 'fallback',
+          });
+          incrementAnalysis();
+          setStep('review');
+        }
       }
     })();
 
@@ -62,7 +76,7 @@ export function StepAIProcessing() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-5">
       <div className="relative w-20 h-20 mb-8">
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[var(--color-primary-soft)] to-[#fff5f7] animate-pulse" />
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[var(--color-primary-soft)] to-[var(--color-bg-wash)] animate-pulse" />
         <div className="absolute inset-2 rounded-full bg-white flex items-center justify-center">
           <div className="w-6 h-6 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
         </div>

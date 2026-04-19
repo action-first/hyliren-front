@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { onLogout } from '@/store/auth';
 
 interface DecisionState {
   selectedProposalIds: Set<string>;
@@ -22,7 +23,7 @@ export const useDecisionStore = create<DecisionState>()(
         else next.add(id);
         return { selectedProposalIds: next };
       }),
-      clearSelection: () => set({ selectedProposalIds: new Set() }),
+      clearSelection: () => set({ selectedProposalIds: new Set(), selectedHospitalId: null }),
       selectHospital: (proposalId) => set({ selectedHospitalId: proposalId }),
     }),
     {
@@ -52,3 +53,6 @@ export const useDecisionStore = create<DecisionState>()(
     },
   ),
 );
+
+// 로그아웃 시 선택 상태 초기화
+onLogout(() => useDecisionStore.getState().clearSelection());

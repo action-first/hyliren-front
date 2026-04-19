@@ -1,112 +1,123 @@
-/* BO — Tailwind v4 + Admin Design Tokens */
+/* BO — Tailwind v4 + Admin Design System */
 @import "tailwindcss";
 @import "@hyliren/ui/src/tokens/shared.css";
 @import "@hyliren/ui/src/tokens/admin.css";
+@import "@hyliren/ui/src/tokens/admin-layout.css";
+@import "ag-grid-community/styles/ag-grid.css";
+@import "ag-grid-community/styles/ag-theme-alpine.css";
+@import "@hyliren/ui/src/tokens/datagrid.css";
 
 @source "../../../../packages/ui/src/**/*.tsx";
 
-@layer base {
+/* BO — 모던 블랙 시그니처 (PO 블루와 구분) */
+:root {
+  --interactive-default: #18181b;
+  --interactive-hovered: #27272a;
+  --interactive-pressed: #09090b;
+  --color-primary: #18181b;
+}
 
+@layer base {
   body {
     font-family: var(--app-font);
     font-size: var(--app-text-body);
-    color: var(--color-text);
-    background: var(--color-bg);
-    line-height: var(--leading-normal);
+    color: var(--text-default);
+    background: var(--surface-bg);
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
   }
 
-  /* ---- BO Layout ---- */
-  .bo-layout { display: flex; min-height: 100dvh; }
-
-  .bo-sidebar {
-    width: var(--admin-sidebar-width);
-    background: var(--color-surface);
-    border-right: 1px solid var(--color-border-light);
-    display: flex; flex-direction: column; flex-shrink: 0;
-    position: sticky; top: 0; height: 100dvh;
-  }
-  .bo-sidebar-logo {
-    padding: 1.25rem 1.25rem;
-    font-size: 1rem; font-weight: 700;
-    border-bottom: 1px solid var(--color-border-light);
-    text-decoration: none; display: block; color: var(--color-text);
-  }
   .bo-sidebar-nav {
-    display: flex; flex-direction: column;
-    padding: 0.75rem 0.5rem; gap: 2px; flex: 1;
+    gap: 6px;
+    padding: 12px 10px 10px;
   }
+
   .bo-sidebar-link {
-    display: flex; align-items: center; gap: 0.625rem;
-    padding: 0.5rem 0.75rem; font-size: 0.875rem;
-    color: var(--color-text-secondary); text-decoration: none;
-    border-radius: 8px; transition: background 150ms;
-  }
-  .bo-sidebar-link:hover { background: var(--color-bg-tertiary); color: var(--color-text); }
-  .bo-sidebar-link--active { background: var(--color-primary-soft); color: var(--color-primary); font-weight: 600; }
-
-  .bo-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .bo-topbar {
-    height: 3.25rem; display: flex; align-items: center; justify-content: space-between;
-    padding: 0 1.5rem; background: var(--color-surface);
-    border-bottom: 1px solid var(--color-border-light);
-  }
-  .bo-topbar-title { font-size: 0.9375rem; font-weight: 600; color: var(--color-text); }
-  .bo-content { flex: 1; padding: 1.5rem; overflow-y: auto; }
-
-  /* ---- KPI Grid ---- */
-  .kpi-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 1rem; margin-bottom: 1.5rem;
-  }
-  .kpi-value {
-    display: block; font-size: 1.75rem; font-weight: 700;
-    color: var(--color-text); line-height: 1.2;
-  }
-  .kpi-label {
-    display: block; font-size: 0.8125rem;
-    color: var(--color-text-secondary); margin-top: 0.25rem;
+    min-height: 44px;
+    padding: 10px 12px;
+    gap: 10px;
   }
 
-  /* ---- Data Table ---- */
-  .data-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-  .data-table th {
-    text-align: left; padding: 0.625rem 0.75rem;
-    font-weight: 600; font-size: 0.75rem;
-    color: var(--color-text-dim); border-bottom: 1px solid var(--color-border);
-    white-space: nowrap; text-transform: uppercase; letter-spacing: 0.02em;
+  .bo-sidebar-footer {
+    margin-top: auto;
+    padding-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
-  .data-table td {
-    padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--color-border-light);
-    color: var(--color-text);
-  }
-  .data-table tr:hover td { background: var(--color-bg-tertiary); }
-  .data-table-link { color: var(--color-primary); text-decoration: none; font-weight: 500; }
-  .data-table-link:hover { text-decoration: underline; }
 
-  /* ---- Funnel ---- */
-  .funnel-bar { display: flex; gap: 0.5rem; align-items: center; }
-  .funnel-segment {
-    display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
-    padding: 1rem; border-radius: 8px;
-    background: var(--color-bg-tertiary); flex: 1;
+  .bo-sidebar-account {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border-subdued);
+    border-radius: 0;
+    background: var(--surface-default);
+    text-decoration: none;
+    transition: background 120ms;
   }
-  .funnel-segment-value { font-size: 1.5rem; font-weight: 700; color: var(--color-primary); }
-  .funnel-segment-label { font-size: 0.75rem; color: var(--color-text-secondary); text-align: center; }
-  .funnel-arrow { color: var(--color-text-dim); font-size: 1.25rem; padding: 0 0.25rem; }
 
-  /* ---- Timeline ---- */
-  .timeline { display: flex; flex-direction: column; }
-  .timeline-item {
-    display: flex; gap: 0.75rem; padding: 0.625rem 0;
-    border-left: 2px solid var(--color-border-light); margin-left: 0.75rem;
-    padding-left: 1rem; position: relative;
+  .bo-sidebar-account:hover {
+    background: var(--surface-hovered);
   }
-  .timeline-item::before {
-    content: ''; position: absolute; left: -5px;
-    top: 0.875rem; width: 8px; height: 8px; border-radius: 50%;
-    background: var(--color-primary);
+
+  .bo-sidebar-account__avatar {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--surface-subdued);
+    color: var(--text-subdued);
   }
-  .timeline-time { font-size: 0.75rem; color: var(--color-text-dim); white-space: nowrap; min-width: 5rem; }
-  .timeline-text { font-size: 0.875rem; color: var(--color-text); }
+
+  .bo-sidebar-account__body {
+    min-width: 0;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .bo-sidebar-account__topline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .bo-sidebar-account__verified {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+    background: var(--surface-selected);
+    color: var(--interactive-default);
+  }
+
+  .bo-sidebar-account__name,
+  .bo-sidebar-account__identity {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .bo-sidebar-account__name {
+    font-size: 13px;
+    color: var(--text-default);
+  }
+
+  .bo-sidebar-account__identity {
+    font-size: 11px;
+    color: var(--text-disabled);
+  }
 }

@@ -1,7 +1,6 @@
 'use client';
 
-import { ShieldCheck, Star, Check } from 'lucide-react';
-import { CARD_GRADIENTS } from '@/lib/constants';
+import { ShieldCheck, Star, Check, Clock, Syringe } from 'lucide-react';
 
 interface Props {
   hospitalName: string;
@@ -21,77 +20,83 @@ interface Props {
 
 export function SelectableProposalCard({
   hospitalName, verified, valueProp, price, meta,
-  coverTags, quote, gradientIndex, selected, onToggle, onCardClick, rating = 4.8, unread = false,
+  coverTags, quote, selected, onToggle, onCardClick, rating = 4.8, unread = false,
 }: Props) {
-  const gradient = CARD_GRADIENTS[gradientIndex % CARD_GRADIENTS.length];
-
   return (
     <button
       onClick={() => onCardClick ? onCardClick() : onToggle()}
-      className={`w-full text-left rounded-[20px] overflow-hidden bg-white transition-all duration-200 cursor-pointer border-0 p-0 ${
-        selected
-          ? 'ring-2 ring-[var(--color-primary)] ring-offset-2 scale-[1.0]'
-          : 'scale-[0.98] hover:scale-[1.0]'
+      className={`w-full text-left rounded-xl bg-white transition-all duration-150 cursor-pointer border-0 p-0 ${
+        selected ? 'ring-2 ring-[var(--color-primary)] ring-offset-1' : ''
       }`}
-      style={{ boxShadow: selected ? '0 4px 16px rgba(255,56,92,0.12)' : '0 1px 3px rgba(0,0,0,0.08)' }}
+      style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}
     >
-      {/* Cover */}
-      <div className={`relative h-36 overflow-hidden bg-gradient-to-br ${gradient}`}>
-        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/12 to-transparent" />
-
-        {/* Select indicator — stops propagation to toggle without opening detail */}
+      <div className="flex items-start gap-3 px-4 py-3.5">
+        {/* 선택 체크 — 44px 터치 영역 */}
         <div
           onClick={(e) => { e.stopPropagation(); onToggle(); }}
-          className={`absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+          className="mt-0.5 w-11 h-11 -m-2 flex items-center justify-center shrink-0 cursor-pointer"
+        >
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
             selected
               ? 'bg-[var(--color-primary)] text-white'
-              : 'bg-white/70 backdrop-blur-sm border-2 border-white/50'
+              : 'border-2 border-[var(--color-border-light)]'
           }`}>
-          {selected && <Check size={14} strokeWidth={3} />}
+            {selected && <Check size={13} strokeWidth={3} />}
+          </div>
         </div>
 
-        {/* Unread */}
-        {unread && (
-          <span className="absolute top-3 left-3 px-2 py-0.5 rounded-full bg-[var(--color-primary)] text-[9px] font-bold text-white tracking-wider z-10">
-            NEW
-          </span>
-        )}
-
-        {/* Verified */}
-        {verified && (
-          <span className={`absolute ${unread ? 'top-8' : 'top-3'} left-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 backdrop-blur-sm text-[10px] font-semibold text-emerald-600`}>
-            <ShieldCheck size={10} /> 인증
-          </span>
-        )}
-
-        {/* Tags */}
-        {coverTags.length > 0 && (
-          <div className="absolute bottom-2.5 left-3 flex gap-1">
-            {coverTags.map(tag => (
-              <span key={tag} className="px-2 py-0.5 rounded-full bg-white/90 backdrop-blur-sm text-[10px] font-semibold text-[var(--color-text)]">
-                {tag}
+        {/* 내용 */}
+        <div className="flex-1 min-w-0">
+          {/* 1행: 병원명 + 배지 */}
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className={`text-[14px] text-[var(--color-text)] truncate ${unread ? 'font-bold' : 'font-semibold'}`}>
+              {hospitalName}
+            </span>
+            {verified && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-[9px] font-semibold text-emerald-600 shrink-0">
+                <ShieldCheck size={9} /> 인증
               </span>
-            ))}
+            )}
+            {unread && (
+              <span className="px-1.5 py-0.5 rounded bg-[var(--color-primary)] text-[8px] font-bold text-white shrink-0">
+                NEW
+              </span>
+            )}
+            <div className="flex items-center gap-0.5 text-[10px] text-[var(--color-text-dim)] ml-auto shrink-0">
+              <Star size={9} fill="currentColor" /> {rating}
+            </div>
           </div>
-        )}
-      </div>
 
-      {/* Content — 고정 높이 */}
-      <div className="px-3.5 pt-2.5 pb-3 h-[6.5rem] flex flex-col">
-        <p className={`text-[14px] text-[var(--color-text)] leading-snug mb-0.5 line-clamp-1 ${unread ? 'font-bold' : 'font-medium'}`}>{valueProp}</p>
-        <div className="flex items-baseline gap-1.5 mb-1">
-          <span className="text-[15px] font-bold text-[var(--color-text)]">{price}만원</span>
-          <span className="text-[10px] text-[var(--color-text-dim)] truncate">· {meta}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] text-[var(--color-text-secondary)] truncate">{hospitalName}</span>
-          <div className="flex items-center gap-0.5 text-[10px] text-[var(--color-text-dim)] shrink-0">
-            <Star size={9} fill="currentColor" /> {rating}
+          {/* 2행: 특장점 */}
+          {valueProp && (
+            <p className="text-[11px] text-[var(--color-text-secondary)] line-clamp-1 mb-1.5">{valueProp}</p>
+          )}
+
+          {/* 3행: 가격 */}
+          <span className="text-[17px] font-bold text-[var(--color-text)] block mb-1">{price}만원</span>
+
+          {/* 4행: 메타 (회복·마취) */}
+          <div className="flex items-center gap-1 text-[11px] text-[var(--color-text-dim)] mb-2">
+            <Clock size={10} className="shrink-0" />
+            <span>{meta}</span>
           </div>
+
+          {/* 5행: 시술 태그 */}
+          {coverTags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-1.5">
+              {coverTags.map(tag => (
+                <span key={tag} className="px-2 py-0.5 rounded-full border border-[var(--color-border-light)] text-[10px] font-medium text-[var(--color-text-secondary)]">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* 6행: 한줄 코멘트 */}
+          {quote && (
+            <p className="text-[11px] text-[var(--color-text-secondary)] line-clamp-1">&ldquo;{quote}&rdquo;</p>
+          )}
         </div>
-        {quote && (
-          <p className="text-[10px] text-[var(--color-text-dim)] italic mt-auto line-clamp-1">&ldquo;{quote}&rdquo;</p>
-        )}
       </div>
     </button>
   );

@@ -31,7 +31,7 @@ export function FOHeader() {
 
           {isLoggedIn ? (
             <Link href="/mypage" className="fo-header-icon-btn">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--color-primary-soft)] to-[#fff5f7] flex items-center justify-center text-[11px] font-bold text-[var(--color-primary)]">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--color-primary-soft)] to-[var(--color-bg-wash)] flex items-center justify-center text-[11px] font-bold text-[var(--color-primary)]">
                 {user?.name?.[0] || 'U'}
               </div>
             </Link>

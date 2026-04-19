@@ -12,6 +12,8 @@ export function StepAIReview() {
 
   if (!analysisResult) return null;
 
+  const isFallback = analysisResult.ruleVersion === 'fallback';
+
   return (
     <div className="flex flex-col min-h-full">
       <div className="mb-5">
@@ -23,8 +25,22 @@ export function StepAIReview() {
         </p>
       </div>
 
+      {isFallback && (
+        <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 mb-3">
+          <p className="text-[12px] text-amber-700 leading-relaxed">
+            분석 서버에 연결할 수 없어 기본 안내를 표시하고 있습니다. 네트워크를 확인하고 다시 시도해 주세요.
+          </p>
+          <button
+            onClick={() => setStep('processing')}
+            className="mt-2 text-[12px] font-medium text-amber-800 underline bg-transparent border-0 cursor-pointer p-0"
+          >
+            다시 분석하기
+          </button>
+        </div>
+      )}
+
       {/* Empathy */}
-      <div className="rounded-2xl bg-gradient-to-br from-[#fff5f7] to-white px-4 py-4 mb-3"
+      <div className="rounded-2xl bg-gradient-to-br from-[var(--color-bg-wash)] to-white px-4 py-4 mb-3"
         style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}>
         <p className="text-[14px] text-[var(--color-text)] leading-[1.7]">
           {analysisResult.empathy}

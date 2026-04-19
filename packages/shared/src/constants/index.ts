@@ -47,3 +47,21 @@ export type {
   BodyArea,
   Locale,
 } from './enums';
+
+// Display — 한글 라벨, 뱃지 색상, 포맷 유틸
+export {
+  CONCERN_STATUS_KR,
+  CONCERN_STATUS_BADGE,
+  PROPOSAL_STATUS_KR,
+  PROPOSAL_STATUS_BADGE,
+  ANESTHESIA_KR,
+  BODY_AREA_BADGE,
+  ORDER_STATUS_KR,
+  ARTICLE_STATUS_KR,
+  ARTICLE_CATEGORY_KR,
+  formatDateKR,
+  formatDateRange,
+  formatBudget,
+} from './display';
+
+export type { BadgeColor } from './display';

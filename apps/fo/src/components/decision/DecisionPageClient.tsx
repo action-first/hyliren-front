@@ -49,6 +49,15 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
 
   function handleCardClick(proposalId: string) {
     setDetailProposalId(proposalId);
+    // 읽음 상태 갱신
+    const proposal = allProposals.find(p => p.id === proposalId);
+    if (proposal && !proposal.viewedAt) {
+      fetch('/api/proposals', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: proposalId, viewedAt: new Date().toISOString() }),
+      }).catch(() => {});
+    }
   }
 
   function handleCompareIntent(proposalId: string) {
@@ -101,11 +110,11 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
     <>
       <div className="flex flex-col px-5 pt-5 pb-28">
         {/* Hero */}
-        <div className="mb-6">
-          <h1 className="text-[1.5rem] font-bold text-[var(--color-text)] leading-tight whitespace-pre-line mb-1.5">
+        <div className="mb-5">
+          <h1 className="text-[1.25rem] font-bold text-[var(--color-text)] leading-tight whitespace-pre-line mb-1">
             {t('decision.heroTitle', { count: totalProposalCount })}
           </h1>
-          <p className="text-[13px] text-[var(--color-text-dim)]">
+          <p className="text-[12px] text-[var(--color-text-dim)]">
             {t('decision.heroDesc')}
           </p>
         </div>
@@ -123,13 +132,18 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
         ))}
 
         {/* Re-entry */}
-        <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-[var(--color-bg-secondary)] mt-2">
-          <Plus size={16} className="text-[var(--color-text-dim)]" />
-          <span className="text-[13px] text-[var(--color-text-secondary)] flex-1">{t('decision.addConcern')}</span>
-          <Link href="/consult" className="no-underline">
-            <Button variant="ghost" size="sm">{t('common.register')}</Button>
-          </Link>
-        </div>
+        <Link href="/consult" className="no-underline block mt-2">
+          <div className="flex items-center gap-3 px-4 py-4 rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[var(--color-bg-wash)]">
+            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0">
+              <Plus size={16} className="text-[var(--color-primary)]" />
+            </div>
+            <div className="flex-1">
+              <span className="text-[13px] font-semibold text-[var(--color-text)] block">{t('decision.addConcern')}</span>
+              <span className="text-[11px] text-[var(--color-text-dim)]">다른 부위도 함께 상담받아보세요</span>
+            </div>
+            <ArrowRight size={16} className="text-[var(--color-text-dim)]" />
+          </div>
+        </Link>
 
         {/* Sticky CTA */}
         <StickyBottomBar onCompareClick={() => setShowCompareIntent(true)} onAnalyzeClick={handleAnalyze} />

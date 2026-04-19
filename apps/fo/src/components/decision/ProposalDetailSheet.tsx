@@ -7,6 +7,7 @@ import { Button, Badge } from '@hyliren/ui';
 import { X, ShieldCheck, Star, Sparkles, Clock, Syringe } from 'lucide-react';
 import { VALUE_PROPS } from '@/lib/constants';
 import { useLocaleStore } from '@/store/locale';
+import { useReportStore } from '@/store/report';
 
 interface Props {
   proposal: Proposal;
@@ -18,6 +19,7 @@ interface Props {
 
 export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnalyze }: Props) {
   const t = useLocaleStore(s => s.t);
+  const purchased = useReportStore(s => s.isPurchased)(proposal.id);
 
   useEffect(() => {
     track({ eventType: 'proposal_viewed', actorType: 'user', targetType: 'proposal', targetId: proposal.id,
@@ -98,25 +100,33 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
             )}
           </div>
 
-          {/* Anxiety trigger */}
-          <div className="px-5 pb-4">
-            <div className="rounded-xl bg-gradient-to-br from-[#fff8f0] to-[#fff5f7] px-4 py-3.5"
-              style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}>
-              <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">
-                {t('detail.priceQuestion', { price: proposal.totalPrice })}
-              </p>
-              <p className="text-[11px] text-[var(--color-text-dim)] leading-relaxed whitespace-pre-line">
-                {t('detail.priceHint')}
-              </p>
+          {/* Anxiety trigger — 구매 전에만 */}
+          {!purchased && (
+            <div className="px-5 pb-4">
+              <div className="rounded-xl bg-gradient-to-br from-[#fff8f0] to-[var(--color-bg-wash)] px-4 py-3.5"
+                style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}>
+                <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">
+                  {t('detail.priceQuestion', { price: proposal.totalPrice })}
+                </p>
+                <p className="text-[11px] text-[var(--color-text-dim)] leading-relaxed whitespace-pre-line">
+                  {t('detail.priceHint')}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Sticky CTA */}
           <div className="sticky bottom-0 bg-white border-t border-[var(--color-border-light)] px-5 py-4">
-            <Button variant="accent" size="lg" fullWidth onClick={onAnalyze}>
-              <Sparkles size={16} />
-              {t('detail.verifyCta')}
-            </Button>
+            {purchased ? (
+              <Button variant="primary" size="lg" fullWidth onClick={onAnalyze}>
+                검증 리포트 보기
+              </Button>
+            ) : (
+              <Button variant="accent" size="lg" fullWidth onClick={onAnalyze}>
+                <Sparkles size={16} />
+                {t('detail.verifyCta')}
+              </Button>
+            )}
             <button type="button"
               onClick={onClose}
               className="w-full mt-2 py-2 text-[13px] font-medium text-[var(--color-text-secondary)] bg-transparent border-0 cursor-pointer">

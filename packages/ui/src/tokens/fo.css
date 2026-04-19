@@ -11,8 +11,7 @@
    - Font weight 500-700 (no thin weights)
    ============================================================ */
 
-[data-theme="fo"],
-:root {
+[data-theme="fo"] {
   /* ---- Brand ---- */
   --color-primary: #ff385c;
   --color-primary-hover: #e00b41;

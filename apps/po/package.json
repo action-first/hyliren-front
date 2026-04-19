@@ -9,15 +9,25 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hyliren/i18n": "workspace:*",
     "@hyliren/shared": "workspace:*",
     "@hyliren/ui": "workspace:*",
+    "ag-grid-community": "^35.2.1",
+    "ag-grid-react": "^35.2.1",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^1.8.0",
     "next": "^15",
     "react": "^19",
-    "react-dom": "^19"
+    "react-datepicker": "^9.1.0",
+    "react-dom": "^19",
+    "recharts": "^3.8.1",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.2",
     "@types/react": "^19",
+    "@types/react-datepicker": "^7.0.0",
     "@types/react-dom": "^19",
     "postcss": "^8.5.9",
     "tailwindcss": "^4.2.2",

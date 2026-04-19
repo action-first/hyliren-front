@@ -1,17 +1,19 @@
 import { create } from 'zustand';
 import type { Concern, BodyArea } from '@hyliren/shared';
 import type { AnalysisResponse } from '@/server/concern-analysis/types';
+import { useAuthStore, onLogout } from '@/store/auth';
 
 interface UserConcernsState {
   /** User-created concerns (not from MOCK_CONCERNS) */
   concerns: Concern[];
   /** Add a concern from the consult flow analysis result */
   addFromAnalysis: (analysis: AnalysisResponse, narrative: string, photos: string[]) => Concern;
+  clear: () => void;
 }
 
 let counter = 0;
 
-export const useUserConcernsStore = create<UserConcernsState>((set, get) => ({
+export const useUserConcernsStore = create<UserConcernsState>((set) => ({
   concerns: [],
 
   addFromAnalysis: (analysis, narrative, photos) => {
@@ -22,7 +24,7 @@ export const useUserConcernsStore = create<UserConcernsState>((set, get) => ({
 
     const concern: Concern = {
       id: `c-user-${Date.now()}-${counter}`,
-      userId: 'u-001',
+      userId: useAuthStore.getState().user?.id ?? 'u-guest',
       status: 'submitted',
       source: 'organic',
       bodyAreas,
@@ -43,4 +45,9 @@ export const useUserConcernsStore = create<UserConcernsState>((set, get) => ({
     set(s => ({ concerns: [...s.concerns, concern] }));
     return concern;
   },
+
+  clear: () => { counter = 0; set({ concerns: [] }); },
 }));
+
+// 로그아웃 시 자동 초기화
+onLogout(() => useUserConcernsStore.getState().clear());

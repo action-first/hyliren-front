@@ -13,6 +13,7 @@ import { ReportNudgeSheet } from '@/components/decision/ReportNudgeSheet';
 import { CompareReport } from '@/components/decision/CompareReport';
 import { useDecisionStore } from '@/store/decision';
 import { useLocaleStore } from '@/store/locale';
+import { useUserConcernsStore } from '@/store/user-concerns';
 import { use } from 'react';
 
 interface Props { params: Promise<{ id: string }>; }
@@ -21,7 +22,8 @@ export default function ComparePage({ params }: Props) {
   const t = useLocaleStore(s => s.t);
   const router = useRouter();
   const { id } = use(params);
-  const concern = MOCK_CONCERNS.find(c => c.id === id);
+  const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
+  const concern = MOCK_CONCERNS.find(c => c.id === id) || userCreatedConcerns.find(c => c.id === id);
   if (!concern) {
     return <div className="p-8 text-center text-[var(--color-text-secondary)]">{t('concern.notFound')}</div>;
   }
@@ -236,7 +238,7 @@ export default function ComparePage({ params }: Props) {
           </div>
 
           {/* Analysis CTA */}
-          <div className="rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[#fff5f7] px-4 py-4 mt-4">
+          <div className="rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[var(--color-bg-wash)] px-4 py-4 mt-4">
             <div className="flex items-center gap-2 mb-1.5">
               <Sparkles size={15} className="text-[var(--color-primary)]" />
               <span className="text-[13px] font-semibold text-[var(--color-text)]">{t('proposal.compare.analysisCta')}</span>
@@ -276,7 +278,10 @@ export default function ComparePage({ params }: Props) {
         )}
       </MobileBottomCTA>
 
-      <ReportNudgeSheet concernId={concern.id} proposalId={selectedId || proposals[0]?.id || ''} delay={5000} />
+      {/* ReportNudgeSheet: 사용자가 제안서를 선택한 후에만 표시 */}
+      {selectedId && (
+        <ReportNudgeSheet concernId={concern.id} proposalId={selectedId} delay={2000} />
+      )}
 
       {/* Compare Report */}
       {showCompareReport && (

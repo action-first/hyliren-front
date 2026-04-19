@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Proposal, PartnerProfile } from '@hyliren/shared';
 import { track } from '@hyliren/shared';
 import { Button } from '@hyliren/ui';
@@ -64,6 +65,7 @@ const VERDICT_COLOR = { below: 'text-emerald-600', fair: 'text-[var(--color-text
 
 export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
   const t = useLocaleStore(s => s.t);
+  const router = useRouter();
   const { markPurchased, isPurchased: checkPurchased, setFullReport } = useReportStore();
   const purchased = checkPurchased(proposal.id);
   const preview = generatePreview(proposal, profile);
@@ -79,6 +81,21 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
 
   function handlePurchase() {
     track({ eventType: 'report_purchased', actorType: 'user', targetType: 'proposal', targetId: proposal.id, metadata: { source: 'fo', locale: 'ko', value: '4900' } });
+    // payment 기록
+    fetch('/api/payments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'report_purchase',
+        amount: 4900,
+        currency: 'KRW',
+        actorType: 'buyer',
+        actorId: 'u-001',
+        actorName: '고객',
+        relatedId: proposal.id,
+        status: 'paid',
+      }),
+    }).catch(() => {});
     markPurchased(proposal.id);
   }
 
@@ -194,7 +211,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
                 </div>
 
                 {/* Section 4: 종합 의견 */}
-                <div className="rounded-2xl bg-gradient-to-br from-[var(--color-primary-soft)] to-[#fff5f7] px-4 py-4">
+                <div className="rounded-2xl bg-gradient-to-br from-[var(--color-primary-soft)] to-[var(--color-bg-wash)] px-4 py-4">
                   <span className="text-[12px] font-semibold text-[var(--color-primary)] block mb-2">{t('report.overallOpinion')}</span>
                   <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{fullReport.conclusion}</p>
                 </div>
@@ -208,7 +225,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
             {!purchased && (
               <>
                 {/* Value prop — 구매 전 설득 */}
-                <div className="rounded-2xl bg-gradient-to-br from-[#fff8f0] to-[#fff5f7] px-4 py-4 mb-3"
+                <div className="rounded-2xl bg-gradient-to-br from-[#fff8f0] to-[var(--color-bg-wash)] px-4 py-4 mb-3"
                   style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}>
                   <p className="text-[13px] font-semibold text-[var(--color-text)] mb-2">{t('report.valuePropTitle')}</p>
                   <div className="flex flex-col gap-2">
@@ -266,8 +283,8 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
           {/* Sticky CTA */}
           <div className="sticky bottom-0 bg-white border-t border-[var(--color-border-light)] px-5 py-4">
             {purchased ? (
-              <Button variant="primary" size="lg" fullWidth onClick={onClose}>
-                {t('common.confirm')}
+              <Button variant="primary" size="lg" fullWidth onClick={() => { onClose(); router.push(`/mypage/reports/${proposal.id}`); }}>
+                리포트 상세 보기
               </Button>
             ) : (
               <>

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@hyliren/ui';
 import { ArrowRight, Edit3, Sparkles, Clock, Loader2, Shield } from 'lucide-react';
-import { useConcernFlowStore } from '@/store/concern-flow';
+import { useConcernFlowStore, BUDGET_LABELS, VISIT_TIMING_LABELS, STAY_DURATION_LABELS } from '@/store/concern-flow';
 import { useUserConcernsStore } from '@/store/user-concerns';
 import { useLocaleStore } from '@/store/locale';
 import { AIAnalysisResultCard } from './ConcernSummaryCard';
@@ -15,6 +15,7 @@ export function StepConfirm() {
   const router = useRouter();
   const {
     analysisResult, photos, narrativeInput, feedbackTurns, analysisCount,
+    selectedBodyArea, budgetRange, visitTiming, stayDuration,
     setStep, resetFlow,
   } = useConcernFlowStore();
   const [submitting, setSubmitting] = useState(false);
@@ -23,6 +24,7 @@ export function StepConfirm() {
   if (!analysisResult) return null;
 
   async function handleConfirm() {
+    if (submitting) return;
     setSubmitting(true);
     track({ eventType: 'concern_submitted', actorType: 'user', metadata: {
       source: 'fo', locale: 'ko',
@@ -31,8 +33,17 @@ export function StepConfirm() {
     }});
     await new Promise(r => setTimeout(r, 2000));
 
-    // Save concern to client store (future: POST /api/concerns)
-    useUserConcernsStore.getState().addFromAnalysis(analysisResult!, narrativeInput, photos);
+    // 로컬 스토어 + 공유 API 저장
+    const concern = useUserConcernsStore.getState().addFromAnalysis(analysisResult!, narrativeInput, photos);
+    try {
+      await fetch('/api/concerns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(concern),
+      });
+    } catch (e) {
+      console.error('[StepConfirm] API 저장 실패, 로컬에만 저장됨:', e);
+    }
 
     setSubmitting(false);
     setDone(true);
@@ -91,6 +102,30 @@ export function StepConfirm() {
       <div className="rounded-2xl bg-[var(--color-bg-secondary)] px-4 py-3 mb-3">
         <span className="text-[10px] text-[var(--color-text-dim)] block mb-1">{t('consult.confirmYourConcern')}</span>
         <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{narrativeInput}</p>
+      </div>
+
+      {/* 구조화 데이터 */}
+      <div className="flex flex-wrap gap-2 mb-3">
+        {selectedBodyArea && (
+          <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-[11px] font-medium text-blue-600">
+            {selectedBodyArea}
+          </span>
+        )}
+        {budgetRange && (
+          <span className="px-2.5 py-1 rounded-lg bg-[var(--color-bg-secondary)] text-[11px] font-medium text-[var(--color-text-secondary)]">
+            {BUDGET_LABELS[budgetRange]}
+          </span>
+        )}
+        {visitTiming && (
+          <span className="px-2.5 py-1 rounded-lg bg-[var(--color-bg-secondary)] text-[11px] font-medium text-[var(--color-text-secondary)]">
+            {VISIT_TIMING_LABELS[visitTiming]}
+          </span>
+        )}
+        {stayDuration && (
+          <span className="px-2.5 py-1 rounded-lg bg-[var(--color-bg-secondary)] text-[11px] font-medium text-[var(--color-text-secondary)]">
+            체류 {STAY_DURATION_LABELS[stayDuration]}
+          </span>
+        )}
       </div>
 
       {feedbackTurns.length > 0 && (

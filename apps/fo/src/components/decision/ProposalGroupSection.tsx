@@ -1,11 +1,20 @@
 'use client';
 
+import { useState } from 'react';
 import type { Concern, Proposal, PartnerProfile, ProposalItem } from '@hyliren/shared';
 import { Badge } from '@hyliren/ui';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { SelectableProposalCard } from './SelectableProposalCard';
 import { useDecisionStore } from '@/store/decision';
 import { VALUE_PROPS } from '@/lib/constants';
 import { STATUS_LABELS, STATUS_COLORS } from '@/domain/lifecycle';
+
+const AREA_ACCENT: Record<string, string> = {
+  '눈': 'bg-blue-50 text-blue-600',
+  '코': 'bg-pink-50 text-pink-600',
+  '리프팅': 'bg-purple-50 text-purple-600',
+  '피부': 'bg-emerald-50 text-emerald-600',
+};
 
 interface Props {
   concern: Concern;
@@ -15,89 +24,99 @@ interface Props {
   onCardClick?: (proposalId: string) => void;
 }
 
+const INITIAL_SHOW = 2;
+
 export function ProposalGroupSection({ concern, proposals, profiles, items, onCardClick }: Props) {
   const { selectedProposalIds, toggleSelect } = useDecisionStore();
+  const [expanded, setExpanded] = useState(false);
+
+  const hasMore = proposals.length > INITIAL_SHOW;
+  const visibleProposals = expanded ? proposals : proposals.slice(0, INITIAL_SHOW);
+  const hiddenCount = proposals.length - INITIAL_SHOW;
+  const accent = AREA_ACCENT[concern.primaryArea] || 'bg-gray-50 text-gray-600';
+
+  function renderCard(p: Proposal, idx: number) {
+    const profile = profiles.find(pp => pp.memberId === p.memberId);
+    const proposalItems = items.filter(i => i.proposalId === p.id);
+    const meta = `회복 ${p.recoveryDays}일 · ${p.anesthesiaType === 'local' ? '부분' : p.anesthesiaType === 'sedation' ? '수면' : '전신'}마취`;
+    return (
+      <SelectableProposalCard
+        key={p.id}
+        hospitalName={profile?.hospitalName || ''}
+        verified={profile?.verified || false}
+        valueProp={VALUE_PROPS[p.memberId] || profile?.description || ''}
+        price={p.totalPrice}
+        meta={meta}
+        coverTags={proposalItems.slice(0, 2).map(i => i.treatmentName)}
+        quote={p.consultationNote}
+        gradientIndex={idx}
+        selected={selectedProposalIds.has(p.id)}
+        onToggle={() => toggleSelect(p.id)}
+        onCardClick={onCardClick ? () => onCardClick(p.id) : undefined}
+        unread={!p.viewedAt}
+      />
+    );
+  }
 
   return (
-    <section className="mb-7">
-      {/* 고민 요약 카드 */}
-      <div className="rounded-xl bg-[var(--color-bg-secondary)] px-4 py-3.5 mb-3">
-        <div className="flex items-center justify-between mb-1.5">
-          <div className="flex items-center gap-1.5">
-            {concern.bodyAreas.map(area => (
-              <Badge key={area} variant="info" size="sm">{area}</Badge>
-            ))}
-          </div>
-          <Badge variant={STATUS_COLORS[concern.status] || 'default'} size="sm">
-            {STATUS_LABELS[concern.status] || concern.status}
-          </Badge>
+    <section className="mb-6 rounded-2xl bg-[var(--color-bg-secondary)] p-4">
+      {/* 고민 헤더 */}
+      <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-1.5">
+          {concern.bodyAreas.map(area => (
+            <span key={area} className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${AREA_ACCENT[area] || accent}`}>
+              {area}
+            </span>
+          ))}
         </div>
-        <p className="text-[13px] text-[var(--color-text)] leading-snug line-clamp-2 mb-1.5">
-          {concern.description}
-        </p>
-        <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-dim)]">
-          {concern.budgetMin && concern.budgetMax && (
-            <span>예산 {concern.budgetMin}~{concern.budgetMax}만</span>
-          )}
-          {concern.visitDateFrom && (
-            <span>{concern.visitDateFrom.slice(5)}~ 방문</span>
-          )}
-          <span className="ml-auto">제안 {proposals.length}건</span>
-        </div>
+        <Badge variant={STATUS_COLORS[concern.status] || 'default'} size="sm">
+          {STATUS_LABELS[concern.status] || concern.status}
+        </Badge>
+        <span className="ml-auto text-[11px] text-[var(--color-text-dim)]">제안 {proposals.length}건</span>
+      </div>
+      <p className="text-[13px] text-[var(--color-text)] leading-snug line-clamp-2 mb-2">
+        {concern.description}
+      </p>
+
+      {/* 예산·방문 칩 */}
+      <div className="flex items-center gap-2 mb-3">
+        {concern.budgetMin && concern.budgetMax && (
+          <span className="px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-[var(--color-text-secondary)]">
+            💰 {concern.budgetMin}~{concern.budgetMax}만
+          </span>
+        )}
+        {concern.visitDateFrom && (
+          <span className="px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-[var(--color-text-secondary)]">
+            📅 {concern.visitDateFrom.slice(5)}~ 방문
+          </span>
+        )}
       </div>
 
-      {/* Proposal cards — horizontal scroll if 3+, vertical if 1-2 */}
-      {proposals.length > 2 ? (
-        <div className="flex gap-3 overflow-x-auto pb-1 -mr-5 pr-5" style={{ scrollbarWidth: 'none' }}>
-          {proposals.map((p, idx) => {
-            const profile = profiles.find(pp => pp.memberId === p.memberId);
-            const proposalItems = items.filter(i => i.proposalId === p.id);
-            const meta = `회복 ${p.recoveryDays}일 · ${p.anesthesiaType === 'local' ? '부분' : p.anesthesiaType === 'sedation' ? '수면' : '전신'}마취`;
-            return (
-              <div key={p.id} className="min-w-[15rem] max-w-[16rem] shrink-0">
-                <SelectableProposalCard
-                  hospitalName={profile?.hospitalName || ''}
-                  verified={profile?.verified || false}
-                  valueProp={VALUE_PROPS[p.memberId] || profile?.description || ''}
-                  price={p.totalPrice}
-                  meta={meta}
-                  coverTags={proposalItems.slice(0, 2).map(i => i.treatmentName)}
-                  quote={p.consultationNote}
-                  gradientIndex={idx}
-                  selected={selectedProposalIds.has(p.id)}
-                  onToggle={() => toggleSelect(p.id)}
-                  onCardClick={onCardClick ? () => onCardClick(p.id) : undefined}
-                  unread={!p.viewedAt}
-                />
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {proposals.map((p, idx) => {
-            const profile = profiles.find(pp => pp.memberId === p.memberId);
-            const proposalItems = items.filter(i => i.proposalId === p.id);
-            const meta = `회복 ${p.recoveryDays}일 · ${p.anesthesiaType === 'local' ? '부분' : p.anesthesiaType === 'sedation' ? '수면' : '전신'}마취`;
-            return (
-              <SelectableProposalCard
-                key={p.id}
-                hospitalName={profile?.hospitalName || ''}
-                verified={profile?.verified || false}
-                valueProp={VALUE_PROPS[p.memberId] || profile?.description || ''}
-                price={p.totalPrice}
-                meta={meta}
-                coverTags={proposalItems.slice(0, 2).map(i => i.treatmentName)}
-                quote={p.consultationNote}
-                gradientIndex={idx}
-                selected={selectedProposalIds.has(p.id)}
-                onToggle={() => toggleSelect(p.id)}
-                onCardClick={onCardClick ? () => onCardClick(p.id) : undefined}
-                unread={!p.viewedAt}
-              />
-            );
-          })}
-        </div>
+      {/* 구분선 + 제안 라벨 */}
+      <div className="flex items-center gap-2 mb-2.5">
+        <div className="flex-1 h-px bg-[var(--color-border-light)]" />
+        <span className="text-[10px] font-medium text-[var(--color-text-dim)] shrink-0">받은 제안</span>
+        <div className="flex-1 h-px bg-[var(--color-border-light)]" />
+      </div>
+
+      {/* 제안 카드 */}
+      <div className="flex flex-col gap-2.5">
+        {visibleProposals.map((p, idx) => renderCard(p, idx))}
+      </div>
+
+      {/* 더 보기 / 접기 */}
+      {hasMore && (
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="flex items-center justify-center gap-1 w-full mt-2.5 py-2.5 rounded-xl border border-dashed border-[var(--color-border-light)] bg-transparent text-[12px] font-medium text-[var(--color-text-secondary)] cursor-pointer"
+        >
+          {expanded ? (
+            <>접기 <ChevronUp size={14} /></>
+          ) : (
+            <>나머지 {hiddenCount}개 제안 더 보기 <ChevronDown size={14} /></>
+          )}
+        </button>
       )}
     </section>
   );

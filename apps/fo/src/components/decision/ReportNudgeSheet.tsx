@@ -16,12 +16,13 @@ interface Props {
 
 export function ReportNudgeSheet({ concernId, proposalId, delay = 5000 }: Props) {
   const t = useLocaleStore(s => s.t);
-  const { markPurchased } = useReportStore();
+  const { markPurchased, isPurchased } = useReportStore();
+  const alreadyPurchased = isPurchased(proposalId);
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    if (dismissed) return;
+    if (dismissed || alreadyPurchased) return;
     const timer = setTimeout(() => {
       setVisible(true);
       track({ eventType: 'report_nudge_viewed', actorType: 'user', targetType: 'concern', targetId: concernId, metadata: { source: 'fo', locale: 'ko' } });
@@ -42,7 +43,7 @@ export function ReportNudgeSheet({ concernId, proposalId, delay = 5000 }: Props)
     handleDismiss();
   }
 
-  if (!visible) return null;
+  if (!visible || alreadyPurchased) return null;
 
   return (
     <>

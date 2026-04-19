@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { FOHeader } from '@/components/layout/FOHeader';
 import { FOTabBar } from '@/components/layout/FOTabBar';
+import Toast from '@/components/common/Toast';
 
 export const metadata: Metadata = {
   title: '한옌리런 — 나에게 맞는 시술, 병원이 먼저 제안합니다',
@@ -17,7 +18,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko">
+    <html lang="ko" data-theme="fo">
       <body>
         <div className="fo-shell">
           <div className="fo-frame">
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
         {/* 하단 탭바 — fixed로 항상 플로팅 */}
         <FOTabBar />
+        <Toast />
       </body>
     </html>
   );

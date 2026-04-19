@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useLocaleStore } from '@/store/locale';
 import { useDecisionStore } from '@/store/decision';
+import { useUserConcernsStore } from '@/store/user-concerns';
 import { STATUS_LABELS, STATUS_COLORS } from '@/domain/lifecycle';
 
 interface Props { params: Promise<{ id: string }>; }
@@ -26,7 +27,8 @@ interface ServiceItem {
 export default function ServicesPage({ params }: Props) {
   const t = useLocaleStore(s => s.t);
   const { id } = use(params);
-  const concern = MOCK_CONCERNS.find(c => c.id === id);
+  const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
+  const concern = MOCK_CONCERNS.find(c => c.id === id) || userCreatedConcerns.find(c => c.id === id);
   if (!concern) {
     return <div className="p-8 text-center text-[var(--color-text-secondary)]">{t('concern.notFound')}</div>;
   }
@@ -72,7 +74,7 @@ export default function ServicesPage({ params }: Props) {
 
       {/* Selected hospital */}
       {profile && selectedProposal && (
-        <div className="rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[#fff5f7] px-4 py-3.5 mb-5">
+        <div className="rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[var(--color-bg-wash)] px-4 py-3.5 mb-5">
           <span className="text-[10px] text-[var(--color-text-dim)] block mb-1">선택한 병원</span>
           <div className="flex items-center justify-between">
             <div>
