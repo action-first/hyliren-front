@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.2",
+    "@types/node": "25.6.0",
     "@types/react": "^19",
     "@types/react-datepicker": "^7.0.0",
     "@types/react-dom": "^19",

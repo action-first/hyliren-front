@@ -409,7 +409,21 @@
     "welcomeDesc": "继续进行咨询",
     "continueConsult": "继续咨询",
     "skip": "稍后再说",
-    "logoutConfirm": "确定要退出登录吗？"
+    "logoutConfirm": "确定要退出登录吗？",
+    "comingSoon": "即将推出",
+    "continue": "登录",
+    "registerInstead": "还没有账号？去注册",
+    "registerTitle": "创建账号",
+    "createAccount": "完成注册",
+    "passwordHint": "包含字母和数字且8位以上",
+    "error": {
+      "invalidCredentials": "邮箱或密码不正确",
+      "emailTaken": "该邮箱已被注册",
+      "passwordRule": "需包含字母和数字且8位以上",
+      "sessionExpired": "登录状态已过期，请重新登录",
+      "network": "请检查网络连接",
+      "server": "请稍后重试"
+    }
   },
   "bodyArea": {
     "눈": "眼部",

@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { FOHeader } from '@/components/layout/FOHeader';
 import { FOTabBar } from '@/components/layout/FOTabBar';
+
 import Toast from '@/components/common/Toast';
+import { SessionBootstrap } from '@/components/auth/SessionBootstrap';
 
 export const metadata: Metadata = {
   title: '한옌리런 — 나에게 맞는 시술, 병원이 먼저 제안합니다',
@@ -20,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko" data-theme="fo">
       <body>
+        <SessionBootstrap />
         <div className="fo-shell">
           <div className="fo-frame">
             <FOHeader />

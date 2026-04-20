@@ -409,7 +409,21 @@
     "welcomeDesc": "상담을 이어서 진행합니다",
     "continueConsult": "상담 이어가기",
     "skip": "나중에 할게요",
-    "logoutConfirm": "로그아웃 하시겠습니까?"
+    "logoutConfirm": "로그아웃 하시겠습니까?",
+    "comingSoon": "준비 중",
+    "continue": "로그인",
+    "registerInstead": "계정이 없으신가요? 가입하기",
+    "registerTitle": "계정 만들기",
+    "createAccount": "가입 완료",
+    "passwordHint": "영문과 숫자를 포함한 8자 이상",
+    "error": {
+      "invalidCredentials": "이메일 또는 비밀번호가 올바르지 않습니다",
+      "emailTaken": "이미 등록된 이메일입니다",
+      "passwordRule": "영문과 숫자를 포함한 8자 이상이어야 합니다",
+      "sessionExpired": "세션이 만료되었습니다. 다시 로그인해주세요",
+      "network": "네트워크 연결을 확인해주세요",
+      "server": "잠시 후 다시 시도해주세요"
+    }
   },
   "bodyArea": {
     "눈": "눈",
