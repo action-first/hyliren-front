@@ -72,7 +72,7 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
     const mockUser = MOCK_USERS.find(u => u.role === 'buyer') || MOCK_USERS[0];
     login({
       ...mockUser,
-      id: `u-new-${Date.now()}`,
+      id: mockUser.id, // 시연용: mock user id 유지 (u-001)
       email,
       name: name || email.split('@')[0],
     });

@@ -1,11 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { MOCK_PROPOSALS, MOCK_PARTNER_PROFILES, MOCK_PROPOSAL_ITEMS, MOCK_CONCERNS } from '@hyliren/shared';
 import { Button, Badge } from '@hyliren/ui';
 import { ArrowRight, Camera, MessageCircle, FileText, ChevronRight, ShieldCheck, Clock } from 'lucide-react';
 import { ExperienceCard } from '@/components/common/ExperienceCard';
-import { StickyConsultCTA } from '@/components/common/StickyConsultCTA';
 import { VALUE_PROPS, CARD_GRADIENTS as G } from '@/lib/constants';
 import { ARTICLES } from '@/lib/articles-data';
 import { getAreaBar } from '@/lib/area-styles';
@@ -74,16 +74,14 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* CTA — 항상 고민 상담 진입 */}
+        {/* CTA — 히어로 하단 상시 노출 */}
         <div className="px-5 pt-4 pb-8">
           <Link href="/consult" className="w-full no-underline block">
-            <Button variant="accent" size="lg" fullWidth>
+            <Button variant="accent" size="lg" fullWidth className="!h-12 !text-base !rounded-xl">
               {t('landing.cta')}
               <ArrowRight size={18} />
             </Button>
           </Link>
-
-          {/* 신뢰 마이크로카피 */}
           <div className="flex items-center justify-center gap-1.5 mt-3">
             <ShieldCheck size={12} className="text-[var(--color-text-dim)]" />
             <span className="text-[10.5px] text-[var(--color-text-dim)]">
@@ -255,8 +253,53 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══ Sticky CTA ═══ */}
-      <StickyConsultCTA phase={phase} unreadCount={userProposalCount} />
+      {/* ═══ 제안 도착 바텀시트 ═══ */}
+      {phase === 'proposals_ready' && (
+        <ProposalArrivedSheet count={userProposalCount} />
+      )}
     </div>
+  );
+}
+
+/* ═══ 제안 도착 바텀시트 ═══ */
+function ProposalArrivedSheet({ count }: { count: number }) {
+  const t = useLocaleStore(s => s.t);
+  const [dismissed, setDismissed] = useState(false);
+  if (dismissed) return null;
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/20 z-40" onClick={() => setDismissed(true)} />
+      <div className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-50 rounded-t-3xl overflow-hidden animate-[slideUp_0.3s_ease-out]">
+        <div className="bg-white px-6 pt-5 pb-8" style={{ boxShadow: '0 -4px 24px rgba(0,0,0,0.12)' }}>
+          <div className="relative mb-5">
+            <div className="w-10 h-1 rounded-full bg-[var(--color-border-light)] mx-auto" />
+            <button type="button" onClick={() => setDismissed(true)}
+              className="absolute right-0 top-0 w-8 h-8 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center border-0 cursor-pointer">
+              <span className="text-[var(--color-text-dim)] text-lg leading-none">×</span>
+            </button>
+          </div>
+
+          <div className="text-center mb-6">
+            <div className="flex justify-center mb-2">
+              <img src="/images/proposal-arrived.jpg" alt="" className="w-40 h-40 object-contain" />
+            </div>
+            <h3 className="text-[1.25rem] font-bold text-[var(--color-text)] leading-tight mb-2">
+              새로운 제안이 도착했어요
+            </h3>
+            <p className="text-[13px] text-[var(--color-text-dim)]">
+              {count > 0 ? `${count}개 병원이 맞춤 제안을 보냈어요` : '병원의 맞춤 제안을 확인하세요'}
+            </p>
+          </div>
+
+          <Link href="/decision" className="no-underline block">
+            <Button variant="accent" size="lg" fullWidth className="!h-12 !text-base !rounded-xl">
+              제안 확인하기
+              <ArrowRight size={18} />
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </>
   );
 }
