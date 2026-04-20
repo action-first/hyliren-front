@@ -7,7 +7,8 @@ import {
   CONCERN_STATUS_KR, PROPOSAL_STATUS_KR, BODY_AREA_BADGE,
   formatBudget, formatDateRange,
 } from '@hyliren/shared';
-import { AdminPage } from '@hyliren/ui';
+import { AdminPage, DateFilter } from '@hyliren/ui';
+import type { DateRange } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useCreditsStore } from '@/store/credits';
@@ -234,6 +235,7 @@ export default function DashboardPage() {
   const { balance, transactions } = useCreditsStore();
   const memberId = member?.id ?? 'm-001';
 
+  const [dateRange, setDateRange] = useState<DateRange>('30d');
   const [concerns, setConcerns] = useState<Concern[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -307,6 +309,17 @@ export default function DashboardPage() {
   return (
     <AdminPage sidebar={<POSidebar active="/dashboard" />} title="대시보드" prefix="po">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+        {/* ═══ 기간 필터 ═══ */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0 }}>운영 현황</h2>
+            <p style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>
+              {dateRange === 'today' ? '오늘' : dateRange === '7d' ? '최근 7일' : dateRange === '30d' ? '최근 30일' : '사용자 지정 기간'} 기준
+            </p>
+          </div>
+          <DateFilter value={dateRange} onChange={setDateRange} />
+        </div>
 
         {/* ═══ KPI 카드 ═══ */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>

@@ -31,6 +31,9 @@ export { ListPageSkeleton, DashboardSkeleton, DetailPageSkeleton } from './primi
 export { Modal } from './primitives/Modal';
 export type { ModalProps } from './primitives/Modal';
 
+export { DateFilter } from './primitives/DateFilter';
+export type { DateFilterProps, DateRange } from './primitives/DateFilter';
+
 export { DataGrid } from './primitives/DataGrid';
 export type { DataGridProps, SearchField } from './primitives/DataGrid';
 

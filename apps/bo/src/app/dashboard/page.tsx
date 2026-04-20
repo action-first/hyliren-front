@@ -5,12 +5,29 @@ import { Badge, Button, AdminPage } from '@hyliren/ui';
 import { BOSidebar } from '@/components/BOSidebar';
 import { ConcernStatusPie, ProposalStatusBar, ConversionFunnel, BodyAreaTreemap } from '@/components/DashboardCharts';
 import { BODashboardKPI } from '@/components/BODashboardKPI';
+import { DashboardHeader } from '@/components/DashboardHeader';
 
 export const dynamic = 'force-dynamic';
 
 const STATUS_LABELS: Record<string, string> = {
   submitted: '등록', proposal_received: '제안 도착', comparing: '비교 중',
   hospital_selected: '병원 선택', completed: '완료',
+};
+
+// ── 이벤트 한글 라벨 + 시맨틱 컬러 뱃지 ──
+const EVENT_KR: Record<string, string> = {
+  concern_submit: '고민 등록',
+  proposal_send: '제안서 발송',
+  proposal_view: '제안서 열람',
+  page_view: '페이지 조회',
+  report_purchase: '리포트 구매',
+};
+const EVENT_STYLE: Record<string, { bg: string; text: string }> = {
+  concern_submit: { bg: '#EEF2FF', text: '#4F46E5' },
+  proposal_send: { bg: '#F5F3FF', text: '#8B5CF6' },
+  proposal_view: { bg: '#ECFDF5', text: '#10B981' },
+  page_view: { bg: '#F8FAFC', text: '#64748B' },
+  report_purchase: { bg: '#FFF1F2', text: '#F43F5E' },
 };
 
 const PROPOSAL_STATUS_LABELS: Record<string, string> = {
@@ -63,6 +80,9 @@ export default function DashboardPage() {
   return (
     <AdminPage sidebar={<BOSidebar active="/dashboard" />} title="통합 대시보드" prefix="bo">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+        {/* 헤더 + 기간 필터 */}
+        <DashboardHeader />
 
         {/* KPI */}
         <BODashboardKPI
@@ -146,21 +166,25 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                {events.slice(0, 6).map((ev, i) => (
-                  <div key={ev.id} style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '10px 0',
-                    borderBottom: i < 5 ? '1px solid #f8fafc' : 'none',
-                  }}>
-                    <span style={{
-                      display: 'inline-block', padding: '2px 8px', borderRadius: 4,
-                      fontSize: 12, fontWeight: 500, background: '#f1f5f9', color: '#475569',
-                    }}>{ev.eventType.replace(/_/g, ' ')}</span>
-                    <span style={{ fontSize: 11, color: '#94a3b8', fontVariantNumeric: 'tabular-nums' }}>
-                      {new Date(ev.timestamp).toLocaleTimeString('ko', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                ))}
+                {events.slice(0, 6).map((ev, i) => {
+                  const label = EVENT_KR[ev.eventType] || ev.eventType;
+                  const style = EVENT_STYLE[ev.eventType] || { bg: '#f1f5f9', text: '#475569' };
+                  return (
+                    <div key={ev.id} style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '10px 0',
+                      borderBottom: i < 5 ? '1px solid #f8fafc' : 'none',
+                    }}>
+                      <span style={{
+                        display: 'inline-block', padding: '3px 10px', borderRadius: 6,
+                        fontSize: 12, fontWeight: 500, background: style.bg, color: style.text,
+                      }}>{label}</span>
+                      <span style={{ fontSize: 11, color: '#94a3b8', fontVariantNumeric: 'tabular-nums' }}>
+                        {new Date(ev.timestamp).toLocaleTimeString('ko', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
