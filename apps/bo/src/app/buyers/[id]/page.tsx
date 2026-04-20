@@ -94,10 +94,10 @@ export default async function BuyerDetailPage({ params }: Props) {
     <AdminPage sidebar={<BOSidebar active="/buyers" />} title={`고객 상세 — ${user.name}`} prefix="bo">
 
       {/* ══════ 2열 레이아웃 (Shopreach claim-process-grid 스타일) ══════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
+      <div className="detail-grid">
 
         {/* ══════ 좌측: 메인 콘텐츠 ══════ */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div className="detail-main">
 
           {/* ── 고민 내역 ── */}
           <Card padding="md">
@@ -239,7 +239,7 @@ export default async function BuyerDetailPage({ params }: Props) {
         </div>
 
         {/* ══════ 우측: Sticky 사이드바 ══════ */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 20, alignSelf: 'flex-start' }}>
+        <div className="detail-sticky-sidebar">
 
           {/* ── 고객 정보 ── */}
           <Card padding="md">

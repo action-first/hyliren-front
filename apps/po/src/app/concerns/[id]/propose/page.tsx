@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import type { AnesthesiaType, Concern } from '@hyliren/shared';
-import { Card, Button, Input, Textarea, SectionHeader, AdminPage } from '@hyliren/ui';
+import { Card, Button, Input, Textarea, SectionHeader, AdminPage, Select } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useTreatmentsStore } from '@/store/treatments';
@@ -22,6 +22,12 @@ interface FormItem {
 interface Props {
   params: Promise<{ id: string }>;
 }
+
+const ANESTHESIA_OPTIONS = [
+  { value: 'local', label: '부분마취' },
+  { value: 'sedation', label: '수면마취' },
+  { value: 'general', label: '전신마취' },
+] as const;
 
 export default function ProposePage({ params }: Props) {
   const { id } = use(params);
@@ -235,18 +241,12 @@ export default function ProposePage({ params }: Props) {
                   value={recoveryDays}
                   onChange={e => setRecoveryDays(Number(e.target.value))}
                 />
-                <div className="input-wrapper">
-                  <label className="input-label">마취 유형</label>
-                  <select
-                    className="input-field"
-                    value={anesthesia}
-                    onChange={e => setAnesthesia(e.target.value as AnesthesiaType)}
-                  >
-                    <option value="local">부분마취</option>
-                    <option value="sedation">수면마취</option>
-                    <option value="general">전신마취</option>
-                  </select>
-                </div>
+                <Select
+                  label="마취 유형"
+                  value={anesthesia}
+                  options={ANESTHESIA_OPTIONS}
+                  onChange={nextValue => setAnesthesia(nextValue as AnesthesiaType)}
+                />
               </div>
               <div className="propose-form-row mt-4">
                 <Input

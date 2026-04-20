@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { POSidebar } from '@/components/POSidebar';
-import { Card, Button, Input, Textarea, SectionHeader, Badge, Modal, AdminPage } from '@hyliren/ui';
+import { Card, Button, Input, Textarea, SectionHeader, Badge, Modal, AdminPage, Select } from '@hyliren/ui';
 import { useTreatmentsStore, type Treatment } from '@/store/treatments';
 import { useToastStore } from '@/store/toast';
 import { BODY_AREAS } from '@hyliren/shared';
@@ -15,6 +15,8 @@ const EMPTY_FORM = {
   name: '', nameZh: '', category: '눈' as BodyArea,
   priceMin: 0, priceMax: 0, description: '', imageUrl: '', isActive: true,
 };
+
+const BODY_AREA_OPTIONS = BODY_AREAS.map(area => ({ value: area, label: area }));
 
 export default function TreatmentsPage() {
   const { treatments, addTreatment, updateTreatment, deleteTreatment, toggleActive } = useTreatmentsStore();
@@ -136,12 +138,12 @@ export default function TreatmentsPage() {
             <Input label="시술명 (한국어)" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="예: 쌍꺼풀 매몰법" />
             <Input label="시술명 (중국어)" value={form.nameZh} onChange={e => setForm(f => ({ ...f, nameZh: e.target.value }))} placeholder="例: 双眼皮埋线法" />
           </div>
-          <div className="input-wrapper">
-            <label className="input-label">분류</label>
-            <select className="input-field" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value as BodyArea }))}>
-              {BODY_AREAS.map(a => <option key={a} value={a}>{a}</option>)}
-            </select>
-          </div>
+          <Select
+            label="분류"
+            value={form.category}
+            options={BODY_AREA_OPTIONS}
+            onChange={nextValue => setForm(f => ({ ...f, category: nextValue as BodyArea }))}
+          />
           <div className="propose-form-row">
             <Input label="최저 가격 (만원)" type="number" value={form.priceMin || ''} onChange={e => setForm(f => ({ ...f, priceMin: Number(e.target.value) }))} />
             <Input label="최고 가격 (만원)" type="number" value={form.priceMax || ''} onChange={e => setForm(f => ({ ...f, priceMax: Number(e.target.value) }))} />
@@ -162,12 +164,12 @@ export default function TreatmentsPage() {
             <Input label="시술명 (한국어)" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} />
             <Input label="시술명 (중국어)" value={editForm.nameZh} onChange={e => setEditForm(f => ({ ...f, nameZh: e.target.value }))} />
           </div>
-          <div className="input-wrapper">
-            <label className="input-label">분류</label>
-            <select className="input-field" value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value as BodyArea }))}>
-              {BODY_AREAS.map(a => <option key={a} value={a}>{a}</option>)}
-            </select>
-          </div>
+          <Select
+            label="분류"
+            value={editForm.category}
+            options={BODY_AREA_OPTIONS}
+            onChange={nextValue => setEditForm(f => ({ ...f, category: nextValue as BodyArea }))}
+          />
           <div className="propose-form-row">
             <Input label="최저 가격" type="number" value={editForm.priceMin || ''} onChange={e => setEditForm(f => ({ ...f, priceMin: Number(e.target.value) }))} />
             <Input label="최고 가격" type="number" value={editForm.priceMax || ''} onChange={e => setEditForm(f => ({ ...f, priceMax: Number(e.target.value) }))} />

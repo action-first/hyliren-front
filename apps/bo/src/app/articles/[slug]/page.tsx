@@ -22,10 +22,10 @@ export default async function ArticleDetailPage({ params }: Props) {
         </Badge>
       }
     >
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
+      <div className="detail-grid">
 
         {/* 좌측 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="detail-main">
           <Card padding="md">
             <SectionHeader title={article.title} />
             <p style={{ fontSize: 14, color: '#64748b', marginTop: 12, lineHeight: 1.6 }}>{article.excerpt}</p>
@@ -42,7 +42,7 @@ export default async function ArticleDetailPage({ params }: Props) {
         </div>
 
         {/* 우측 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="detail-sticky-sidebar">
           <Card padding="md">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>

@@ -84,10 +84,10 @@ export default async function ConcernDetailPage({ params }: Props) {
       }
     >
       {/* ══ 2열 레이아웃 ══ */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
+      <div className="detail-grid">
 
         {/* ══ 좌측: 메인 콘텐츠 ══ */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="detail-main">
 
           {/* 고민 내용 */}
           <Card padding="md">
@@ -192,7 +192,7 @@ export default async function ConcernDetailPage({ params }: Props) {
         </div>
 
         {/* ══ 우측: 사이드바 ══ */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="detail-sticky-sidebar">
 
           {/* 상태 카드 */}
           <Card padding="md">

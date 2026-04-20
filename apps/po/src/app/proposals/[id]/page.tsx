@@ -71,10 +71,10 @@ export default async function ProposalDetailPage({ params }: Props) {
       actions={<StatusBadge label={statusLabel} map={PROPOSAL_STATUS_BADGE} />}
     >
       {/* ══ 2열 레이아웃 ══ */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
+      <div className="detail-grid">
 
         {/* ══ 좌측: 메인 콘텐츠 ══ */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="detail-main">
 
           {/* 상태 타임라인 */}
           <Card padding="md">
@@ -161,7 +161,7 @@ export default async function ProposalDetailPage({ params }: Props) {
         </div>
 
         {/* ══ 우측: 사이드바 ══ */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="detail-sticky-sidebar">
 
           {/* 상태 메타 */}
           <Card padding="md">

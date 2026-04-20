@@ -10,6 +10,9 @@ export type { InputProps } from './primitives/Input';
 export { Textarea } from './primitives/Textarea';
 export type { TextareaProps } from './primitives/Textarea';
 
+export { Select } from './primitives/Select';
+export type { SelectProps, SelectOption } from './primitives/Select';
+
 export { Card } from './primitives/Card';
 export type { CardProps } from './primitives/Card';
 

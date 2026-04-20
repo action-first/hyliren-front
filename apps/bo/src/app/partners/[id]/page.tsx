@@ -68,10 +68,10 @@ export default async function PartnerDetailPage({ params }: Props) {
       }
     >
       {/* ══ 2열 레이아웃 ══ */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
+      <div className="detail-grid">
 
         {/* ══ 좌측: 메인 콘텐츠 ══ */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="detail-main">
 
           {/* 병원 정보 */}
           <Card padding="md">
@@ -140,7 +140,7 @@ export default async function PartnerDetailPage({ params }: Props) {
         </div>
 
         {/* ══ 우측: 사이드바 ══ */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="detail-sticky-sidebar">
 
           {/* KPI 카드 */}
           <Card padding="md">
