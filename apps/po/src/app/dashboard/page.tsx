@@ -22,36 +22,49 @@ import {
   AreaChart, Area,
 } from 'recharts';
 
-// ── 색상 시스템 ──
+// ── 색상 시스템 (BO와 동일한 팔레트) ──
+const C = {
+  main:         '#4F46E5', // 인디고 (PO 시그니처)
+  sub:          '#8B5CF6', // 바이올렛
+  positive:     '#10B981', // 에메랄드
+  negative:     '#F43F5E', // 로즈
+  neutral:      '#94A3B8', // 슬레이트
+  neutralLight: '#CBD5E1', // 라이트 슬레이트
+};
+
 const STATUS_COLORS: Record<string, { hex: string; label: string }> = {
-  selected:    { hex: '#6366f1', label: '선택됨' },
-  shortlisted: { hex: '#3b82f6', label: '후보' },
-  viewed:      { hex: '#f59e0b', label: '열람' },
-  sent:        { hex: '#94a3b8', label: '발송' },
-  rejected:    { hex: '#ef4444', label: '거절' },
-  draft:       { hex: '#e2e8f0', label: '임시저장' },
+  selected:    { hex: C.main,         label: '선택됨' },
+  shortlisted: { hex: C.sub,          label: '후보' },
+  viewed:      { hex: C.neutralLight, label: '열람' },
+  sent:        { hex: C.neutral,      label: '발송' },
+  rejected:    { hex: C.negative,     label: '거절' },
+  draft:       { hex: '#E2E8F0',      label: '임시저장' },
 };
 
 const AREA_COLORS: Record<string, string> = {
-  '눈': '#6366f1', '코': '#ec4899', '리프팅': '#8b5cf6',
-  '피부': '#10b981', '다이어트': '#f59e0b', '기타': '#94a3b8',
+  '눈':       C.main,
+  '코':       '#818CF8', // 인디고 300
+  '리프팅':   C.sub,
+  '피부':     '#A78BFA', // 바이올렛 300
+  '다이어트': '#6366F1', // 인디고 500
+  '기타':     C.neutral,
 };
 
 const CONCERN_STATUS_STYLE: Record<string, { bg: string; text: string; dot: string }> = {
-  '접수됨':     { bg: '#f1f5f9', text: '#475569', dot: '#94a3b8' },
-  '제안 도착':  { bg: '#eff6ff', text: '#1d4ed8', dot: '#3b82f6' },
-  '제안 수신':  { bg: '#eff6ff', text: '#1d4ed8', dot: '#3b82f6' },
-  '비교 중':    { bg: '#fef3c7', text: '#92400e', dot: '#f59e0b' },
-  '진행 중':    { bg: '#fef3c7', text: '#92400e', dot: '#f59e0b' },
-  '완료':       { bg: '#ecfdf5', text: '#065f46', dot: '#10b981' },
+  '접수됨':     { bg: '#f1f5f9', text: '#475569', dot: C.neutral },
+  '제안 도착':  { bg: '#eef2ff', text: '#3730a3', dot: C.main },
+  '제안 수신':  { bg: '#eef2ff', text: '#3730a3', dot: C.main },
+  '비교 중':    { bg: '#f5f3ff', text: '#5b21b6', dot: C.sub },
+  '진행 중':    { bg: '#f5f3ff', text: '#5b21b6', dot: C.sub },
+  '완료':       { bg: '#ecfdf5', text: '#065f46', dot: C.positive },
 };
 
 const AREA_BADGE_STYLE: Record<string, { bg: string; text: string }> = {
-  '눈':       { bg: '#eef2ff', text: '#4338ca' },
-  '코':       { bg: '#fdf2f8', text: '#be185d' },
-  '리프팅':   { bg: '#f5f3ff', text: '#7c3aed' },
-  '피부':     { bg: '#ecfdf5', text: '#047857' },
-  '다이어트': { bg: '#fffbeb', text: '#b45309' },
+  '눈':       { bg: '#eef2ff', text: '#3730a3' },
+  '코':       { bg: '#eef2ff', text: '#4338ca' },
+  '리프팅':   { bg: '#f5f3ff', text: '#6d28d9' },
+  '피부':     { bg: '#f5f3ff', text: '#7c3aed' },
+  '다이어트': { bg: '#eef2ff', text: '#4f46e5' },
   '기타':     { bg: '#f1f5f9', text: '#475569' },
 };
 
@@ -324,7 +337,7 @@ export default function DashboardPage() {
         {/* ═══ KPI 카드 ═══ */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
           <KPICard
-            icon={<Sparkles size={20} color="#6366f1" />}
+            icon={<Sparkles size={20} color={C.main} />}
             iconBg="#eef2ff"
             label="새 고민"
             value={openConcerns.length}
@@ -332,8 +345,8 @@ export default function DashboardPage() {
             trend="+2건" trendUp
           />
           <KPICard
-            icon={<FileText size={20} color="#3b82f6" />}
-            iconBg="#eff6ff"
+            icon={<FileText size={20} color={C.sub} />}
+            iconBg="#f5f3ff"
             label="발송 제안서"
             value={myProposals.length}
             sub={`열람률 ${viewRate}%`}
@@ -384,20 +397,20 @@ export default function DashboardPage() {
               <AreaChart data={trendData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gradSent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6366f1" stopOpacity={0.12} />
-                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                    <stop offset="0%" stopColor={C.main} stopOpacity={0.12} />
+                    <stop offset="100%" stopColor={C.main} stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="gradViewed" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.12} />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                    <stop offset="0%" stopColor={C.positive} stopOpacity={0.12} />
+                    <stop offset="100%" stopColor={C.positive} stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                 <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Area type="monotone" dataKey="발송" stroke="#6366f1" strokeWidth={2} fill="url(#gradSent)" dot={{ r: 3, fill: '#6366f1', strokeWidth: 0 }} activeDot={{ r: 5, fill: '#6366f1', stroke: '#fff', strokeWidth: 2 }} />
-                <Area type="monotone" dataKey="열람" stroke="#10b981" strokeWidth={2} fill="url(#gradViewed)" dot={{ r: 3, fill: '#10b981', strokeWidth: 0 }} activeDot={{ r: 5, fill: '#10b981', stroke: '#fff', strokeWidth: 2 }} />
+                <Area type="monotone" dataKey="발송" stroke={C.main} strokeWidth={2} fill="url(#gradSent)" dot={{ r: 3, fill: C.main, strokeWidth: 0 }} activeDot={{ r: 5, fill: C.main, stroke: '#fff', strokeWidth: 2 }} />
+                <Area type="monotone" dataKey="열람" stroke={C.positive} strokeWidth={2} fill="url(#gradViewed)" dot={{ r: 3, fill: C.positive, strokeWidth: 0 }} activeDot={{ r: 5, fill: C.positive, stroke: '#fff', strokeWidth: 2 }} />
                 <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
                   formatter={(value: string) => <span style={{ fontSize: 12, color: '#64748b', marginLeft: 2 }}>{value}</span>}
                 />
@@ -425,7 +438,7 @@ export default function DashboardPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                   <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(99,102,241,0.04)' }}
+                  <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(79,70,229,0.04)' }}
                     formatter={(value, _name, props) => {
                       const v = Number(value);
                       return [`${v > 0 ? '+' : ''}${v}크레딧`, (props as { payload?: { reason?: string } }).payload?.reason ?? '거래'];
@@ -433,7 +446,7 @@ export default function DashboardPage() {
                   />
                   <Bar dataKey="amount" radius={[6, 6, 0, 0]} maxBarSize={32}>
                     {barData.map((entry, i) => (
-                      <Cell key={i} fill={entry.amount > 0 ? '#6366f1' : '#f87171'} fillOpacity={0.85} />
+                      <Cell key={i} fill={entry.amount > 0 ? C.main : C.negative} fillOpacity={0.85} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -463,7 +476,7 @@ export default function DashboardPage() {
             </div>
             <Link href="/concerns" style={{
               display: 'inline-flex', alignItems: 'center', gap: 4,
-              fontSize: 13, fontWeight: 500, color: '#6366f1', textDecoration: 'none',
+              fontSize: 13, fontWeight: 500, color: C.main, textDecoration: 'none',
               padding: '6px 12px', borderRadius: 8, transition: 'background 150ms',
             }}
               onMouseEnter={e => (e.currentTarget.style.background = '#eef2ff')}
@@ -531,7 +544,7 @@ export default function DashboardPage() {
                     </td>
                     <td style={{ padding: '14px 24px' }}>
                       <Link href={`/concerns/${c.id}`} style={{
-                        fontSize: 13, fontWeight: 500, color: '#6366f1', textDecoration: 'none',
+                        fontSize: 13, fontWeight: 500, color: C.main, textDecoration: 'none',
                       }}>보기</Link>
                     </td>
                   </tr>
