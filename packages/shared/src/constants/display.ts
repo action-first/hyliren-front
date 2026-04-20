@@ -3,6 +3,10 @@
 // BO/PO 리스트 페이지에서 공통으로 사용하는 라벨, 뱃지 색상 매핑
 // ============================================================
 
+// ── 비즈니스 상수 ──
+/** 제안서 1건 발송 시 차감 크레딧 */
+export const CREDIT_COST = 3;
+
 // ── 뱃지 색상 타입 ──
 export interface BadgeColor {
   bg: string;
@@ -63,7 +67,14 @@ export const ANESTHESIA_KR: Record<string, string> = {
   general: '전신마취',
 };
 
-// ── 부위 뱃지 색상 ──
+// ── 부위 dot 색상 (AG Grid 경량 표시용) ──
+export const BODY_AREA_DOT: Record<string, string> = {
+  '눈': '#3b82f6', '코': '#ec4899', '리프팅': '#8b5cf6',
+  '피부': '#10b981', '다이어트': '#f59e0b', '기타': '#94a3b8',
+  '전체': '#64748b',
+};
+
+// ── 부위 뱃지 색상 (상세 페이지용) ──
 export const BODY_AREA_BADGE: Record<string, BadgeColor> = {
   '눈':       { bg: '#dbeafe', text: '#1d4ed8' },
   '코':       { bg: '#fce7f3', text: '#be185d' },

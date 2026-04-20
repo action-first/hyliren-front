@@ -61,18 +61,17 @@ export function BODashboardKPI({
         label="총 고객"
         value={buyerCount}
         sub="명"
-        trend="+3명" trendUp
       />
       <KPICard
-        icon={<Building2 size={18} color="#6366f1" />}
-        iconBg="#eef2ff"
+        icon={<Building2 size={18} color="#3f3f46" />}
+        iconBg="#f4f4f5"
         label="파트너 병원"
         value={partnerCount}
         sub="곳"
       />
       <KPICard
-        icon={<FileText size={18} color="#3b82f6" />}
-        iconBg="#eff6ff"
+        icon={<FileText size={18} color="#52525b" />}
+        iconBg="#f4f4f5"
         label="고민 / 제안서"
         value={`${concernCount} / ${proposalCount}`}
         sub={`열람률 ${viewRate}%`}
@@ -80,8 +79,8 @@ export function BODashboardKPI({
         trendUp={selectRate > 30}
       />
       <KPICard
-        icon={<Banknote size={18} color="#10b981" />}
-        iconBg="#ecfdf5"
+        icon={<Banknote size={18} color="#18181b" />}
+        iconBg="#f4f4f5"
         label="총 결제"
         value={`₩${totalRevenue.toLocaleString()}`}
       />

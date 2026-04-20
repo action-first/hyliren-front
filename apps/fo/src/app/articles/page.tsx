@@ -10,13 +10,8 @@ import type { Article } from '@/lib/articles-data';
 
 const CATEGORIES_KO = ['전체', '시술 비교', '시술 가이드', '안전 정보'];
 
-const AREA_COLORS: Record<string, string> = {
-  '눈': 'bg-blue-400',
-  '코': 'bg-pink-400',
-  '리프팅': 'bg-purple-400',
-  '피부': 'bg-emerald-400',
-  '전체': 'bg-amber-400',
-};
+import { AREA_BAR } from '@/lib/area-styles';
+const AREA_COLORS = AREA_BAR;
 
 function formatViews(n: number): string {
   return n >= 10000 ? `${(n / 10000).toFixed(1)}만` : n >= 1000 ? `${(n / 1000).toFixed(1)}천` : String(n);

@@ -8,6 +8,7 @@ import { ExperienceCard } from '@/components/common/ExperienceCard';
 import { StickyConsultCTA } from '@/components/common/StickyConsultCTA';
 import { VALUE_PROPS, CARD_GRADIENTS as G } from '@/lib/constants';
 import { ARTICLES } from '@/lib/articles-data';
+import { getAreaBar } from '@/lib/area-styles';
 import { useLocaleStore } from '@/store/locale';
 import { useAuthStore } from '@/store/auth';
 import { useUserConcernsStore } from '@/store/user-concerns';
@@ -238,9 +239,7 @@ export default function HomePage() {
               style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)' }}>
               <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 relative">
                 <img src={a.heroImage} alt={a.title} className="w-full h-full object-cover" />
-                <div className={`absolute bottom-0 left-0 right-0 h-1 ${
-                  a.bodyArea === '눈' ? 'bg-blue-400' : a.bodyArea === '코' ? 'bg-pink-400' : a.bodyArea === '리프팅' ? 'bg-purple-400' : a.bodyArea === '피부' ? 'bg-emerald-400' : 'bg-amber-400'
-                }`} />
+                <div className={`absolute bottom-0 left-0 right-0 h-1 ${getAreaBar(a.bodyArea)}`} />
               </div>
               <div className="flex flex-col gap-1 justify-center min-w-0">
                 <div className="flex items-center gap-1.5">

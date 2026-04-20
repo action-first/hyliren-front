@@ -1,10 +1,46 @@
 import { notFound } from 'next/navigation';
-import { MOCK_MEMBERS, MOCK_PARTNER_PROFILES, PROPOSAL_STATUS_KR, ANESTHESIA_KR, formatDateKR } from '@hyliren/shared';
+import {
+  MOCK_MEMBERS, MOCK_PARTNER_PROFILES,
+  PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE,
+  ANESTHESIA_KR, formatDateKR,
+} from '@hyliren/shared';
 import { getProposals } from '@hyliren/shared/src/server/data-store';
 import { Card, Badge, SectionHeader, AdminPage } from '@hyliren/ui';
 import { BOSidebar } from '@/components/BOSidebar';
 
 export const dynamic = 'force-dynamic';
+
+// ── 스타일 토큰 ──
+const S = {
+  label: { fontSize: 13, color: '#94a3b8', marginBottom: 2 } as const,
+  value: { fontSize: 14, color: '#0f172a', fontWeight: 500 } as const,
+  metaRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } as const,
+  divider: { height: 1, background: '#f1f5f9', margin: 0 } as const,
+};
+
+function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={S.metaRow}>
+      <span style={S.label}>{label}</span>
+      <span style={S.value}>{children}</span>
+    </div>
+  );
+}
+
+function StatusBadge({ label, map }: { label: string; map: Record<string, { bg: string; text: string }> }) {
+  const c = map[label];
+  if (!c) return <Badge>{label}</Badge>;
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 500,
+      backgroundColor: c.bg, color: c.text,
+    }}>
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: c.text, opacity: 0.5 }} />
+      {label}
+    </span>
+  );
+}
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -31,87 +67,118 @@ export default async function PartnerDetailPage({ params }: Props) {
           : <Badge variant="warning">미인증</Badge>
       }
     >
-      {/* KPI */}
-      <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 20 }}>
-        <Card padding="md">
-          <span className="kpi-label">발송 제안서</span>
-          <span className="kpi-value">{proposals.length}</span>
-        </Card>
-        <Card padding="md">
-          <span className="kpi-label">열람률</span>
-          <span className="kpi-value">{viewRate}%</span>
-        </Card>
-        <Card padding="md">
-          <span className="kpi-label">선택률</span>
-          <span className="kpi-value">{selectRate}%</span>
-        </Card>
-        <Card padding="md">
-          <span className="kpi-label">선택 건수</span>
-          <span className="kpi-value">{selectedCount}</span>
-        </Card>
-      </div>
+      {/* ══ 2열 레이아웃 ══ */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
 
-      {/* 프로필 */}
-      <Card padding="md" className="mb-5">
-        <SectionHeader title="병원 정보" />
-        <div className="grid grid-cols-3 gap-4 mt-4">
-          <div>
-            <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>병원명</p>
-            <p style={{ fontSize: 14, fontWeight: 500 }}>{profile?.hospitalName || '—'}</p>
-          </div>
-          <div>
-            <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>병원명 (중국어)</p>
-            <p style={{ fontSize: 14 }}>{profile?.hospitalNameZh || '—'}</p>
-          </div>
-          <div>
-            <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>전문 분야</p>
-            <div className="flex gap-1 flex-wrap">
-              {profile?.specialties.map(s => <Badge key={s} variant="info">{s}</Badge>)}
+        {/* ══ 좌측: 메인 콘텐츠 ══ */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          {/* 병원 정보 */}
+          <Card padding="md">
+            <SectionHeader title="병원 정보" />
+            <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px 24px' }}>
+              <div>
+                <div style={S.label}>병원명</div>
+                <div style={S.value}>{profile?.hospitalName || '—'}</div>
+              </div>
+              <div>
+                <div style={S.label}>병원명 (중국어)</div>
+                <div style={S.value}>{profile?.hospitalNameZh || '—'}</div>
+              </div>
+              <div>
+                <div style={S.label}>전문 분야</div>
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 2 }}>
+                  {profile?.specialties.map(s => <Badge key={s} variant="info">{s}</Badge>)}
+                  {(!profile?.specialties || profile.specialties.length === 0) && <span style={S.value}>—</span>}
+                </div>
+              </div>
+              <div>
+                <div style={S.label}>전화</div>
+                <div style={S.value}>{profile?.phone || '—'}</div>
+              </div>
+              <div>
+                <div style={S.label}>웹사이트</div>
+                <div style={S.value}>{profile?.website || '—'}</div>
+              </div>
+              <div>
+                <div style={S.label}>주소</div>
+                <div style={S.value}>{profile?.address || '—'}</div>
+              </div>
             </div>
-          </div>
-          <div>
-            <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>전화</p>
-            <p style={{ fontSize: 14 }}>{profile?.phone || '—'}</p>
-          </div>
-          <div>
-            <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>웹사이트</p>
-            <p style={{ fontSize: 14 }}>{profile?.website || '—'}</p>
-          </div>
-          <div>
-            <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>주소</p>
-            <p style={{ fontSize: 14 }}>{profile?.address || '—'}</p>
-          </div>
-        </div>
-      </Card>
+          </Card>
 
-      {/* 제안서 내역 */}
-      <Card padding="sm">
-        <SectionHeader title={`제안서 내역 ${proposals.length}건`} />
-        <table className="data-table mt-4">
-          <thead>
-            <tr><th>가격</th><th>회복</th><th>마취</th><th>상태</th><th>발송일</th><th>열람</th></tr>
-          </thead>
-          <tbody>
-            {proposals.length === 0 && (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '24px 0', color: '#9ca3af', fontSize: 13 }}>제안서가 없습니다</td></tr>
+          {/* 제안서 내역 */}
+          <Card padding="md">
+            <SectionHeader title={`제안서 내역`} subtitle={`${proposals.length}건`} />
+            {proposals.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '32px 0', color: '#94a3b8', fontSize: 13 }}>제안서가 없습니다</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
+                {proposals.map(p => {
+                  const pStatus = PROPOSAL_STATUS_KR[p.status] ?? p.status;
+                  return (
+                    <div key={p.id} style={{
+                      padding: '14px 16px', background: '#f8fafc', borderRadius: 10,
+                      border: '1px solid #f1f5f9',
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                        <span style={{ fontSize: 18, fontWeight: 700, color: '#0f172a' }}>{p.totalPrice}만원</span>
+                        <StatusBadge label={pStatus} map={PROPOSAL_STATUS_BADGE} />
+                      </div>
+                      <div style={{ display: 'flex', gap: 16, fontSize: 13, color: '#64748b' }}>
+                        <span>회복 {p.recoveryDays}일</span>
+                        <span>{ANESTHESIA_KR[p.anesthesiaType] ?? p.anesthesiaType}</span>
+                        <span>발송 {formatDateKR(p.sentAt)}</span>
+                        <span>{p.viewedAt ? `열람 ${formatDateKR(p.viewedAt)}` : '미열람'}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
-            {proposals.map(p => (
-              <tr key={p.id}>
-                <td style={{ fontWeight: 600 }}>{p.totalPrice}만</td>
-                <td>{p.recoveryDays}일</td>
-                <td>{ANESTHESIA_KR[p.anesthesiaType] ?? p.anesthesiaType}</td>
-                <td>
-                  <Badge variant={p.status === 'selected' ? 'success' : p.status === 'shortlisted' ? 'info' : 'default'}>
-                    {PROPOSAL_STATUS_KR[p.status] ?? p.status}
-                  </Badge>
-                </td>
-                <td style={{ fontSize: 13, color: '#9ca3af' }}>{formatDateKR(p.sentAt)}</td>
-                <td style={{ fontSize: 13, color: '#9ca3af' }}>{p.viewedAt ? formatDateKR(p.viewedAt) : '미열람'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
+          </Card>
+        </div>
+
+        {/* ══ 우측: 사이드바 ══ */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          {/* KPI 카드 */}
+          <Card padding="md">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <MetaRow label="발송 제안서">
+                <span style={{ fontSize: 18, fontWeight: 700, color: '#0f172a' }}>{proposals.length}건</span>
+              </MetaRow>
+              <hr style={S.divider} />
+              <MetaRow label="열람률">
+                <span style={{ fontSize: 16, fontWeight: 700, color: viewRate > 50 ? '#10b981' : '#f59e0b' }}>{viewRate}%</span>
+              </MetaRow>
+              <MetaRow label="선택률">
+                <span style={{ fontSize: 16, fontWeight: 700, color: selectRate > 30 ? '#10b981' : '#f59e0b' }}>{selectRate}%</span>
+              </MetaRow>
+              <MetaRow label="선택 건수">
+                <span style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>{selectedCount}건</span>
+              </MetaRow>
+            </div>
+          </Card>
+
+          {/* 계정 정보 */}
+          <Card padding="md">
+            <SectionHeader title="계정 정보" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+              <MetaRow label="이름">{member.name}</MetaRow>
+              <MetaRow label="이메일">{member.email || '—'}</MetaRow>
+              <hr style={S.divider} />
+              <MetaRow label="인증">
+                {profile?.verified
+                  ? <span style={{ fontSize: 12, color: '#166534', fontWeight: 600 }}>완료</span>
+                  : <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>미인증</span>
+                }
+              </MetaRow>
+              <MetaRow label="가입일">{formatDateKR(member.createdAt)}</MetaRow>
+            </div>
+          </Card>
+        </div>
+      </div>
     </AdminPage>
   );
 }

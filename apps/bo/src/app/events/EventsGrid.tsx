@@ -1,6 +1,6 @@
 'use client';
 
-import { DataGrid, badgeCellRenderer } from '@hyliren/ui';
+import { DataGrid, dotTextRenderer } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
 import type { ColDef } from 'ag-grid-community';
 
@@ -13,18 +13,14 @@ interface EventRow {
   meta: string;
 }
 
-const EVENT_TYPE_BADGE: Record<string, { bg: string; text: string }> = {
-  page_view:        { bg: '#f1f5f9', text: '#475569' },
-  concern_submit:   { bg: '#dcfce7', text: '#166534' },
-  proposal_send:    { bg: '#dbeafe', text: '#1e40af' },
-  proposal_view:    { bg: '#fef9c3', text: '#854d0e' },
-  report_purchase:  { bg: '#fce7f3', text: '#9d174d' },
+const EVENT_TYPE_DOT: Record<string, string> = {
+  page_view: '#94a3b8', concern_submit: '#10b981',
+  proposal_send: '#3b82f6', proposal_view: '#f59e0b',
+  report_purchase: '#ec4899',
 };
 
-const ACTOR_BADGE: Record<string, { bg: string; text: string }> = {
-  user:    { bg: '#eff6ff', text: '#1d4ed8' },
-  partner: { bg: '#f5f3ff', text: '#7c3aed' },
-  system:  { bg: '#f1f5f9', text: '#475569' },
+const ACTOR_DOT: Record<string, string> = {
+  user: '#3b82f6', partner: '#8b5cf6', system: '#94a3b8',
 };
 
 const searchFields: SearchField[] = [
@@ -46,10 +42,10 @@ const columnDefs: ColDef<EventRow>[] = [
     cellStyle: { color: '#9ca3af', fontVariantNumeric: 'tabular-nums', fontSize: '12px' },
   },
   { field: 'eventType', headerName: '이벤트', flex: 1, minWidth: 130, filter: true,
-    cellRenderer: badgeCellRenderer(EVENT_TYPE_BADGE),
+    cellRenderer: dotTextRenderer(EVENT_TYPE_DOT),
   },
   { field: 'actorType', headerName: '주체', flex: 0.5, minWidth: 70, filter: true,
-    cellRenderer: badgeCellRenderer(ACTOR_BADGE),
+    cellRenderer: dotTextRenderer(ACTOR_DOT),
   },
   { field: 'target', headerName: '대상', flex: 0.8, minWidth: 120, filter: true,
     cellStyle: { color: '#6b7280' },

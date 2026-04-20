@@ -11,12 +11,7 @@ import {
 } from 'lucide-react';
 import { ARTICLES } from '@/lib/articles-data';
 
-const AREA_ACCENT: Record<string, string> = {
-  '눈': 'bg-blue-50 text-blue-600',
-  '코': 'bg-pink-50 text-pink-600',
-  '리프팅': 'bg-purple-50 text-purple-600',
-  '피부': 'bg-emerald-50 text-emerald-600',
-};
+import { AREA_ACCENT, getAreaBar } from '@/lib/area-styles';
 import {
   type DashboardState,
   computeDashboardState, computeConcernActions,
@@ -315,7 +310,7 @@ function RecommendedArticlesSection({ bodyArea, status }: { bodyArea: string; st
             <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 relative">
               <img src={a.heroImage} alt={a.title} className="w-full h-full object-cover" />
               <div className={`absolute bottom-0 left-0 right-0 h-1 ${
-                a.bodyArea === '눈' ? 'bg-blue-400' : a.bodyArea === '코' ? 'bg-pink-400' : a.bodyArea === '리프팅' ? 'bg-purple-400' : a.bodyArea === '피부' ? 'bg-emerald-400' : 'bg-amber-400'
+                getAreaBar(a.bodyArea)
               }`} />
             </div>
             <div className="flex flex-col gap-1 justify-center min-w-0">

@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import {
   MOCK_USERS, MOCK_CONCERNS, CONCERN_STATUS_KR, CONCERN_STATUS_BADGE,
   formatDateKR,
@@ -53,6 +54,7 @@ const columnDefs: ColDef<BuyerRow>[] = [
 ];
 
 export default function BuyersPage() {
+  const router = useRouter();
   const buyers = MOCK_USERS.filter(u => u.role === 'buyer');
 
   const rowData: BuyerRow[] = buyers.map(u => {
@@ -77,7 +79,7 @@ export default function BuyersPage() {
         searchFields={searchFields}
         exportFileName="고객목록"
         title="고객 목록"
-        onRowClick={(data) => { window.location.href = `/buyers/${data.id}`; }}
+        onRowClick={(data) => router.push(`/buyers/${data.id}`)}
       />
     </AdminPage>
   );

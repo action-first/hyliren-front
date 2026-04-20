@@ -9,12 +9,7 @@ import { useDecisionStore } from '@/store/decision';
 import { VALUE_PROPS } from '@/lib/constants';
 import { STATUS_LABELS, STATUS_COLORS } from '@/domain/lifecycle';
 
-const AREA_ACCENT: Record<string, string> = {
-  '눈': 'bg-blue-50 text-blue-600',
-  '코': 'bg-pink-50 text-pink-600',
-  '리프팅': 'bg-purple-50 text-purple-600',
-  '피부': 'bg-emerald-50 text-emerald-600',
-};
+import { AREA_ACCENT } from '@/lib/area-styles';
 
 interface Props {
   concern: Concern;

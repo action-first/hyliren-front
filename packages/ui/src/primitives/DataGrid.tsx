@@ -194,15 +194,19 @@ export function DataGrid<T>({
       {/* ═══ 1. 검색 카드 ═══ */}
       {searchFields && searchFields.length > 0 && (
         <div className="datagrid-search-card">
-          {/* 1줄 */}
-          {row1Fields.length > 0 && (
-            <div className="datagrid-search-row">
-              {row1Fields.map(renderField)}
+          <div className="datagrid-search-grid">
+            {/* 필드 영역 (1줄 + 2줄) — 버튼과 분리 */}
+            <div className="datagrid-search-fields">
+              {row1Fields.length > 0 && (
+                <div className="datagrid-search-row">
+                  {row1Fields.map(renderField)}
+                </div>
+              )}
+              <div className="datagrid-search-row">
+                {row2Fields.map(renderField)}
+              </div>
             </div>
-          )}
-          {/* 2줄 + 검색/초기화 버튼 인라인 */}
-          <div className="datagrid-search-row">
-            {row2Fields.map(renderField)}
+            {/* 버튼 영역 — 우측 하단 정렬 */}
             <div className="datagrid-search-actions">
               <button type="button" className="datagrid-btn datagrid-btn--primary" onClick={() => {}}>
                 <Search size={14} /> 검색

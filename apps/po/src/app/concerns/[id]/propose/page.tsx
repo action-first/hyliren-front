@@ -11,7 +11,7 @@ import { useSubmittedProposalsStore } from '@/store/submitted-proposals';
 import { useCreditsStore } from '@/store/credits';
 import { useToastStore } from '@/store/toast';
 import { ChevronDown } from 'lucide-react';
-import { CREDIT_COST } from '@/lib/display';
+import { CREDIT_COST } from '@hyliren/shared';
 
 interface FormItem {
   name: string;

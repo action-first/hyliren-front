@@ -78,7 +78,17 @@ export interface TrackEvent {
   timestamp: string;
 }
 
-const events: TrackEvent[] = [];
+const SEED_EVENTS: TrackEvent[] = [
+  { id: 'ev-seed-01', eventType: 'concern_submit', actorType: 'user', targetType: 'concern', targetId: 'c-001', timestamp: '2026-04-18T14:30:00Z' },
+  { id: 'ev-seed-02', eventType: 'proposal_send', actorType: 'partner', targetType: 'proposal', targetId: 'p-001', timestamp: '2026-04-18T15:00:00Z' },
+  { id: 'ev-seed-03', eventType: 'proposal_view', actorType: 'user', targetType: 'proposal', targetId: 'p-001', timestamp: '2026-04-18T16:20:00Z' },
+  { id: 'ev-seed-04', eventType: 'page_view', actorType: 'user', metadata: { page: '/articles' }, timestamp: '2026-04-18T17:00:00Z' },
+  { id: 'ev-seed-05', eventType: 'concern_submit', actorType: 'user', targetType: 'concern', targetId: 'c-005', timestamp: '2026-04-17T10:00:00Z' },
+  { id: 'ev-seed-06', eventType: 'proposal_send', actorType: 'partner', targetType: 'proposal', targetId: 'p-002', timestamp: '2026-04-17T11:30:00Z' },
+  { id: 'ev-seed-07', eventType: 'report_purchase', actorType: 'user', targetType: 'order', targetId: 'o-001', timestamp: '2026-04-16T09:00:00Z' },
+  { id: 'ev-seed-08', eventType: 'page_view', actorType: 'user', metadata: { page: '/consult' }, timestamp: '2026-04-16T08:30:00Z' },
+];
+const events: TrackEvent[] = [...SEED_EVENTS];
 
 export function getEvents(): TrackEvent[] {
   return events;
@@ -110,7 +120,14 @@ export interface Payment {
   timestamp: string;
 }
 
-const payments: Payment[] = [];
+const SEED_PAYMENTS: Payment[] = [
+  { id: 'pay-seed-01', type: 'credit_charge', amount: 80000, currency: 'KRW', actorType: 'partner', actorId: 'm-001', actorName: '강남아이 성형외과', status: 'paid', timestamp: '2026-04-10T09:00:00Z' },
+  { id: 'pay-seed-02', type: 'report_purchase', amount: 150000, currency: 'KRW', actorType: 'buyer', actorId: 'u-001', actorName: '리리', relatedId: 'o-001', status: 'paid', timestamp: '2026-04-12T14:00:00Z' },
+  { id: 'pay-seed-03', type: 'service_purchase', amount: 350000, currency: 'KRW', actorType: 'buyer', actorId: 'u-002', actorName: '메이', relatedId: 'o-002', status: 'paid', timestamp: '2026-04-11T16:00:00Z' },
+  { id: 'pay-seed-04', type: 'credit_charge', amount: 120000, currency: 'KRW', actorType: 'partner', actorId: 'm-002', actorName: '에스라인 클리닉', status: 'paid', timestamp: '2026-04-08T11:00:00Z' },
+  { id: 'pay-seed-05', type: 'report_purchase', amount: 200000, currency: 'KRW', actorType: 'buyer', actorId: 'u-001', actorName: '리리', relatedId: 'o-003', status: 'paid', timestamp: '2026-04-08T10:00:00Z' },
+];
+const payments: Payment[] = [...SEED_PAYMENTS];
 
 export function getPayments(): Payment[] {
   return payments;

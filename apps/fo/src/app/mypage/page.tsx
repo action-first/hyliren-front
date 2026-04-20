@@ -8,12 +8,7 @@ import { Badge, Button } from '@hyliren/ui';
 import { ChevronRight, FileText, Globe, Bell, HelpCircle, LogOut, ShieldCheck } from 'lucide-react';
 import { STATUS_LABELS, STATUS_COLORS } from '@/domain/lifecycle';
 
-const AREA_ACCENT: Record<string, string> = {
-  '눈': 'bg-blue-50 text-blue-600',
-  '코': 'bg-pink-50 text-pink-600',
-  '리프팅': 'bg-purple-50 text-purple-600',
-  '피부': 'bg-emerald-50 text-emerald-600',
-};
+import { AREA_ACCENT } from '@/lib/area-styles';
 import { useReportStore } from '@/store/report';
 import { useLocaleStore } from '@/store/locale';
 import { AuthModal } from '@/components/auth/AuthModal';

@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
-  BODY_AREAS, CONCERN_STATUS_KR, CONCERN_STATUS_BADGE, BODY_AREA_BADGE,
+  BODY_AREAS, CONCERN_STATUS_KR, CONCERN_STATUS_BADGE, BODY_AREA_DOT,
   formatDateKR, formatDateRange, formatBudget,
 } from '@hyliren/shared';
 import type { Concern, Proposal } from '@hyliren/shared';
 import {
-  Spinner, AdminPage, DataGrid,
-  badgeCellRenderer, countBadgeCellRenderer, actionCellRenderer,
+  AdminPage, DataGrid,
+  badgeCellRenderer, dotTextRenderer, countBadgeCellRenderer, actionCellRenderer,
 } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
@@ -47,7 +48,7 @@ const searchFields: SearchField[] = [
 const columnDefs: ColDef<ConcernRow>[] = [
   {
     field: 'primaryArea', headerName: '부위', flex: 0.5, minWidth: 70, filter: true,
-    cellRenderer: badgeCellRenderer(BODY_AREA_BADGE),
+    cellRenderer: dotTextRenderer(BODY_AREA_DOT),
   },
   { field: 'bodyAreaDetail', headerName: '상세', flex: 0.7, minWidth: 80, filter: true },
   {
@@ -79,6 +80,7 @@ const columnDefs: ColDef<ConcernRow>[] = [
 
 // ── 페이지 ──
 export default function ConcernListPage() {
+  const router = useRouter();
   const [allConcerns, setAllConcerns] = useState<Concern[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,13 +113,7 @@ export default function ConcernListPage() {
     };
   });
 
-  if (loading) {
-    return (
-      <AdminPage sidebar={<POSidebar active="/concerns" />} title="고민 리스트" prefix="po">
-        <div className="text-center py-20"><Spinner /></div>
-      </AdminPage>
-    );
-  }
+  if (loading) return null;
 
   if (error) {
     return (
@@ -135,7 +131,7 @@ export default function ConcernListPage() {
         searchFields={searchFields}
         exportFileName="고민목록"
         title="고민 목록"
-        onRowClick={(data) => { window.location.href = `/concerns/${data.id}`; }}
+        onRowClick={(data) => router.push(`/concerns/${data.id}`)}
       />
     </AdminPage>
   );

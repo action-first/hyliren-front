@@ -24,6 +24,7 @@ export type { SectionHeaderProps } from './primitives/SectionHeader';
 
 export { Divider } from './primitives/Divider';
 export { Spinner } from './primitives/Spinner';
+export { ListPageSkeleton, DashboardSkeleton, DetailPageSkeleton } from './primitives/Skeleton';
 export { Modal } from './primitives/Modal';
 export type { ModalProps } from './primitives/Modal';
 
@@ -32,6 +33,7 @@ export type { DataGridProps, SearchField } from './primitives/DataGrid';
 
 export {
   badgeCellRenderer,
+  dotTextRenderer,
   countBadgeCellRenderer,
   actionCellRenderer,
   detailLinkRenderer,

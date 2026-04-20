@@ -41,15 +41,18 @@
 
   .po-sidebar-credit {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 4px;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--surface-subdued, #fafbfb);
+    border: 1px solid var(--border-subdued, #f1f1f1);
   }
 
   .po-sidebar-credit__label {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     font-size: 11px;
     font-weight: 600;
     color: var(--text-disabled);
@@ -57,17 +60,23 @@
     text-transform: uppercase;
   }
 
+  .po-sidebar-credit__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
   .po-sidebar-credit__value {
     display: flex;
     align-items: baseline;
     gap: 4px;
-    font-size: 13px;
+    font-size: 18px;
     font-weight: 700;
-    color: var(--text-subdued);
+    color: var(--text-default);
   }
 
   .po-sidebar-credit__unit {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--text-disabled);
     text-transform: uppercase;

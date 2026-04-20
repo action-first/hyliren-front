@@ -1,14 +1,15 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import {
   MOCK_PROPOSALS, MOCK_CONCERNS, MOCK_PARTNER_PROFILES,
-  PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE, BODY_AREA_BADGE,
+  PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE, BODY_AREA_DOT,
   formatDateKR,
 } from '@hyliren/shared';
 import { BOSidebar } from '@/components/BOSidebar';
 import {
   DataGrid, AdminPage,
-  badgeCellRenderer, detailLinkRenderer,
+  badgeCellRenderer, dotTextRenderer, detailLinkRenderer,
 } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
 import type { ColDef } from 'ag-grid-community';
@@ -37,7 +38,7 @@ const searchFields: SearchField[] = [
 
 const columnDefs: ColDef<ProposalRow>[] = [
   { field: 'area', headerName: '부위', flex: 0.5, minWidth: 70, filter: true,
-    cellRenderer: badgeCellRenderer(BODY_AREA_BADGE),
+    cellRenderer: dotTextRenderer(BODY_AREA_DOT),
   },
   { field: 'hospitalName', headerName: '병원', flex: 1.2, minWidth: 130, filter: true,
     cellStyle: { fontWeight: 500 },
@@ -57,6 +58,7 @@ const columnDefs: ColDef<ProposalRow>[] = [
 ];
 
 export default function ProposalsPage() {
+  const router = useRouter();
   const proposals = MOCK_PROPOSALS.filter(p => p.isActive);
   const rowData: ProposalRow[] = proposals.map(p => {
     const concern = MOCK_CONCERNS.find(c => c.id === p.concernId);
@@ -79,7 +81,7 @@ export default function ProposalsPage() {
         searchFields={searchFields}
         exportFileName="제안서목록"
         title="제안서 목록"
-        onRowClick={(data) => { window.location.href = `/proposals/${data.id}`; }}
+        onRowClick={(data) => router.push(`/proposals/${data.id}`)}
       />
     </AdminPage>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { DataGrid, badgeCellRenderer } from '@hyliren/ui';
+import { DataGrid, badgeCellRenderer, dotTextRenderer } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
 import type { ColDef } from 'ag-grid-community';
 
@@ -13,10 +13,8 @@ interface PaymentRow {
   status: string;
 }
 
-const TYPE_BADGE: Record<string, { bg: string; text: string }> = {
-  '크레딧 충전':  { bg: '#dbeafe', text: '#1e40af' },
-  '리포트 구매':  { bg: '#fce7f3', text: '#9d174d' },
-  '서비스 구매':  { bg: '#f5f3ff', text: '#7c3aed' },
+const TYPE_DOT: Record<string, string> = {
+  '크레딧 충전': '#3b82f6', '리포트 구매': '#ec4899', '서비스 구매': '#8b5cf6',
 };
 
 const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
@@ -45,7 +43,7 @@ const columnDefs: ColDef<PaymentRow>[] = [
     cellStyle: { color: '#9ca3af', fontVariantNumeric: 'tabular-nums', fontSize: '12px' },
   },
   { field: 'type', headerName: '유형', flex: 0.6, minWidth: 100, filter: true,
-    cellRenderer: badgeCellRenderer(TYPE_BADGE),
+    cellRenderer: dotTextRenderer(TYPE_DOT),
   },
   { field: 'actor', headerName: '주체', flex: 1, minWidth: 140, filter: true,
     cellStyle: { fontWeight: 500 },
