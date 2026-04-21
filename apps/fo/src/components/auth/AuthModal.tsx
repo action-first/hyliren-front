@@ -60,10 +60,6 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
   }
 
   async function handleLoginSubmit() {
-    if (!passwordValid) {
-      setErrorMessage(t('auth.error.passwordRule'));
-      return;
-    }
     setSubmitting(true);
     setErrorMessage(null);
     try {

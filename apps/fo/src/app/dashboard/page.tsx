@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Proposal } from '@hyliren/shared';
 import { MOCK_CONCERNS, MOCK_PROPOSALS, track } from '@hyliren/shared';
@@ -20,10 +20,14 @@ import {
 } from '@/domain/lifecycle';
 import { useLocaleStore } from '@/store/locale';
 import { useAuthStore } from '@/store/auth';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 export default function DashboardPage() {
   const t = useLocaleStore(s => s.t);
   const userId = useAuthStore(s => s.user?.id) ?? 'u-001';
+  const [showAuth, setShowAuth] = useState(false);
+  useRequireAuth(useCallback(() => setShowAuth(true), []));
   const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
   const userConcerns = [
     ...MOCK_CONCERNS.filter(c => c.userId === userId && !c.deletedAt),
@@ -46,6 +50,8 @@ export default function DashboardPage() {
   }, [dashboard.phase]);
 
   return (
+    <>
+    <AuthModal open={showAuth} onSuccess={() => setShowAuth(false)} onClose={() => setShowAuth(false)} />
     <div className="flex flex-col px-5 pt-5 pb-10">
 
       {/* ═══ HERO ═══ */}
@@ -102,6 +108,7 @@ export default function DashboardPage() {
         <ReEntryCTA />
       )}
     </div>
+    </>
   );
 }
 

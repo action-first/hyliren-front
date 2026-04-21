@@ -29,7 +29,7 @@ export default function MyPage() {
           <p className="text-[12px] text-[var(--color-text-dim)] text-center mb-2">
             상담 등록 후 자동으로 로그인 화면이 안내됩니다
           </p>
-          <Button variant="accent" size="lg" onClick={() => setShowAuthModal(true)}>
+          <Button variant="accent" size="xl" onClick={() => setShowAuthModal(true)}>
             로그인 / 회원가입
           </Button>
         </div>

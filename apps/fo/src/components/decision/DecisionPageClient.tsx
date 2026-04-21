@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Concern, Proposal, PartnerProfile, ProposalItem } from '@hyliren/shared';
 import { track } from '@hyliren/shared';
@@ -15,6 +15,8 @@ import { useDecisionStore } from '@/store/decision';
 import { useLocaleStore } from '@/store/locale';
 import { useAuthStore } from '@/store/auth';
 import { useUserConcernsStore } from '@/store/user-concerns';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 interface ProposalGroup {
   concern: Concern;
@@ -31,6 +33,8 @@ interface Props {
 export function DecisionPageClient({ groups, profiles, items, totalProposalCount }: Props) {
   const t = useLocaleStore(s => s.t);
   const userId = useAuthStore(s => s.user?.id) ?? 'u-001';
+  const [showAuth, setShowAuth] = useState(false);
+  useRequireAuth(useCallback(() => setShowAuth(true), []));
   const localConcerns = useUserConcernsStore(s => s.concerns);
   const localConcernIds = new Set(localConcerns.map(c => c.id));
 
@@ -189,6 +193,9 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
           onProceedToReport={handleCompareIntentProceed}
         />
       )}
+
+      {/* Auth Gate */}
+      <AuthModal open={showAuth} onSuccess={() => setShowAuth(false)} onClose={() => setShowAuth(false)} />
 
     </>
   );

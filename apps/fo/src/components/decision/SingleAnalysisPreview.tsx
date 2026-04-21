@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useReportStore, type ReportPreview, type FullReport } from '@/store/report';
 import { useLocaleStore } from '@/store/locale';
+import { useAuthStore } from '@/store/auth';
 
 interface Props {
   proposal: Proposal;
@@ -67,6 +68,8 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
   const t = useLocaleStore(s => s.t);
   const router = useRouter();
   const { markPurchased, isPurchased: checkPurchased, setFullReport } = useReportStore();
+  const currentUserId = useAuthStore(s => s.user?.id) ?? 'u-001';
+  const currentUserName = useAuthStore(s => s.user?.name) ?? '테스트유저';
   const purchased = checkPurchased(proposal.id);
   const preview = generatePreview(proposal, profile);
 
@@ -90,8 +93,8 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
         amount: 4900,
         currency: 'KRW',
         actorType: 'buyer',
-        actorId: 'u-001',
-        actorName: '고객',
+        actorId: currentUserId,
+        actorName: currentUserName,
         relatedId: proposal.id,
         status: 'paid',
       }),
