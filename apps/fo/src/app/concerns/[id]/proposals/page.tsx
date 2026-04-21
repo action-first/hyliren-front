@@ -1,9 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, use } from 'react';
+import { use } from 'react';
 import { MOCK_CONCERNS, MOCK_PARTNER_PROFILES, track } from '@hyliren/shared';
-import type { Proposal, ProposalItem } from '@hyliren/shared';
 import { Button, Badge, MobileBottomCTA, Spinner } from '@hyliren/ui';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { ExperienceCard } from '@/components/common/ExperienceCard';
@@ -11,30 +10,21 @@ import { VALUE_PROPS, CARD_GRADIENTS as GRADIENTS } from '@/lib/constants';
 import { useDecisionStore } from '@/store/decision';
 import { useLocaleStore } from '@/store/locale';
 import { useUserConcernsStore } from '@/store/user-concerns';
+import { useConcern } from '@/lib/hooks/concern';
+import { useProposalsForConcern } from '@/lib/hooks/proposal';
 
 interface Props { params: Promise<{ id: string }>; }
 
 export default function ProposalListPage({ params }: Props) {
   const { id } = use(params);
   const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
-  const concern = MOCK_CONCERNS.find(c => c.id === id) || userCreatedConcerns.find(c => c.id === id);
+  const mockConcern = MOCK_CONCERNS.find(c => c.id === id);
+  const { concern: apiConcern } = useConcern(id);
+  const concern = apiConcern || mockConcern || userCreatedConcerns.find(c => c.id === id);
   const t = useLocaleStore(s => s.t);
   const { selectedProposalIds: selected, toggleSelect } = useDecisionStore();
 
-  const [proposals, setProposals] = useState<Proposal[]>([]);
-  const [allItems, setAllItems] = useState<ProposalItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(`/api/proposals?concernId=${id}`)
-      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-      .then(data => {
-        setProposals(data.proposals ?? []);
-        setAllItems(data.items ?? []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [id]);
+  const { proposals, items: allItems, loading } = useProposalsForConcern(id);
 
   if (!concern) {
     return <div className="p-8 text-center text-[var(--color-text-secondary)]">{t('concern.notFound')}</div>;
@@ -65,10 +55,11 @@ export default function ProposalListPage({ params }: Props) {
         {/* ── Proposal Cards — Experience Card Inbox ── */}
         <div className="flex flex-col gap-4 px-5">
           {proposals.map((proposal, idx) => {
-            const profile = MOCK_PARTNER_PROFILES.find(p => p.memberId === proposal.memberId);
+            const mockProfile = MOCK_PARTNER_PROFILES.find(p => p.memberId === proposal.memberId);
             const items = allItems.filter(i => i.proposalId === proposal.id);
             const isSelected = selected.has(proposal.id);
-            const valueProp = VALUE_PROPS[proposal.memberId] || profile?.description || '';
+            const hospitalName = (proposal as any).hospitalName || mockProfile?.hospitalName || '';
+            const valueProp = VALUE_PROPS[proposal.memberId] || mockProfile?.description || '';
             const meta = [
               `회복 ${proposal.recoveryDays}일`,
               `${proposal.anesthesiaType === 'local' ? '부분' : proposal.anesthesiaType === 'sedation' ? '수면' : '전신'}마취`,
@@ -80,8 +71,8 @@ export default function ProposalListPage({ params }: Props) {
                 key={proposal.id}
                 gradient={GRADIENTS[idx % GRADIENTS.length]}
                 valueProp={valueProp}
-                hospitalName={profile?.hospitalName || ''}
-                verified={profile?.verified}
+                hospitalName={hospitalName}
+                verified={mockProfile?.verified}
                 rating={4.8}
                 price={proposal.totalPrice}
                 meta={meta}

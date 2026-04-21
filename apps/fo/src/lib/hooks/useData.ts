@@ -4,34 +4,11 @@
  * 사용처에서는 이 hooks만 import — MOCK_* 직접 import 금지
  */
 
-import { useState, useEffect } from 'react';
 import { MOCK_PARTNER_PROFILES, MOCK_CONCERN_PHOTOS } from '@hyliren/shared';
-import type { Proposal, ProposalItem, PartnerProfile, ConcernPhoto } from '@hyliren/shared';
+import type { PartnerProfile, ConcernPhoto } from '@hyliren/shared';
 
 export { useMyConcerns, useConcern } from '@/lib/hooks/concern';
-
-// ---- Proposals ----
-
-/** 특정 concern에 대한 제안서 목록 (API fetch) */
-export function useProposalsForConcern(concernId: string) {
-  const [proposals, setProposals] = useState<Proposal[]>([]);
-  const [items, setItems] = useState<ProposalItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    fetch(`/api/proposals?concernId=${concernId}`)
-      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-      .then(data => {
-        setProposals(data.proposals ?? []);
-        setItems(data.items ?? []);
-        setLoading(false);
-      })
-      .catch(() => { setError(true); setLoading(false); });
-  }, [concernId]);
-
-  return { proposals, items, loading, error };
-}
+export { useProposalsForConcern } from '@/lib/hooks/proposal';
 
 // ---- Partner Profiles ----
 

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { onLogout } from '@/store/auth';
+import { selectHospital as apiSelectHospital } from '@/lib/api/proposal';
 
 interface DecisionState {
   selectedProposalIds: Set<string>;
@@ -8,7 +9,8 @@ interface DecisionState {
   selectedHospitalId: string | null;
   toggleSelect: (id: string) => void;
   clearSelection: () => void;
-  selectHospital: (proposalId: string) => void;
+  /** concernId와 함께 API를 호출하고 로컬 상태도 업데이트 */
+  selectHospital: (concernId: string, proposalId: string) => Promise<void>;
 }
 
 export const useDecisionStore = create<DecisionState>()(
@@ -24,7 +26,10 @@ export const useDecisionStore = create<DecisionState>()(
         return { selectedProposalIds: next };
       }),
       clearSelection: () => set({ selectedProposalIds: new Set(), selectedHospitalId: null }),
-      selectHospital: (proposalId) => set({ selectedHospitalId: proposalId }),
+      selectHospital: async (concernId, proposalId) => {
+        await apiSelectHospital(concernId, proposalId);
+        set({ selectedHospitalId: proposalId });
+      },
     }),
     {
       name: 'hyliren-decision',

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MOCK_CONCERNS, MOCK_PROPOSALS, MOCK_PROPOSAL_ITEMS, MOCK_PARTNER_PROFILES, track } from '@hyliren/shared';
-import { Button, Badge, MobileBottomCTA } from '@hyliren/ui';
+import { Button, Badge, MobileBottomCTA, Spinner } from '@hyliren/ui';
 import {
   ShieldCheck, Check, ChevronRight, Sparkles,
   AlertTriangle, Activity, BarChart3,
@@ -14,6 +14,8 @@ import { CompareReport } from '@/components/decision/CompareReport';
 import { useDecisionStore } from '@/store/decision';
 import { useLocaleStore } from '@/store/locale';
 import { useUserConcernsStore } from '@/store/user-concerns';
+import { useConcern } from '@/lib/hooks/concern';
+import { useProposalsForConcern } from '@/lib/hooks/proposal';
 import { use } from 'react';
 
 interface Props { params: Promise<{ id: string }>; }
@@ -23,13 +25,28 @@ export default function ComparePage({ params }: Props) {
   const router = useRouter();
   const { id } = use(params);
   const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
-  const concern = MOCK_CONCERNS.find(c => c.id === id) || userCreatedConcerns.find(c => c.id === id);
+  const mockConcern = MOCK_CONCERNS.find(c => c.id === id);
+  const { concern: apiConcern } = useConcern(id);
+  const concern = apiConcern || mockConcern || userCreatedConcerns.find(c => c.id === id);
+
+  const { proposals: apiProposals, items: apiItems, loading } = useProposalsForConcern(id);
+
+  const mockProposals = MOCK_PROPOSALS
+    .filter(p => concern && p.concernId === concern.id && p.isActive && p.status !== 'draft')
+    .sort((a, b) => a.totalPrice - b.totalPrice);
+
+  const proposals = (apiProposals.length > 0 ? apiProposals : mockProposals)
+    .filter(p => p.isActive && p.status !== 'draft')
+    .sort((a, b) => a.totalPrice - b.totalPrice);
+
+  const allItems = apiProposals.length > 0 ? apiItems : MOCK_PROPOSAL_ITEMS;
+
   if (!concern) {
     return <div className="p-8 text-center text-[var(--color-text-secondary)]">{t('concern.notFound')}</div>;
   }
-  const proposals = MOCK_PROPOSALS
-    .filter(p => p.concernId === concern.id && p.isActive && p.status !== 'draft')
-    .sort((a, b) => a.totalPrice - b.totalPrice);
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-[60vh]"><Spinner /></div>;
+  }
 
   const { selectedProposalIds, toggleSelect } = useDecisionStore();
   // Compare 페이지에서는 단일 선택 (최종 선택용)
@@ -65,8 +82,9 @@ export default function ComparePage({ params }: Props) {
            ══════════════════════════════════════ */}
         <div className="flex gap-3 px-5 pb-5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           {proposals.map((p, idx) => {
-            const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
-            const items = MOCK_PROPOSAL_ITEMS.filter(i => i.proposalId === p.id);
+            const mockProfile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
+            const hospitalName = (p as any).hospitalName || mockProfile?.hospitalName || '병원';
+            const items = allItems.filter(i => i.proposalId === p.id);
             const isActive = selectedId === p.id;
             const gradient = CARD_GRADIENTS[idx % CARD_GRADIENTS.length];
             const avgPrice = Math.round(p.totalPrice * 1.1);
@@ -85,7 +103,7 @@ export default function ComparePage({ params }: Props) {
                       <Check size={14} strokeWidth={3} className="text-white" />
                     </div>
                   )}
-                  {profile?.verified && (
+                  {mockProfile?.verified && (
                     <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-white/90 text-[9px] font-semibold text-emerald-600">
                       <ShieldCheck size={9} /> {t('common.verified')}
                     </span>
@@ -99,7 +117,7 @@ export default function ComparePage({ params }: Props) {
 
                 {/* Info */}
                 <div className="px-3.5 pt-3 pb-3.5">
-                  <span className="text-[13px] font-semibold text-[var(--color-text)] block mb-1">{profile?.hospitalName}</span>
+                  <span className="text-[13px] font-semibold text-[var(--color-text)] block mb-1">{hospitalName}</span>
 
                   {/* Price */}
                   <span className="text-[1.25rem] font-bold text-[var(--color-text)] block mb-2">{p.totalPrice}{t('common.currency')}</span>
@@ -158,12 +176,13 @@ export default function ComparePage({ params }: Props) {
             </div>
             <div className="px-4 py-3">
               {proposals.map(p => {
-                const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
+                const pMockProfile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
+                const pHospitalName = (p as any).hospitalName || pMockProfile?.hospitalName || '병원';
                 const maxPrice = Math.max(...proposals.map(pp => pp.totalPrice));
                 const barWidth = Math.max((p.totalPrice / maxPrice) * 100, 20);
                 return (
                   <div key={p.id} className={`flex items-center gap-3 py-2 ${selectedId === p.id ? '' : ''}`}>
-                    <span className="text-[11px] text-[var(--color-text-secondary)] w-16 shrink-0 truncate">{profile?.hospitalName?.split(' ')[0]}</span>
+                    <span className="text-[11px] text-[var(--color-text-secondary)] w-16 shrink-0 truncate">{pHospitalName.split(' ')[0]}</span>
                     <div className="flex-1 h-6 bg-[var(--color-bg-secondary)] rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full flex items-center justify-end pr-2 transition-all ${
@@ -189,12 +208,13 @@ export default function ComparePage({ params }: Props) {
             </div>
             <div className="px-4 py-3">
               {proposals.map(p => {
-                const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
+                const pMockProfile2 = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
+                const pHospitalName2 = (p as any).hospitalName || pMockProfile2?.hospitalName || '병원';
                 const maxDays = Math.max(...proposals.map(pp => pp.recoveryDays));
                 const barWidth = Math.max((p.recoveryDays / maxDays) * 100, 20);
                 return (
                   <div key={p.id} className="flex items-center gap-3 py-2">
-                    <span className="text-[11px] text-[var(--color-text-secondary)] w-16 shrink-0 truncate">{profile?.hospitalName?.split(' ')[0]}</span>
+                    <span className="text-[11px] text-[var(--color-text-secondary)] w-16 shrink-0 truncate">{pHospitalName2.split(' ')[0]}</span>
                     <div className="flex-1 h-6 bg-[var(--color-bg-secondary)] rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full flex items-center justify-end pr-2 ${
@@ -264,9 +284,9 @@ export default function ComparePage({ params }: Props) {
       <MobileBottomCTA>
         {selectedId ? (
           <Button variant="primary" fullWidth size="xl"
-            onClick={() => {
+            onClick={async () => {
               track({ eventType: 'hospital_selected', actorType: 'user', targetType: 'proposal', targetId: selectedId, metadata: { source: 'fo', locale: 'ko', label: concern.primaryArea } });
-              useDecisionStore.getState().selectHospital(selectedId);
+              await useDecisionStore.getState().selectHospital(concern.id, selectedId);
               router.push(`/concerns/${concern.id}`);
             }}>
             {t('proposal.compare.selectButton')}
