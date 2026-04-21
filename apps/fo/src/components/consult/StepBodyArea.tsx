@@ -43,7 +43,7 @@ export function StepBodyArea() {
                 ? 'bg-[var(--color-primary-soft)] ring-2 ring-[var(--color-primary)] ring-offset-1'
                 : 'bg-white'
             }`}
-            style={selectedBodyArea !== area.key ? { boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' } : undefined}
+            style={selectedBodyArea !== area.key ? { boxShadow: 'var(--app-shadow-card-sm)' } : undefined}
           >
             <span className="text-[1.5rem]">{area.emoji}</span>
             <div className="flex-1">

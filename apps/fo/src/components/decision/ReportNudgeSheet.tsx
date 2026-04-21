@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@hyliren/ui';
-import { ShieldCheck, TrendingDown, AlertTriangle, X } from 'lucide-react';
+import { Button, BottomSheet } from '@hyliren/ui';
+import { ShieldCheck, TrendingDown, AlertTriangle } from 'lucide-react';
 import { track } from '@hyliren/shared';
 import { useReportStore } from '@/store/report';
 import { useLocaleStore } from '@/store/locale';
@@ -46,27 +46,7 @@ export function ReportNudgeSheet({ concernId, proposalId, delay = 5000 }: Props)
   if (!visible || alreadyPurchased) return null;
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/30 z-50 transition-opacity"
-        onClick={handleDismiss}
-      />
-
-      {/* Sheet */}
-      <div className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-50 rounded-t-3xl overflow-hidden animate-[slideUp_0.3s_ease-out]">
-        <div className="bg-white rounded-t-3xl px-6 pt-5 pb-8"
-          style={{ boxShadow: '0 -4px 24px rgba(0,0,0,0.12)' }}>
-
-          {/* Handle + dismiss */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-1 rounded-full bg-[var(--color-border-light)] mx-auto" />
-            <button onClick={handleDismiss}
-              className="absolute right-6 top-5 w-8 h-8 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center border-0 cursor-pointer">
-              <X size={16} className="text-[var(--color-text-dim)]" />
-            </button>
-          </div>
-
+    <BottomSheet open={visible} onClose={handleDismiss} showHandle showClose>
           {/* Title */}
           <h2 className="text-[1.25rem] font-bold text-[var(--color-text)] leading-tight mb-1.5">
             {t('nudge.title')}
@@ -98,14 +78,12 @@ export function ReportNudgeSheet({ concernId, proposalId, delay = 5000 }: Props)
           </div>
 
           {/* CTA */}
-          <Button variant="accent" size="lg" fullWidth onClick={handleClick}>
+          <Button variant="accent" size="xl" fullWidth onClick={handleClick}>
             {t('nudge.cta')}
           </Button>
           <p className="text-center text-[10px] text-[var(--color-text-dim)] mt-2">
             {t('nudge.social')}
           </p>
-        </div>
-      </div>
-    </>
+    </BottomSheet>
   );
 }

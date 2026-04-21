@@ -46,7 +46,7 @@ export function ExperienceCard({
         ? 'ring-2 ring-[var(--color-primary)] ring-offset-2'
         : ''
     }`}
-      style={{ boxShadow: isPrimary ? '0 2px 12px rgba(0,0,0,0.10)' : '0 1px 3px rgba(0,0,0,0.08)' }}
+      style={{ boxShadow: isPrimary ? 'var(--app-shadow-card-primary)' : 'var(--app-shadow-card-light)' }}
     >
       {/* ── Cover ── */}
       <div className={`relative overflow-hidden bg-gradient-to-br ${gradient} ${

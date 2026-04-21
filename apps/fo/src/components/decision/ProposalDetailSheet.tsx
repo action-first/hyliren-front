@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import type { Proposal, PartnerProfile, ProposalItem } from '@hyliren/shared';
 import { track } from '@hyliren/shared';
-import { Button, Badge } from '@hyliren/ui';
+import { Button, Badge, BottomSheet } from '@hyliren/ui';
 import { X, ShieldCheck, Star, Sparkles, Clock, Syringe } from 'lucide-react';
 import { VALUE_PROPS } from '@/lib/constants';
 import { useLocaleStore } from '@/store/locale';
@@ -30,10 +30,8 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
   const anesthesiaLabel = proposal.anesthesiaType === 'local' ? t('common.anesthesiaLocal') : proposal.anesthesiaType === 'sedation' ? t('common.anesthesiaSedation') : t('common.anesthesiaGeneral');
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black/30 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-50 rounded-t-3xl overflow-hidden animate-[slideUp_0.3s_ease-out]">
-        <div className="bg-white rounded-t-3xl max-h-[85vh] overflow-y-auto hide-scrollbar">
+    <BottomSheet open onClose={onClose} noPadding scrollable>
+        <div className="bg-white rounded-t-3xl" style={{ boxShadow: 'var(--app-shadow-sheet)' }}>
           {/* Header */}
           <div className="sticky top-0 bg-white z-10 px-5 pt-4 pb-3 border-b border-[var(--color-border-light)]">
             <div className="flex items-center justify-between">
@@ -104,7 +102,7 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
           {!purchased && (
             <div className="px-5 pb-4">
               <div className="rounded-xl bg-gradient-to-br from-[#fff8f0] to-[var(--color-bg-wash)] px-4 py-3.5"
-                style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}>
+                style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
                 <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">
                   {t('detail.priceQuestion', { price: proposal.totalPrice })}
                 </p>
@@ -118,11 +116,11 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
           {/* Sticky CTA */}
           <div className="sticky bottom-0 bg-white border-t border-[var(--color-border-light)] px-5 py-4">
             {purchased ? (
-              <Button variant="primary" size="lg" fullWidth onClick={onAnalyze}>
+              <Button variant="primary" size="xl" fullWidth onClick={onAnalyze}>
                 검증 리포트 보기
               </Button>
             ) : (
-              <Button variant="accent" size="lg" fullWidth onClick={onAnalyze}>
+              <Button variant="accent" size="xl" fullWidth onClick={onAnalyze}>
                 <Sparkles size={16} />
                 {t('detail.verifyCta')}
               </Button>
@@ -134,7 +132,6 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
             </button>
           </div>
         </div>
-      </div>
-    </>
+    </BottomSheet>
   );
 }

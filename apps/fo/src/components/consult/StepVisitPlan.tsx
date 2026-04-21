@@ -47,7 +47,7 @@ function SelectionGroup<T extends string>({
                   ? 'bg-[var(--color-primary-soft)] ring-2 ring-[var(--color-primary)]'
                   : 'bg-white'
               }`}
-              style={!isSelected ? { boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' } : undefined}
+              style={!isSelected ? { boxShadow: 'var(--app-shadow-card-sm)' } : undefined}
             >
               <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
                 isSelected ? 'bg-[var(--color-primary)] text-white' : 'border-2 border-[var(--color-border-light)]'

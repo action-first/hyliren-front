@@ -40,8 +40,8 @@ export function StepAIReview() {
       )}
 
       {/* Empathy */}
-      <div className="rounded-2xl bg-gradient-to-br from-[var(--color-bg-wash)] to-white px-4 py-4 mb-3"
-        style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}>
+      <div className="rounded-2xl fo-gradient-wash-br px-4 py-4 mb-3"
+        style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
         <p className="text-[14px] text-[var(--color-text)] leading-[1.7]">
           {analysisResult.empathy}
         </p>
@@ -49,7 +49,7 @@ export function StepAIReview() {
 
       {/* Education */}
       <div className="rounded-2xl bg-white px-4 py-4 mb-3"
-        style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.04)' }}>
+        style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
         <p className="text-[13px] text-[var(--color-text-secondary)] leading-[1.7]">
           {analysisResult.education}
         </p>
@@ -62,7 +62,7 @@ export function StepAIReview() {
 
       {/* CTA */}
       <div className="mt-auto flex flex-col gap-2 pb-2">
-        <Button variant="accent" size="lg" fullWidth onClick={() => setStep('confirm')}>
+        <Button variant="accent" size="xl" fullWidth onClick={() => setStep('confirm')}>
           {t('consult.reviewCta')}
         </Button>
         <button

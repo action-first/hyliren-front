@@ -106,7 +106,7 @@ export default function MyPage() {
               return (
                 <Link key={c.id} href={`/concerns/${c.id}`} className="no-underline block">
                   <div className="px-4 py-3.5 rounded-xl bg-white"
-                    style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
+                    style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-1.5">
                         {c.bodyAreas.slice(0, 2).map(area => (
@@ -140,7 +140,7 @@ export default function MyPage() {
       <section className="px-5">
         <h2 className="text-[15px] font-bold text-[var(--color-text)] mb-3">{t('mypage.settings')}</h2>
         <div className="rounded-xl bg-white overflow-hidden"
-          style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
+          style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
           {[
             { icon: FileText, label: t('mypage.purchasedReportsMenu'), value: `${purchasedIds.size}${t('common.items')}`, href: '/mypage/reports', iconColor: 'text-[var(--color-primary)]' },
             { icon: Globe, label: t('mypage.language'), value: locale === 'ko' ? t('common.langKo') : t('common.langZh'), action: () => setLocale(locale === 'ko' ? 'zh-CN' : 'ko'), iconColor: 'text-[var(--color-primary)]' },

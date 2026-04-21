@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@hyliren/ui';
-import { X, AlertTriangle } from 'lucide-react';
+import { Button, BottomSheet } from '@hyliren/ui';
+import { AlertTriangle } from 'lucide-react';
 import { track } from '@hyliren/shared';
 import { useLocaleStore } from '@/store/locale';
 
@@ -28,21 +28,7 @@ export function CompareIntentModal({ prices, hospitalNames, onClose, onProceedTo
   }
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black/30 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-50 rounded-t-3xl overflow-hidden animate-[slideUp_0.3s_ease-out]">
-        <div className="bg-white px-6 pt-5 pb-8"
-          style={{ boxShadow: '0 -4px 24px rgba(0,0,0,0.12)' }}>
-
-          {/* Handle + close */}
-          <div className="relative mb-5">
-            <div className="w-10 h-1 rounded-full bg-[var(--color-border-light)] mx-auto" />
-            <button onClick={onClose} type="button"
-              className="absolute right-0 top-0 w-8 h-8 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center border-0 cursor-pointer">
-              <X size={16} className="text-[var(--color-text-dim)]" />
-            </button>
-          </div>
-
+    <BottomSheet open onClose={onClose} showHandle showClose>
           {/* Concrete anxiety — 숫자로 불안 시각화 */}
           <div className="flex items-start gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
@@ -85,14 +71,12 @@ export function CompareIntentModal({ prices, hospitalNames, onClose, onProceedTo
           </div>
 
           {/* CTA */}
-          <Button variant="accent" size="lg" fullWidth onClick={handleProceed}>
+          <Button variant="accent" size="xl" fullWidth onClick={handleProceed}>
             {t('compare.cta')}
           </Button>
           <p className="text-center text-[10px] text-[var(--color-text-dim)] mt-2">
             {t('compare.social')}
           </p>
-        </div>
-      </div>
-    </>
+    </BottomSheet>
   );
 }

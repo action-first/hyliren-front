@@ -22,8 +22,8 @@ export function AIAnalysisResultCard({ result, compact = false }: Props) {
   ].filter(r => r.value);
 
   return (
-    <div className="rounded-2xl bg-white overflow-hidden" style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04)' }}>
-      <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[var(--color-primary-soft)] to-[var(--color-bg-wash)]">
+    <div className="rounded-2xl bg-white overflow-hidden" style={{ boxShadow: 'var(--app-shadow-card-md)' }}>
+      <div className="flex items-center gap-2 px-4 py-2.5 fo-gradient-accent">
         <Sparkles size={14} className="text-[var(--color-primary)]" />
         <span className="text-[12px] font-semibold text-[var(--color-text)]">{t('consult.summaryTitle')}</span>
       </div>

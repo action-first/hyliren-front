@@ -76,7 +76,7 @@ export function StepFeedback() {
 
       <div className="mt-auto pb-2">
         <div className="flex items-end gap-2 p-3 rounded-2xl bg-white"
-          style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.06)' }}>
+          style={{ boxShadow: 'var(--app-shadow-card-emphasis)' }}>
           <textarea
             ref={textareaRef}
             value={feedbackInput}

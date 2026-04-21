@@ -1,14 +1,22 @@
-import { getProposals, getProposalItems, updateProposal } from '@hyliren/shared/src/server/data-store';
+import { getProposals, getProposalItems, updateProposal, getConcerns } from '@hyliren/shared/src/server/data-store';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
   const concernId = req.nextUrl.searchParams.get('concernId');
+  const userId = req.nextUrl.searchParams.get('userId');
   let proposals = getProposals().filter(p => p.isActive && p.status !== 'draft');
-  if (concernId) proposals = proposals.filter(p => p.concernId === concernId);
+
+  if (concernId) {
+    proposals = proposals.filter(p => p.concernId === concernId);
+  } else if (userId) {
+    const userConcernIds = new Set(
+      getConcerns().filter(c => c.userId === userId && !c.deletedAt).map(c => c.id)
+    );
+    proposals = proposals.filter(p => userConcernIds.has(p.concernId));
+  }
+
   proposals.sort((a, b) => a.totalPrice - b.totalPrice);
-
   const items = getProposalItems();
-
   return NextResponse.json({ proposals, items });
 }
 

@@ -28,7 +28,7 @@ export function SelectableProposalCard({
       className={`w-full text-left rounded-xl bg-white transition-all duration-150 cursor-pointer border-0 p-0 ${
         selected ? 'ring-2 ring-[var(--color-primary)] ring-offset-1' : ''
       }`}
-      style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}
+      style={{ boxShadow: 'var(--app-shadow-card-sm)' }}
     >
       <div className="flex items-start gap-3 px-4 py-3.5">
         {/* 선택 체크 — 44px 터치 영역 */}

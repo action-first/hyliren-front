@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import type { Proposal, PartnerProfile, ProposalItem } from '@hyliren/shared';
 import { track } from '@hyliren/shared';
-import { Button } from '@hyliren/ui';
+import { Button, BottomSheet } from '@hyliren/ui';
 import {
   X, BarChart3, Activity, ShieldCheck, AlertTriangle,
   CheckCircle, Crown, Lock,
@@ -87,10 +87,8 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
   }
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black/30 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-50 rounded-t-3xl overflow-hidden animate-[slideUp_0.3s_ease-out]">
-        <div className="bg-white max-h-[90vh] overflow-y-auto hide-scrollbar">
+    <BottomSheet open onClose={onClose} noPadding scrollable>
+        <div className="bg-white" style={{ boxShadow: 'var(--app-shadow-sheet)' }}>
           {/* Header */}
           <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-[var(--color-border-light)]">
             <span className="text-[15px] font-semibold text-[var(--color-text)]">
@@ -232,7 +230,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
                 </div>
 
                 {/* 종합 의견 */}
-                <div className="rounded-2xl bg-gradient-to-br from-[var(--color-primary-soft)] to-[var(--color-bg-wash)] px-4 py-4 mb-3">
+                <div className="rounded-2xl fo-gradient-accent-br px-4 py-4 mb-3">
                   <span className="text-[12px] font-semibold text-[var(--color-primary)] block mb-2">{t('report.overallOpinion')}</span>
                   <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
                     {proposals.length}개 제안을 종합 분석한 결과, {winner.hospitalName}이 가격과 리스크 면에서 가장 균형 잡힌 제안입니다.
@@ -271,12 +269,12 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
           {/* Sticky CTA */}
           <div className="sticky bottom-0 bg-white border-t border-[var(--color-border-light)] px-5 py-4">
             {purchased ? (
-              <Button variant="primary" size="lg" fullWidth onClick={onClose}>
+              <Button variant="primary" size="xl" fullWidth onClick={onClose}>
                 {t('common.confirm')}
               </Button>
             ) : (
               <>
-                <Button variant="accent" size="lg" fullWidth onClick={handlePurchase}>
+                <Button variant="accent" size="xl" fullWidth onClick={handlePurchase}>
                   {t('report.compareCta')}
                 </Button>
                 <p className="text-center text-[10px] text-[var(--color-text-dim)] mt-1.5">
@@ -286,7 +284,6 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
             )}
           </div>
         </div>
-      </div>
-    </>
+    </BottomSheet>
   );
 }

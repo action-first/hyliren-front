@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import type { Proposal } from '@hyliren/shared';
 import { MOCK_PROPOSALS, MOCK_PARTNER_PROFILES, MOCK_PROPOSAL_ITEMS, MOCK_CONCERNS } from '@hyliren/shared';
-import { Button, Badge } from '@hyliren/ui';
+import { Button, Badge, BottomSheet } from '@hyliren/ui';
 import { ArrowRight, Camera, MessageCircle, FileText, ChevronRight, ShieldCheck, Clock } from 'lucide-react';
 import { ExperienceCard } from '@/components/common/ExperienceCard';
 import { VALUE_PROPS, CARD_GRADIENTS as G } from '@/lib/constants';
@@ -32,9 +33,21 @@ export default function HomePage() {
     ...MOCK_CONCERNS.filter(c => c.userId === userId && !c.deletedAt && c.status !== 'draft'),
     ...userCreatedConcerns,
   ];
-  const userProposalCount = MOCK_PROPOSALS.filter(p => p.isActive && p.status === 'sent' && !p.viewedAt).length;
+
+  // 실제 제안서 fetch — null이면 아직 로딩 중 (MOCK으로 fallback)
+  const [realProposals, setRealProposals] = useState<Proposal[] | null>(null);
+  useEffect(() => {
+    fetch(`/api/proposals?userId=${userId}`)
+      .then(r => r.json())
+      .then(d => setRealProposals(d.proposals ?? []))
+      .catch(() => setRealProposals([]));
+  }, [userId]);
+
+  const effectiveProposals = realProposals ?? MOCK_PROPOSALS.filter(p => p.isActive && p.status !== 'draft');
+  const userProposalCount = effectiveProposals.filter(p => p.status === 'sent' && !p.viewedAt).length;
   const phase: UserPhase = userConcerns.length === 0 ? 'idle' : userProposalCount > 0 ? 'proposals_ready' : 'waiting';
 
+  // FEATURED 섹션은 마케팅 쇼케이스 — mock 고정
   const proposals = MOCK_PROPOSALS
     .filter(p => p.isActive && p.status !== 'draft')
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -77,7 +90,7 @@ export default function HomePage() {
         {/* CTA — 히어로 하단 상시 노출 */}
         <div className="px-5 pt-4 pb-8">
           <Link href="/consult" className="w-full no-underline block">
-            <Button variant="accent" size="lg" fullWidth className="!h-12 !text-base !rounded-xl">
+            <Button variant="accent" size="xl" fullWidth>
               {t('landing.cta')}
               <ArrowRight size={18} />
             </Button>
@@ -149,7 +162,7 @@ export default function HomePage() {
           {CONCERN_DEFS.map((c, i) => (
             <Link key={i} href={`/consult?area=${c.area}&detail=${c.detail}`}
               className="flex items-center justify-between px-4 py-3.5 rounded-xl bg-white no-underline"
-              style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}>
+              style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
               <span className="text-[14px] text-[var(--color-text)]">{t(c.key)}</span>
               <ChevronRight size={16} className="text-[var(--color-text-dim)]" />
             </Link>
@@ -234,7 +247,7 @@ export default function HomePage() {
           {ARTICLES.slice(0, 3).map(a => (
             <Link key={a.id} href={`/articles/${a.slug}`}
               className="flex gap-3 p-3 rounded-xl bg-white no-underline"
-              style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)' }}>
+              style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
               <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 relative">
                 <img src={a.heroImage} alt={a.title} className="w-full h-full object-cover" />
                 <div className={`absolute bottom-0 left-0 right-0 h-1 ${getAreaBar(a.bodyArea)}`} />
@@ -263,43 +276,28 @@ export default function HomePage() {
 
 /* ═══ 제안 도착 바텀시트 ═══ */
 function ProposalArrivedSheet({ count }: { count: number }) {
-  const t = useLocaleStore(s => s.t);
   const [dismissed, setDismissed] = useState(false);
-  if (dismissed) return null;
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black/20 z-40" onClick={() => setDismissed(true)} />
-      <div className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-50 rounded-t-3xl overflow-hidden animate-[slideUp_0.3s_ease-out]">
-        <div className="bg-white px-6 pt-5 pb-8" style={{ boxShadow: '0 -4px 24px rgba(0,0,0,0.12)' }}>
-          <div className="relative mb-5">
-            <div className="w-10 h-1 rounded-full bg-[var(--color-border-light)] mx-auto" />
-            <button type="button" onClick={() => setDismissed(true)}
-              className="absolute right-0 top-0 w-8 h-8 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center border-0 cursor-pointer">
-              <span className="text-[var(--color-text-dim)] text-lg leading-none">×</span>
-            </button>
-          </div>
-
-          <div className="text-center mb-6">
-            <div className="flex justify-center mb-2">
-              <img src="/images/proposal-arrived.jpg" alt="" className="w-40 h-40 object-contain" />
-            </div>
-            <h3 className="text-[1.25rem] font-bold text-[var(--color-text)] leading-tight mb-2">
-              새로운 제안이 도착했어요
-            </h3>
-            <p className="text-[13px] text-[var(--color-text-dim)]">
-              {count > 0 ? `${count}개 병원이 맞춤 제안을 보냈어요` : '병원의 맞춤 제안을 확인하세요'}
-            </p>
-          </div>
-
-          <Link href="/decision" className="no-underline block">
-            <Button variant="accent" size="lg" fullWidth className="!h-12 !text-base !rounded-xl">
-              제안 확인하기
-              <ArrowRight size={18} />
-            </Button>
-          </Link>
+    <BottomSheet open={!dismissed} onClose={() => setDismissed(true)} showHandle showClose backdropOpacity="20">
+      <div className="text-center mb-6">
+        <div className="flex justify-center mb-2">
+          <img src="/images/proposal-arrived.jpg" alt="" className="w-40 h-40 object-contain" />
         </div>
+        <h3 className="text-[1.25rem] font-bold text-[var(--color-text)] leading-tight mb-2">
+          새로운 제안이 도착했어요
+        </h3>
+        <p className="text-[13px] text-[var(--color-text-dim)]">
+          {count > 0 ? `${count}개 병원이 맞춤 제안을 보냈어요` : '병원의 맞춤 제안을 확인하세요'}
+        </p>
       </div>
-    </>
+
+      <Link href="/decision" className="no-underline block">
+        <Button variant="accent" size="xl" fullWidth>
+          제안 확인하기
+          <ArrowRight size={18} />
+        </Button>
+      </Link>
+    </BottomSheet>
   );
 }

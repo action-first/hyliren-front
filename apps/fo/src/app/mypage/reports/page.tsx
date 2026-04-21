@@ -77,7 +77,7 @@ export default function PurchasedReportsPage() {
 
             return (
               <Link key={proposal.id} href={`/mypage/reports/${proposal.id}`} className="no-underline block rounded-2xl bg-white p-4"
-                style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}
+                style={{ boxShadow: 'var(--app-shadow-card-sm)' }}
               >
                 {/* 병원명 + 인증 */}
                 <div className="flex items-center gap-1.5 mb-1">

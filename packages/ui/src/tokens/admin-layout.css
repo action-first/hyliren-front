@@ -336,17 +336,12 @@
   }
   .bo-sidebar-link, .po-sidebar-link {
     display: flex; align-items: center; gap: 8px;
-    padding: 6px 12px 6px 8px; font-size: 13px; font-weight: 500;
+    padding: 6px 12px; font-size: 13px; font-weight: 500;
     color: var(--text-subdued); text-decoration: none;
-    border-radius: var(--app-radius-sm); transition: background 120ms, color 120ms, border-color 120ms;
-    border-left: 4px solid transparent;
+    border-radius: var(--app-radius-sm); transition: background 120ms, color 120ms;
   }
   .bo-sidebar-link:hover, .po-sidebar-link:hover { background: var(--surface-hovered); color: var(--text-default); }
-  .bo-sidebar-link--active, .po-sidebar-link--active {
-    background: var(--surface-selected); color: var(--interactive-default); font-weight: 600;
-    border-left-color: var(--interactive-default);
-    border-radius: 0 var(--app-radius-sm) var(--app-radius-sm) 0;
-  }
+  .bo-sidebar-link--active, .po-sidebar-link--active { background: var(--surface-selected); color: var(--interactive-default); font-weight: 600; }
   .bo-main, .po-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .bo-topbar, .po-topbar {
     height: var(--admin-topbar-h); display: flex; align-items: center; justify-content: space-between;

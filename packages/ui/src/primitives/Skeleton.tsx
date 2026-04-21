@@ -116,6 +116,35 @@ export function DashboardSkeleton() {
   );
 }
 
+/** 모바일 카드 목록 스켈레톤 — FO 공통 */
+export function MobileCardListSkeleton({ count = 3, padding = '20px 16px' }: { count?: number; padding?: string }) {
+  return (
+    <div style={{ padding, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <style>{shimmer}</style>
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} style={{
+          background: '#fff', borderRadius: 16, padding: 16,
+          boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+        }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: 10, flexShrink: 0,
+              background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 37%, #f1f5f9 63%)',
+              backgroundSize: '800px 100%',
+              animation: 'skeleton-shimmer 1.5s ease-in-out infinite',
+            }} />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <Bone width="55%" height={14} />
+              <Bone width="85%" height={10} />
+              <Bone width="35%" height={10} />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** 상세 페이지 스켈레톤 — 2열 레이아웃 */
 export function DetailPageSkeleton() {
   return (

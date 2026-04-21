@@ -13,6 +13,8 @@ import { SingleAnalysisPreview } from './SingleAnalysisPreview';
 import { CompareIntentModal } from './CompareIntentModal';
 import { useDecisionStore } from '@/store/decision';
 import { useLocaleStore } from '@/store/locale';
+import { useAuthStore } from '@/store/auth';
+import { useUserConcernsStore } from '@/store/user-concerns';
 
 interface ProposalGroup {
   concern: Concern;
@@ -28,14 +30,21 @@ interface Props {
 
 export function DecisionPageClient({ groups, profiles, items, totalProposalCount }: Props) {
   const t = useLocaleStore(s => s.t);
+  const userId = useAuthStore(s => s.user?.id) ?? 'u-001';
+  const localConcerns = useUserConcernsStore(s => s.concerns);
+  const localConcernIds = new Set(localConcerns.map(c => c.id));
 
+  // 내 고민에 연결된 그룹만 표시
+  const myGroups = groups.filter(g =>
+    g.concern.userId === userId || localConcernIds.has(g.concern.id)
+  );
 
   useEffect(() => {
     track({ eventType: 'decision_page_viewed', actorType: 'user', metadata: { source: 'fo', locale: 'ko', value: String(totalProposalCount) } });
   }, [totalProposalCount]);
 
-  const primaryConcernId = groups[0]?.concern.id || '';
-  const allProposals = groups.flatMap(g => g.proposals);
+  const primaryConcernId = myGroups[0]?.concern.id || '';
+  const allProposals = myGroups.flatMap(g => g.proposals);
 
   /* ── Sheet state ── */
   const [detailProposalId, setDetailProposalId] = useState<string | null>(null);
@@ -86,7 +95,7 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
   }
 
   // Empty state
-  if (groups.length === 0 || totalProposalCount === 0) {
+  if (myGroups.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center px-5 pt-16 pb-10">
         <div className="w-16 h-16 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center mb-5">
@@ -120,7 +129,7 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
         </div>
 
         {/* Proposal groups */}
-        {groups.map(g => (
+        {myGroups.map(g => (
           <ProposalGroupSection
             key={g.concern.id}
             concern={g.concern}
@@ -133,7 +142,7 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
 
         {/* Re-entry */}
         <Link href="/consult" className="no-underline block mt-2">
-          <div className="flex items-center gap-3 px-4 py-4 rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[var(--color-bg-wash)]">
+          <div className="flex items-center gap-3 px-4 py-4 rounded-2xl fo-gradient-accent">
             <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0">
               <Plus size={16} className="text-[var(--color-primary)]" />
             </div>

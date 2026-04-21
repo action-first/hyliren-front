@@ -74,7 +74,7 @@ export default function ServicesPage({ params }: Props) {
 
       {/* Selected hospital */}
       {profile && selectedProposal && (
-        <div className="rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[var(--color-bg-wash)] px-4 py-3.5 mb-5">
+        <div className="rounded-2xl fo-gradient-accent px-4 py-3.5 mb-5">
           <span className="text-[10px] text-[var(--color-text-dim)] block mb-1">선택한 병원</span>
           <div className="flex items-center justify-between">
             <div>
@@ -111,7 +111,7 @@ export default function ServicesPage({ params }: Props) {
             <button key={service.key} type="button"
               onClick={() => track({ eventType: 'service_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: service.key } })}
               className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white border-0 text-left cursor-pointer w-full"
-              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+              style={{ boxShadow: 'var(--app-shadow-card-light)' }}>
               <div className="w-10 h-10 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center shrink-0">
                 <Icon size={18} className="text-[var(--color-primary)]" />
               </div>
@@ -142,7 +142,7 @@ export default function ServicesPage({ params }: Props) {
           필요한 서비스를 미리 확인해두세요.
         </p>
         <Link href={`/concerns/${concern.id}`} className="no-underline block">
-          <Button variant="secondary" size="lg" fullWidth>
+          <Button variant="secondary" size="xl" fullWidth>
             고민 상세로 돌아가기
           </Button>
         </Link>

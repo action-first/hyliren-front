@@ -240,7 +240,7 @@ export default function ArticleDetailPage() {
 
       {/* Bottom CTA */}
       <div className="px-5 mt-6">
-        <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[var(--color-bg-wash)]">
+        <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl fo-gradient-accent">
           <div className="flex-1">
             <span className="text-[13px] font-semibold text-[var(--color-text)] block">{t('articles.bottomTitle')}</span>
             <span className="text-[11px] text-[var(--color-text-dim)]">{t('articles.bottomDesc')}</span>

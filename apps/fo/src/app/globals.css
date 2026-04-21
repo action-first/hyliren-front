@@ -159,6 +159,94 @@
     to { transform: translateY(0); }
   }
 
+  /* ---- FO Component classes ---- */
+
+  /* 기본 카드: 흰 배경 + card-sm 그림자 */
+  .fo-card {
+    background: var(--color-bg);
+    border-radius: var(--app-radius);
+    box-shadow: var(--app-shadow-card-sm);
+  }
+
+  /* 강조 카드: card-md (더 깊은 그림자) */
+  .fo-card-md {
+    background: var(--color-bg);
+    border-radius: var(--app-radius);
+    box-shadow: var(--app-shadow-card-md);
+  }
+
+  /* 바텀시트 공통 래퍼 */
+  .fo-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: var(--fo-frame-max-width);
+    z-index: 50;
+    border-radius: 24px 24px 0 0;
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out;
+  }
+
+  /* 바텀시트 내부 콘텐츠 영역 */
+  .fo-sheet-content {
+    background: var(--color-bg);
+    padding: 20px 24px 32px;
+    box-shadow: var(--app-shadow-sheet);
+  }
+
+  /* 바텀시트 핸들 바 */
+  .fo-sheet-handle {
+    width: 40px;
+    height: 4px;
+    border-radius: 9999px;
+    background: var(--color-border-light);
+    margin: 0 auto 16px;
+  }
+
+  /* FO 전용 input (AuthModal 등) */
+  .fo-input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: var(--app-radius-sm);
+    background: var(--color-bg-secondary);
+    border: none;
+    font-size: 14px;
+    color: var(--color-text);
+    outline: none;
+    box-shadow: var(--app-shadow-input);
+  }
+
+  .fo-input::placeholder {
+    color: var(--color-text-dim);
+  }
+
+  /* 그라디언트 유틸리티 */
+  .fo-gradient-accent { background: var(--app-gradient-accent); }
+  .fo-gradient-accent-br { background: var(--app-gradient-accent-br); }
+  .fo-gradient-wash-br { background: var(--app-gradient-wash-br); }
+  .fo-gradient-fade-up { background: var(--app-gradient-fade-up); }
+
+  /* 아이콘 버튼 (헤더 등) */
+  .fo-icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--color-text);
+    border-radius: 50%;
+    transition: background var(--duration-fast);
+  }
+
+  .fo-icon-btn:hover {
+    background: var(--color-bg-secondary);
+  }
+
 }
 
 /* Bottom sheet 스크롤바 숨김 — @layer 밖 (우선순위 확보) */

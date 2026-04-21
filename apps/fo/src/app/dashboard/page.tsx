@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import type { Proposal } from '@hyliren/shared';
 import { MOCK_CONCERNS, MOCK_PROPOSALS, track } from '@hyliren/shared';
 import { useUserConcernsStore } from '@/store/user-concerns';
 import { Button, Badge } from '@hyliren/ui';
 import {
   ArrowRight, Plus, FileText, Clock, ChevronRight,
-  BookOpen, MessageCircle, Inbox, Scale,
+  BookOpen, MessageCircle, Inbox, Scale, Banknote, Calendar,
 } from 'lucide-react';
 import { ARTICLES } from '@/lib/articles-data';
 
@@ -28,7 +29,16 @@ export default function DashboardPage() {
     ...MOCK_CONCERNS.filter(c => c.userId === userId && !c.deletedAt),
     ...userCreatedConcerns,
   ];
-  const userProposals = MOCK_PROPOSALS.filter(p => p.isActive);
+
+  const [realProposals, setRealProposals] = useState<Proposal[] | null>(null);
+  useEffect(() => {
+    fetch(`/api/proposals?userId=${userId}`)
+      .then(r => r.json())
+      .then(d => setRealProposals(d.proposals ?? []))
+      .catch(() => setRealProposals([]));
+  }, [userId]);
+
+  const userProposals = realProposals ?? MOCK_PROPOSALS.filter(p => p.isActive);
   const dashboard = computeDashboardState(userConcerns, userProposals);
 
   useEffect(() => {
@@ -157,7 +167,7 @@ function DashboardHero({ phase, state }: { phase: string; state: DashboardState 
         {config.subtitle}
       </p>
       <Link href={config.ctaHref} className="no-underline">
-        <Button variant="accent" size="lg" fullWidth>
+        <Button variant="accent" size="xl" fullWidth>
           {config.cta}
           <ArrowRight size={16} />
         </Button>
@@ -189,7 +199,7 @@ function ConcernStatusCard({
   return (
     <Link href={href} className="no-underline block">
       <div className="rounded-2xl bg-white px-4 py-4"
-        style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
+        style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
         {/* 1행: bodyArea 컬러 뱃지 + 상태 + NEW */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
@@ -220,13 +230,13 @@ function ConcernStatusCard({
         {(budgetMin || visitDateFrom) && (
           <div className="flex items-center gap-2 mb-2.5">
             {budgetMin && budgetMax && (
-              <span className="px-2 py-0.5 rounded-md bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)]">
-                💰 {budgetMin}~{budgetMax}만
+              <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)]">
+                <Banknote size={10} /> {budgetMin}~{budgetMax}만
               </span>
             )}
             {visitDateFrom && (
-              <span className="px-2 py-0.5 rounded-md bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)]">
-                📅 {visitDateFrom.slice(5)}~
+              <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)]">
+                <Calendar size={10} /> {visitDateFrom.slice(5)}~
               </span>
             )}
           </div>
@@ -273,12 +283,12 @@ function WaitingStatePanel({ bodyArea }: { bodyArea: string }) {
         </p>
         <div className="flex flex-col gap-2">
           <Link href="/consult" className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-white no-underline"
-            style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}>
+            style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
             <Plus size={16} className="text-[var(--color-primary)]" />
             <span className="text-[13px] font-medium text-[var(--color-text)]">{t('dashboard.addAnother')}</span>
           </Link>
           <Link href="/articles" className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-white no-underline"
-            style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}>
+            style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
             <BookOpen size={16} className="text-[var(--color-text-dim)]" />
             <span className="text-[13px] font-medium text-[var(--color-text)]">{t('dashboard.readInfo')}</span>
           </Link>
@@ -306,7 +316,7 @@ function RecommendedArticlesSection({ bodyArea, status }: { bodyArea: string; st
       <div className="flex flex-col gap-2.5">
         {displayArticles.map(a => (
           <Link key={a.id} href={`/articles/${a.slug}`} className="flex gap-3 p-3 rounded-xl bg-white no-underline"
-            style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)' }}>
+            style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
             <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 relative">
               <img src={a.heroImage} alt={a.title} className="w-full h-full object-cover" />
               <div className={`absolute bottom-0 left-0 right-0 h-1 ${
@@ -329,7 +339,7 @@ function ReEntryCTA() {
   return (
     <section className="mt-7">
       <Link href="/consult" className="no-underline block">
-        <div className="flex items-center gap-3 px-4 py-4 rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[var(--color-bg-wash)]">
+        <div className="flex items-center gap-3 px-4 py-4 rounded-2xl fo-gradient-accent">
           <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0">
             <Plus size={16} className="text-[var(--color-primary)]" />
           </div>

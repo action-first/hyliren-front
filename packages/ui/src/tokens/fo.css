@@ -51,11 +51,29 @@
   --app-shadow-hover: rgba(0,0,0,0.08) 0px 4px 12px;
   --app-shadow-focus: rgb(255,255,255) 0px 0px 0px 4px, var(--color-primary) 0px 0px 0px 6px;
 
+  /* ---- Card shadows (semantic scale) ---- */
+  --app-shadow-card-xs: 0 0 0 1px rgba(0,0,0,0.04);
+  --app-shadow-card-sm: 0 0 0 1px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --app-shadow-card-md: 0 0 0 1px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+  --app-shadow-card-light: 0 1px 4px rgba(0,0,0,0.08);
+  --app-shadow-card-primary: 0 2px 12px rgba(0,0,0,0.10);
+  --app-shadow-card-emphasis: 0 0 0 1px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.06);
+
+  /* ---- Sheet / input shadows ---- */
+  --app-shadow-sheet: 0 -4px 24px rgba(0,0,0,0.12);
+  --app-shadow-input: 0 0 0 1px rgba(0,0,0,0.06) inset;
+
   /* ---- Font ---- */
   --app-font: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --app-text-body: 16px;
   --app-text-small: 14px;
   --app-text-micro: 12px;
+
+  /* ---- Gradient tokens ---- */
+  --app-gradient-accent: linear-gradient(to right, var(--color-primary-soft), var(--color-bg-wash));
+  --app-gradient-accent-br: linear-gradient(to bottom right, var(--color-primary-soft), var(--color-bg-wash));
+  --app-gradient-wash-br: linear-gradient(to bottom right, var(--color-bg-wash), var(--color-bg));
+  --app-gradient-fade-up: linear-gradient(to top, #fff 0%, rgba(255,255,255,0.95) 60%, rgba(255,255,255,0) 100%);
 
   /* ---- FO-specific ---- */
   --fo-bottom-bar-height: 3.5rem;

@@ -58,7 +58,7 @@ export function StepNarrative() {
 
       {/* Narrative input */}
       <div className="flex-1 mb-6">
-        <div className="rounded-2xl bg-white p-4" style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04)' }}>
+        <div className="rounded-2xl bg-white p-4" style={{ boxShadow: 'var(--app-shadow-card-md)' }}>
           <textarea
             ref={textareaRef}
             value={narrativeInput}
@@ -72,7 +72,7 @@ export function StepNarrative() {
 
       {/* CTA */}
       <div className="mt-auto pb-2">
-        <Button variant="accent" size="lg" fullWidth onClick={handleStart} disabled={!canProceed}>
+        <Button variant="accent" size="xl" fullWidth onClick={handleStart} disabled={!canProceed}>
           {t('consult.narrativeCta')}
           <ArrowRight size={18} />
         </Button>

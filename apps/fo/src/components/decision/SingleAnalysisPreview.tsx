@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Proposal, PartnerProfile } from '@hyliren/shared';
 import { track } from '@hyliren/shared';
-import { Button } from '@hyliren/ui';
+import { Button, BottomSheet } from '@hyliren/ui';
 import {
   X, TrendingDown, ShieldCheck, AlertTriangle, Lock,
   CheckCircle, XCircle, BarChart3, Activity, FileCheck,
@@ -100,10 +100,8 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
   }
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black/30 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-50 rounded-t-3xl overflow-hidden animate-[slideUp_0.3s_ease-out]">
-        <div className="bg-white rounded-t-3xl max-h-[90vh] overflow-y-auto hide-scrollbar">
+    <BottomSheet open onClose={onClose} noPadding scrollable>
+        <div className="bg-white rounded-t-3xl" style={{ boxShadow: 'var(--app-shadow-sheet)' }}>
           {/* Header */}
           <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-[var(--color-border-light)]">
             <span className="text-[15px] font-semibold text-[var(--color-text)]">
@@ -211,7 +209,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
                 </div>
 
                 {/* Section 4: 종합 의견 */}
-                <div className="rounded-2xl bg-gradient-to-br from-[var(--color-primary-soft)] to-[var(--color-bg-wash)] px-4 py-4">
+                <div className="rounded-2xl fo-gradient-accent-br px-4 py-4">
                   <span className="text-[12px] font-semibold text-[var(--color-primary)] block mb-2">{t('report.overallOpinion')}</span>
                   <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{fullReport.conclusion}</p>
                 </div>
@@ -226,7 +224,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
               <>
                 {/* Value prop — 구매 전 설득 */}
                 <div className="rounded-2xl bg-gradient-to-br from-[#fff8f0] to-[var(--color-bg-wash)] px-4 py-4 mb-3"
-                  style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}>
+                  style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
                   <p className="text-[13px] font-semibold text-[var(--color-text)] mb-2">{t('report.valuePropTitle')}</p>
                   <div className="flex flex-col gap-2">
                     <div className="flex items-start gap-2">
@@ -283,12 +281,12 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
           {/* Sticky CTA */}
           <div className="sticky bottom-0 bg-white border-t border-[var(--color-border-light)] px-5 py-4">
             {purchased ? (
-              <Button variant="primary" size="lg" fullWidth onClick={() => { onClose(); router.push(`/mypage/reports/${proposal.id}`); }}>
+              <Button variant="primary" size="xl" fullWidth onClick={() => { onClose(); router.push(`/mypage/reports/${proposal.id}`); }}>
                 리포트 상세 보기
               </Button>
             ) : (
               <>
-                <Button variant="accent" size="lg" fullWidth onClick={handlePurchase}>
+                <Button variant="accent" size="xl" fullWidth onClick={handlePurchase}>
                   {t('report.singleCta')}
                 </Button>
                 <p className="text-center text-[10px] text-[var(--color-text-dim)] mt-1.5">
@@ -298,7 +296,6 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
             )}
           </div>
         </div>
-      </div>
-    </>
+    </BottomSheet>
   );
 }

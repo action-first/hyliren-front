@@ -214,7 +214,7 @@ export default function ReportDetailPage() {
 
       {/* Section 4: 종합 의견 */}
       <div className="px-5 mb-4">
-        <div className="rounded-2xl bg-gradient-to-br from-[var(--color-primary-soft)] to-[var(--color-bg-wash)] px-4 py-4">
+        <div className="rounded-2xl fo-gradient-accent-br px-4 py-4">
           <span className="text-[12px] font-semibold text-[var(--color-primary)] block mb-2">종합 의견</span>
           <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{report.conclusion}</p>
         </div>

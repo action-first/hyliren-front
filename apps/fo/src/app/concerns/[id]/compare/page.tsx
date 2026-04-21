@@ -238,7 +238,7 @@ export default function ComparePage({ params }: Props) {
           </div>
 
           {/* Analysis CTA */}
-          <div className="rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[var(--color-bg-wash)] px-4 py-4 mt-4">
+          <div className="rounded-2xl fo-gradient-accent px-4 py-4 mt-4">
             <div className="flex items-center gap-2 mb-1.5">
               <Sparkles size={15} className="text-[var(--color-primary)]" />
               <span className="text-[13px] font-semibold text-[var(--color-text)]">{t('proposal.compare.analysisCta')}</span>
@@ -263,7 +263,7 @@ export default function ComparePage({ params }: Props) {
       {/* ── Sticky CTA ── */}
       <MobileBottomCTA>
         {selectedId ? (
-          <Button variant="primary" fullWidth size="lg"
+          <Button variant="primary" fullWidth size="xl"
             onClick={() => {
               track({ eventType: 'hospital_selected', actorType: 'user', targetType: 'proposal', targetId: selectedId, metadata: { source: 'fo', locale: 'ko', label: concern.primaryArea } });
               useDecisionStore.getState().selectHospital(selectedId);

@@ -149,7 +149,7 @@ export default function ConcernDetailPage({ params }: Props) {
         {/* Primary CTA */}
         {actions.primaryAction && (
           <Link href={actions.primaryAction.href} className="no-underline block">
-            <Button variant="accent" size="lg" fullWidth>
+            <Button variant="accent" size="xl" fullWidth>
               {actions.primaryAction.label}
               <ArrowRight size={18} />
             </Button>
@@ -159,7 +159,7 @@ export default function ConcernDetailPage({ params }: Props) {
         {/* Secondary CTA — same height, different variant */}
         {actions.secondaryAction && (
           <Link href={actions.secondaryAction.href} className="no-underline block mt-2">
-            <Button variant="secondary" size="lg" fullWidth>
+            <Button variant="secondary" size="xl" fullWidth>
               {actions.secondaryAction.label}
             </Button>
           </Link>
@@ -185,7 +185,7 @@ export default function ConcernDetailPage({ params }: Props) {
               return (
                 <Link key={p.id} href={`/concerns/${concern.id}/proposals`} className="no-underline block">
                   <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl bg-white"
-                    style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+                    style={{ boxShadow: 'var(--app-shadow-card-light)' }}>
                     <div className="w-9 h-9 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center text-[12px] font-bold text-[var(--color-text-dim)] shrink-0">
                       {(profile?.hospitalName || '병')[0]}
                     </div>
@@ -211,7 +211,7 @@ export default function ConcernDetailPage({ params }: Props) {
       {actions.canBuyService && (
         <section className="mb-5">
           <div className="rounded-2xl bg-white px-4 py-4"
-            style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+            style={{ boxShadow: 'var(--app-shadow-card-light)' }}>
             <h3 className="text-[14px] font-semibold text-[var(--color-text)] mb-3">{t('concern.servicePrep')}</h3>
             <div className="flex flex-col gap-2">
               {['일정 관리', '통역 서비스', '픽업 서비스'].map(service => (
@@ -238,7 +238,7 @@ export default function ConcernDetailPage({ params }: Props) {
         <div className="flex flex-col gap-2">
           {articles.slice(0, 3).map((a, i) => (
             <Link key={i} href="/articles" className="flex gap-3 p-3 rounded-xl bg-white no-underline"
-              style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)' }}>
+              style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
               <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0">
                 <div className={`w-full h-full bg-gradient-to-br ${a.gradient} flex items-center justify-center`}>
                   <BookOpen size={14} className="text-white/50" />

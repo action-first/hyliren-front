@@ -1,72 +1,111 @@
 /**
- * 공유 데이터 스토어 — 인메모리 (서버 전용)
+ * 공유 데이터 스토어 — JSON 파일 기반 (서버 전용)
  *
- * 프로토타입용. 서버 재시작 시 mock 데이터로 리셋됨.
- * 나중에 이 인터페이스만 PostgreSQL/Supabase로 교체하면 됨.
+ * /tmp/hyliren-store.json 를 공유 저장소로 사용.
+ * FO/PO/BO 세 프로세스가 같은 파일을 읽고 쓰므로 크로스 프로세스 데이터 공유 가능.
+ * 프로토타입용 — 나중에 이 인터페이스만 PostgreSQL/Supabase로 교체하면 됨.
  * API Route에서만 import할 것 (클라이언트 번들에 포함 금지).
  */
+import fs from 'fs';
 import type { Concern, ConcernPhoto, Proposal, ProposalItem } from '../types';
 import { MOCK_CONCERNS, MOCK_CONCERN_PHOTOS } from '../mock/concerns';
 import { MOCK_PROPOSALS, MOCK_PROPOSAL_ITEMS } from '../mock/proposals';
 
-// 인메모리 저장소 — 서버 프로세스 시작 시 mock에서 seed, 재시작하면 리셋
-const store = {
-  concerns: [...MOCK_CONCERNS] as Concern[],
-  concernPhotos: [...MOCK_CONCERN_PHOTOS] as ConcernPhoto[],
-  proposals: [...MOCK_PROPOSALS] as Proposal[],
-  proposalItems: [...MOCK_PROPOSAL_ITEMS] as ProposalItem[],
+const STORE_FILE = '/tmp/hyliren-store.json';
+
+type StoreData = {
+  concerns: Concern[];
+  concernPhotos: ConcernPhoto[];
+  proposals: Proposal[];
+  proposalItems: ProposalItem[];
 };
+
+function seed(): StoreData {
+  return {
+    concerns: [...MOCK_CONCERNS],
+    concernPhotos: [...MOCK_CONCERN_PHOTOS],
+    proposals: [...MOCK_PROPOSALS],
+    proposalItems: [...MOCK_PROPOSAL_ITEMS],
+  };
+}
+
+function load(): StoreData {
+  try {
+    return JSON.parse(fs.readFileSync(STORE_FILE, 'utf-8')) as StoreData;
+  } catch {
+    const data = seed();
+    fs.writeFileSync(STORE_FILE, JSON.stringify(data));
+    return data;
+  }
+}
+
+function save(data: StoreData): void {
+  fs.writeFileSync(STORE_FILE, JSON.stringify(data));
+}
+
+/** mock 데이터로 초기화. 테스트 리셋 시 사용. */
+export function resetStore(): void {
+  fs.writeFileSync(STORE_FILE, JSON.stringify(seed()));
+}
 
 // ---- Concerns ----
 
 export function getConcerns(): Concern[] {
-  return store.concerns;
+  return load().concerns;
 }
 
 export function getConcernById(id: string): Concern | null {
-  return store.concerns.find(c => c.id === id) ?? null;
+  return load().concerns.find(c => c.id === id) ?? null;
 }
 
 export function addConcern(concern: Concern): void {
-  store.concerns.push(concern);
+  const data = load();
+  data.concerns.push(concern);
+  save(data);
 }
 
 export function getConcernPhotos(): ConcernPhoto[] {
-  return store.concernPhotos;
+  return load().concernPhotos;
 }
 
 // ---- Proposals ----
 
 export function getProposals(): Proposal[] {
-  return store.proposals;
+  return load().proposals;
 }
 
 export function getProposalById(id: string): Proposal | null {
-  return store.proposals.find(p => p.id === id) ?? null;
+  return load().proposals.find(p => p.id === id) ?? null;
 }
 
 export function addProposal(proposal: Proposal): void {
-  store.proposals.push(proposal);
+  const data = load();
+  data.proposals.push(proposal);
+  save(data);
 }
 
 export function updateProposal(id: string, updates: Partial<Proposal>): Proposal | null {
-  const idx = store.proposals.findIndex(p => p.id === id);
+  const data = load();
+  const idx = data.proposals.findIndex(p => p.id === id);
   if (idx === -1) return null;
-  store.proposals[idx] = { ...store.proposals[idx], ...updates };
-  return store.proposals[idx];
+  data.proposals[idx] = { ...data.proposals[idx], ...updates };
+  save(data);
+  return data.proposals[idx];
 }
 
 // ---- Proposal Items ----
 
 export function getProposalItems(): ProposalItem[] {
-  return store.proposalItems;
+  return load().proposalItems;
 }
 
 export function addProposalItems(items: ProposalItem[]): void {
-  store.proposalItems.push(...items);
+  const data = load();
+  data.proposalItems.push(...items);
+  save(data);
 }
 
-// ---- Events ----
+// ---- Events (인메모리 유지 — 분석용, 크로스 프로세스 공유 불필요) ----
 
 export interface TrackEvent {
   id: string;
@@ -100,12 +139,12 @@ export function addEvent(event: Omit<TrackEvent, 'id' | 'timestamp'>): TrackEven
     id: `ev-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     timestamp: new Date().toISOString(),
   };
-  events.unshift(entry); // 최신이 위
-  if (events.length > 500) events.length = 500; // 메모리 제한
+  events.unshift(entry);
+  if (events.length > 500) events.length = 500;
   return entry;
 }
 
-// ---- Payments ----
+// ---- Payments (인메모리 유지) ----
 
 export interface Payment {
   id: string;

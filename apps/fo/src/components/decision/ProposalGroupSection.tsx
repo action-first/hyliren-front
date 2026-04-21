@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { Concern, Proposal, PartnerProfile, ProposalItem } from '@hyliren/shared';
 import { Badge } from '@hyliren/ui';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Banknote, Calendar } from 'lucide-react';
 import { SelectableProposalCard } from './SelectableProposalCard';
 import { useDecisionStore } from '@/store/decision';
 import { VALUE_PROPS } from '@/lib/constants';
@@ -76,13 +76,13 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
       {/* 예산·방문 칩 */}
       <div className="flex items-center gap-2 mb-3">
         {concern.budgetMin && concern.budgetMax && (
-          <span className="px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-[var(--color-text-secondary)]">
-            💰 {concern.budgetMin}~{concern.budgetMax}만
+          <span className="flex items-center gap-0.5 px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-[var(--color-text-secondary)]">
+            <Banknote size={11} /> {concern.budgetMin}~{concern.budgetMax}만
           </span>
         )}
         {concern.visitDateFrom && (
-          <span className="px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-[var(--color-text-secondary)]">
-            📅 {concern.visitDateFrom.slice(5)}~ 방문
+          <span className="flex items-center gap-0.5 px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-[var(--color-text-secondary)]">
+            <Calendar size={11} /> {concern.visitDateFrom.slice(5)}~ 방문
           </span>
         )}
       </div>

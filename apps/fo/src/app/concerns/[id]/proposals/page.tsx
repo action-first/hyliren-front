@@ -98,7 +98,7 @@ export default function ProposalListPage({ params }: Props) {
         {/* Analysis nudge */}
         <Link href={`/concerns/${concern.id}/compare`} className="no-underline block mt-5 px-5"
           onClick={() => track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: 'proposal_list' } })}>
-          <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[var(--color-primary-soft)] to-[var(--color-bg-wash)]">
+          <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl fo-gradient-accent">
             <Sparkles size={18} className="text-[var(--color-primary)] shrink-0" />
             <div className="flex-1">
               <span className="text-[13px] font-semibold text-[var(--color-text)] block">{t('proposal.list.analysisCta')}</span>
@@ -115,7 +115,7 @@ export default function ProposalListPage({ params }: Props) {
       <MobileBottomCTA>
         {selected.size >= 2 ? (
           <Link href={`/concerns/${concern.id}/compare`} className="w-full no-underline">
-            <Button variant="primary" fullWidth size="lg">
+            <Button variant="primary" fullWidth size="xl">
               {t('proposal.list.compareButton', { count: selected.size })}
               <ArrowRight size={18} />
             </Button>

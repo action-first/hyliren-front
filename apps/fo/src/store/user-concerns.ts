@@ -24,7 +24,7 @@ export const useUserConcernsStore = create<UserConcernsState>((set) => ({
 
     const concern: Concern = {
       id: `c-user-${Date.now()}-${counter}`,
-      userId: useAuthStore.getState().user?.id ?? 'u-guest',
+      userId: useAuthStore.getState().user?.id ?? 'u-001',
       status: 'submitted',
       source: 'organic',
       bodyAreas,
