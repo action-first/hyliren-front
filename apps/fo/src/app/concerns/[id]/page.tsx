@@ -2,7 +2,7 @@
 
 import { use, useState } from 'react';
 import Link from 'next/link';
-import { MOCK_CONCERNS, MOCK_PROPOSALS, MOCK_CONCERN_PHOTOS, MOCK_PARTNER_PROFILES, track } from '@hyliren/shared';
+import { MOCK_PROPOSALS, MOCK_PARTNER_PROFILES, track } from '@hyliren/shared';
 import { Button, Badge } from '@hyliren/ui';
 import {
   ArrowRight, Edit3, Camera, ChevronRight,
@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { computeConcernActions, getRecommendedArticles } from '@/domain/lifecycle';
 import { useLocaleStore } from '@/store/locale';
-import { useUserConcernsStore } from '@/store/user-concerns';
+import { useConcern } from '@/lib/hooks/concern';
 
 function ConcernPhoto({ url }: { url: string }) {
   const [failed, setFailed] = useState(false);
@@ -33,9 +33,17 @@ interface Props { params: Promise<{ id: string }>; }
 export default function ConcernDetailPage({ params }: Props) {
   const t = useLocaleStore(s => s.t);
   const { id } = use(params);
-  const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
-  const concern = MOCK_CONCERNS.find(c => c.id === id) || userCreatedConcerns.find(c => c.id === id);
-  if (!concern) {
+  const { concern, photos, loading, error } = useConcern(id);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-5">
+        <div className="w-8 h-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !concern) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-5 text-center">
         <p className="text-[15px] font-semibold text-[var(--color-text)] mb-2">{t('concern.notFound')}</p>
@@ -45,7 +53,6 @@ export default function ConcernDetailPage({ params }: Props) {
   }
 
   const proposals = MOCK_PROPOSALS.filter(p => p.concernId === concern.id && p.isActive);
-  const photos = MOCK_CONCERN_PHOTOS.filter(p => p.concernId === concern.id);
   const actions = computeConcernActions(concern, MOCK_PROPOSALS);
   const articles = getRecommendedArticles(concern.primaryArea, concern.status);
 
@@ -54,10 +61,8 @@ export default function ConcernDetailPage({ params }: Props) {
 
       {/* ══════════════════════════════════════
           SECTION 1: 내 고민 요약 (정보)
-          사용자가 "내가 뭘 등록했는지" 먼저 확인
          ══════════════════════════════════════ */}
       <section className="mb-5">
-        {/* Body area tags */}
         <div className="flex items-center gap-1.5 mb-2 flex-wrap">
           {concern.bodyAreas.map(area => (
             <Badge key={area} variant="info" size="sm">{area}</Badge>
@@ -67,12 +72,10 @@ export default function ConcernDetailPage({ params }: Props) {
           )}
         </div>
 
-        {/* Description as title — 실제 고민 내용 */}
         <p className="text-[15px] font-semibold text-[var(--color-text)] leading-snug mb-3 line-clamp-3">
           {concern.description}
         </p>
 
-        {/* Meta pills */}
         <div className="flex flex-wrap gap-2 mb-3">
           {concern.budgetMin && concern.budgetMax && (
             <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[var(--color-bg-secondary)]">
@@ -93,7 +96,6 @@ export default function ConcernDetailPage({ params }: Props) {
           )}
         </div>
 
-        {/* Photos — 확대된 사이즈 */}
         {(photos.length > 0 || actions.canAddPhotos) && (
           <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
             {photos.map(p => (
@@ -110,7 +112,6 @@ export default function ConcernDetailPage({ params }: Props) {
           </div>
         )}
 
-        {/* Edit link */}
         {actions.editable && (
           <Link href="/consult" className="flex items-center gap-1 mt-3 text-[12px] font-medium text-[var(--color-primary)] no-underline"
             onClick={() => track({ eventType: 'concern_edited', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko' } })}>
@@ -120,10 +121,9 @@ export default function ConcernDetailPage({ params }: Props) {
       </section>
 
       {/* ══════════════════════════════════════
-          SECTION 2: 현재 상태 + 다음 행동 (상태 → 행동)
+          SECTION 2: 현재 상태 + 다음 행동
          ══════════════════════════════════════ */}
       <section className="rounded-2xl bg-[var(--color-bg-secondary)] px-4 py-4 mb-5">
-        {/* Status badge + helper */}
         <div className="flex items-center gap-2 mb-2">
           <Badge variant={actions.statusColor}>{actions.statusLabel}</Badge>
           {actions.hasNewProposal && (
@@ -136,7 +136,6 @@ export default function ConcernDetailPage({ params }: Props) {
           </p>
         )}
 
-        {/* Extra actions — inline notification */}
         {actions.extraActions.map(action => (
           <Link key={action.label} href={action.href} className="no-underline block mb-3">
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white">
@@ -146,7 +145,6 @@ export default function ConcernDetailPage({ params }: Props) {
           </Link>
         ))}
 
-        {/* Primary CTA */}
         {actions.primaryAction && (
           <Link href={actions.primaryAction.href} className="no-underline block">
             <Button variant="accent" size="xl" fullWidth>
@@ -156,7 +154,6 @@ export default function ConcernDetailPage({ params }: Props) {
           </Link>
         )}
 
-        {/* Secondary CTA — same height, different variant */}
         {actions.secondaryAction && (
           <Link href={actions.secondaryAction.href} className="no-underline block mt-2">
             <Button variant="secondary" size="xl" fullWidth>
@@ -167,9 +164,7 @@ export default function ConcernDetailPage({ params }: Props) {
       </section>
 
       {/* ══════════════════════════════════════
-          SECTION 3: 받은 제안서 (컨텍스트)
-          — proposal_received/comparing 에서만 의미 있음
-          — Report CTA 카드는 제거: Primary CTA가 이미 퍼널 커버
+          SECTION 3: 받은 제안서
          ══════════════════════════════════════ */}
       {proposals.length > 0 && (
         <section className="mb-5">
@@ -206,7 +201,7 @@ export default function ConcernDetailPage({ params }: Props) {
       )}
 
       {/* ══════════════════════════════════════
-          SECTION 4: 실행 서비스 (hospital_selected only)
+          SECTION 4: 실행 서비스
          ══════════════════════════════════════ */}
       {actions.canBuyService && (
         <section className="mb-5">
@@ -226,7 +221,7 @@ export default function ConcernDetailPage({ params }: Props) {
       )}
 
       {/* ══════════════════════════════════════
-          SECTION 5: 관련 아티클 (상태 기반)
+          SECTION 5: 관련 아티클
          ══════════════════════════════════════ */}
       <section className="mb-5">
         <div className="flex items-center justify-between mb-3">

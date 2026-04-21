@@ -3,12 +3,39 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@hyliren/ui';
-import { ArrowRight, Edit3, Sparkles, Clock, Loader2, Shield } from 'lucide-react';
+import { ArrowRight, Edit3, Sparkles, Clock, Loader2 } from 'lucide-react';
 import { useConcernFlowStore, BUDGET_LABELS, VISIT_TIMING_LABELS, STAY_DURATION_LABELS } from '@/store/concern-flow';
-import { useUserConcernsStore } from '@/store/user-concerns';
+import type { BudgetRange, VisitTiming } from '@/store/concern-flow';
 import { useLocaleStore } from '@/store/locale';
 import { AIAnalysisResultCard } from './ConcernSummaryCard';
 import { track } from '@hyliren/shared';
+import { createConcern, submitConcern } from '@/lib/api/concern';
+import { ApiError } from '@/lib/api/errors';
+
+function buildBudget(range: BudgetRange | null): { budgetMin?: number; budgetMax?: number } {
+  switch (range) {
+    case 'under100':  return { budgetMin: 0,   budgetMax: 100 };
+    case '100to300':  return { budgetMin: 100,  budgetMax: 300 };
+    case '300to500':  return { budgetMin: 300,  budgetMax: 500 };
+    case 'over500':   return { budgetMin: 500 };
+    default:          return {};
+  }
+}
+
+function buildVisitDates(timing: VisitTiming | null): { visitDateFrom?: string; visitDateTo?: string } {
+  if (!timing || timing === 'undecided') { return {}; }
+  const from = new Date();
+  const to = new Date();
+  switch (timing) {
+    case 'within1m': to.setMonth(to.getMonth() + 1); break;
+    case 'within3m': to.setMonth(to.getMonth() + 3); break;
+    case 'within6m': to.setMonth(to.getMonth() + 6); break;
+  }
+  return {
+    visitDateFrom: from.toISOString().slice(0, 10),
+    visitDateTo: to.toISOString().slice(0, 10),
+  };
+}
 
 export function StepConfirm() {
   const t = useLocaleStore(s => s.t);
@@ -16,33 +43,50 @@ export function StepConfirm() {
   const {
     analysisResult, photos, narrativeInput, feedbackTurns, analysisCount,
     selectedBodyArea, budgetRange, visitTiming, stayDuration,
+    bodyAreaDetail,
     setStep, resetFlow,
   } = useConcernFlowStore();
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
-  if (!analysisResult) return null;
+  if (!analysisResult) { return null; }
 
   async function handleConfirm() {
-    if (submitting) return;
+    if (submitting) { return; }
     setSubmitting(true);
-    track({ eventType: 'concern_submitted', actorType: 'user', metadata: {
-      source: 'fo', locale: 'ko',
-      label: analysisResult!.extractedSummary.primaryArea || '',
-      value: String(analysisCount),
-    }});
-    await new Promise(r => setTimeout(r, 2000));
+    setApiError(null);
 
-    // 로컬 스토어 + 공유 API 저장
-    const concern = useUserConcernsStore.getState().addFromAnalysis(analysisResult!, narrativeInput, photos);
+    track({
+      eventType: 'concern_submitted', actorType: 'user', metadata: {
+        source: 'fo', locale: 'ko',
+        label: analysisResult!.extractedSummary.primaryArea || '',
+        value: String(analysisCount),
+      },
+    });
+
+    const areas = analysisResult!.extractedSummary.bodyAreas?.length
+      ? analysisResult!.extractedSummary.bodyAreas
+      : selectedBodyArea ? [selectedBodyArea] : [];
+
+    const body = {
+      description: narrativeInput,
+      areas,
+      detail: analysisResult!.extractedSummary.bodyAreaDetail || bodyAreaDetail || undefined,
+      photos,
+      source: 'organic' as const,
+      ...buildBudget(budgetRange),
+      ...buildVisitDates(visitTiming),
+    };
+
     try {
-      await fetch('/api/concerns', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(concern),
-      });
-    } catch (e) {
-      console.error('[StepConfirm] API 저장 실패, 로컬에만 저장됨:', e);
+      const { id } = await createConcern(body);
+      await submitConcern(id);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      setApiError(msg);
+      setSubmitting(false);
+      return;
     }
 
     setSubmitting(false);
@@ -104,7 +148,6 @@ export function StepConfirm() {
         <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{narrativeInput}</p>
       </div>
 
-      {/* 구조화 데이터 */}
       <div className="flex flex-wrap gap-2 mb-3">
         {selectedBodyArea && (
           <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-[11px] font-medium text-blue-600">
@@ -142,6 +185,12 @@ export function StepConfirm() {
       <div className="mb-6">
         <AIAnalysisResultCard result={analysisResult} compact />
       </div>
+
+      {apiError && (
+        <div className="mb-3 px-4 py-3 rounded-xl bg-red-50 text-[12px] text-red-600">
+          {apiError}
+        </div>
+      )}
 
       <div className="mt-auto flex flex-col gap-2 pb-2">
         <Button variant="accent" size="xl" fullWidth onClick={handleConfirm}>
