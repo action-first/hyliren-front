@@ -24,12 +24,16 @@ export default function ComparePage({ params }: Props) {
   const t = useLocaleStore(s => s.t);
   const router = useRouter();
   const { id } = use(params);
-  const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
-  const mockConcern = MOCK_CONCERNS.find(c => c.id === id);
-  const { concern: apiConcern } = useConcern(id);
-  const concern = apiConcern || mockConcern || userCreatedConcerns.find(c => c.id === id);
 
+  // ── Hooks 는 early return 이전에 모두 호출한다 (React 규칙). ──
+  const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
+  const { concern: apiConcern } = useConcern(id);
   const { proposals: apiProposals, items: apiItems, loading } = useProposalsForConcern(id);
+  const { selectedProposalIds, toggleSelect } = useDecisionStore();
+  const [showCompareReport, setShowCompareReport] = useState(false);
+
+  const mockConcern = MOCK_CONCERNS.find(c => c.id === id);
+  const concern = apiConcern || mockConcern || userCreatedConcerns.find(c => c.id === id);
 
   const mockProposals: ProposalWithHospital[] = MOCK_PROPOSALS
     .filter(p => concern && p.concernId === concern.id && p.isActive && p.status !== 'draft')
@@ -45,22 +49,21 @@ export default function ComparePage({ params }: Props) {
 
   const allItems = apiProposals.length > 0 ? apiItems : MOCK_PROPOSAL_ITEMS;
 
+  // Compare 페이지에서는 단일 선택 (최종 선택용)
+  const selectedId = proposals.find(p => selectedProposalIds.has(p.id))?.id || null;
+
+  useEffect(() => {
+    if (!concern) return;
+    track({ eventType: 'compare_entered', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', value: String(proposals.length) } });
+  }, [concern?.id, proposals.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Early returns — 모든 hook 호출 이후에만 배치. ──
   if (!concern) {
     return <div className="p-8 text-center text-[var(--color-text-secondary)]">{t('concern.notFound')}</div>;
   }
   if (loading) {
     return <div className="flex items-center justify-center min-h-[60vh]"><Spinner /></div>;
   }
-
-  const { selectedProposalIds, toggleSelect } = useDecisionStore();
-  // Compare 페이지에서는 단일 선택 (최종 선택용)
-  const selectedId = proposals.find(p => selectedProposalIds.has(p.id))?.id || null;
-  const [showCompareReport, setShowCompareReport] = useState(false);
-
-  useEffect(() => {
-    track({ eventType: 'compare_entered', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', value: String(proposals.length) } });
-  }, [concern.id, proposals.length]);
-
   if (proposals.length === 0) {
     return <div className="p-8 text-center text-[var(--color-text-secondary)]">{t('proposal.compare.noProposals')}</div>;
   }
