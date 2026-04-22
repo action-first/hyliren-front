@@ -45,6 +45,15 @@ export function StepAIProcessing() {
         });
 
         if (cancelled) return;
+
+        // 입력 품질 부족(400) — 무작정 fallback하지 말고 narrative로 복귀
+        if (res.status === 400) {
+          // 서버 에러 메시지는 한국어 고정이므로 무시하고 locale에 맞춘 공통 문구로 안내
+          showToast(t('consult.narrativeTooShortToast'), 'error');
+          setStep('narrative');
+          return;
+        }
+
         if (!res.ok) throw new Error(`API error: ${res.status}`);
 
         const data: AnalysisResponse = await res.json();
@@ -52,9 +61,9 @@ export function StepAIProcessing() {
         incrementAnalysis();
         setStep('review');
       } catch {
-        // 네트워크 오류 시 fallback 분석 결과 세팅
+        // 서버 장애·네트워크 오류만 fallback — 사용자 입력 탓은 아니므로 진행 허용
         if (!cancelled) {
-          showToast('분석 중 연결 오류가 발생했습니다. 기본 안내로 대체합니다.', 'error');
+          showToast(t('consult.processingFallback'), 'error');
           setAnalysisResult({
             empathy: '고민을 나눠주셔서 감사합니다.',
             education: '한국은 다양한 미용 시술에서 세계적인 수준을 갖추고 있습니다.',

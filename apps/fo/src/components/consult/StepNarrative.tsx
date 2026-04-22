@@ -3,10 +3,11 @@
 import { useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@hyliren/ui';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { useConcernFlowStore } from '@/store/concern-flow';
 import { useLocaleStore } from '@/store/locale';
 import { PhotoUploadPanel } from './PhotoUploadPanel';
+import { NARRATIVE_QUALITY_THRESHOLD, narrativeQualityScore } from '@/lib/consult/narrative-quality';
 
 export function StepNarrative() {
   const t = useLocaleStore(s => s.t);
@@ -32,7 +33,11 @@ export function StepNarrative() {
     el.style.height = Math.min(el.scrollHeight, 200) + 'px';
   }, [narrativeInput]);
 
-  const canProceed = narrativeInput.trim().length > 0;
+  const trimmed = narrativeInput.trim();
+  const qualityScore = narrativeQualityScore(trimmed);
+  const canProceed = qualityScore >= NARRATIVE_QUALITY_THRESHOLD;
+  const showGuide = trimmed.length > 0 && !canProceed;
+  const progressPct = Math.min(100, Math.round((qualityScore / NARRATIVE_QUALITY_THRESHOLD) * 100));
 
   function handleStart() {
     if (!canProceed) return;
@@ -63,11 +68,25 @@ export function StepNarrative() {
             ref={textareaRef}
             value={narrativeInput}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNarrativeInput(e.target.value)}
-            placeholder="예: 요즘 눈이 처져서 사나워 보이는 게 스트레스예요. 5월에 한국 갈 때 자연스럽게 개선하고 싶어요. 너무 티 나는 건 싫고 예산은 3만 위안 정도 생각 중이에요."
+            placeholder={t('consult.narrativePlaceholder')}
             rows={4}
             className="w-full resize-none border-0 outline-none bg-transparent text-[15px] text-[var(--color-text)] placeholder:text-[var(--color-text-dim)] placeholder:leading-relaxed leading-relaxed min-h-24"
           />
         </div>
+        {showGuide && (
+          <div className="mt-2 px-1">
+            <div className="flex items-center gap-1.5 text-[12px] text-[var(--color-text-dim)]">
+              <Sparkles size={12} className="text-[var(--color-primary)]" />
+              <span>{t('consult.narrativeGuide')}</span>
+            </div>
+            <div className="mt-1.5 h-1 w-full rounded-full bg-[var(--color-border-light)] overflow-hidden">
+              <div
+                className="h-full bg-[var(--color-primary)] transition-[width] duration-300"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* CTA */}

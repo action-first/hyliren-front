@@ -42,6 +42,15 @@ export default function DashboardPage() {
       .catch(() => setRealProposals([]));
   }, [userId]);
 
+  const dashboardPhase = realProposals === null
+    ? null
+    : computeDashboardState(userConcerns, realProposals).phase;
+
+  useEffect(() => {
+    if (!dashboardPhase) return;
+    track({ eventType: 'dashboard_viewed', actorType: 'user', targetType: 'user', targetId: userId, metadata: { source: 'fo', locale: 'ko', value: dashboardPhase } });
+  }, [dashboardPhase, userId]);
+
   if (realProposals === null) {
     return (
       <>
@@ -53,10 +62,6 @@ export default function DashboardPage() {
 
   const userProposals = realProposals;
   const dashboard = computeDashboardState(userConcerns, userProposals);
-
-  useEffect(() => {
-    track({ eventType: 'dashboard_viewed', actorType: 'user', targetType: 'user', targetId: userId, metadata: { source: 'fo', locale: 'ko', value: dashboard.phase } });
-  }, [dashboard.phase]);
 
   return (
     <>
