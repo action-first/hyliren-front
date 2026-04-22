@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import {
   MOCK_PARTNER_PROFILES,
-  MOCK_PROPOSAL_ITEMS,
 } from '@hyliren/shared';
 import type { Concern, Proposal, ProposalItem } from '@hyliren/shared';
 import { Spinner } from '@hyliren/ui';
@@ -28,7 +27,7 @@ export default function DecisionPage() {
 
         if (activeConcerns.length === 0) {
           setGroups([]);
-          setItems(MOCK_PROPOSAL_ITEMS);
+          setItems([]);
           setLoading(false);
           return;
         }
@@ -52,7 +51,7 @@ export default function DecisionPage() {
       })
       .catch(() => {
         setGroups([]);
-        setItems(MOCK_PROPOSAL_ITEMS);
+        setItems([]);
         setLoading(false);
       });
   }, []);

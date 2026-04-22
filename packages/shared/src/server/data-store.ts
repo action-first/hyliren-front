@@ -84,6 +84,15 @@ export function addProposal(proposal: Proposal): void {
   save(data);
 }
 
+export function updateConcern(id: string, updates: Partial<Concern>): Concern | null {
+  const data = load();
+  const idx = data.concerns.findIndex(c => c.id === id);
+  if (idx === -1) return null;
+  data.concerns[idx] = { ...data.concerns[idx], ...updates };
+  save(data);
+  return data.concerns[idx];
+}
+
 export function updateProposal(id: string, updates: Partial<Proposal>): Proposal | null {
   const data = load();
   const idx = data.proposals.findIndex(p => p.id === id);

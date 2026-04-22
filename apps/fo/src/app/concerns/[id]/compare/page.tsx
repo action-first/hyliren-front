@@ -15,7 +15,7 @@ import { useDecisionStore } from '@/store/decision';
 import { useLocaleStore } from '@/store/locale';
 import { useUserConcernsStore } from '@/store/user-concerns';
 import { useConcern } from '@/lib/hooks/concern';
-import { useProposalsForConcern } from '@/lib/hooks/proposal';
+import { useProposalsForConcern, type ProposalWithHospital } from '@/lib/hooks/proposal';
 import { use } from 'react';
 
 interface Props { params: Promise<{ id: string }>; }
@@ -31,11 +31,15 @@ export default function ComparePage({ params }: Props) {
 
   const { proposals: apiProposals, items: apiItems, loading } = useProposalsForConcern(id);
 
-  const mockProposals = MOCK_PROPOSALS
+  const mockProposals: ProposalWithHospital[] = MOCK_PROPOSALS
     .filter(p => concern && p.concernId === concern.id && p.isActive && p.status !== 'draft')
+    .map(p => {
+      const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
+      return { ...p, hospitalName: profile?.hospitalName ?? '병원', hospitalLogo: null };
+    })
     .sort((a, b) => a.totalPrice - b.totalPrice);
 
-  const proposals = (apiProposals.length > 0 ? apiProposals : mockProposals)
+  const proposals: ProposalWithHospital[] = (apiProposals.length > 0 ? apiProposals : mockProposals)
     .filter(p => p.isActive && p.status !== 'draft')
     .sort((a, b) => a.totalPrice - b.totalPrice);
 
@@ -83,7 +87,7 @@ export default function ComparePage({ params }: Props) {
         <div className="flex gap-3 px-5 pb-5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           {proposals.map((p, idx) => {
             const mockProfile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
-            const hospitalName = (p as any).hospitalName || mockProfile?.hospitalName || '병원';
+            const hospitalName = p.hospitalName || mockProfile?.hospitalName || '병원';
             const items = allItems.filter(i => i.proposalId === p.id);
             const isActive = selectedId === p.id;
             const gradient = CARD_GRADIENTS[idx % CARD_GRADIENTS.length];
@@ -176,8 +180,7 @@ export default function ComparePage({ params }: Props) {
             </div>
             <div className="px-4 py-3">
               {proposals.map(p => {
-                const pMockProfile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
-                const pHospitalName = (p as any).hospitalName || pMockProfile?.hospitalName || '병원';
+                const pHospitalName = p.hospitalName || '병원';
                 const maxPrice = Math.max(...proposals.map(pp => pp.totalPrice));
                 const barWidth = Math.max((p.totalPrice / maxPrice) * 100, 20);
                 return (
@@ -208,8 +211,7 @@ export default function ComparePage({ params }: Props) {
             </div>
             <div className="px-4 py-3">
               {proposals.map(p => {
-                const pMockProfile2 = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
-                const pHospitalName2 = (p as any).hospitalName || pMockProfile2?.hospitalName || '병원';
+                const pHospitalName2 = p.hospitalName || '병원';
                 const maxDays = Math.max(...proposals.map(pp => pp.recoveryDays));
                 const barWidth = Math.max((p.recoveryDays / maxDays) * 100, 20);
                 return (
@@ -240,12 +242,11 @@ export default function ComparePage({ params }: Props) {
             </div>
             <div className="px-4 py-3 flex flex-col gap-2">
               {proposals.map(p => {
-                const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
                 const riskScore = p.anesthesiaType === 'general' ? '보통' : p.anesthesiaType === 'sedation' ? '낮음' : '매우 낮음';
                 const riskColor = p.anesthesiaType === 'general' ? 'text-amber-600' : 'text-emerald-600';
                 return (
                   <div key={p.id} className="flex items-center gap-3 py-1.5">
-                    <span className="text-[11px] text-[var(--color-text-secondary)] w-16 shrink-0 truncate">{profile?.hospitalName?.split(' ')[0]}</span>
+                    <span className="text-[11px] text-[var(--color-text-secondary)] w-16 shrink-0 truncate">{p.hospitalName.split(' ')[0]}</span>
                     <span className="text-[11px] text-[var(--color-text)] flex-1">
                       {p.anesthesiaType === 'local' ? t('common.anesthesiaLocal') : p.anesthesiaType === 'sedation' ? t('common.anesthesiaSedation') : t('common.anesthesiaGeneral')}
                       {p.hospitalStayDays > 0 ? ` · ${t('proposal.compare.dayRecovery', { days: p.hospitalStayDays })}` : ` · ${t('proposal.compare.sameDay')}`}

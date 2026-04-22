@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Proposal } from '@hyliren/shared';
-import { MOCK_CONCERNS, MOCK_PROPOSALS, track } from '@hyliren/shared';
+import { MOCK_CONCERNS, track } from '@hyliren/shared';
 import { useUserConcernsStore } from '@/store/user-concerns';
-import { Button, Badge } from '@hyliren/ui';
+import { Button, Badge, Spinner } from '@hyliren/ui';
 import {
   ArrowRight, Plus, FileText, Clock, ChevronRight,
   BookOpen, MessageCircle, Inbox, Scale, Banknote, Calendar,
@@ -42,7 +42,16 @@ export default function DashboardPage() {
       .catch(() => setRealProposals([]));
   }, [userId]);
 
-  const userProposals = realProposals ?? MOCK_PROPOSALS.filter(p => p.isActive);
+  if (realProposals === null) {
+    return (
+      <>
+        <AuthModal open={showAuth} onSuccess={() => setShowAuth(false)} onClose={() => setShowAuth(false)} />
+        <div className="flex items-center justify-center min-h-[60vh]"><Spinner /></div>
+      </>
+    );
+  }
+
+  const userProposals = realProposals;
   const dashboard = computeDashboardState(userConcerns, userProposals);
 
   useEffect(() => {

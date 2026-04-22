@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { use } from 'react';
 import { MOCK_CONCERNS, MOCK_PARTNER_PROFILES, track } from '@hyliren/shared';
 import { Button, Badge, MobileBottomCTA, Spinner } from '@hyliren/ui';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Inbox } from 'lucide-react';
 import { ExperienceCard } from '@/components/common/ExperienceCard';
 import { VALUE_PROPS, CARD_GRADIENTS as GRADIENTS } from '@/lib/constants';
 import { useDecisionStore } from '@/store/decision';
@@ -33,6 +33,18 @@ export default function ProposalListPage({ params }: Props) {
     return <div className="flex items-center justify-center min-h-[60vh]"><Spinner /></div>;
   }
 
+  if (proposals.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-8 text-center gap-3">
+        <Inbox size={40} className="text-[var(--color-text-dim)]" />
+        <h2 className="text-[1.125rem] font-bold text-[var(--color-text)]">아직 받은 제안서가 없어요</h2>
+        <p className="text-[13px] text-[var(--color-text-dim)] leading-relaxed">
+          병원들이 검토 중입니다.<br />보통 1–2 영업일 내에 제안서가 도착해요.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="pb-4">
@@ -58,7 +70,7 @@ export default function ProposalListPage({ params }: Props) {
             const mockProfile = MOCK_PARTNER_PROFILES.find(p => p.memberId === proposal.memberId);
             const items = allItems.filter(i => i.proposalId === proposal.id);
             const isSelected = selected.has(proposal.id);
-            const hospitalName = (proposal as any).hospitalName || mockProfile?.hospitalName || '';
+            const hospitalName = proposal.hospitalName || mockProfile?.hospitalName || '';
             const valueProp = VALUE_PROPS[proposal.memberId] || mockProfile?.description || '';
             const meta = [
               `회복 ${proposal.recoveryDays}일`,
