@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getConcerns, addConcern, getProposals } from '@hyliren/shared/src/server/data-store';
 import type { Concern } from '@hyliren/shared';
+import { requireUserId } from '@/lib/server/auth';
+import { parseJson, validateBody, isResponse } from '@/lib/server/http';
+import { createConcernSchema } from '@/server/schemas/concern';
 
 function toWireStatus(s: string): string {
   if (s === 'draft') return 'draft';
@@ -8,13 +11,10 @@ function toWireStatus(s: string): string {
   return 'submitted';
 }
 
-function userIdFromToken(req: NextRequest): string {
-  const token = (req.headers.get('authorization') ?? '').replace('Bearer ', '');
-  // mock-access-test@test.com → u-001
-  return token.startsWith('mock-access-') ? 'u-001' : 'u-001';
-}
-
 export async function GET(req: NextRequest) {
+  const auth = requireUserId(req);
+  if (isResponse(auth)) return auth;
+
   const concerns = getConcerns();
   const proposals = getProposals();
 
@@ -23,8 +23,7 @@ export async function GET(req: NextRequest) {
     return acc;
   }, {});
 
-  const userId = userIdFromToken(req);
-  const filtered = concerns.filter(c => c.userId === userId);
+  const filtered = concerns.filter(c => c.userId === auth.userId);
 
   const items = filtered.map(c => ({
     id: c.id,
@@ -50,28 +49,47 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const userId = userIdFromToken(req);
+  const auth = requireUserId(req);
+  if (isResponse(auth)) return auth;
+
+  const raw = await parseJson(req);
+  if (isResponse(raw)) return raw;
+
+  const input = validateBody(createConcernSchema, raw);
+  if (isResponse(input)) return input;
+
   const now = new Date().toISOString();
   const id = `c-${Date.now()}`;
 
-  const areas = (body.areas ?? ['기타']) as string[];
-  const primaryArea = areas[0] ?? '기타';
+  /*
+   * Real backend (concern.service.ts) 동작을 미러링:
+   *   primaryArea: createDto.areas?.[0] || '기타'
+   *   bodyAreas:   createDto.areas || []
+   *
+   * - areas 미지정/빈 배열이어도 400 반환하지 않음 (DTO @IsOptional)
+   * - bodyAreas 는 빈 배열로 저장 (프론트 mapper 가 읽기 시 '기타' 로 정규화)
+   * - unknown enum 값도 정규화 없이 원본 그대로 저장 (DB jsonb 컬럼)
+   */
+  const rawAreas = input.areas ?? [];
+  const bodyAreas = rawAreas as Concern['bodyAreas'];
+  const primaryArea = (rawAreas[0] ?? '기타') as Concern['primaryArea'];
+
+  const source = (input.source ?? 'organic') as Concern['source'];
 
   const concern: Concern = {
     id,
-    userId,
+    userId: auth.userId,
     status: 'draft',
-    source: (body.source ?? 'organic') as Concern['source'],
-    bodyAreas: areas as Concern['bodyAreas'],
-    primaryArea: primaryArea as Concern['primaryArea'],
-    bodyArea: primaryArea as Concern['bodyArea'],
-    bodyAreaDetail: body.detail ?? null,
-    description: body.description ?? '',
-    budgetMin: body.budgetMin ?? null,
-    budgetMax: body.budgetMax ?? null,
-    visitDateFrom: body.visitDateFrom ?? null,
-    visitDateTo: body.visitDateTo ?? null,
+    source,
+    bodyAreas,
+    primaryArea,
+    bodyArea: primaryArea,
+    bodyAreaDetail: input.detail ?? null,
+    description: input.description,
+    budgetMin: input.budgetMin ?? null,
+    budgetMax: input.budgetMax ?? null,
+    visitDateFrom: input.visitDateFrom ?? null,
+    visitDateTo: input.visitDateTo ?? null,
     hasPassport: false,
     createdAt: now,
     updatedAt: now,
