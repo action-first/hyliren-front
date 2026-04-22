@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@hyliren/ui';
 import { ArrowRight, Edit3, Sparkles, Clock, Loader2 } from 'lucide-react';
@@ -37,7 +37,17 @@ function buildVisitDates(timing: VisitTiming | null): { visitDateFrom?: string; 
   };
 }
 
-export function StepConfirm() {
+interface Props {
+  /**
+   * submit 중 401 발생 시 부모 (ConcernFlow) 에게 auth modal 요청.
+   * 로그인 성공 이후 부모가 retrySubmitSignal 을 증가시키면 자동 재시도.
+   */
+  onAuthRequired?: () => void;
+  /** 부모가 auth 성공 시 이 값을 bump 하면 handleConfirm 이 재실행된다. */
+  retrySubmitSignal?: number;
+}
+
+export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {}) {
   const t = useLocaleStore(s => s.t);
   const router = useRouter();
   const {
@@ -49,8 +59,8 @@ export function StepConfirm() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-
-  if (!analysisResult) { return null; }
+  // 최신 handleConfirm 을 capture 해서 retry effect 에서 호출 (closure 고정 문제 회피)
+  const handleConfirmRef = useRef<() => Promise<void>>(() => Promise.resolve());
 
   async function handleConfirm() {
     if (submitting) { return; }
@@ -58,7 +68,7 @@ export function StepConfirm() {
     setApiError(null);
 
     track({
-      eventType: 'concern_submitted', actorType: 'user', metadata: {
+      eventType: 'concern_submit_started', actorType: 'user', metadata: {
         source: 'fo', locale: 'ko',
         label: analysisResult!.extractedSummary.primaryArea || '',
         value: String(analysisCount),
@@ -83,16 +93,49 @@ export function StepConfirm() {
       const { id } = await createConcern(body);
       await submitConcern(id);
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      if (err instanceof ApiError && err.isUnauthorized()) {
+        track({
+          eventType: 'concern_submit_blocked_unauth', actorType: 'user',
+          metadata: { source: 'fo', locale: 'ko' },
+        });
+        setSubmitting(false);
+        onAuthRequired?.();
+        return;
+      }
+      // 서버 오류 vs 그 외 에러 분기. 영문 ApiError.message 직접 노출하지 않음.
+      const msg = err instanceof ApiError && err.isServerError()
+        ? '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+        : '제출에 실패했습니다. 다시 시도해주세요.';
       setApiError(msg);
       setSubmitting(false);
       return;
     }
 
+    track({
+      eventType: 'concern_submit_completed', actorType: 'user', metadata: {
+        source: 'fo', locale: 'ko',
+        label: analysisResult!.extractedSummary.primaryArea || '',
+        value: String(analysisCount),
+      },
+    });
+
     setSubmitting(false);
     setDone(true);
     setTimeout(() => { resetFlow(); router.push('/dashboard'); }, 2500);
   }
+
+  // 최신 closure 를 ref 에 저장
+  handleConfirmRef.current = handleConfirm;
+
+  // 부모 (ConcernFlow) 가 auth 성공 후 retrySubmitSignal 을 증가시키면 재시도.
+  // 초기값 0 일 때는 effect 발동하되 guard 로 무시.
+  useEffect(() => {
+    if (retrySubmitSignal > 0) {
+      handleConfirmRef.current();
+    }
+  }, [retrySubmitSignal]);
+
+  if (!analysisResult) { return null; }
 
   if (done) {
     return (
