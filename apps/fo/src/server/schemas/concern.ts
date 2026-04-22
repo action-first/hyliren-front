@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isNarrativeQualityEnough } from '@/lib/consult/narrative-quality';
 
 /**
  * 스키마는 yj.jung의 client type contract(`apps/fo/src/lib/api/concern/types.ts`)를
@@ -20,7 +21,16 @@ const photoRef = z.string().min(1).max(2048);
 
 export const createConcernSchema = z
   .object({
-    description: z.string().trim().min(1, '고민을 입력해주세요').max(5000),
+    description: z
+      .string()
+      .trim()
+      .min(1, '고민을 입력해주세요')
+      .max(5000)
+      // concern-analysis 와 동일한 언어별 품질 refine 을 서버 측에서도 강제.
+      // 클라이언트 우회 호출 (curl/Postman) 및 이모지·공백 남발 방지.
+      .refine(isNarrativeQualityEnough, {
+        message: '어느 부위가 어떻게 고민이신지 조금 더 구체적으로 알려주세요',
+      }),
     areas: z.array(z.string().min(1).max(20)).max(10).optional(),
     detail: z.string().trim().max(500).optional(),
     budgetMin: nonNegInt.optional(),

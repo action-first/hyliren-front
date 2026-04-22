@@ -75,7 +75,7 @@ export function StepFeedback() {
       </div>
 
       <div className="mt-auto pb-2">
-        <div className="flex items-end gap-2 p-3 rounded-2xl bg-white"
+        <div className="flex items-center gap-2 p-3 rounded-2xl bg-white"
           style={{ boxShadow: 'var(--app-shadow-card-emphasis)' }}>
           <textarea
             ref={textareaRef}
@@ -84,7 +84,7 @@ export function StepFeedback() {
             onKeyDown={handleKeyDown}
             placeholder="예: 절개는 부담스럽고, 회복이 빠른 방법 위주로 보고 싶어요"
             rows={1}
-            className="flex-1 resize-none border-0 outline-none bg-transparent text-[14px] text-[var(--color-text)] placeholder:text-[var(--color-text-dim)] leading-relaxed min-h-[1.5rem] max-h-28"
+            className="flex-1 resize-none border-0 outline-none bg-transparent text-[14px] text-[var(--color-text)] placeholder:text-[var(--color-text-dim)] leading-relaxed min-h-9 max-h-28 py-1"
           />
           <button
             onClick={handleSubmitFeedback}

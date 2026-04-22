@@ -13,41 +13,59 @@ import { StepAIReview } from './StepAIReview';
 import { StepFeedback } from './StepFeedback';
 import { StepConfirm } from './StepConfirm';
 
+type PendingAction = 'processing' | 'confirm_submit' | null;
+
 export function ConcernFlow() {
   const t = useLocaleStore(s => s.t);
-  const { step, analysisCount, photos, setStep, resetFlow } = useConcernFlowStore();
+  const { step, analysisCount, setStep, resetFlow } = useConcernFlowStore();
   const { isLoggedIn } = useAuthStore();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [pendingStep, setPendingStep] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const [retrySubmitSignal, setRetrySubmitSignal] = useState(0);
 
   // 이전 상담이 완료(submitted)된 상태에서 재진입 시 초기화
   useEffect(() => {
     if (step === 'submitted') resetFlow();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auth gate: narrative → processing 전환 시 guest + 사진 있으면 로그인 유도
-  // step을 리셋하지 않고 모달만 오버레이 → 로그인 완료 후 그대로 진행
+  // Auth gate: processing 진입 시 guest 면 로그인 유도.
+  // (이전엔 photos.length > 0 조건만 체크했으나, 사진 없는 guest 도 submit 까지 갔다가
+  //  401 이 나는 퍼널 누수가 있어 모든 guest 에게 적용)
   useEffect(() => {
-    if (step === 'processing' && !isLoggedIn && photos.length > 0 && !pendingStep) {
-      setPendingStep('processing');
+    if (step === 'processing' && !isLoggedIn && !pendingAction) {
+      setPendingAction('processing');
       setShowAuthModal(true);
     }
-  }, [step, isLoggedIn, photos.length, pendingStep]);
+  }, [step, isLoggedIn, pendingAction]);
+
+  // StepConfirm 이 submit 중 401 을 받으면 이 콜백을 호출한다 — 2중 방어망.
+  function requestAuthForSubmit() {
+    setPendingAction('confirm_submit');
+    setShowAuthModal(true);
+  }
 
   function handleAuthSuccess() {
+    const action = pendingAction;
     setShowAuthModal(false);
-    if (pendingStep) {
-      setStep(pendingStep as 'processing');
-      setPendingStep(null);
+    setPendingAction(null);
+
+    if (action === 'processing') {
+      setStep('processing');
+    } else if (action === 'confirm_submit') {
+      // StepConfirm 이 effect 로 이 카운터를 watch 하여 handleConfirm 을 재실행한다
+      setRetrySubmitSignal(s => s + 1);
     }
   }
 
   function handleAuthSkip() {
+    const action = pendingAction;
     setShowAuthModal(false);
-    // 스킵해도 진행 허용 (guest 상태로 processing)
-    if (pendingStep) {
-      setStep(pendingStep as 'processing');
-      setPendingStep(null);
+    setPendingAction(null);
+
+    // 스킵해도 진행 허용 (guest 로 processing 진행). 단 confirm_submit 은 재시도 없음 —
+    // 사용자가 직접 submit 버튼을 다시 눌러야 한다.
+    if (action === 'processing') {
+      setStep('processing');
     }
   }
 
@@ -109,8 +127,18 @@ export function ConcernFlow() {
           {step === 'processing' && <StepAIProcessing />}
           {step === 'review' && <StepAIReview />}
           {step === 'feedback' && <StepFeedback />}
-          {step === 'confirm' && <StepConfirm />}
-          {step === 'submitted' && <StepConfirm />}
+          {step === 'confirm' && (
+            <StepConfirm
+              onAuthRequired={requestAuthForSubmit}
+              retrySubmitSignal={retrySubmitSignal}
+            />
+          )}
+          {step === 'submitted' && (
+            <StepConfirm
+              onAuthRequired={requestAuthForSubmit}
+              retrySubmitSignal={retrySubmitSignal}
+            />
+          )}
         </div>
       </div>
 
