@@ -79,12 +79,18 @@ export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {
       ? analysisResult!.extractedSummary.bodyAreas
       : selectedBodyArea ? [selectedBodyArea] : [];
 
+    // DB concerns 테이블의 raw_narrative / ai_summary / feedback_turns 컬럼에 대응.
+    // 현재 프로토타입은 store 에만 보관 중이므로 submit 시점에 함께 전송해야
+    // 본개발 real backend 전환 순간 데이터 소실 없이 그대로 저장된다.
     const body = {
       description: narrativeInput,
+      rawNarrative: narrativeInput,                              // 고객 원문 (description 과 동일하지만 향후 AI 정제본이 들어갈 때 구분)
       areas,
       detail: analysisResult!.extractedSummary.bodyAreaDetail || bodyAreaDetail || undefined,
       photos,
       source: 'organic' as const,
+      aiSummary: analysisResult as unknown as Record<string, unknown>,  // AI 분석 결과 전체 JSON
+      feedbackTurns: feedbackTurns.map(ft => ({ role: ft.role, message: ft.message })),  // 대화 턴 히스토리
       ...buildBudget(budgetRange),
       ...buildVisitDates(visitTiming),
     };

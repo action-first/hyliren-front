@@ -25,6 +25,8 @@ export async function GET(req: NextRequest) {
 
   const filtered = concerns.filter(c => c.userId === auth.userId);
 
+  // List item wire — rawNarrative/aiSummary/feedbackTurns 는 상세 조회에서만 노출.
+  // 목록 응답을 가볍게 유지.
   const items = filtered.map(c => ({
     id: c.id,
     status: toWireStatus(c.status),
@@ -86,6 +88,10 @@ export async function POST(req: NextRequest) {
     bodyArea: primaryArea,
     bodyAreaDetail: input.detail ?? null,
     description: input.description,
+    // rawNarrative 미지정 시 description 값을 그대로 원문으로 저장 (DB 기본 동작 가정).
+    rawNarrative: input.rawNarrative ?? input.description,
+    aiSummary: input.aiSummary ?? null,
+    feedbackTurns: input.feedbackTurns ?? [],
     budgetMin: input.budgetMin ?? null,
     budgetMax: input.budgetMax ?? null,
     visitDateFrom: input.visitDateFrom ?? null,
