@@ -3,6 +3,7 @@ import {
   MOCK_MEMBERS, MOCK_PARTNER_PROFILES,
   PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE,
   ANESTHESIA_KR, formatDateKR,
+  isProposalAccepted,
 } from '@hyliren/shared';
 import { getProposals } from '@hyliren/shared/src/server/data-store';
 import { Card, Badge, SectionHeader, AdminPage } from '@hyliren/ui';
@@ -51,7 +52,7 @@ export default async function PartnerDetailPage({ params }: Props) {
 
   const profile = MOCK_PARTNER_PROFILES.find(p => p.memberId === id);
   const proposals = getProposals().filter(p => p.memberId === id && p.isActive);
-  const selectedCount = proposals.filter(p => p.status === 'selected').length;
+  const selectedCount = proposals.filter(isProposalAccepted).length;
   const viewedCount = proposals.filter(p => p.viewedAt).length;
   const selectRate = proposals.length > 0 ? Math.round((selectedCount / proposals.length) * 100) : 0;
   const viewRate = proposals.length > 0 ? Math.round((viewedCount / proposals.length) * 100) : 0;

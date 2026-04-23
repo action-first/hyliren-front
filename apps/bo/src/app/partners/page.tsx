@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { MOCK_MEMBERS, MOCK_PARTNER_PROFILES, MOCK_PROPOSALS, BODY_AREA_BADGE } from '@hyliren/shared';
+import { MOCK_MEMBERS, MOCK_PARTNER_PROFILES, MOCK_PROPOSALS, BODY_AREA_BADGE, isProposalAccepted } from '@hyliren/shared';
 import { BOSidebar } from '@/components/BOSidebar';
 import { DataGrid, AdminPage, badgeCellRenderer, detailLinkRenderer } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
@@ -59,7 +59,7 @@ export default function PartnersPage() {
   const rowData: PartnerRow[] = partners.map(m => {
     const profile = MOCK_PARTNER_PROFILES.find(p => p.memberId === m.id);
     const proposals = MOCK_PROPOSALS.filter(p => p.memberId === m.id && p.isActive);
-    const selected = proposals.filter(p => p.status === 'selected').length;
+    const selected = proposals.filter(isProposalAccepted).length;
     const rate = proposals.length > 0 ? Math.round((selected / proposals.length) * 100) : 0;
     return {
       id: m.id,

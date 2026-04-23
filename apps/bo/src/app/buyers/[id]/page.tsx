@@ -12,6 +12,7 @@ import {
   formatBudget,
   formatDateKR,
   formatDateRange,
+  isProposalAccepted,
 } from '@hyliren/shared';
 import { Card, Badge, SectionHeader, AdminPage } from '@hyliren/ui';
 import { BOSidebar } from '@/components/BOSidebar';
@@ -77,7 +78,7 @@ export default async function BuyerDetailPage({ params }: Props) {
       if (p.sentAt) items.push({ time: p.sentAt, text: `제안서 도착 (${p.totalPrice}만원)`, type: 'proposal' });
       if (p.viewedAt) items.push({ time: p.viewedAt, text: '제안서 열람', type: 'action' });
       if (p.status === 'shortlisted') items.push({ time: p.viewedAt || p.sentAt || c.createdAt, text: '제안서 비교 선택', type: 'action' });
-      if (p.status === 'selected') items.push({ time: p.updatedAt, text: '병원 선택 완료', type: 'action' });
+      if (isProposalAccepted(p)) items.push({ time: p.updatedAt, text: '병원 선택 완료', type: 'action' });
     });
     return items;
   }).sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
@@ -85,7 +86,7 @@ export default async function BuyerDetailPage({ params }: Props) {
   // 통계
   const totalProposals = proposals.length;
   const viewedProposals = proposals.filter(p => p.viewedAt).length;
-  const selectedProposals = proposals.filter(p => p.status === 'selected').length;
+  const selectedProposals = proposals.filter(isProposalAccepted).length;
 
   const genderLabel = profile?.gender === 'female' ? '여성' : profile?.gender === 'male' ? '남성' : profile?.gender === 'other' ? '기타' : '-';
   const age = profile?.birthYear ? new Date().getFullYear() - profile.birthYear : null;
