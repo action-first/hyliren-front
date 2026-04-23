@@ -70,6 +70,9 @@ const PROPOSAL_TRANSITIONS: Record<ProposalStatus, Partial<Record<ProposalAction
   shortlisted: { select: 'selected', reject: 'rejected' },
   selected:    {},
   rejected:    {},
+  // DB 값 (PR-A1 에서 추가). UI 레이어에서는 selected 와 등가로 취급.
+  accepted:    {},
+  expired:     {},
 };
 
 export function canTransitionProposal(current: ProposalStatus, action: ProposalAction): boolean {
