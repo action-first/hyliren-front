@@ -19,6 +19,11 @@ const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '날짜는 YYYY-MM-DD �
 const nonNegInt = z.number().int().nonnegative();
 const photoRef = z.string().min(1).max(2048);
 
+const feedbackTurnSchema = z.object({
+  role: z.enum(['user', 'ai']),
+  message: z.string().min(1).max(5000),
+});
+
 export const createConcernSchema = z
   .object({
     description: z
@@ -31,6 +36,9 @@ export const createConcernSchema = z
       .refine(isNarrativeQualityEnough, {
         message: '어느 부위가 어떻게 고민이신지 조금 더 구체적으로 알려주세요',
       }),
+    // 고객 최초 입력 원문. description 이 AI 정제본이면 rawNarrative 는 원본 보존.
+    // DB concerns.raw_narrative 에 대응.
+    rawNarrative: z.string().trim().max(5000).optional(),
     areas: z.array(z.string().min(1).max(20)).max(10).optional(),
     detail: z.string().trim().max(500).optional(),
     budgetMin: nonNegInt.optional(),
@@ -39,6 +47,10 @@ export const createConcernSchema = z
     visitDateTo: isoDate.optional(),
     photos: z.array(photoRef).max(3).optional(),
     source: z.string().min(1).max(32).optional(),
+    // AI 분석 결과 전체 JSON. DB concerns.ai_summary (JSONB) 에 대응.
+    aiSummary: z.record(z.string(), z.unknown()).optional(),
+    // AI 상담 대화 히스토리. DB concerns.feedback_turns 에 JSONB 배열로 저장.
+    feedbackTurns: z.array(feedbackTurnSchema).max(50).optional(),
   })
   .strict()
   .refine(
