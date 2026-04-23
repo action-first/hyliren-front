@@ -13,8 +13,6 @@ import { SingleAnalysisPreview } from './SingleAnalysisPreview';
 import { CompareIntentModal } from './CompareIntentModal';
 import { useDecisionStore } from '@/store/decision';
 import { useLocaleStore } from '@/store/locale';
-import { useAuthStore } from '@/store/auth';
-import { useUserConcernsStore } from '@/store/user-concerns';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { AuthModal } from '@/components/auth/AuthModal';
 
@@ -32,16 +30,14 @@ interface Props {
 
 export function DecisionPageClient({ groups, profiles, items, totalProposalCount }: Props) {
   const t = useLocaleStore(s => s.t);
-  const userId = useAuthStore(s => s.user?.id) ?? 'u-001';
   const [showAuth, setShowAuth] = useState(false);
   useRequireAuth(useCallback(() => setShowAuth(true), []));
-  const localConcerns = useUserConcernsStore(s => s.concerns);
-  const localConcernIds = new Set(localConcerns.map(c => c.id));
 
-  // 내 고민에 연결된 그룹만 표시
-  const myGroups = groups.filter(g =>
-    g.concern.userId === userId || localConcernIds.has(g.concern.id)
-  );
+  // 서버 (`/api/v1/concerns`) 가 이미 인증된 user 의 concerns 만 반환하므로
+  // 클라이언트에서 다시 userId 로 필터링할 필요 없음.
+  // 기존 `g.concern.userId === userId` 체크는 list wire 에 userId 필드가 없어서
+  // mapConcernListItem 이 userId:'' 로 매핑 → 항상 false → 제안서 안 보이던 버그의 원인.
+  const myGroups = groups;
 
   useEffect(() => {
     track({ eventType: 'decision_page_viewed', actorType: 'user', metadata: { source: 'fo', locale: 'ko', value: String(totalProposalCount) } });
