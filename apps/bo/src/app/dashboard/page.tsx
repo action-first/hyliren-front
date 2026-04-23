@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MOCK_MEMBERS, MOCK_USERS } from '@hyliren/shared';
+import { MOCK_MEMBERS, MOCK_USERS, isProposalAccepted } from '@hyliren/shared';
 import { getConcerns, getProposals, getEvents, getPayments } from '@hyliren/shared/src/server/data-store';
 import { Badge, Button, AdminPage } from '@hyliren/ui';
 import { BOSidebar } from '@/components/BOSidebar';
@@ -44,7 +44,7 @@ export default function DashboardPage() {
 
   const totalRevenue = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
   const viewedCount = proposals.filter(p => p.viewedAt).length;
-  const selectedCount = proposals.filter(p => p.status === 'selected').length;
+  const selectedCount = proposals.filter(isProposalAccepted).length;
   const viewRate = proposals.length > 0 ? Math.round((viewedCount / proposals.length) * 100) : 0;
   const selectRate = proposals.length > 0 ? Math.round((selectedCount / proposals.length) * 100) : 0;
 

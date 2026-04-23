@@ -6,6 +6,7 @@ import type { Concern, Proposal } from '@hyliren/shared';
 import {
   CONCERN_STATUS_KR, PROPOSAL_STATUS_KR, BODY_AREA_BADGE,
   formatBudget, formatDateRange,
+  isProposalAccepted,
 } from '@hyliren/shared';
 import { AdminPage, DateFilter } from '@hyliren/ui';
 import type { DateRange } from '@hyliren/ui';
@@ -268,7 +269,7 @@ export default function DashboardPage() {
   const myProposals = proposals;
   const viewedCount = myProposals.filter(p => p.viewedAt !== null).length;
   const viewRate = myProposals.length > 0 ? Math.round((viewedCount / myProposals.length) * 100) : 0;
-  const selectedCount = myProposals.filter(p => p.status === 'selected').length;
+  const selectedCount = myProposals.filter(isProposalAccepted).length;
   const selectedRate = myProposals.length > 0 ? Math.round((selectedCount / myProposals.length) * 100) : 0;
 
   // 도넛 — 제안서 상태

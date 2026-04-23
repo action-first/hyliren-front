@@ -8,3 +8,10 @@ export {
 } from './transitions';
 
 export type { ConcernAction, ProposalAction } from './transitions';
+
+export {
+  isProposalAccepted,
+  isProposalDeclined,
+  isProposalPending,
+  isDbProposalStatus,
+} from './proposal-status';

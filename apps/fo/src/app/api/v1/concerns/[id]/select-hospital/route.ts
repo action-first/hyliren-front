@@ -6,6 +6,7 @@ import {
   updateConcern,
   updateProposal,
 } from '@hyliren/shared/src/server/data-store';
+import { isProposalAccepted } from '@hyliren/shared';
 import { requireUserId } from '@/lib/server/auth';
 import { parseJson, validateBody, isResponse } from '@/lib/server/http';
 import { selectHospitalSchema } from '@/server/schemas/concern';
@@ -53,7 +54,7 @@ export async function POST(
   }
 
   const alreadySelected = getProposals().some(
-    p => p.concernId === concernId && p.status === 'selected',
+    p => p.concernId === concernId && isProposalAccepted(p),
   );
   if (alreadySelected) {
     return NextResponse.json(

@@ -6,6 +6,7 @@ import {
   updateConcern,
 } from '@hyliren/shared/src/server/data-store';
 import type { Concern } from '@hyliren/shared';
+import { isProposalAccepted } from '@hyliren/shared';
 import { requireUserId } from '@/lib/server/auth';
 import { parseJson, validateBody, isResponse } from '@/lib/server/http';
 import { updateConcernSchema } from '@/server/schemas/concern';
@@ -44,7 +45,7 @@ export async function GET(
   const proposalCount = proposals.length;
 
   const selectedProposal = concern.status === 'hospital_selected'
-    ? proposals.find(p => p.status === 'selected')
+    ? proposals.find(isProposalAccepted)
     : null;
 
   return NextResponse.json({
