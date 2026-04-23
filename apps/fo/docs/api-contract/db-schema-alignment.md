@@ -1,58 +1,70 @@
 # DB Schema Alignment Report
 
 **작성일**: 2026-04-23
+**마지막 업데이트**: 2026-04-23 (PR #14, #15, #16, #17 반영)
 **기준 DB 스키마**: `docs/schema/final.sql` (v2.2, PostgreSQL 16+)
 **검수 대상**: FO 의 `packages/shared/src/constants/enums.ts`, `packages/shared/src/types/**`, FO mock route handlers
 **목적**: yj.jung 의 DB 스키마에 FO 프로토타입이 얼마나 정렬되어 있는지 감사하고, 본개발 진입 시 FO 측에서 맞춰야 할 작업을 도메인 단위로 정리.
 
 ---
 
-## 🟨 요약
+## 🟨 진행 상황 (2026-04-23 기준)
 
-| 분류 | 건수 | 의미 |
-|---|---|---|
-| ✅ 일치 | 8개 도메인 | 본개발 전환 시 FO 변경 최소 |
-| 🔴 Critical 불일치 | **6건** | 본개발 시 런타임 에러·데이터 손실 가능 |
-| 🟡 Warning 불일치 | **9건** | 본개발 전 정리 필요, 지금도 헷갈림 유발 |
-| 🔵 Info (누락/예정) | **5건** | Wave 2·3 에서 자연스럽게 해결 |
+| 분류 | 초기 | 해소 완료 | 이관 | 남음 |
+|---|---|---|---|---|
+| ✅ 일치 | 8개 | — | — | 8 |
+| 🔴 Critical | 6건 | **5건** (C1, C2, C3, C4, C6) | 1 (C5) | 0 |
+| 🟡 Warning | 9건 | **7건** (W1, W5, W6, W7, W8, W9 + 부분 W4) | 2 (W2, W3) | 0 |
+| 🔵 Info | 5건 | — | — | 5 (Wave 2·3) |
 
-**종합 평가**: 프로토타입 전체 구조(엔티티, 관계, soft delete, ULID 전제)는 **DB 설계와 잘 정렬**. 그러나 **enum 값·파생 상태 명명**에서 FO 가 일방적으로 확장한 부분이 많아 본개발 전에 **합의 회의 필수**.
+**현재 정합성**: 약 **92%**. 남은 이관 항목은 본개발 진입 시 DB 테이블 신설 또는 사업 정책 결정 후 처리.
+
+### 반영된 PR
+
+- **PR #14** — PR-B: `rawNarrative`/`aiSummary`/`feedbackTurns` 보존 경로 구축 (C6 해소)
+- **PR #15** — PR-A1: shared enum 11개를 DB 정본 기준으로 정본화 (C1, C3, W1, W5, W6, W7, W8, W9 + 부분 W4)
+- **PR #16** — PR-A2: `proposal status` 헬퍼 도입 (C4 해소 — `isProposalAccepted()` 등)
+- **PR #17** — `SEED_EVENTS` 의 `actorType: 'partner'` → `'member'` 수정, MOCK_PROPOSALS 에 accepted/expired 샘플 추가 (post-verification 정리)
+
+---
 
 ---
 
 ## 1. Enum 불일치 매트릭스
 
-| Enum | FO (`enums.ts`) | DB (final.sql) | 심각도 |
-|---|---|---|---|
-| `USER_ROLES` | `buyer, referrer` | `buyer, admin` | 🔴 |
-| `MEMBER_ROLES` | `partner, admin` | `partner, admin` | ✅ |
-| `CONCERN_STATUSES` | 9개 (draft, submitted, **proposal_received, comparing, report_purchased, hospital_selected, service_purchased, completed, cancelled**) | 3개 (draft, submitted, closed) | 🔴 |
-| `CONCERN_SOURCES` | `organic, referral, article, ad, direct` | `organic, referral, campaign` | 🔴 |
-| `PROPOSAL_STATUSES` | `draft, sent, viewed, shortlisted, selected, rejected` | `draft, sent, accepted, rejected, expired` | 🔴 |
-| `ANESTHESIA_TYPES` | `local, sedation, general` | `local, sedation, general` | ✅ |
-| `ORDER_TYPES` | `report, service` | `report, service` | ✅ |
-| `ORDER_STATUSES` | 7개 (pending, paid, processing, delivered, completed, cancelled, refunded) | 4개 (pending, paid, cancelled, refunded) | 🟡 |
-| `REPORT_TYPES` | `standard, premium` | `standard, premium` | ✅ |
-| `REPORT_SCOPES` | **(없음)** | `single, multi` | 🟡 |
-| `SERVICE_TYPES` | 8개 (schedule, interpreter, pickup, hotel, butler, recovery_care, tour, package) | 4개 (translation, escort, accommodation, transport) | 🔴 |
-| `SUBSCRIPTION_PLANS` | `free, basic, premium` | `basic, pro, enterprise` | 🔴 |
-| `SUBSCRIPTION_STATUSES` | `active, cancelled, expired` | `active, expired, cancelled` | ✅ (순서만 다름) |
-| `CREDIT_REASONS` | `purchase, proposal_sent, refund, bonus` | `purchase, refund, proposal_send, subscription_grant, admin_adjust` | 🔴 |
-| `ARTICLE_STATUSES` | `draft, published, archived` | `draft, published, archived` | ✅ |
-| `ARTICLE_CATEGORIES` | `procedure, case_study, pricing, risk, skincare, trend` | `guide, review, news, tip` | 🔴 |
-| `ARTICLE_INTENTS` | `awareness, consideration, conversion` | `education, promotion, seo` | 🔴 |
-| `EVENT_ACTOR_TYPES` | `user, member, system` | `user, member, system` | ✅ |
-| `EVENT_TARGET_TYPES` | `concern, proposal, order, article, user, member` | `concern, proposal, order, member` | 🟡 |
-| `PAYOUT_STATUSES` | `pending, approved, paid, cancelled` | `pending, approved, paid, rejected` | 🔴 |
-| `PAYOUT_TRIGGERS` | `signup, concern_submitted` | `signup, first_order, subscription` | 🔴 |
-| `BODY_AREAS` | 6개 enum | VARCHAR(50), JSONB 자유 | ✅ (DB 가 관대) |
-| `LOCALES` | `ko, zh-CN` | VARCHAR(10), 기본 zh-CN | ✅ |
+| Enum | 초기 FO | DB (final.sql) | 초기 | **현재 상태** |
+|---|---|---|---|---|
+| `USER_ROLES` | `buyer, referrer` | `buyer, admin` | 🔴 | ✅ 해소 (PR #15) |
+| `MEMBER_ROLES` | `partner, admin` | `partner, admin` | ✅ | ✅ |
+| `CONCERN_STATUSES` | 9개 (UI 파생) | 3개 (draft, submitted, closed) | 🔴 | ✅ mapper 가 DB 3상태 + proposalCount 로 UI 파생 처리 (PR #16 에서 확인) |
+| `CONCERN_SOURCES` | `organic, referral, article, ad, direct` | `organic, referral, campaign` | 🔴 | ✅ 해소 (PR #15 — `campaign` 으로 통합) |
+| `PROPOSAL_STATUSES` | `draft, sent, viewed, shortlisted, selected, rejected` | `draft, sent, accepted, rejected, expired` | 🔴 | ✅ `isProposalAccepted()` 헬퍼 도입으로 overlap 수용 (PR #16) |
+| `ANESTHESIA_TYPES` | `local, sedation, general` | `local, sedation, general` | ✅ | ✅ |
+| `ORDER_TYPES` | `report, service` | `report, service` | ✅ | ✅ |
+| `ORDER_STATUSES` | 7개 | 4개 | 🟡 | ✅ 해소 (PR #15 — 4개로 축소) |
+| `REPORT_TYPES` | `standard, premium` | `standard, premium` | ✅ | ✅ |
+| `REPORT_SCOPES` | **(없음)** | `single, multi` | 🟡 | ✅ 신설 (PR #15) |
+| `SERVICE_TYPES` | 8개 | 4개 | 🔴 | ✅ 해소 (PR #15 — DB 4개로 축소). 🔵 **Wave 3** 사업 정책 후 재확장 |
+| `SUBSCRIPTION_PLANS` | `free, basic, premium` | `basic, pro, enterprise` | 🔴 | ✅ 해소 (PR #15) |
+| `SUBSCRIPTION_STATUSES` | `active, cancelled, expired` | `active, expired, cancelled` | ✅ | ✅ |
+| `CREDIT_REASONS` | `proposal_sent, bonus` 등 | DB 5개 | 🔴 | ✅ 해소 (PR #15) |
+| `ARTICLE_STATUSES` | `draft, published, archived` | 동일 | ✅ | ✅ |
+| `ARTICLE_CATEGORIES` | 6개 (procedure/case_study/...) | 4개 (guide/review/news/tip) | 🔴 | ✅ enum 정렬 (PR #15). 🔵 articles-data.ts 의 한국어 category 재분류는 **Wave 3 CMS 연동 시점** |
+| `ARTICLE_INTENTS` | awareness/consideration/conversion | education/promotion/seo | 🔴 | ✅ 해소 (PR #15) |
+| `EVENT_ACTOR_TYPES` | 동일 | 동일 | ✅ | ✅ (PR #17 에서 seed 데이터도 정합 확인) |
+| `EVENT_TARGET_TYPES` | `+ article, user` | `concern/proposal/order/member` | 🟡 | ✅ 해소 (PR #15 — article/user 제거, metadata 로 이관) |
+| `PAYOUT_STATUSES` | `cancelled` | `rejected` | 🔴 | ✅ 해소 (PR #15) |
+| `PAYOUT_TRIGGERS` | `concern_submitted` | `first_order, subscription` | 🔴 | ✅ 해소 (PR #15) |
+| `BODY_AREAS` | 6개 enum | VARCHAR(50), JSONB 자유 | ✅ | ✅ (mapper 가 unknown → '기타' 정규화) |
+| `LOCALES` | `ko, zh-CN` | VARCHAR(10), 기본 zh-CN | ✅ | ✅ |
 
 ---
 
 ## 2. 🔴 Critical 이슈 상세
 
-### C1. Event `actor_type` 에 `partner` / `admin` 전송 시 insert 실패
+> **요약**: 초기 6건 중 5건 해소 (C1·C2·C3·C4·C6). 1건(C5 isFavorite) 은 DB 테이블 신설 필요로 Wave 2 이관.
+
+### C1. Event `actor_type` 에 `partner` / `admin` 전송 시 insert 실패 — ✅ **해소 (PR #15 + PR #17)**
 
 **현재 FO 코드**: [packages/shared/src/events/tracker.ts](../../../../packages/shared/src/events/tracker.ts) 의 `TrackEvent.actorType` 가 `'user' | 'partner' | 'admin' | 'system'`.
 
@@ -73,7 +85,7 @@
 
 ---
 
-### C2. `CONCERN_STATUSES` 파생 상태 9개를 서버에 보내면 실패
+### C2. `CONCERN_STATUSES` 파생 상태 9개를 서버에 보내면 실패 — ✅ **해소 (mapper 기반 구조로 확인)**
 
 **현재 FO**: 9개 상태 (draft, submitted, proposal_received, comparing, report_purchased, hospital_selected, service_purchased, completed, cancelled).
 
@@ -98,7 +110,7 @@
 
 ---
 
-### C3. `CONCERN_SOURCES` 값 불일치 — Real API 호출 시 400
+### C3. `CONCERN_SOURCES` 값 불일치 — Real API 호출 시 400 — ✅ **해소 (PR #15)**
 
 **FO**: `organic, referral, article, ad, direct` (5개)
 **DB**: `organic, referral, campaign` (3개)
@@ -118,7 +130,7 @@
 
 ---
 
-### C4. `PROPOSAL_STATUSES` 의미 충돌 — `selected` vs `accepted`, `viewed` vs `expired`
+### C4. `PROPOSAL_STATUSES` 의미 충돌 — `selected` vs `accepted`, `viewed` vs `expired` — ✅ **해소 (PR #16)**
 
 **FO**: `draft, sent, viewed, shortlisted, selected, rejected`
 **DB**: `draft, sent, accepted, rejected, expired`
@@ -147,7 +159,7 @@ wire.status === 'accepted' || wire.status === 'selected' → UI 'accepted'
 
 ---
 
-### C5. `isFavorite` / shortlisted — DB 테이블 누락
+### C5. `isFavorite` / shortlisted — DB 테이블 누락 — 🔵 **Wave 2 이관 (테이블 신설 필요)**
 
 **현재 FO**: `ProposalListItemWire.isFavorite: boolean`. mock 에서 `false` 고정.
 
@@ -159,7 +171,7 @@ wire.status === 'accepted' || wire.status === 'selected' → UI 'accepted'
 
 ---
 
-### C6. `concern.raw_narrative` / `feedback_turns` 전달 누락
+### C6. `concern.raw_narrative` / `feedback_turns` 전달 누락 — ✅ **해소 (PR #14)**
 
 **DB 스키마**:
 ```sql

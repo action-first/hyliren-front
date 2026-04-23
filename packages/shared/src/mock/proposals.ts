@@ -33,6 +33,31 @@ export const MOCK_PROPOSALS: Proposal[] = [
     createdAt: '2026-03-20T10:00:00Z', updatedAt: '2026-03-21T07:00:00Z', deletedAt: null,
   },
 
+  // c-002 (눈+코, submitted) — DB 값 curve coverage 용 2개 제안서 (accepted / expired)
+  // 실서비스에서 실제로 발생할 상태지만 FO 내부 mock flow 에서는 거의 만들지 않는 값이라
+  // real backend 전환 후 집계·UI 렌더가 이들 케이스에서도 무너지지 않도록 샘플을 유지한다.
+  {
+    id: 'p-004', concernId: 'c-002', memberId: 'm-002',
+    version: 1, isActive: true, status: 'accepted',
+    totalPrice: 480, recoveryDays: 10, anesthesiaType: 'general',
+    hospitalStayDays: 1, availableDateFrom: '2026-06-05', availableDateTo: '2026-06-20',
+    consultationNote: '눈+코 복합으로 자연스러운 인상 개선 제안드립니다.',
+    qualityScore: 82, isFlagged: false, creditsCharged: 3,
+    sentAt: '2026-04-03T10:00:00Z', viewedAt: '2026-04-04T09:30:00Z',
+    createdAt: '2026-04-03T09:00:00Z', updatedAt: '2026-04-04T09:30:00Z', deletedAt: null,
+  },
+  {
+    id: 'p-005', concernId: 'c-002', memberId: 'm-004',
+    version: 1, isActive: true, status: 'expired',
+    totalPrice: 530, recoveryDays: 12, anesthesiaType: 'general',
+    hospitalStayDays: 1, availableDateFrom: '2026-05-25', availableDateTo: '2026-06-05',
+    consultationNote: null,
+    qualityScore: 68, isFlagged: false, creditsCharged: 3,
+    sentAt: '2026-04-02T11:00:00Z', viewedAt: null,
+    // 14일 경과 후 자동 만료 처리된 이력을 updatedAt 에 기록.
+    createdAt: '2026-04-02T10:00:00Z', updatedAt: '2026-04-16T00:00:00Z', deletedAt: null,
+  },
+
   // c-005 (눈밑, hospital_selected) — 2개 제안서
   {
     id: 'p-006', concernId: 'c-005', memberId: 'm-001',
@@ -67,6 +92,14 @@ export const MOCK_PROPOSAL_ITEMS: ProposalItem[] = [
 
   // p-003
   { id: 'pi-005', proposalId: 'p-003', treatmentName: '매몰쌍꺼풀', treatmentNameZh: '埋没双眼皮', price: 150, description: null, sortOrder: 0, createdAt: '2026-03-20T10:00:00Z' },
+
+  // p-004 (accepted 케이스 샘플)
+  { id: 'pi-006', proposalId: 'p-004', treatmentName: '매몰쌍꺼풀', treatmentNameZh: '埋没双眼皮', price: 180, description: null, sortOrder: 0, createdAt: '2026-04-03T09:00:00Z' },
+  { id: 'pi-007', proposalId: 'p-004', treatmentName: '코끝 성형', treatmentNameZh: '鼻尖整形', price: 300, description: null, sortOrder: 1, createdAt: '2026-04-03T09:00:00Z' },
+
+  // p-005 (expired 케이스 샘플)
+  { id: 'pi-008', proposalId: 'p-005', treatmentName: '쌍꺼풀 절개술', treatmentNameZh: '切开双眼皮', price: 230, description: null, sortOrder: 0, createdAt: '2026-04-02T10:00:00Z' },
+  { id: 'pi-009', proposalId: 'p-005', treatmentName: '코 전체 성형', treatmentNameZh: '鼻整形', price: 300, description: null, sortOrder: 1, createdAt: '2026-04-02T10:00:00Z' },
 
   // p-006
   { id: 'pi-010', proposalId: 'p-006', treatmentName: '눈밑지방 재배치', treatmentNameZh: '下眼脂肪重新分配', price: 200, description: null, sortOrder: 0, createdAt: '2026-03-05T09:00:00Z' },

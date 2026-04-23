@@ -8,6 +8,7 @@
  */
 import fs from 'fs';
 import type { Concern, ConcernPhoto, Proposal, ProposalItem } from '../types';
+import type { EventActorType, EventTargetType } from '../constants';
 import { MOCK_CONCERNS, MOCK_CONCERN_PHOTOS } from '../mock/concerns';
 import { MOCK_PROPOSALS, MOCK_PROPOSAL_ITEMS } from '../mock/proposals';
 
@@ -119,22 +120,25 @@ export function addProposalItems(items: ProposalItem[]): void {
 export interface TrackEvent {
   id: string;
   eventType: string;
-  actorType: string;
-  targetType?: string;
+  // DB event_actor_type ENUM ('user','member','system') 와 일치시킨다.
+  // partner/admin 은 members 테이블의 role 로 구분되며 event 주체로서는 모두 'member'.
+  actorType: EventActorType;
+  targetType?: EventTargetType;
   targetId?: string;
   metadata?: Record<string, string>;
   timestamp: string;
 }
 
+// DB ENUM 일치. 이전 'partner' seed 는 'member' 로 교체 (ev-seed-02, ev-seed-06).
 const SEED_EVENTS: TrackEvent[] = [
-  { id: 'ev-seed-01', eventType: 'concern_submit', actorType: 'user', targetType: 'concern', targetId: 'c-001', timestamp: '2026-04-18T14:30:00Z' },
-  { id: 'ev-seed-02', eventType: 'proposal_send', actorType: 'partner', targetType: 'proposal', targetId: 'p-001', timestamp: '2026-04-18T15:00:00Z' },
-  { id: 'ev-seed-03', eventType: 'proposal_view', actorType: 'user', targetType: 'proposal', targetId: 'p-001', timestamp: '2026-04-18T16:20:00Z' },
-  { id: 'ev-seed-04', eventType: 'page_view', actorType: 'user', metadata: { page: '/articles' }, timestamp: '2026-04-18T17:00:00Z' },
-  { id: 'ev-seed-05', eventType: 'concern_submit', actorType: 'user', targetType: 'concern', targetId: 'c-005', timestamp: '2026-04-17T10:00:00Z' },
-  { id: 'ev-seed-06', eventType: 'proposal_send', actorType: 'partner', targetType: 'proposal', targetId: 'p-002', timestamp: '2026-04-17T11:30:00Z' },
-  { id: 'ev-seed-07', eventType: 'report_purchase', actorType: 'user', targetType: 'order', targetId: 'o-001', timestamp: '2026-04-16T09:00:00Z' },
-  { id: 'ev-seed-08', eventType: 'page_view', actorType: 'user', metadata: { page: '/consult' }, timestamp: '2026-04-16T08:30:00Z' },
+  { id: 'ev-seed-01', eventType: 'concern_submit', actorType: 'user',   targetType: 'concern',  targetId: 'c-001', timestamp: '2026-04-18T14:30:00Z' },
+  { id: 'ev-seed-02', eventType: 'proposal_send',  actorType: 'member', targetType: 'proposal', targetId: 'p-001', timestamp: '2026-04-18T15:00:00Z' },
+  { id: 'ev-seed-03', eventType: 'proposal_view',  actorType: 'user',   targetType: 'proposal', targetId: 'p-001', timestamp: '2026-04-18T16:20:00Z' },
+  { id: 'ev-seed-04', eventType: 'page_view',      actorType: 'user',   metadata: { page: '/articles' }, timestamp: '2026-04-18T17:00:00Z' },
+  { id: 'ev-seed-05', eventType: 'concern_submit', actorType: 'user',   targetType: 'concern',  targetId: 'c-005', timestamp: '2026-04-17T10:00:00Z' },
+  { id: 'ev-seed-06', eventType: 'proposal_send',  actorType: 'member', targetType: 'proposal', targetId: 'p-002', timestamp: '2026-04-17T11:30:00Z' },
+  { id: 'ev-seed-07', eventType: 'report_purchase',actorType: 'user',   targetType: 'order',    targetId: 'o-001', timestamp: '2026-04-16T09:00:00Z' },
+  { id: 'ev-seed-08', eventType: 'page_view',      actorType: 'user',   metadata: { page: '/consult' }, timestamp: '2026-04-16T08:30:00Z' },
 ];
 const events: TrackEvent[] = [...SEED_EVENTS];
 
