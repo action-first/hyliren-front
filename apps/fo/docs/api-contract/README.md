@@ -38,7 +38,8 @@
 
 **보조 문서**:
 - [priority-roadmap.md](priority-roadmap.md) — Wave 1/2/3 진입 순서, mock 제거 타이밍
-- [open-questions.md](open-questions.md) — yj.jung 과 합의 필요한 5가지 결정 사항
+- [open-questions.md](open-questions.md) — yj.jung 과 합의 필요한 결정 사항
+- [db-schema-alignment.md](db-schema-alignment.md) — **DB 정본(`docs/schema/final.sql`) vs FO 타입·상수 대조 감사**. Wave 1 전 필독.
 
 ---
 
