@@ -216,7 +216,9 @@ function ConcernStatusCard({
 }) {
   const t = useLocaleStore(s => s.t);
   const hasProposals = proposalCount > 0 && (status === 'proposal_received' || status === 'comparing' || status === 'report_purchased');
-  const href = hasProposals ? '/decision' : `/concerns/${concernId}`;
+  // /decision 은 모든 concern 의 proposal 을 한 페이지에 그룹별로 나열 → 특정 concern 카드 클릭 시
+  // 해당 그룹으로 자동 스크롤 되도록 hash 부여 (DecisionPageClient 의 useEffect 가 처리).
+  const href = hasProposals ? `/decision#concern-${concernId}` : `/concerns/${concernId}`;
   const statusIcon = hasProposals ? Scale : status === 'submitted' ? Clock : FileText;
   const Icon = statusIcon;
 

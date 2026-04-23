@@ -190,6 +190,14 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value.trim())}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && emailValid) {
+                e.preventDefault();
+                setErrorMessage(null);
+                setStep('password');
+              }
+            }}
+            autoFocus
             placeholder={t('auth.emailPlaceholder')}
             className="fo-input mb-3"
           />
@@ -218,6 +226,13 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && password.length > 0 && !submitting) {
+                  e.preventDefault();
+                  void handleLoginSubmit();
+                }
+              }}
+              autoFocus
               placeholder={t('auth.passwordPlaceholder')}
               className="fo-input pr-12"
             />
@@ -258,6 +273,13 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && name.trim() && passwordValid && passwordMatch && !submitting) {
+                e.preventDefault();
+                void handleRegisterSubmit();
+              }
+            }}
+            autoFocus
             placeholder={t('auth.namePlaceholder')}
             className="fo-input mb-3"
           />
@@ -271,6 +293,12 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && name.trim() && passwordValid && passwordMatch && !submitting) {
+                  e.preventDefault();
+                  void handleRegisterSubmit();
+                }
+              }}
               placeholder={t('auth.passwordPlaceholder')}
               className="fo-input pr-12"
             />
@@ -287,6 +315,12 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
             type={showPassword ? 'text' : 'password'}
             value={passwordConfirm}
             onChange={e => setPasswordConfirm(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && name.trim() && passwordValid && passwordMatch && !submitting) {
+                e.preventDefault();
+                void handleRegisterSubmit();
+              }
+            }}
             placeholder={t('auth.passwordConfirmPlaceholder')}
             className="fo-input mb-2"
           />

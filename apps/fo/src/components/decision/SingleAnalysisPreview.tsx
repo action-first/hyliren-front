@@ -116,7 +116,11 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
           </div>
 
           <div className="px-5 py-4">
-            {/* ═══ FREE PREVIEW — 3 metrics ═══ */}
+            {/* ═══ PREVIEW — 3 metrics ═══
+                구매 전: 값은 블러 처리하여 호기심 유발 + 리포트 구매 전환 유도.
+                구매 후: 값 그대로 노출.
+                (CPO 판단: 요약 3줄을 공개하면 사용자가 이미 의사결정해버려 결제 유인이 사라짐.)
+               ═══ */}
             <div className="flex flex-col gap-2.5 mb-4">
               {[
                 { icon: TrendingDown, label: t('report.priceAdequacy'), value: { low: t('report.priceBelow'), fair: t('report.priceFair'), high: t('report.priceAbove') }[preview.priceAdequacy], color: ADEQUACY_COLOR[preview.priceAdequacy] },
@@ -128,10 +132,21 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
                   <div key={row.label} className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-[var(--color-bg-secondary)]">
                     <Icon size={18} className="text-[var(--color-text-dim)] shrink-0" />
                     <span className="text-[13px] text-[var(--color-text)] flex-1">{row.label}</span>
-                    <span className={`text-[13px] font-semibold ${row.color}`}>{row.value}</span>
+                    <span
+                      className={`text-[13px] font-semibold ${purchased ? row.color : 'text-[var(--color-text-dim)] select-none'}`}
+                      style={purchased ? undefined : { filter: 'blur(6px)' }}
+                      aria-hidden={!purchased}
+                    >
+                      {row.value}
+                    </span>
                   </div>
                 );
               })}
+              {!purchased && (
+                <p className="text-[11px] text-[var(--color-text-dim)] leading-relaxed px-1 mt-1">
+                  리포트 확인 시 정확한 결과를 보여드립니다.
+                </p>
+              )}
             </div>
 
             {/* ═══ PURCHASED — FULL REPORT ═══ */}

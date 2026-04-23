@@ -54,7 +54,10 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
   }
 
   return (
-    <section className="mb-6 rounded-2xl bg-[var(--color-bg-secondary)] p-4">
+    <section
+      id={`concern-${concern.id}`}
+      className="mb-6 rounded-2xl bg-[var(--color-bg-secondary)] p-4 scroll-mt-16"
+    >
       {/* 고민 헤더 */}
       <div className="flex items-center gap-2 mb-3">
         <div className="flex items-center gap-1.5">
