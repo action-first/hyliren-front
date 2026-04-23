@@ -43,6 +43,21 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
     track({ eventType: 'decision_page_viewed', actorType: 'user', metadata: { source: 'fo', locale: 'ko', value: String(totalProposalCount) } });
   }, [totalProposalCount]);
 
+  // URL hash(#concern-xxx) 기반 자동 스크롤 — Dashboard 의 concern 카드에서 넘어올 때 해당 섹션으로 이동.
+  // groups 렌더링 이후 DOM 존재를 보장하기 위해 myGroups 길이가 변한 후 실행.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hash = window.location.hash;
+    if (!hash || !hash.startsWith('#concern-')) return;
+    if (myGroups.length === 0) return;
+    const el = document.getElementById(hash.slice(1));
+    if (el) {
+      requestAnimationFrame(() => {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  }, [myGroups.length]);
+
   const primaryConcernId = myGroups[0]?.concern.id || '';
   const allProposals = myGroups.flatMap(g => g.proposals);
 
