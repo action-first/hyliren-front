@@ -51,7 +51,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!dashboardPhase) return;
-    track({ eventType: 'dashboard_viewed', actorType: 'user', targetType: 'user', targetId: userId, metadata: { source: 'fo', locale: 'ko', value: dashboardPhase } });
+    // targetType 'user' 는 DB event_target_type enum (concern/proposal/order/member) 에 없음 → userId 는 metadata 로 이관.
+    track({ eventType: 'dashboard_viewed', actorType: 'user', metadata: { source: 'fo', locale: 'ko', value: dashboardPhase, userId } });
   }, [dashboardPhase, userId]);
 
   if (!ready) {
@@ -293,7 +294,7 @@ function WaitingStatePanel({ bodyArea }: { bodyArea: string }) {
   const t = useLocaleStore(s => s.t);
   const waitUserId = useAuthStore(s => s.user?.id) ?? 'u-001';
   useEffect(() => {
-    track({ eventType: 'waiting_panel_viewed', actorType: 'user', targetType: 'user', targetId: waitUserId, metadata: { source: 'fo', locale: 'ko' } });
+    track({ eventType: 'waiting_panel_viewed', actorType: 'user', metadata: { source: 'fo', locale: 'ko', userId: waitUserId } });
   }, []);
 
   return (

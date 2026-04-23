@@ -33,9 +33,9 @@ interface RawMeResponse {
   updatedAt: string;
 }
 
-// API UserRole('buyer'|'admin')와 FO UserRole('buyer'|'referrer')가 다르므로 안전 매핑.
+// DB user_role AS ENUM ('buyer', 'admin'). 알 수 없는 값은 buyer 로 폴백.
 function narrowRole(role: string): UserRole {
-  return role === 'referrer' ? 'referrer' : 'buyer';
+  return role === 'admin' ? 'admin' : 'buyer';
 }
 
 function narrowLocale(locale: string): Locale {
