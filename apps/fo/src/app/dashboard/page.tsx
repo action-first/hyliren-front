@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Proposal } from '@hyliren/shared';
-import { MOCK_CONCERNS, track } from '@hyliren/shared';
-import { useUserConcernsStore } from '@/store/user-concerns';
+import { track } from '@hyliren/shared';
+import { useMyConcerns } from '@/lib/hooks/concern';
 import { Button, Badge, Spinner } from '@hyliren/ui';
 import {
   ArrowRight, Plus, FileText, Clock, ChevronRight,
@@ -28,11 +28,13 @@ export default function DashboardPage() {
   const userId = useAuthStore(s => s.user?.id) ?? 'u-001';
   const [showAuth, setShowAuth] = useState(false);
   useRequireAuth(useCallback(() => setShowAuth(true), []));
-  const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
-  const userConcerns = [
-    ...MOCK_CONCERNS.filter(c => c.userId === userId && !c.deletedAt),
-    ...userCreatedConcerns,
-  ];
+
+  // yj.jung 의 useMyConcerns 훅이 /api/v1/concerns 를 호출해 서버 공유 data-store
+  // (MOCK seed + 사용자가 새로 등록한 concern 포함) 를 단일 소스로 반환한다.
+  // 기존에 MOCK_CONCERNS + localStorage (useUserConcernsStore) 를 합치던 구조는
+  // "새 고민이 대시보드에 안 보임" 버그의 원인 — 제거.
+  const { concerns: apiConcerns, loading: concernsLoading } = useMyConcerns();
+  const userConcerns = apiConcerns.filter(c => !c.deletedAt);
 
   const [realProposals, setRealProposals] = useState<Proposal[] | null>(null);
   useEffect(() => {
@@ -42,16 +44,17 @@ export default function DashboardPage() {
       .catch(() => setRealProposals([]));
   }, [userId]);
 
-  const dashboardPhase = realProposals === null
-    ? null
-    : computeDashboardState(userConcerns, realProposals).phase;
+  const ready = !concernsLoading && realProposals !== null;
+  const dashboardPhase = ready
+    ? computeDashboardState(userConcerns, realProposals ?? []).phase
+    : null;
 
   useEffect(() => {
     if (!dashboardPhase) return;
     track({ eventType: 'dashboard_viewed', actorType: 'user', targetType: 'user', targetId: userId, metadata: { source: 'fo', locale: 'ko', value: dashboardPhase } });
   }, [dashboardPhase, userId]);
 
-  if (realProposals === null) {
+  if (!ready) {
     return (
       <>
         <AuthModal open={showAuth} onSuccess={() => setShowAuth(false)} onClose={() => setShowAuth(false)} />
@@ -60,7 +63,7 @@ export default function DashboardPage() {
     );
   }
 
-  const userProposals = realProposals;
+  const userProposals = realProposals ?? [];
   const dashboard = computeDashboardState(userConcerns, userProposals);
 
   return (
