@@ -1,16 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MOCK_CONCERNS, MOCK_PROPOSALS } from '@hyliren/shared';
+import type { Proposal } from '@hyliren/shared';
 import { useAuthStore } from '@/store/auth';
-import { Badge, Button } from '@hyliren/ui';
+import { Badge, Button, Spinner } from '@hyliren/ui';
 import { ChevronRight, FileText, Globe, Bell, HelpCircle, LogOut, ShieldCheck } from 'lucide-react';
 import { STATUS_LABELS, STATUS_COLORS } from '@/domain/lifecycle';
 
 import { AREA_ACCENT } from '@/lib/area-styles';
 import { useReportStore } from '@/store/report';
 import { useLocaleStore } from '@/store/locale';
+import { useMyConcerns } from '@/lib/hooks/concern';
 import { AuthModal } from '@/components/auth/AuthModal';
 
 export default function MyPage() {
@@ -18,6 +19,20 @@ export default function MyPage() {
   const { purchasedIds } = useReportStore();
   const { locale, setLocale, t } = useLocaleStore();
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // dashboard 와 동일한 서버 공유 data-store 소스를 사용해
+  // /consult 직후 제출한 새 고민이 /mypage 에도 반영되도록 한다.
+  // MOCK_CONCERNS 직접 import 시 사용자 신규 등록이 누락되어 지난 dashboard 건과 동일한 버그 재발.
+  const { concerns: apiConcerns, loading: concernsLoading } = useMyConcerns();
+  const [proposals, setProposals] = useState<Proposal[] | null>(null);
+  const userId = user?.id;
+  useEffect(() => {
+    if (!userId) { setProposals(null); return; }
+    fetch(`/api/proposals?userId=${userId}`)
+      .then(r => r.json())
+      .then(d => setProposals(d.proposals ?? []))
+      .catch(() => setProposals([]));
+  }, [userId]);
 
   if (isGuest || !user) {
     return (
@@ -42,8 +57,14 @@ export default function MyPage() {
     );
   }
 
-  const concerns = MOCK_CONCERNS.filter(c => c.userId === user.id && !c.deletedAt && c.status !== 'draft');
-  const proposalCount = MOCK_PROPOSALS.filter(p => p.isActive && p.status !== 'draft').length;
+  const ready = !concernsLoading && proposals !== null;
+  if (!ready) {
+    return <div className="flex items-center justify-center min-h-[60vh]"><Spinner /></div>;
+  }
+
+  const userProposals = proposals ?? [];
+  const concerns = apiConcerns.filter(c => !c.deletedAt && c.status !== 'draft');
+  const proposalCount = userProposals.length;
   const completedCount = concerns.filter(c => c.status === 'hospital_selected' || c.status === 'completed' || c.status === 'service_purchased').length;
 
   return (
@@ -102,7 +123,7 @@ export default function MyPage() {
         ) : (
           <div className="flex flex-col gap-2.5">
             {concerns.slice(0, 3).map(c => {
-              const cProposalCount = MOCK_PROPOSALS.filter(p => p.concernId === c.id && p.isActive).length;
+              const cProposalCount = userProposals.filter(p => p.concernId === c.id).length;
               return (
                 <Link key={c.id} href={`/concerns/${c.id}`} className="no-underline block">
                   <div className="px-4 py-3.5 rounded-xl bg-white"

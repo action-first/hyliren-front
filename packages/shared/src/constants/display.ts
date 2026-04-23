@@ -41,13 +41,17 @@ export const CONCERN_STATUS_BADGE: Record<string, BadgeColor> = {
 };
 
 // ── 제안서 상태 한글 라벨 ──
+// accepted == selected (DB/UI 동등, proposal-status.ts isProposalAccepted 참고)
+// expired  — DB 유효기간 만료
 export const PROPOSAL_STATUS_KR: Record<string, string> = {
   draft: '임시저장',
   sent: '발송',
   viewed: '열람',
   shortlisted: '후보',
   selected: '선택됨',
+  accepted: '선택됨',
   rejected: '거절',
+  expired: '만료',
 };
 
 // ── 제안서 상태 뱃지 색상 ──
@@ -58,6 +62,7 @@ export const PROPOSAL_STATUS_BADGE: Record<string, BadgeColor> = {
   '후보':     { bg: '#dbeafe', text: '#1e40af' },
   '선택됨':   { bg: '#dcfce7', text: '#166534' },
   '거절':     { bg: '#fef2f2', text: '#991b1b' },
+  '만료':     { bg: '#f3f4f6', text: '#6b7280' },
 };
 
 // ── 마취 유형 한글 라벨 ──
