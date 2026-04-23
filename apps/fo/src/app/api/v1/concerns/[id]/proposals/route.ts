@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getProposals, getProposalItems } from '@hyliren/shared/src/server/data-store';
 import { MOCK_PARTNER_PROFILES } from '@hyliren/shared';
 
+/**
+ * 내부 proposal status → wire status 변환.
+ * DB proposal_status ENUM ('draft','sent','accepted','rejected','expired') 기준으로 매핑.
+ * FO mock 에서 사용하던 'selected' 는 'accepted' 로, 'viewed'/'shortlisted' 는 'sent' 로 요약.
+ */
 function toWireStatus(s: string): string {
   if (s === 'accepted' || s === 'selected') return 'accepted';
   if (s === 'rejected') return 'rejected';
+  if (s === 'expired') return 'expired';
   if (s === 'draft') return 'draft';
   return 'sent';
 }
