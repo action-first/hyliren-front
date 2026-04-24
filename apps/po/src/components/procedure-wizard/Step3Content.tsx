@@ -55,11 +55,10 @@ export function Step3Content({ form, onChange }: Step3Props) {
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <section>
-        <h2 className="text-[14px] font-bold text-[var(--color-text)] mb-1">상세 콘텐츠</h2>
+    <div className="flex flex-col gap-6">
+      <div>
         <p className="text-[12px] text-[var(--color-text-dim)] mb-3">
-          시술 개요, 필수 고지, 적응증을 각 언어별로 입력합니다.
+          시술 개요·필수 고지·적응증을 언어별로 입력하세요.
         </p>
         <LocaleTabs
           active={activeLocale}
@@ -118,12 +117,11 @@ export function Step3Content({ form, onChange }: Step3Props) {
             )}
           </div>
         </div>
-      </section>
+      </div>
 
-      <section>
-        <h2 className="text-[14px] font-bold text-[var(--color-text)] mb-1">갤러리 이미지</h2>
+      <div>
         <p className="text-[12px] text-[var(--color-text-dim)] mb-3">
-          최대 8장. <strong>시술 전/후 비교 이미지 등록 금지</strong> — 시설·과정·의료진 이미지만.
+          갤러리 이미지 (최대 8장) — <strong>시술 전/후 비교 금지</strong>. 시설·과정·의료진 이미지만.
         </p>
         <div className="flex flex-col gap-2">
           {form.galleryImageUrls.map((url, i) => (
@@ -149,7 +147,7 @@ export function Step3Content({ form, onChange }: Step3Props) {
             </Button>
           )}
         </div>
-      </section>
+      </div>
     </div>
   );
 }
