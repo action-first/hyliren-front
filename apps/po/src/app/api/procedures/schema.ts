@@ -24,14 +24,18 @@ const variantI18nBlock = z.object({
   description: z.string().max(500).nullable(),
 });
 
-/** i18n 객체 — locale → block 매핑. 최소 1개 locale 필수. */
-const procedureI18nSchema = z.record(localeEnum, procedureI18nBlock)
+/**
+ * i18n 객체 — locale → block 매핑. 최소 1개 locale 필수.
+ * Zod 4 의 z.record(enum, schema) 는 모든 enum 키를 필수로 강제하므로
+ * partialRecord 사용 — 키는 LOCALES 중 일부만 있어도 허용.
+ */
+const procedureI18nSchema = z.partialRecord(localeEnum, procedureI18nBlock)
   .refine(
     obj => Object.keys(obj).length >= 1,
     { message: '최소 1개 언어 번역이 필요합니다' },
   );
 
-const variantI18nSchema = z.record(localeEnum, variantI18nBlock)
+const variantI18nSchema = z.partialRecord(localeEnum, variantI18nBlock)
   .refine(
     obj => Object.keys(obj).length >= 1,
     { message: '최소 1개 언어 번역이 필요합니다' },
@@ -104,7 +108,7 @@ export const updateProcedureSchema = z.object({
   baseHospitalStayDays: z.number().int().min(0).max(30).optional(),
 
   /** 전달된 locale 만 upsert. 생략된 locale 은 유지. */
-  i18n: z.record(localeEnum, procedureI18nBlock).optional(),
+  i18n: z.partialRecord(localeEnum, procedureI18nBlock).optional(),
 });
 
 export type UpdateProcedureInput = z.infer<typeof updateProcedureSchema>;
@@ -118,7 +122,7 @@ export const updateVariantSchema = z.object({
   hospitalStayDays: z.number().int().min(0).max(30).nullable().optional(),
   sortOrder: z.number().int().min(0).optional(),
   isDefault: z.boolean().optional(),
-  i18n: z.record(localeEnum, variantI18nBlock).optional(),
+  i18n: z.partialRecord(localeEnum, variantI18nBlock).optional(),
 });
 
 export type UpdateVariantInput = z.infer<typeof updateVariantSchema>;
