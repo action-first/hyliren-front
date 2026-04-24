@@ -21,6 +21,8 @@ export {
   PAYOUT_TRIGGERS,
   BODY_AREAS,
   LOCALES,
+  PROCEDURE_TYPES,
+  PROCEDURE_STATUSES,
 } from './enums';
 
 export type {
@@ -46,6 +48,8 @@ export type {
   PayoutTrigger,
   BodyArea,
   Locale,
+  ProcedureType,
+  ProcedureStatus,
 } from './enums';
 
 // Display — 한글 라벨, 뱃지 색상, 포맷 유틸

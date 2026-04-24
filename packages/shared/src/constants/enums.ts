@@ -164,3 +164,58 @@ export type BodyArea = typeof BODY_AREAS[number];
 
 export const LOCALES = ['ko', 'zh-CN'] as const;
 export type Locale = typeof LOCALES[number];
+
+// --- Procedure (DB: procedure_type, procedure_status) ---
+// FO 시술 상세페이지 / PO 시술 등록 페이지에서 사용하는 시술 유형.
+// enum 으로 고정 (자유 문자열 사용 시 나중에 정규화 마이그레이션 비용이 큼).
+// BodyArea 와는 N:1 — procedure_type 은 primary_area 와 함께 저장되어 필터·분류에 사용.
+export const PROCEDURE_TYPES = [
+  // 눈 (7)
+  'eye_double_eyelid',        // 쌍꺼풀
+  'eye_ptosis_correction',    // 눈매교정 · 안검하수
+  'eye_under_eye_fat',        // 눈밑지방 재배치
+  'eye_lower_blepharoplasty', // 하안검
+  'eye_epicanthoplasty',      // 앞트임 / 뒤트임
+  'eye_canthoplasty',         // 외안각 성형
+  'eye_revision',             // 눈 재수술
+
+  // 코 (6)
+  'nose_augmentation',        // 융비 · 콧대 성형
+  'nose_tip',                 // 코끝 성형
+  'nose_revision',            // 코 재수술
+  'nose_hump',                // 매부리코
+  'nose_short_correction',    // 짧은 코 교정
+  'nose_nostril',             // 콧볼 축소
+
+  // 리프팅 · 안면윤곽 (8)
+  'lift_thread',              // 실리프팅
+  'lift_ulthera',             // 울쎄라
+  'lift_hifu',                // HIFU
+  'lift_face_lift',           // 안면거상술
+  'lift_fat_graft',           // 지방이식
+  'contour_facial',           // 안면윤곽 (광대)
+  'contour_mandible',         // 양악
+  'contour_chin',             // 턱끝 (심미턱 · 무턱 · 주걱턱)
+
+  // 피부 (6)
+  'skin_laser',               // 레이저 토닝 · 프락셀 · 피코
+  'skin_injection',           // 주사 (보톡스 · 필러 · 스킨부스터)
+  'skin_peeling',             // 필링
+  'skin_acne',                // 여드름 치료
+  'skin_pigmentation',        // 색소 · 잡티
+  'skin_scar',                // 흉터 치료
+
+  // 다이어트 (3)
+  'diet_liposuction',         // 지방흡입
+  'diet_injection',           // 지방분해주사
+  'diet_body_contouring',     // 바디 윤곽 (비수술)
+
+  // 기타 (1)
+  'other',
+] as const;
+export type ProcedureType = typeof PROCEDURE_TYPES[number];
+
+// DB: procedure_status AS ENUM ('draft', 'published', 'archived')
+// 런칭 전 단계에서는 'pending_review' / 'rejected' 미포함 — 심사 파이프라인 활성화 시 확장 예정.
+export const PROCEDURE_STATUSES = ['draft', 'published', 'archived'] as const;
+export type ProcedureStatus = typeof PROCEDURE_STATUSES[number];

@@ -7,10 +7,18 @@
  * API Route에서만 import할 것 (클라이언트 번들에 포함 금지).
  */
 import fs from 'fs';
-import type { Concern, ConcernPhoto, Proposal, ProposalItem } from '../types';
+import type {
+  Concern, ConcernPhoto, Proposal, ProposalItem,
+  Procedure, ProcedureDetail, ProcedureVariant, ProcedureBookmark,
+} from '../types';
+import { computePriceRange } from '../types/procedure';
 import type { EventActorType, EventTargetType } from '../constants';
 import { MOCK_CONCERNS, MOCK_CONCERN_PHOTOS } from '../mock/concerns';
 import { MOCK_PROPOSALS, MOCK_PROPOSAL_ITEMS } from '../mock/proposals';
+import {
+  MOCK_PROCEDURES, MOCK_PROCEDURE_DETAILS,
+  MOCK_PROCEDURE_VARIANTS, MOCK_PROCEDURE_BOOKMARKS,
+} from '../mock/procedures';
 
 const STORE_FILE = '/tmp/hyliren-store.json';
 
@@ -19,6 +27,10 @@ type StoreData = {
   concernPhotos: ConcernPhoto[];
   proposals: Proposal[];
   proposalItems: ProposalItem[];
+  procedures: Procedure[];
+  procedureDetails: ProcedureDetail[];
+  procedureVariants: ProcedureVariant[];
+  procedureBookmarks: ProcedureBookmark[];
 };
 
 function seed(): StoreData {
@@ -27,12 +39,36 @@ function seed(): StoreData {
     concernPhotos: [...MOCK_CONCERN_PHOTOS],
     proposals: [...MOCK_PROPOSALS],
     proposalItems: [...MOCK_PROPOSAL_ITEMS],
+    procedures: [...MOCK_PROCEDURES],
+    procedureDetails: [...MOCK_PROCEDURE_DETAILS],
+    procedureVariants: [...MOCK_PROCEDURE_VARIANTS],
+    procedureBookmarks: [...MOCK_PROCEDURE_BOOKMARKS],
   };
 }
 
 function load(): StoreData {
   try {
-    return JSON.parse(fs.readFileSync(STORE_FILE, 'utf-8')) as StoreData;
+    const raw = JSON.parse(fs.readFileSync(STORE_FILE, 'utf-8')) as Partial<StoreData>;
+    // 기존 스토어에 신설 필드 (procedures 계열) 가 없으면 seed 로 병합.
+    // 이렇게 하면 배포 중 /tmp 파일 리셋 없이 스키마 확장이 가능.
+    const defaults = seed();
+    const merged: StoreData = {
+      concerns: raw.concerns ?? defaults.concerns,
+      concernPhotos: raw.concernPhotos ?? defaults.concernPhotos,
+      proposals: raw.proposals ?? defaults.proposals,
+      proposalItems: raw.proposalItems ?? defaults.proposalItems,
+      procedures: raw.procedures ?? defaults.procedures,
+      procedureDetails: raw.procedureDetails ?? defaults.procedureDetails,
+      procedureVariants: raw.procedureVariants ?? defaults.procedureVariants,
+      procedureBookmarks: raw.procedureBookmarks ?? defaults.procedureBookmarks,
+    };
+    if (
+      raw.procedures === undefined || raw.procedureDetails === undefined ||
+      raw.procedureVariants === undefined || raw.procedureBookmarks === undefined
+    ) {
+      fs.writeFileSync(STORE_FILE, JSON.stringify(merged));
+    }
+    return merged;
   } catch {
     const data = seed();
     fs.writeFileSync(STORE_FILE, JSON.stringify(data));
@@ -101,6 +137,209 @@ export function updateProposal(id: string, updates: Partial<Proposal>): Proposal
   data.proposals[idx] = { ...data.proposals[idx], ...updates };
   save(data);
   return data.proposals[idx];
+}
+
+// ---- Procedures ----
+
+export function getProcedures(): Procedure[] {
+  return load().procedures;
+}
+
+export function getProcedureById(id: string): Procedure | null {
+  return load().procedures.find(p => p.id === id && !p.deletedAt) ?? null;
+}
+
+export function getProcedureBySlug(slug: string): Procedure | null {
+  return load().procedures.find(p => p.slug === slug && !p.deletedAt) ?? null;
+}
+
+export function addProcedure(
+  procedure: Procedure,
+  detail: ProcedureDetail,
+  variants: ProcedureVariant[],
+): void {
+  const data = load();
+  data.procedures.push(procedure);
+  data.procedureDetails.push(detail);
+  data.procedureVariants.push(...variants);
+  save(data);
+}
+
+export function updateProcedure(id: string, updates: Partial<Procedure>): Procedure | null {
+  const data = load();
+  const idx = data.procedures.findIndex(p => p.id === id);
+  if (idx === -1) return null;
+  data.procedures[idx] = { ...data.procedures[idx], ...updates, updatedAt: new Date().toISOString() };
+  save(data);
+  return data.procedures[idx];
+}
+
+export function softDeleteProcedure(id: string): Procedure | null {
+  return updateProcedure(id, { deletedAt: new Date().toISOString(), status: 'archived' });
+}
+
+/** viewCount / consultClickCount / bookmarkCount atomic 증감 */
+export function incrementProcedureMetric(
+  id: string,
+  metric: 'viewCount' | 'consultClickCount' | 'bookmarkCount',
+  delta = 1,
+): void {
+  const data = load();
+  const idx = data.procedures.findIndex(p => p.id === id);
+  if (idx === -1) return;
+  data.procedures[idx] = {
+    ...data.procedures[idx],
+    [metric]: Math.max(0, data.procedures[idx][metric] + delta),
+  };
+  save(data);
+}
+
+// ---- Procedure Details ----
+
+export function getProcedureDetail(procedureId: string): ProcedureDetail | null {
+  return load().procedureDetails.find(d => d.procedureId === procedureId) ?? null;
+}
+
+export function updateProcedureDetail(
+  procedureId: string,
+  updates: Partial<Omit<ProcedureDetail, 'procedureId'>>,
+): ProcedureDetail | null {
+  const data = load();
+  const idx = data.procedureDetails.findIndex(d => d.procedureId === procedureId);
+  if (idx === -1) return null;
+  data.procedureDetails[idx] = {
+    ...data.procedureDetails[idx],
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  };
+  // base* 값이 바뀌면 priceMin/priceMax 재계산 (모든 variant 가 승계인 경우에만 영향)
+  const variants = data.procedureVariants.filter(v => v.procedureId === procedureId);
+  const range = computePriceRange(variants, data.procedureDetails[idx]);
+  const procIdx = data.procedures.findIndex(p => p.id === procedureId);
+  if (procIdx !== -1) {
+    data.procedures[procIdx] = {
+      ...data.procedures[procIdx],
+      priceMin: range.priceMin,
+      priceMax: range.priceMax,
+      updatedAt: new Date().toISOString(),
+    };
+  }
+  save(data);
+  return data.procedureDetails[idx];
+}
+
+// ---- Procedure Variants ----
+
+export function getProcedureVariants(procedureId: string): ProcedureVariant[] {
+  return load().procedureVariants
+    .filter(v => v.procedureId === procedureId)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+export function addProcedureVariant(variant: ProcedureVariant): void {
+  const data = load();
+  data.procedureVariants.push(variant);
+  recalcPriceRange(data, variant.procedureId);
+  save(data);
+}
+
+export function updateProcedureVariant(
+  id: string,
+  updates: Partial<Omit<ProcedureVariant, 'id' | 'procedureId'>>,
+): ProcedureVariant | null {
+  const data = load();
+  const idx = data.procedureVariants.findIndex(v => v.id === id);
+  if (idx === -1) return null;
+  data.procedureVariants[idx] = {
+    ...data.procedureVariants[idx],
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  };
+  recalcPriceRange(data, data.procedureVariants[idx].procedureId);
+  save(data);
+  return data.procedureVariants[idx];
+}
+
+export function removeProcedureVariant(id: string): void {
+  const data = load();
+  const variant = data.procedureVariants.find(v => v.id === id);
+  if (!variant) return;
+  data.procedureVariants = data.procedureVariants.filter(v => v.id !== id);
+  recalcPriceRange(data, variant.procedureId);
+  save(data);
+}
+
+function recalcPriceRange(data: StoreData, procedureId: string): void {
+  const detail = data.procedureDetails.find(d => d.procedureId === procedureId);
+  if (!detail) return;
+  const variants = data.procedureVariants.filter(v => v.procedureId === procedureId);
+  const range = computePriceRange(variants, detail);
+  const idx = data.procedures.findIndex(p => p.id === procedureId);
+  if (idx !== -1) {
+    data.procedures[idx] = {
+      ...data.procedures[idx],
+      priceMin: range.priceMin,
+      priceMax: range.priceMax,
+      updatedAt: new Date().toISOString(),
+    };
+  }
+}
+
+// ---- Procedure Bookmarks ----
+
+export function getProcedureBookmarks(userId: string): ProcedureBookmark[] {
+  return load().procedureBookmarks.filter(b => b.userId === userId);
+}
+
+export function isProcedureBookmarked(userId: string, procedureId: string): boolean {
+  return load().procedureBookmarks.some(b => b.userId === userId && b.procedureId === procedureId);
+}
+
+export function addProcedureBookmark(userId: string, procedureId: string): ProcedureBookmark | null {
+  const data = load();
+  // 중복 방지 (Unique userId + procedureId)
+  const existing = data.procedureBookmarks.find(
+    b => b.userId === userId && b.procedureId === procedureId,
+  );
+  if (existing) return existing;
+
+  const bookmark: ProcedureBookmark = {
+    id: `pb-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    userId,
+    procedureId,
+    createdAt: new Date().toISOString(),
+  };
+  data.procedureBookmarks.push(bookmark);
+
+  const procIdx = data.procedures.findIndex(p => p.id === procedureId);
+  if (procIdx !== -1) {
+    data.procedures[procIdx] = {
+      ...data.procedures[procIdx],
+      bookmarkCount: data.procedures[procIdx].bookmarkCount + 1,
+    };
+  }
+  save(data);
+  return bookmark;
+}
+
+export function removeProcedureBookmark(userId: string, procedureId: string): boolean {
+  const data = load();
+  const before = data.procedureBookmarks.length;
+  data.procedureBookmarks = data.procedureBookmarks.filter(
+    b => !(b.userId === userId && b.procedureId === procedureId),
+  );
+  const removed = before - data.procedureBookmarks.length;
+  if (removed === 0) return false;
+
+  const procIdx = data.procedures.findIndex(p => p.id === procedureId);
+  if (procIdx !== -1) {
+    data.procedures[procIdx] = {
+      ...data.procedures[procIdx],
+      bookmarkCount: Math.max(0, data.procedures[procIdx].bookmarkCount - 1),
+    };
+  }
+  save(data);
+  return true;
 }
 
 // ---- Proposal Items ----

@@ -3,3 +3,10 @@ export type { Member, PartnerProfile } from './member';
 export type { Concern, ConcernPhoto } from './concern';
 export type { Proposal, ProposalItem, ProposalImage } from './proposal';
 export type { Order, ReportOrderDetails, ServiceOrderDetails } from './order';
+export type {
+  Procedure,
+  ProcedureDetail,
+  ProcedureVariant,
+  ProcedureBookmark,
+} from './procedure';
+export { getEffectiveVariant, computePriceRange } from './procedure';
