@@ -3,7 +3,7 @@ import { PROCEDURE_RULES } from './procedure-rules';
 import { getOptionByKey } from './procedure-options';
 import { RULE_VERSION } from './version';
 
-const MAX_OPTIONS = 5; // multi-area는 더 많은 옵션 가능
+const MAX_OPTIONS = 8; // multi-area (눈+코+턱 등 3부위 이상) 도 각 부위 옵션 확보
 const OPTIONAL_TAG_BONUS = 10;
 
 /**
