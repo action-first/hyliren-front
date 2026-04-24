@@ -93,8 +93,38 @@ export async function PATCH(
   }
 
   // i18n 은 기존 + patch locale 병합 (locale 단위 upsert)
+  const mergedI18n = patch.i18n ? { ...existing.i18n, ...patch.i18n } : existing.i18n;
   if (patch.i18n) {
-    next.i18n = { ...existing.i18n, ...patch.i18n };
+    next.i18n = mergedI18n;
+  }
+
+  // published 전환 시 publish-strict 검증 (real 백엔드 procedure.service.ts 와 동일 계약)
+  const nextStatus = patch.status ?? existing.status;
+  if (nextStatus === 'published') {
+    const mergedHero = patch.heroImageUrl ?? existing.heroImageUrl;
+    const mergedBasePrice = patch.basePrice ?? existing.basePrice;
+    const sourceLocale = existing.sourceLocale;
+    const sourceBlock = mergedI18n[sourceLocale];
+
+    if (!sourceBlock || (sourceBlock.title ?? '').trim().length < 2) {
+      return NextResponse.json({ error: '공개하려면 타이틀이 2자 이상이어야 합니다' }, { status: 400 });
+    }
+    if (mergedBasePrice <= 0) {
+      return NextResponse.json({ error: '공개하려면 기본 가격이 필요합니다' }, { status: 400 });
+    }
+    if (!mergedHero) {
+      return NextResponse.json({ error: '공개하려면 대표 이미지가 필요합니다' }, { status: 400 });
+    }
+    const variants = getProcedureVariants(id);
+    for (let i = 0; i < variants.length; i++) {
+      const vSrc = variants[i].i18n[sourceLocale];
+      if (!vSrc || (vSrc.name ?? '').trim().length < 1) {
+        return NextResponse.json(
+          { error: `공개하려면 모든 옵션에 이름이 필요합니다 (index ${i})` },
+          { status: 400 },
+        );
+      }
+    }
   }
 
   // draft → published 전환 시 publishedAt 세팅

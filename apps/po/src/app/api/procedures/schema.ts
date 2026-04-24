@@ -157,7 +157,11 @@ export const updateProcedureSchema = z.object({
   galleryImageUrls: z.array(z.string().url()).max(8).optional(),
   status: procedureStatusEnum.optional(),
 
-  basePrice: z.number().int().positive().optional(),
+  /**
+   * draft 편집 시 0 허용 (real 백엔드 UpdateProcedureRequestDto 와 동일 @Min(0)).
+   * publish 전환 시의 > 0 제약은 route 레벨 publish-strict 에서 처리.
+   */
+  basePrice: z.number().int().min(0).optional(),
   baseAnesthesia: anesthesiaEnum.optional(),
   baseDurationMinutes: z.number().int().min(1).max(480).optional(),
   baseRecoveryDays: z.number().int().min(0).max(90).optional(),
