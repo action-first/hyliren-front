@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { Badge } from '@hyliren/ui';
 import type { Locale } from '@hyliren/shared';
-import { LOCALES } from '@hyliren/shared';
 import { pickI18n, getEffectiveVariant } from '@hyliren/shared/src/domain/procedure';
 import type { WizardForm } from '@/lib/wizard/types';
+import { PO_WIZARD_LOCALES } from './config';
 
 interface Step4Props {
   form: WizardForm;
@@ -51,7 +51,7 @@ export function Step4Preview({ form }: Step4Props) {
       <section className="flex items-center gap-3 p-3 rounded-md bg-[var(--color-bg-secondary,#fafbfb)]">
         <span className="text-[12px] font-medium text-[var(--color-text-dim)]">미리보기 언어</span>
         <div className="flex gap-1">
-          {LOCALES.map(loc => (
+          {PO_WIZARD_LOCALES.map(loc => (
             <button
               key={loc}
               type="button"
