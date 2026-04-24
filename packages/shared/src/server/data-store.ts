@@ -150,6 +150,30 @@ export function getProcedureBySlug(slug: string): Procedure | null {
   return load().procedures.find(p => p.slug === slug && !p.deletedAt) ?? null;
 }
 
+/**
+ * 해당 slug 가 이미 쓰이는지 확인. excludeId 가 주어지면 그 레코드는 제외
+ * (자기 자신이 기존에 쓰던 slug 를 유지하는 PATCH 케이스용).
+ */
+export function isSlugTaken(slug: string, excludeId?: string): boolean {
+  return load().procedures.some(
+    p => p.slug === slug && !p.deletedAt && p.id !== excludeId,
+  );
+}
+
+/**
+ * slug 에 자동 suffix (-2, -3, ...) 를 붙여 유니크하게 만든다.
+ * 이미 유니크하면 원본 반환.
+ */
+export function ensureUniqueSlug(slug: string, excludeId?: string): string {
+  if (!isSlugTaken(slug, excludeId)) return slug;
+  for (let i = 2; i < 1000; i++) {
+    const candidate = `${slug}-${i}`;
+    if (!isSlugTaken(candidate, excludeId)) return candidate;
+  }
+  // 비정상: 1000개 충돌은 사실상 없음
+  return `${slug}-${Date.now()}`;
+}
+
 export function addProcedure(
   procedure: Procedure,
   variants: ProcedureVariant[],

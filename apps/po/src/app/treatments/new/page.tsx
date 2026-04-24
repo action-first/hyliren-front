@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
@@ -13,7 +13,7 @@ import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
 import { proceduresApi } from '@/lib/api/procedures';
 import { emptyWizardForm } from '@/lib/wizard/defaults';
-import { stepIsValid, allStepsValid } from '@/lib/wizard/validation';
+import { stepIsValid, allStepsValid, sanitizeWizardForm } from '@/lib/wizard/validation';
 import type { WizardForm } from '@/lib/wizard/types';
 import type { ProcedureStatus } from '@hyliren/shared';
 
@@ -32,6 +32,8 @@ export default function NewProcedurePage() {
   const [form, setForm] = useState<WizardForm>(() => emptyWizardForm());
   const [activeStep, setActiveStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  // H3: setState race 로 인한 중복 제출 방지
+  const savingRef = useRef(false);
 
   const stepsWithDone = useMemo(
     () => STEPS.map((s, i) => ({ ...s, done: stepIsValid(form, i) })),
@@ -43,6 +45,8 @@ export default function NewProcedurePage() {
   }
 
   async function submit(status: ProcedureStatus) {
+    // H3: 중복 클릭 방지
+    if (savingRef.current) return;
     if (!member) {
       showToast('로그인이 필요합니다.', 'error');
       return;
@@ -53,24 +57,27 @@ export default function NewProcedurePage() {
     }
     if (!form.primaryArea || !form.procedureType) return;
 
+    savingRef.current = true;
     setSaving(true);
     try {
+      // C1: title 없는 비소스 locale 블록 제거 (Step3 빈 block seed 로 인한 400 방지)
+      const clean = sanitizeWizardForm(form);
       const res = await proceduresApi.create({
         memberId: member.id,
-        primaryArea: form.primaryArea,
-        procedureType: form.procedureType,
-        heroImageUrl: form.heroImageUrl,
-        galleryImageUrls: form.galleryImageUrls.filter(u => u.trim()),
-        slug: form.slug || undefined,
-        basePrice: form.basePrice,
-        baseAnesthesia: form.baseAnesthesia,
-        baseDurationMinutes: form.baseDurationMinutes,
-        baseRecoveryDays: form.baseRecoveryDays,
-        baseHospitalStayDays: form.baseHospitalStayDays,
-        sourceLocale: form.sourceLocale,
-        i18n: form.i18n,
+        primaryArea: clean.primaryArea as typeof form.primaryArea & string,
+        procedureType: clean.procedureType as typeof form.procedureType & string,
+        heroImageUrl: clean.heroImageUrl,
+        galleryImageUrls: clean.galleryImageUrls.filter(u => u.trim()),
+        slug: clean.slug || undefined,
+        basePrice: clean.basePrice,
+        baseAnesthesia: clean.baseAnesthesia,
+        baseDurationMinutes: clean.baseDurationMinutes,
+        baseRecoveryDays: clean.baseRecoveryDays,
+        baseHospitalStayDays: clean.baseHospitalStayDays,
+        sourceLocale: clean.sourceLocale,
+        i18n: clean.i18n,
         status,
-        variants: form.variants.map(v => ({
+        variants: clean.variants.map(v => ({
           price: v.price,
           anesthesia: v.anesthesia,
           durationMinutes: v.durationMinutes,
@@ -90,6 +97,7 @@ export default function NewProcedurePage() {
       const msg = e instanceof Error ? e.message : '저장 실패';
       showToast(msg, 'error');
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   }

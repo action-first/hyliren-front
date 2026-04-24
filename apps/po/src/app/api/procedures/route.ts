@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getProcedures, addProcedure } from '@hyliren/shared/src/server/data-store';
+import {
+  getProcedures, addProcedure, ensureUniqueSlug,
+} from '@hyliren/shared/src/server/data-store';
 import { computePriceRange } from '@hyliren/shared/src/domain/procedure';
 import type { Procedure, ProcedureVariant } from '@hyliren/shared';
 import type { ProcedureStatus } from '@hyliren/shared/src/constants';
@@ -51,7 +53,8 @@ export async function POST(req: NextRequest) {
     const data = parsed.data;
     const now = new Date().toISOString();
     const procedureId = `proc-${Date.now()}`;
-    const slug = data.slug ?? generateSlug(data.procedureType);
+    // slug 유니크 보장 — 중복 시 자동 suffix (-2, -3, ...) 부여
+    const slug = ensureUniqueSlug(data.slug ?? generateSlug(data.procedureType));
 
     const variants: ProcedureVariant[] = data.variants.map((v, i) => ({
       id: `pv-${Date.now()}-${i}`,
