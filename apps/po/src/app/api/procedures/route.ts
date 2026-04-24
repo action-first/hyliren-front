@@ -6,12 +6,27 @@ import { computePriceRange } from '@hyliren/shared/src/domain/procedure';
 import type { Procedure, ProcedureVariant } from '@hyliren/shared';
 import type { ProcedureStatus } from '@hyliren/shared/src/constants';
 import { createProcedureSchema, generateSlug } from './schema';
+import { callBackend, isRealMode, proxyErrorToResponse } from '@/lib/api/partner-proxy';
 
 /**
  * GET /api/procedures?memberId=...&status=...
  * PO — 자신의 시술 목록 (모든 상태 조회). locale merge 안 함 (편집은 원본 유지).
  */
 export async function GET(req: NextRequest) {
+  // real 모드: 백엔드로 프록시. memberId 쿼리 무시 (JWT 기반 식별).
+  if (isRealMode()) {
+    try {
+      const data = await callBackend<{ procedures: Procedure[]; total: number }>(req, {
+        method: 'GET',
+        path: '/procedures',
+        searchParams: req.nextUrl.searchParams,
+      });
+      return NextResponse.json(data);
+    } catch (e) {
+      return proxyErrorToResponse(e);
+    }
+  }
+
   try {
     const memberId = req.nextUrl.searchParams.get('memberId');
     const status = req.nextUrl.searchParams.get('status') as ProcedureStatus | null;
@@ -38,6 +53,22 @@ export async function POST(req: NextRequest) {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: '유효한 JSON 요청이 필요합니다' }, { status: 400 });
+  }
+
+  // real 모드: 백엔드로 프록시. 클라이언트가 보낸 memberId 는 body 에서 제거 (백엔드는 JWT 로 식별).
+  if (isRealMode()) {
+    try {
+      const { memberId: _m, ...cleaned } = (body as { memberId?: string });
+      void _m;
+      const data = await callBackend<{ procedure: Procedure; variants: ProcedureVariant[] }>(req, {
+        method: 'POST',
+        path: '/procedures',
+        body: cleaned,
+      });
+      return NextResponse.json({ ok: true, ...data }, { status: 201 });
+    } catch (e) {
+      return proxyErrorToResponse(e);
+    }
   }
 
   const parsed = createProcedureSchema.safeParse(body);

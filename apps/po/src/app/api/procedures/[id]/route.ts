@@ -3,8 +3,9 @@ import {
   getProcedureById, getProcedureVariants,
   updateProcedure, softDeleteProcedure, ensureUniqueSlug,
 } from '@hyliren/shared/src/server/data-store';
-import type { Procedure } from '@hyliren/shared';
+import type { Procedure, ProcedureVariant } from '@hyliren/shared';
 import { updateProcedureSchema } from '../schema';
+import { callBackend, isRealMode, proxyErrorToResponse } from '@/lib/api/partner-proxy';
 
 /**
  * GET /api/procedures/[id]?memberId=...
@@ -15,6 +16,19 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+
+  if (isRealMode()) {
+    try {
+      const data = await callBackend<{ procedure: Procedure; variants: ProcedureVariant[] }>(req, {
+        method: 'GET',
+        path: `/procedures/${id}`,
+      });
+      return NextResponse.json(data);
+    } catch (e) {
+      return proxyErrorToResponse(e);
+    }
+  }
+
   const memberId = req.nextUrl.searchParams.get('memberId');
 
   const procedure = getProcedureById(id);
@@ -36,6 +50,24 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+
+  let body: unknown;
+  try { body = await req.json(); }
+  catch { return NextResponse.json({ error: '유효한 JSON 요청이 필요합니다' }, { status: 400 }); }
+
+  if (isRealMode()) {
+    try {
+      const data = await callBackend<{ procedure: Procedure }>(req, {
+        method: 'PATCH',
+        path: `/procedures/${id}`,
+        body,
+      });
+      return NextResponse.json({ ok: true, ...data });
+    } catch (e) {
+      return proxyErrorToResponse(e);
+    }
+  }
+
   const memberId = req.nextUrl.searchParams.get('memberId');
 
   const existing = getProcedureById(id);
@@ -43,10 +75,6 @@ export async function PATCH(
   if (memberId && existing.memberId !== memberId) {
     return NextResponse.json({ error: '권한이 없습니다' }, { status: 403 });
   }
-
-  let body: unknown;
-  try { body = await req.json(); }
-  catch { return NextResponse.json({ error: '유효한 JSON 요청이 필요합니다' }, { status: 400 }); }
 
   const parsed = updateProcedureSchema.safeParse(body);
   if (!parsed.success) {
@@ -87,6 +115,19 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+
+  if (isRealMode()) {
+    try {
+      const data = await callBackend<{ procedure: Procedure }>(req, {
+        method: 'DELETE',
+        path: `/procedures/${id}`,
+      });
+      return NextResponse.json({ ok: true, ...data });
+    } catch (e) {
+      return proxyErrorToResponse(e);
+    }
+  }
+
   const memberId = req.nextUrl.searchParams.get('memberId');
 
   const existing = getProcedureById(id);

@@ -5,6 +5,7 @@ import {
 } from '@hyliren/shared/src/server/data-store';
 import type { ProcedureVariant } from '@hyliren/shared';
 import { updateVariantSchema } from '../../../schema';
+import { callBackend, isRealMode, proxyErrorToResponse } from '@/lib/api/partner-proxy';
 
 function authorize(procedureId: string, memberId: string | null) {
   const procedure = getProcedureById(procedureId);
@@ -24,14 +25,28 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; variantId: string }> },
 ) {
   const { id, variantId } = await params;
-  const memberId = req.nextUrl.searchParams.get('memberId');
-
-  const auth = authorize(id, memberId);
-  if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   let body: unknown;
   try { body = await req.json(); }
   catch { return NextResponse.json({ error: '유효한 JSON 요청이 필요합니다' }, { status: 400 }); }
+
+  if (isRealMode()) {
+    try {
+      await callBackend<void>(req, {
+        method: 'PATCH',
+        path: `/procedures/${id}/variants/${variantId}`,
+        body,
+      });
+      return NextResponse.json({ ok: true });
+    } catch (e) {
+      return proxyErrorToResponse(e);
+    }
+  }
+
+  const memberId = req.nextUrl.searchParams.get('memberId');
+
+  const auth = authorize(id, memberId);
+  if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const parsed = updateVariantSchema.safeParse(body);
   if (!parsed.success) {
@@ -74,6 +89,19 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; variantId: string }> },
 ) {
   const { id, variantId } = await params;
+
+  if (isRealMode()) {
+    try {
+      await callBackend<void>(req, {
+        method: 'DELETE',
+        path: `/procedures/${id}/variants/${variantId}`,
+      });
+      return NextResponse.json({ ok: true });
+    } catch (e) {
+      return proxyErrorToResponse(e);
+    }
+  }
+
   const memberId = req.nextUrl.searchParams.get('memberId');
 
   const auth = authorize(id, memberId);
