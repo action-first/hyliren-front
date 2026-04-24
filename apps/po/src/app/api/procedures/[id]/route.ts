@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getProcedureById, getProcedureVariants,
-  updateProcedure, softDeleteProcedure,
+  updateProcedure, softDeleteProcedure, ensureUniqueSlug,
 } from '@hyliren/shared/src/server/data-store';
 import type { Procedure } from '@hyliren/shared';
 import { updateProcedureSchema } from '../schema';
@@ -58,6 +58,11 @@ export async function PATCH(
 
   const patch = parsed.data;
   const next: Partial<Procedure> = { ...patch };
+
+  // slug 바뀌는 경우 유니크 보장 (자기 자신 excludeId)
+  if (patch.slug && patch.slug !== existing.slug) {
+    next.slug = ensureUniqueSlug(patch.slug, id);
+  }
 
   // i18n 은 기존 + patch locale 병합 (locale 단위 upsert)
   if (patch.i18n) {

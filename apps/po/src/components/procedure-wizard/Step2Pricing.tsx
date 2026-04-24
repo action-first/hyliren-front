@@ -26,9 +26,15 @@ export function Step2Pricing({ form, onChange }: Step2Props) {
   }
 
   function deleteVariant(id: string) {
-    onChange({
-      variants: form.variants.filter(v => v.id !== id),
-    });
+    const target = form.variants.find(v => v.id === id);
+    const remaining = form.variants.filter(v => v.id !== id);
+
+    // default variant 를 삭제하면 첫 남은 variant 로 자동 승계 — 서버 DELETE 가드와 동작 맞춤
+    if (target?.isDefault && remaining.length > 0) {
+      remaining[0] = { ...remaining[0], isDefault: true };
+    }
+
+    onChange({ variants: remaining });
   }
 
   function setDefault(id: string) {
