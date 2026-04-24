@@ -12,7 +12,10 @@ import { Step4Preview } from '@/components/procedure-wizard/Step4Preview';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
 import { proceduresApi } from '@/lib/api/procedures';
-import { stepIsValid, allStepsValid, sanitizeWizardForm } from '@/lib/wizard/validation';
+import {
+  stepIsValid, allStepsValid, stepsValidForDraft, sanitizeWizardForm,
+} from '@/lib/wizard/validation';
+import { track } from '@hyliren/shared/src/events';
 import type { WizardForm, WizardVariant } from '@/lib/wizard/types';
 import type { ProcedureStatus, Procedure, ProcedureVariant } from '@hyliren/shared';
 
@@ -72,6 +75,14 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       .then(({ procedure, variants }) => {
         if (cancelled) return;
         setForm(toWizardForm(procedure, variants));
+        // Instrumentation: edit wizard 진입 (create 와 동일 funnel 에 묶어 등록 완료율 계산)
+        track({
+          eventType: 'treatment_wizard_start',
+          actorType: 'member',
+          actorId: member.id,
+          targetId: id,
+          metadata: { source: 'po', locale: 'ko', mode: 'edit' },
+        });
       })
       .catch((e: unknown) => {
         if (cancelled) return;
@@ -94,8 +105,15 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     // H3: 중복 클릭 방지
     if (savingRef.current) return;
     if (!member || !form || !form.primaryArea || !form.procedureType) return;
-    if (!allStepsValid(form)) {
-      showToast('필수 입력값을 모두 채워주세요.', 'error');
+    // D1: draft 저장은 Step 1 최소 필드만, published 는 전체 검증
+    const ok = status === 'published' ? allStepsValid(form) : stepsValidForDraft(form);
+    if (!ok) {
+      showToast(
+        status === 'published'
+          ? '필수 입력값을 모두 채워주세요.'
+          : '분류와 원본 언어 타이틀은 최소한 입력해야 저장할 수 있어요.',
+        'error',
+      );
       return;
     }
 
@@ -164,6 +182,13 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
         }
       }
 
+      track({
+        eventType: 'treatment_wizard_save_success',
+        actorType: 'member',
+        actorId: member.id,
+        targetId: id,
+        metadata: { source: 'po', locale: 'ko', mode: 'edit', value: status },
+      });
       showToast(
         status === 'published' ? '공개되었습니다.' : '저장되었습니다.',
         'success',
@@ -173,6 +198,13 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       setForm(toWizardForm(reload.procedure, reload.variants));
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '저장 실패';
+      track({
+        eventType: 'treatment_wizard_save_fail',
+        actorType: 'member',
+        actorId: member.id,
+        targetId: id,
+        metadata: { source: 'po', locale: 'ko', mode: 'edit', value: status, label: msg.slice(0, 120) },
+      });
       showToast(msg, 'error');
       // C4: 실패 시 서버 상태로 싱크 — 부분 저장 상태를 드러내고 다음 시도 안전 보장
       try {
@@ -239,7 +271,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
               <Button
                 variant="secondary" size="sm"
                 onClick={() => submit('draft')}
-                disabled={saving || !allStepsValid(form)}
+                disabled={saving || !stepsValidForDraft(form)}
               >
                 임시저장
               </Button>

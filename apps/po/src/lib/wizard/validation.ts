@@ -44,6 +44,18 @@ export function allStepsValid(form: WizardForm): boolean {
 }
 
 /**
+ * 임시저장(draft) 최소 요건.
+ *
+ * CPO D1: 사용자가 등록 중 이탈해도 작성본 보존 가능해야 한다.
+ * → 분류(어디/무엇)와 원본 언어 타이틀만 있으면 저장 허용.
+ * 가격·옵션·상세·이미지는 모두 공개 전까지 보류 가능.
+ */
+export function stepsValidForDraft(form: WizardForm): boolean {
+  const sourceTitle = form.i18n[form.sourceLocale]?.title?.trim() ?? '';
+  return form.primaryArea !== '' && form.procedureType !== '' && sourceTitle !== '';
+}
+
+/**
  * Submit 직전에 i18n 객체를 정리 (C1).
  *
  * Step3 에서 사용자가 비소스 locale 탭을 전환하면 Step3Content 가 빈 block

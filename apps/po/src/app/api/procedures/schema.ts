@@ -10,9 +10,14 @@ const procedureStatusEnum = z.enum(PROCEDURE_STATUSES);
 const anesthesiaEnum = z.enum(ANESTHESIA_TYPES);
 const localeEnum = z.enum(LOCALES);
 
-/** Procedure 의 locale 별 번역 블럭. */
+/**
+ * Procedure 의 locale 별 번역 블럭.
+ *
+ * draft 저장을 지원하기 위해 title/name 의 min 제약은 서버에서 제거하고
+ * 공개 전환 시에만 superRefine 으로 강제 (아래 createProcedureSchema).
+ */
 const procedureI18nBlock = z.object({
-  title: z.string().min(2).max(80),
+  title: z.string().max(80),
   description: z.string().max(2000),
   precautions: z.string().max(500),
   indications: z.array(z.string().min(1).max(30)).max(5),
@@ -20,7 +25,7 @@ const procedureI18nBlock = z.object({
 
 /** Variant 의 locale 별 번역 블럭. */
 const variantI18nBlock = z.object({
-  name: z.string().min(1).max(50),
+  name: z.string().max(50),
   description: z.string().max(500).nullable(),
 });
 
@@ -55,7 +60,12 @@ export const variantSchema = z.object({
 
 export type VariantInput = z.infer<typeof variantSchema>;
 
-/** 생성 스키마 — Procedure + 최소 1개 Variant 동시 저장. */
+/**
+ * 생성 스키마 — Procedure + 최소 1개 Variant 동시 저장.
+ *
+ * D1: draft 저장은 분류(primaryArea/procedureType)와 원본 타이틀만 있으면 허용.
+ * 가격·이미지·variant name 등 나머지 필수 조건은 status='published' 로 공개할 때만 강제.
+ */
 export const createProcedureSchema = z.object({
   memberId: z.string().min(1),
 
@@ -66,8 +76,8 @@ export const createProcedureSchema = z.object({
   heroImageUrl: z.string().url().or(z.literal('')),
   galleryImageUrls: z.array(z.string().url()).max(8).default([]),
 
-  /* Base 값 (variant 승계 기준) */
-  basePrice: z.number().int().positive(),
+  /* Base 값 (variant 승계 기준) — draft 저장 허용 위해 basePrice 는 0 이상 */
+  basePrice: z.number().int().min(0),
   baseAnesthesia: anesthesiaEnum,
   baseDurationMinutes: z.number().int().min(1).max(480),
   baseRecoveryDays: z.number().int().min(0).max(90),
@@ -84,6 +94,52 @@ export const createProcedureSchema = z.object({
   ),
 
   status: procedureStatusEnum.default('draft'),
+}).superRefine((data, ctx) => {
+  // draft/published 공통 — 원본 언어 타이틀 최소 1자
+  const src = data.i18n[data.sourceLocale];
+  if (!src || (src.title ?? '').trim().length < 1) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['i18n', data.sourceLocale, 'title'],
+      message: '원본 언어 타이틀은 필수입니다',
+    });
+    return;
+  }
+
+  // published 공개 조건 — draft 는 면제
+  if (data.status === 'published') {
+    if ((src.title ?? '').trim().length < 2) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['i18n', data.sourceLocale, 'title'],
+        message: '공개하려면 타이틀이 2자 이상이어야 합니다',
+      });
+    }
+    if (data.basePrice <= 0) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['basePrice'],
+        message: '공개하려면 기본 가격이 필요합니다',
+      });
+    }
+    if (!data.heroImageUrl) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['heroImageUrl'],
+        message: '공개하려면 대표 이미지가 필요합니다',
+      });
+    }
+    data.variants.forEach((v, i) => {
+      const vSrc = v.i18n[data.sourceLocale];
+      if (!vSrc || (vSrc.name ?? '').trim().length < 1) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['variants', i, 'i18n', data.sourceLocale, 'name'],
+          message: '공개하려면 모든 옵션에 이름이 필요합니다',
+        });
+      }
+    });
+  }
 });
 
 export type CreateProcedureInput = z.infer<typeof createProcedureSchema>;
