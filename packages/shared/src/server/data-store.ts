@@ -274,6 +274,45 @@ export function removeProcedureVariant(id: string): void {
   save(data);
 }
 
+/**
+ * variant default 불변식 강제 — procedure 당 isDefault=true 가 정확히 1개가
+ * 되도록 조정. 백엔드 (apps/partner) 의 ensureSingleDefault 와 동일 계약.
+ *
+ * 선택 우선순위:
+ *   1. preferredId 존재 + procedure 에 속하면 그것
+ *   2. 현재 isDefault=true 가 정확히 1개면 그것 유지
+ *   3. 그 외엔 sortOrder 최하
+ *
+ * variants 0개면 no-op.
+ */
+export function ensureSingleDefaultVariant(procedureId: string, preferredId?: string): void {
+  const data = load();
+  const variants = data.procedureVariants.filter(v => v.procedureId === procedureId);
+  if (variants.length === 0) return;
+
+  let targetId: string;
+  if (preferredId && variants.some(v => v.id === preferredId)) {
+    targetId = preferredId;
+  } else {
+    const currentDefaults = variants.filter(v => v.isDefault);
+    if (currentDefaults.length === 1) {
+      targetId = currentDefaults[0].id;
+    } else {
+      const sorted = [...variants].sort((a, b) => a.sortOrder - b.sortOrder);
+      targetId = sorted[0].id;
+    }
+  }
+
+  const now = new Date().toISOString();
+  data.procedureVariants = data.procedureVariants.map(v => {
+    if (v.procedureId !== procedureId) return v;
+    const shouldBeDefault = v.id === targetId;
+    if (v.isDefault === shouldBeDefault) return v;
+    return { ...v, isDefault: shouldBeDefault, updatedAt: now };
+  });
+  save(data);
+}
+
 function recalcPriceRange(data: StoreData, procedureId: string): void {
   const procIdx = data.procedures.findIndex(p => p.id === procedureId);
   if (procIdx === -1) return;

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  getProcedureById, getProcedureVariants,
-  addProcedureVariant, updateProcedureVariant,
+  getProcedureById,
+  addProcedureVariant,
+  ensureSingleDefaultVariant,
 } from '@hyliren/shared/src/server/data-store';
 import type { ProcedureVariant } from '@hyliren/shared';
 import { variantSchema } from '../../schema';
@@ -56,14 +57,6 @@ export async function POST(
   const now = new Date().toISOString();
   const v = parsed.data;
 
-  // 새 variant 가 default 면 기존 default 를 해제
-  if (v.isDefault) {
-    const existing = getProcedureVariants(id);
-    for (const ex of existing) {
-      if (ex.isDefault) updateProcedureVariant(ex.id, { isDefault: false });
-    }
-  }
-
   const variant: ProcedureVariant = {
     id: `pv-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     procedureId: id,
@@ -79,6 +72,9 @@ export async function POST(
     updatedAt: now,
   };
   addProcedureVariant(variant);
+
+  // 백엔드와 동일 — 신규 variant 추가 후 default 불변식 재조정
+  ensureSingleDefaultVariant(id, v.isDefault ? variant.id : undefined);
 
   return NextResponse.json({ ok: true, variant });
 }

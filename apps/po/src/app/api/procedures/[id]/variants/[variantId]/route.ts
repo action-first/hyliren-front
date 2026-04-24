@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   getProcedureById, getProcedureVariants,
   updateProcedureVariant, removeProcedureVariant,
+  ensureSingleDefaultVariant,
 } from '@hyliren/shared/src/server/data-store';
 import type { ProcedureVariant } from '@hyliren/shared';
 import { updateVariantSchema } from '../../../schema';
@@ -66,17 +67,12 @@ export async function PATCH(
     patch.i18n = { ...existing.i18n, ...parsed.data.i18n };
   }
 
-  // isDefault=true 로 전환 시 나머지 해제
-  if (parsed.data.isDefault === true) {
-    for (const s of siblings) {
-      if (s.id !== variantId && s.isDefault) {
-        updateProcedureVariant(s.id, { isDefault: false });
-      }
-    }
-  }
-
   const updated = updateProcedureVariant(variantId, patch);
   if (!updated) return NextResponse.json({ error: '옵션을 찾을 수 없습니다' }, { status: 404 });
+
+  // 백엔드와 동일 — isDefault=true/false/미지정 모두 safety net
+  ensureSingleDefaultVariant(id, parsed.data.isDefault === true ? variantId : undefined);
+
   return NextResponse.json({ ok: true, variant: updated });
 }
 
@@ -118,13 +114,10 @@ export async function DELETE(
   const target = variants.find(v => v.id === variantId);
   if (!target) return NextResponse.json({ error: '옵션을 찾을 수 없습니다' }, { status: 404 });
 
-  if (target.isDefault) {
-    const promoted = variants
-      .filter(v => v.id !== variantId)
-      .sort((a, b) => a.sortOrder - b.sortOrder)[0];
-    if (promoted) updateProcedureVariant(promoted.id, { isDefault: true });
-  }
-
   removeProcedureVariant(variantId);
+
+  // 백엔드와 동일 — 삭제 후 default 불변식 재조정 (default 삭제 시 자동 승격 포함)
+  ensureSingleDefaultVariant(id);
+
   return NextResponse.json({ ok: true });
 }
