@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  getProcedures, addProcedure,
-} from '@hyliren/shared/src/server/data-store';
-import { computePriceRange } from '@hyliren/shared/src/types/procedure';
-import type {
-  Procedure, ProcedureDetail, ProcedureVariant,
-} from '@hyliren/shared';
+import { getProcedures, addProcedure } from '@hyliren/shared/src/server/data-store';
+import { computePriceRange } from '@hyliren/shared/src/domain/procedure';
+import type { Procedure, ProcedureVariant } from '@hyliren/shared';
 import type { ProcedureStatus } from '@hyliren/shared/src/constants';
 import { createProcedureSchema, generateSlug } from './schema';
 
 /**
  * GET /api/procedures?memberId=...&status=...
- * PO 는 자신의 시술 목록을 모든 상태에서 조회.
+ * PO — 자신의 시술 목록 (모든 상태 조회). locale merge 안 함 (편집은 원본 유지).
  */
 export async function GET(req: NextRequest) {
   try {
@@ -20,7 +16,7 @@ export async function GET(req: NextRequest) {
     if (!memberId) {
       return NextResponse.json({ error: 'memberId 필수' }, { status: 400 });
     }
-    let procedures = getProcedures().filter(p => p.memberId === memberId && !p.deletedAt);
+    let procedures = getProcedures().filter(p => p.memberId === memberId);
     if (status) procedures = procedures.filter(p => p.status === status);
     procedures.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     return NextResponse.json({ procedures, total: procedures.length });
@@ -31,7 +27,8 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/procedures
- * 4-step wizard 전체 완료 후 일괄 생성. Procedure + Detail + Variants 동시 저장.
+ * 4-step wizard 완료 시 Procedure + Variants 일괄 생성.
+ * payload 에 i18n 전 locale 포함 (원본 + 번역).
  */
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -56,30 +53,9 @@ export async function POST(req: NextRequest) {
     const procedureId = `proc-${Date.now()}`;
     const slug = data.slug ?? generateSlug(data.procedureType);
 
-    // Detail 먼저 구성 (priceRange 계산에 필요)
-    const detail: ProcedureDetail = {
-      procedureId,
-      description: data.description,
-      descriptionZh: data.descriptionZh,
-      indications: data.indications,
-      precautions: data.precautions,
-      precautionsZh: data.precautionsZh,
-      galleryImageUrls: data.galleryImageUrls,
-      basePrice: data.basePrice,
-      baseAnesthesia: data.baseAnesthesia,
-      baseDurationMinutes: data.baseDurationMinutes,
-      baseRecoveryDays: data.baseRecoveryDays,
-      baseHospitalStayDays: data.baseHospitalStayDays,
-      updatedAt: now,
-    };
-
     const variants: ProcedureVariant[] = data.variants.map((v, i) => ({
       id: `pv-${Date.now()}-${i}`,
       procedureId,
-      name: v.name,
-      nameZh: v.nameZh,
-      description: v.description ?? null,
-      descriptionZh: v.descriptionZh ?? null,
       price: v.price ?? null,
       anesthesia: v.anesthesia ?? null,
       durationMinutes: v.durationMinutes ?? null,
@@ -87,37 +63,48 @@ export async function POST(req: NextRequest) {
       hospitalStayDays: v.hospitalStayDays ?? null,
       sortOrder: v.sortOrder,
       isDefault: v.isDefault,
+      i18n: v.i18n,
       createdAt: now,
       updatedAt: now,
     }));
 
-    const { priceMin, priceMax } = computePriceRange(variants, detail);
-
-    const procedure: Procedure = {
+    const procedureCore: Procedure = {
       id: procedureId,
       memberId: data.memberId,
       slug,
-      title: data.title,
-      titleZh: data.titleZh,
       primaryArea: data.primaryArea,
       procedureType: data.procedureType,
       heroImageUrl: data.heroImageUrl || '',
-      priceMin,
-      priceMax,
+      galleryImageUrls: data.galleryImageUrls,
+      priceMin: 0,
+      priceMax: 0,
       currency: 'KRW',
+      basePrice: data.basePrice,
+      baseAnesthesia: data.baseAnesthesia,
+      baseDurationMinutes: data.baseDurationMinutes,
+      baseRecoveryDays: data.baseRecoveryDays,
+      baseHospitalStayDays: data.baseHospitalStayDays,
       status: data.status,
-      publishedAt: data.status === 'published' ? now : null,
+      sourceLocale: data.sourceLocale,
       viewCount: 0,
       bookmarkCount: 0,
       consultClickCount: 0,
+      i18n: data.i18n,
+      publishedAt: data.status === 'published' ? now : null,
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
     };
 
-    addProcedure(procedure, detail, variants);
+    const range = computePriceRange(variants, procedureCore);
+    const procedure: Procedure = {
+      ...procedureCore,
+      priceMin: range.priceMin,
+      priceMax: range.priceMax,
+    };
 
-    return NextResponse.json({ ok: true, procedure, detail, variants });
+    addProcedure(procedure, variants);
+    return NextResponse.json({ ok: true, procedure, variants });
   } catch {
     return NextResponse.json({ error: 'Failed to create procedure' }, { status: 500 });
   }

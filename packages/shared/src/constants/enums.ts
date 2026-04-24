@@ -162,8 +162,13 @@ export type BodyArea = typeof BODY_AREAS[number];
 
 // --- Locale (DB: users.locale VARCHAR(10) DEFAULT 'zh-CN') ---
 
-export const LOCALES = ['ko', 'zh-CN'] as const;
+// BCP 47 규격 (ko/ja/en 은 2글자), 중국어는 간체/번체 구분 위해 예외적으로 zh-CN.
+// 향후 zh-TW, vi, th 등 확장 시 이 배열에만 추가.
+export const LOCALES = ['ko', 'zh-CN', 'ja', 'en'] as const;
 export type Locale = typeof LOCALES[number];
+
+/** 서비스 기본 소스 언어 — 모든 원본 콘텐츠의 기준. */
+export const DEFAULT_SOURCE_LOCALE: Locale = 'ko';
 
 // --- Procedure (DB: procedure_type, procedure_status) ---
 // FO 시술 상세페이지 / PO 시술 등록 페이지에서 사용하는 시술 유형.

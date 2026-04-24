@@ -9,15 +9,14 @@
 import fs from 'fs';
 import type {
   Concern, ConcernPhoto, Proposal, ProposalItem,
-  Procedure, ProcedureDetail, ProcedureVariant, ProcedureBookmark,
+  Procedure, ProcedureVariant, ProcedureBookmark,
 } from '../types';
-import { computePriceRange } from '../types/procedure';
+import { computePriceRange } from '../domain/procedure';
 import type { EventActorType, EventTargetType } from '../constants';
 import { MOCK_CONCERNS, MOCK_CONCERN_PHOTOS } from '../mock/concerns';
 import { MOCK_PROPOSALS, MOCK_PROPOSAL_ITEMS } from '../mock/proposals';
 import {
-  MOCK_PROCEDURES, MOCK_PROCEDURE_DETAILS,
-  MOCK_PROCEDURE_VARIANTS, MOCK_PROCEDURE_BOOKMARKS,
+  MOCK_PROCEDURES, MOCK_PROCEDURE_VARIANTS, MOCK_PROCEDURE_BOOKMARKS,
 } from '../mock/procedures';
 
 const STORE_FILE = '/tmp/hyliren-store.json';
@@ -28,7 +27,6 @@ type StoreData = {
   proposals: Proposal[];
   proposalItems: ProposalItem[];
   procedures: Procedure[];
-  procedureDetails: ProcedureDetail[];
   procedureVariants: ProcedureVariant[];
   procedureBookmarks: ProcedureBookmark[];
 };
@@ -40,7 +38,6 @@ function seed(): StoreData {
     proposals: [...MOCK_PROPOSALS],
     proposalItems: [...MOCK_PROPOSAL_ITEMS],
     procedures: [...MOCK_PROCEDURES],
-    procedureDetails: [...MOCK_PROCEDURE_DETAILS],
     procedureVariants: [...MOCK_PROCEDURE_VARIANTS],
     procedureBookmarks: [...MOCK_PROCEDURE_BOOKMARKS],
   };
@@ -50,7 +47,7 @@ function load(): StoreData {
   try {
     const raw = JSON.parse(fs.readFileSync(STORE_FILE, 'utf-8')) as Partial<StoreData>;
     // 기존 스토어에 신설 필드 (procedures 계열) 가 없으면 seed 로 병합.
-    // 이렇게 하면 배포 중 /tmp 파일 리셋 없이 스키마 확장이 가능.
+    // 배포 중 /tmp 파일 리셋 없이 스키마 확장 가능.
     const defaults = seed();
     const merged: StoreData = {
       concerns: raw.concerns ?? defaults.concerns,
@@ -58,13 +55,13 @@ function load(): StoreData {
       proposals: raw.proposals ?? defaults.proposals,
       proposalItems: raw.proposalItems ?? defaults.proposalItems,
       procedures: raw.procedures ?? defaults.procedures,
-      procedureDetails: raw.procedureDetails ?? defaults.procedureDetails,
       procedureVariants: raw.procedureVariants ?? defaults.procedureVariants,
       procedureBookmarks: raw.procedureBookmarks ?? defaults.procedureBookmarks,
     };
     if (
-      raw.procedures === undefined || raw.procedureDetails === undefined ||
-      raw.procedureVariants === undefined || raw.procedureBookmarks === undefined
+      raw.procedures === undefined ||
+      raw.procedureVariants === undefined ||
+      raw.procedureBookmarks === undefined
     ) {
       fs.writeFileSync(STORE_FILE, JSON.stringify(merged));
     }
@@ -142,7 +139,7 @@ export function updateProposal(id: string, updates: Partial<Proposal>): Proposal
 // ---- Procedures ----
 
 export function getProcedures(): Procedure[] {
-  return load().procedures;
+  return load().procedures.filter(p => !p.deletedAt);
 }
 
 export function getProcedureById(id: string): Procedure | null {
@@ -155,21 +152,39 @@ export function getProcedureBySlug(slug: string): Procedure | null {
 
 export function addProcedure(
   procedure: Procedure,
-  detail: ProcedureDetail,
   variants: ProcedureVariant[],
 ): void {
   const data = load();
   data.procedures.push(procedure);
-  data.procedureDetails.push(detail);
   data.procedureVariants.push(...variants);
   save(data);
 }
 
+/**
+ * Procedure 부분 업데이트. base* 값이 포함되면 variants 집계 재계산.
+ * i18n 은 부분 병합이 필요한 경우 상위 라우트에서 머지 후 이 함수로 전달.
+ */
 export function updateProcedure(id: string, updates: Partial<Procedure>): Procedure | null {
   const data = load();
   const idx = data.procedures.findIndex(p => p.id === id);
   if (idx === -1) return null;
-  data.procedures[idx] = { ...data.procedures[idx], ...updates, updatedAt: new Date().toISOString() };
+
+  const next: Procedure = {
+    ...data.procedures[idx],
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  };
+  data.procedures[idx] = next;
+
+  // base* 변경 또는 명시 priceMin/priceMax 재산정 트리거
+  const basePriceChanged = updates.basePrice !== undefined;
+  const priceManualOverride = updates.priceMin !== undefined || updates.priceMax !== undefined;
+  if (basePriceChanged && !priceManualOverride) {
+    const variants = data.procedureVariants.filter(v => v.procedureId === id);
+    const range = computePriceRange(variants, next);
+    data.procedures[idx] = { ...next, priceMin: range.priceMin, priceMax: range.priceMax };
+  }
+
   save(data);
   return data.procedures[idx];
 }
@@ -192,40 +207,6 @@ export function incrementProcedureMetric(
     [metric]: Math.max(0, data.procedures[idx][metric] + delta),
   };
   save(data);
-}
-
-// ---- Procedure Details ----
-
-export function getProcedureDetail(procedureId: string): ProcedureDetail | null {
-  return load().procedureDetails.find(d => d.procedureId === procedureId) ?? null;
-}
-
-export function updateProcedureDetail(
-  procedureId: string,
-  updates: Partial<Omit<ProcedureDetail, 'procedureId'>>,
-): ProcedureDetail | null {
-  const data = load();
-  const idx = data.procedureDetails.findIndex(d => d.procedureId === procedureId);
-  if (idx === -1) return null;
-  data.procedureDetails[idx] = {
-    ...data.procedureDetails[idx],
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  };
-  // base* 값이 바뀌면 priceMin/priceMax 재계산 (모든 variant 가 승계인 경우에만 영향)
-  const variants = data.procedureVariants.filter(v => v.procedureId === procedureId);
-  const range = computePriceRange(variants, data.procedureDetails[idx]);
-  const procIdx = data.procedures.findIndex(p => p.id === procedureId);
-  if (procIdx !== -1) {
-    data.procedures[procIdx] = {
-      ...data.procedures[procIdx],
-      priceMin: range.priceMin,
-      priceMax: range.priceMax,
-      updatedAt: new Date().toISOString(),
-    };
-  }
-  save(data);
-  return data.procedureDetails[idx];
 }
 
 // ---- Procedure Variants ----
@@ -270,19 +251,16 @@ export function removeProcedureVariant(id: string): void {
 }
 
 function recalcPriceRange(data: StoreData, procedureId: string): void {
-  const detail = data.procedureDetails.find(d => d.procedureId === procedureId);
-  if (!detail) return;
+  const procIdx = data.procedures.findIndex(p => p.id === procedureId);
+  if (procIdx === -1) return;
   const variants = data.procedureVariants.filter(v => v.procedureId === procedureId);
-  const range = computePriceRange(variants, detail);
-  const idx = data.procedures.findIndex(p => p.id === procedureId);
-  if (idx !== -1) {
-    data.procedures[idx] = {
-      ...data.procedures[idx],
-      priceMin: range.priceMin,
-      priceMax: range.priceMax,
-      updatedAt: new Date().toISOString(),
-    };
-  }
+  const range = computePriceRange(variants, data.procedures[procIdx]);
+  data.procedures[procIdx] = {
+    ...data.procedures[procIdx],
+    priceMin: range.priceMin,
+    priceMax: range.priceMax,
+    updatedAt: new Date().toISOString(),
+  };
 }
 
 // ---- Procedure Bookmarks ----

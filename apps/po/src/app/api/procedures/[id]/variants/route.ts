@@ -8,7 +8,7 @@ import { variantSchema } from '../../schema';
 
 /**
  * POST /api/procedures/[id]/variants?memberId=...
- * 새 variant 추가. isDefault=true 로 들어오면 기존 default 를 false 로 해제.
+ * 새 variant 추가. isDefault=true 로 들어오면 기존 default 해제.
  */
 export async function POST(
   req: NextRequest,
@@ -49,10 +49,6 @@ export async function POST(
   const variant: ProcedureVariant = {
     id: `pv-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     procedureId: id,
-    name: v.name,
-    nameZh: v.nameZh,
-    description: v.description ?? null,
-    descriptionZh: v.descriptionZh ?? null,
     price: v.price ?? null,
     anesthesia: v.anesthesia ?? null,
     durationMinutes: v.durationMinutes ?? null,
@@ -60,6 +56,7 @@ export async function POST(
     hospitalStayDays: v.hospitalStayDays ?? null,
     sortOrder: v.sortOrder,
     isDefault: v.isDefault,
+    i18n: v.i18n,
     createdAt: now,
     updatedAt: now,
   };

@@ -1,25 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  getProcedureById, getProcedureDetail, getProcedureVariants,
-  updateProcedure, updateProcedureDetail, softDeleteProcedure,
+  getProcedureById, getProcedureVariants,
+  updateProcedure, softDeleteProcedure,
 } from '@hyliren/shared/src/server/data-store';
+import type { Procedure } from '@hyliren/shared';
 import { updateProcedureSchema } from '../schema';
-
-const PROCEDURE_KEYS = [
-  'title', 'titleZh', 'primaryArea', 'procedureType',
-  'heroImageUrl', 'slug', 'status',
-] as const;
-
-const DETAIL_KEYS = [
-  'description', 'descriptionZh', 'indications',
-  'precautions', 'precautionsZh', 'galleryImageUrls',
-  'basePrice', 'baseAnesthesia', 'baseDurationMinutes',
-  'baseRecoveryDays', 'baseHospitalStayDays',
-] as const;
 
 /**
  * GET /api/procedures/[id]?memberId=...
- * PO 자신의 시술 상세 + detail + variants. 본인 소유만 접근 가능.
+ * PO — 본인 시술 상세 + variants. i18n 원본 그대로 반환 (편집 UI 가 locale 탭으로 다룸).
  */
 export async function GET(
   req: NextRequest,
@@ -34,15 +23,13 @@ export async function GET(
     return NextResponse.json({ error: '권한이 없습니다' }, { status: 403 });
   }
 
-  const detail = getProcedureDetail(id);
   const variants = getProcedureVariants(id);
-  return NextResponse.json({ procedure, detail, variants });
+  return NextResponse.json({ procedure, variants });
 }
 
 /**
  * PATCH /api/procedures/[id]?memberId=...
- * Procedure + Detail 필드 자유 조합 업데이트.
- * status 전환 (draft→published, published→archived) 포함.
+ * 본체 필드 부분 업데이트 + i18n 은 locale 단위 upsert (기존 번역 유지).
  */
 export async function PATCH(
   req: NextRequest,
@@ -70,39 +57,25 @@ export async function PATCH(
   }
 
   const patch = parsed.data;
-  const procedurePatch: Record<string, unknown> = {};
-  const detailPatch: Record<string, unknown> = {};
-  for (const k of PROCEDURE_KEYS) {
-    if (k in patch) procedurePatch[k] = patch[k];
-  }
-  for (const k of DETAIL_KEYS) {
-    if (k in patch) detailPatch[k] = patch[k];
+  const next: Partial<Procedure> = { ...patch };
+
+  // i18n 은 기존 + patch locale 병합 (locale 단위 upsert)
+  if (patch.i18n) {
+    next.i18n = { ...existing.i18n, ...patch.i18n };
   }
 
-  // status 전환이 draft → published 면 publishedAt 타임스탬프 세팅
-  if (procedurePatch.status === 'published' && existing.status !== 'published') {
-    procedurePatch.publishedAt = new Date().toISOString();
+  // draft → published 전환 시 publishedAt 세팅
+  if (patch.status === 'published' && existing.status !== 'published') {
+    next.publishedAt = new Date().toISOString();
   }
 
-  let updatedProcedure = existing;
-  if (Object.keys(procedurePatch).length > 0) {
-    updatedProcedure = updateProcedure(id, procedurePatch) ?? existing;
-  }
-  let updatedDetail = getProcedureDetail(id);
-  if (Object.keys(detailPatch).length > 0) {
-    updatedDetail = updateProcedureDetail(id, detailPatch);
-  }
-
-  return NextResponse.json({
-    ok: true,
-    procedure: updatedProcedure,
-    detail: updatedDetail,
-  });
+  const updated = updateProcedure(id, next);
+  return NextResponse.json({ ok: true, procedure: updated });
 }
 
 /**
  * DELETE /api/procedures/[id]?memberId=...
- * Soft delete. status → 'archived', deletedAt 세팅.
+ * Soft delete. status → 'archived'.
  */
 export async function DELETE(
   req: NextRequest,

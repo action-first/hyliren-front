@@ -5,8 +5,8 @@ export type { Proposal, ProposalItem, ProposalImage } from './proposal';
 export type { Order, ReportOrderDetails, ServiceOrderDetails } from './order';
 export type {
   Procedure,
-  ProcedureDetail,
   ProcedureVariant,
   ProcedureBookmark,
+  ProcedureI18n,
+  ProcedureVariantI18n,
 } from './procedure';
-export { getEffectiveVariant, computePriceRange } from './procedure';
