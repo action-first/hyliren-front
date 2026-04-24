@@ -98,6 +98,16 @@
     background: var(--surface-hovered);
   }
 
+  .po-sidebar-account__profile {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    color: inherit;
+    text-decoration: none;
+  }
+
   .po-sidebar-account__avatar {
     width: 32px;
     height: 32px;
@@ -116,6 +126,30 @@
     flex-direction: column;
     gap: 1px;
     flex: 1;
+  }
+
+  .po-sidebar-account__logout,
+  .po-sidebar-account__login {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    border: 1px solid var(--border-subdued);
+    border-radius: 6px;
+    background: var(--surface-default);
+    color: var(--text-subdued);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .po-sidebar-account__logout:hover,
+  .po-sidebar-account__login:hover {
+    background: var(--surface-hovered);
+    color: var(--text-default);
   }
 
   .po-sidebar-account__topline {

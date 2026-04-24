@@ -12,6 +12,7 @@ import {
   CircleUserRound,
   ShieldCheck,
   Plus,
+  LogOut,
 } from 'lucide-react';
 import { useCreditsStore } from '@/store/credits';
 import { usePOAuthStore } from '@/store/po-auth';
@@ -39,6 +40,7 @@ export function POSidebar({ active }: { active: string }) {
   const charge = useCreditsStore(s => s.charge);
   const member = usePOAuthStore(s => s.member);
   const profile = usePOAuthStore(s => s.profile);
+  const logout = usePOAuthStore(s => s.logout);
   const { showToast } = useToastStore();
 
   const [showModal, setShowModal] = useState(false);
@@ -64,6 +66,15 @@ export function POSidebar({ active }: { active: string }) {
     showToast(`${selected}크레딧이 충전되었습니다.`, 'success');
     setShowModal(false);
     setSelected(null);
+  }
+
+  async function handleLogout() {
+    try {
+      await logout();
+      showToast('로그아웃되었습니다.', 'info');
+    } catch {
+      showToast('로그아웃되었습니다. 일부 정리는 재접속 시 자동 처리됩니다.', 'warning');
+    }
   }
 
   return (
@@ -116,28 +127,42 @@ export function POSidebar({ active }: { active: string }) {
               </div>
             </div>
 
-            <Link href="/profile" className="po-sidebar-account" aria-label="현재 로그인한 파트너 계정 정보 보기">
-              <div className="po-sidebar-account__avatar">
-                <CircleUserRound size={18} />
-              </div>
-              <div className="po-sidebar-account__body">
-                <div className="po-sidebar-account__topline">
-                  <strong className="po-sidebar-account__hospital">
-                    {profile?.hospitalName ?? '파트너 계정'}
-                  </strong>
-                  {profile?.verified ? (
-                    <span className="po-sidebar-account__verified">
-                      <ShieldCheck size={12} />
-                      인증
-                    </span>
-                  ) : null}
+            <div className="po-sidebar-account">
+              <Link href="/profile" className="po-sidebar-account__profile" aria-label="현재 로그인한 파트너 계정 정보 보기">
+                <div className="po-sidebar-account__avatar">
+                  <CircleUserRound size={18} />
                 </div>
-                <span className="po-sidebar-account__identity">
-                  {member?.name ?? '계정 정보 없음'}
-                  {member?.email ? ` · ${member.email}` : ''}
-                </span>
-              </div>
-            </Link>
+                <div className="po-sidebar-account__body">
+                  <div className="po-sidebar-account__topline">
+                    <strong className="po-sidebar-account__hospital">
+                      {profile?.hospitalName ?? '파트너 계정'}
+                    </strong>
+                    {profile?.verified ? (
+                      <span className="po-sidebar-account__verified">
+                        <ShieldCheck size={12} />
+                        인증
+                      </span>
+                    ) : null}
+                  </div>
+                  <span className="po-sidebar-account__identity">
+                    {member?.name ?? '계정 정보 없음'}
+                    {member?.email ? ` · ${member.email}` : ''}
+                  </span>
+                </div>
+              </Link>
+              {member ? (
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  aria-label="로그아웃"
+                  className="po-sidebar-account__logout"
+                >
+                  <LogOut size={14} />
+                </button>
+              ) : (
+                <Link href="/login" className="po-sidebar-account__login">로그인</Link>
+              )}
+            </div>
           </div>
         </nav>
       </aside>

@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 
-type ToastType = 'error' | 'success' | 'info';
+type ToastType = 'error' | 'success' | 'info' | 'warning';
 
 interface ToastItem {
   id: string;

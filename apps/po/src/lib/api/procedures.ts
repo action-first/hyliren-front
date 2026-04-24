@@ -1,6 +1,7 @@
 /**
  * Procedure API client — PO wizard 에서 사용.
- * 모든 호출은 ?memberId=... 로 소유권 식별 (현재 인증 미구현, 런칭 전 교체 예정).
+ * 컴포넌트는 Next route handler(`/api/procedures/*`)만 호출한다.
+ * mock 모드 호환을 위해 memberId query 는 유지하지만 real 백엔드에서는 BFF 가 제거한다.
  */
 import type {
   Procedure, ProcedureVariant, ProcedureStatus,
@@ -9,6 +10,8 @@ import type {
   CreateProcedureInput, UpdateProcedureInput,
   VariantInput, UpdateVariantInput,
 } from '@/app/api/procedures/schema';
+import { partnerTokenStore } from '@/lib/auth/token-store';
+import { refreshTokens } from './partner-auth';
 
 interface ProceduresListResp {
   procedures: Procedure[];
@@ -17,6 +20,31 @@ interface ProceduresListResp {
 interface ProcedureDetailResp {
   procedure: Procedure;
   variants: ProcedureVariant[];
+}
+
+function authHeaders(headers?: HeadersInit): Headers {
+  const finalHeaders = new Headers(headers);
+  const token = partnerTokenStore.getAccessToken();
+  if (token) finalHeaders.set('Authorization', `Bearer ${token}`);
+  return finalHeaders;
+}
+
+async function fetchWithAuth(input: RequestInfo | URL, init: RequestInit = {}, retry = true): Promise<Response> {
+  const res = await fetch(input, {
+    ...init,
+    headers: authHeaders(init.headers),
+  });
+
+  if (res.status === 401 && retry && partnerTokenStore.getRefreshToken()) {
+    try {
+      await refreshTokens();
+      return fetchWithAuth(input, init, false);
+    } catch {
+      partnerTokenStore.clearTokens();
+    }
+  }
+
+  return res;
 }
 
 async function handle<T>(res: Response): Promise<T> {
@@ -29,17 +57,17 @@ export const proceduresApi = {
   list: async (params: { memberId: string; status?: ProcedureStatus }) => {
     const qs = new URLSearchParams({ memberId: params.memberId });
     if (params.status) qs.set('status', params.status);
-    return handle<ProceduresListResp>(await fetch(`/api/procedures?${qs}`));
+    return handle<ProceduresListResp>(await fetchWithAuth(`/api/procedures?${qs}`));
   },
 
   get: async (id: string, memberId: string) => {
     const qs = new URLSearchParams({ memberId });
-    return handle<ProcedureDetailResp>(await fetch(`/api/procedures/${id}?${qs}`));
+    return handle<ProcedureDetailResp>(await fetchWithAuth(`/api/procedures/${id}?${qs}`));
   },
 
   create: async (body: CreateProcedureInput) => {
     return handle<{ ok: true; procedure: Procedure; variants: ProcedureVariant[] }>(
-      await fetch('/api/procedures', {
+      await fetchWithAuth('/api/procedures', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -50,7 +78,7 @@ export const proceduresApi = {
   update: async (id: string, memberId: string, body: UpdateProcedureInput) => {
     const qs = new URLSearchParams({ memberId });
     return handle<{ ok: true; procedure: Procedure }>(
-      await fetch(`/api/procedures/${id}?${qs}`, {
+      await fetchWithAuth(`/api/procedures/${id}?${qs}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -61,14 +89,14 @@ export const proceduresApi = {
   softDelete: async (id: string, memberId: string) => {
     const qs = new URLSearchParams({ memberId });
     return handle<{ ok: true; procedure: Procedure }>(
-      await fetch(`/api/procedures/${id}?${qs}`, { method: 'DELETE' }),
+      await fetchWithAuth(`/api/procedures/${id}?${qs}`, { method: 'DELETE' }),
     );
   },
 
   addVariant: async (procedureId: string, memberId: string, body: VariantInput) => {
     const qs = new URLSearchParams({ memberId });
     return handle<{ ok: true; variant: ProcedureVariant }>(
-      await fetch(`/api/procedures/${procedureId}/variants?${qs}`, {
+      await fetchWithAuth(`/api/procedures/${procedureId}/variants?${qs}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -81,7 +109,7 @@ export const proceduresApi = {
   ) => {
     const qs = new URLSearchParams({ memberId });
     return handle<{ ok: true; variant: ProcedureVariant }>(
-      await fetch(`/api/procedures/${procedureId}/variants/${variantId}?${qs}`, {
+      await fetchWithAuth(`/api/procedures/${procedureId}/variants/${variantId}?${qs}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -92,7 +120,7 @@ export const proceduresApi = {
   removeVariant: async (procedureId: string, variantId: string, memberId: string) => {
     const qs = new URLSearchParams({ memberId });
     return handle<{ ok: true }>(
-      await fetch(`/api/procedures/${procedureId}/variants/${variantId}?${qs}`, {
+      await fetchWithAuth(`/api/procedures/${procedureId}/variants/${variantId}?${qs}`, {
         method: 'DELETE',
       }),
     );
