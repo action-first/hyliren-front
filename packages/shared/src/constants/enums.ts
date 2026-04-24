@@ -220,6 +220,63 @@ export const PROCEDURE_TYPES = [
 ] as const;
 export type ProcedureType = typeof PROCEDURE_TYPES[number];
 
+/**
+ * ProcedureType → BodyArea 매핑.
+ *
+ * prefix(eye_, nose_, ...) 만으로 추론도 가능하지만 명시적 map 이 더 안전:
+ * - 신규 시술 추가 시 area 를 반드시 지정해야 TS 체크 걸림
+ * - 리프팅·안면윤곽 처럼 prefix ≠ area 인 케이스를 한눈에 파악
+ */
+export const PROCEDURE_TYPE_AREAS: Record<ProcedureType, BodyArea> = {
+  // 눈
+  eye_double_eyelid: '눈',
+  eye_ptosis_correction: '눈',
+  eye_under_eye_fat: '눈',
+  eye_lower_blepharoplasty: '눈',
+  eye_epicanthoplasty: '눈',
+  eye_canthoplasty: '눈',
+  eye_revision: '눈',
+
+  // 코
+  nose_augmentation: '코',
+  nose_tip: '코',
+  nose_revision: '코',
+  nose_hump: '코',
+  nose_short_correction: '코',
+  nose_nostril: '코',
+
+  // 리프팅 (안면윤곽 포함 — enum 상 area 로 '안면윤곽' 이 없음)
+  lift_thread: '리프팅',
+  lift_ulthera: '리프팅',
+  lift_hifu: '리프팅',
+  lift_face_lift: '리프팅',
+  lift_fat_graft: '리프팅',
+  contour_facial: '리프팅',
+  contour_mandible: '리프팅',
+  contour_chin: '리프팅',
+
+  // 피부
+  skin_laser: '피부',
+  skin_injection: '피부',
+  skin_peeling: '피부',
+  skin_acne: '피부',
+  skin_pigmentation: '피부',
+  skin_scar: '피부',
+
+  // 다이어트
+  diet_liposuction: '다이어트',
+  diet_injection: '다이어트',
+  diet_body_contouring: '다이어트',
+
+  // 기타
+  other: '기타',
+};
+
+/** 특정 body area 에 속하는 procedure type 목록. wizard drill-down·필터 UI 용. */
+export function proceduresByArea(area: BodyArea): ProcedureType[] {
+  return PROCEDURE_TYPES.filter(t => PROCEDURE_TYPE_AREAS[t] === area);
+}
+
 // DB: procedure_status AS ENUM ('draft', 'published', 'archived')
 // 런칭 전 단계에서는 'pending_review' / 'rejected' 미포함 — 심사 파이프라인 활성화 시 확장 예정.
 export const PROCEDURE_STATUSES = ['draft', 'published', 'archived'] as const;

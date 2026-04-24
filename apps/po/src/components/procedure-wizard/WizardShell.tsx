@@ -71,22 +71,34 @@ export function WizardShell({
         {/* 우측 form 컬럼 */}
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-[760px] mx-auto px-6 py-5">
-            {/* 통합 body header — breadcrumb + step 제목 + 액션 + 저장 상태 */}
+            {/*
+              통합 body header — 두 그룹으로 분리:
+              · 좌측: breadcrumb + step 제목 + 제목 우측 보조 액션 (임시저장·보관함)
+              · 우측: 저장상태 + step navigation (이전·다음·공개)
+              의도: 파괴/이탈 관련 액션(임시저장)을 네비게이션(이전/다음)과
+                   시각적으로 떨어뜨려 혼동·오클릭 감소.
+            */}
             <div className="flex items-end justify-between gap-4 mb-5 pb-4 border-b border-[var(--color-border)]">
-              <div className="min-w-0">
-                {title && (
-                  <p className="text-[11px] font-medium text-[var(--color-text-dim)] mb-0.5">
-                    {title}
-                  </p>
+              <div className="flex items-end gap-3 min-w-0">
+                <div className="min-w-0">
+                  {title && (
+                    <p className="text-[11px] font-medium text-[var(--color-text-dim)] mb-0.5">
+                      {title}
+                    </p>
+                  )}
+                  <h1 className="text-[18px] font-bold text-[var(--color-text)] leading-tight">
+                    {currentStep?.label}
+                  </h1>
+                </div>
+                {actions && (
+                  <div className="flex items-center gap-2 pb-0.5">
+                    {actions}
+                  </div>
                 )}
-                <h1 className="text-[18px] font-bold text-[var(--color-text)] leading-tight">
-                  {currentStep?.label}
-                </h1>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
                 <SaveIndicator status={saveStatus} savedAt={savedAt} />
-                {actions}
                 {activeIndex > 0 && (
                   <Button variant="secondary" size="sm" onClick={onPrev} disabled={!onPrev}>
                     <ArrowLeft size={13} /> 이전
