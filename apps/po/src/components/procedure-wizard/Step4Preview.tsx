@@ -57,9 +57,9 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
       {/* 공개 상태 배너 — edit mode 에서만 (onPublish 전달 시) */}
       {onPublish && (
         form.status === 'draft' ? (
-          <section className="flex items-center justify-between gap-3 p-3 rounded-md border border-[var(--color-warning,#eab308)] bg-[var(--color-warning-soft,#fef9c3)]">
+          <section className="flex items-center justify-between gap-3 p-3 rounded-md border border-[var(--color-warning)] bg-[var(--color-warning-soft)]">
             <div className="flex items-center gap-2">
-              <EyeOff size={16} className="text-[var(--color-warning,#b45309)]" />
+              <EyeOff size={16} className="text-[var(--color-warning)]" />
               <div>
                 <p className="text-[12px] font-semibold text-[var(--color-text)]">비공개 (임시저장)</p>
                 <p className="text-[11px] text-[var(--color-text-dim)]">
@@ -76,8 +76,8 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
             </Button>
           </section>
         ) : form.status === 'published' ? (
-          <section className="flex items-center gap-2 p-3 rounded-md border border-[var(--color-success,#16a34a)] bg-[var(--color-success-soft,#dcfce7)]">
-            <Eye size={16} className="text-[var(--color-success,#15803d)]" />
+          <section className="flex items-center gap-2 p-3 rounded-md border border-[var(--color-success)] bg-[var(--color-success-soft)]">
+            <Eye size={16} className="text-[var(--color-success)]" />
             <p className="text-[12px] font-semibold text-[var(--color-text)]">
               공개 중 · 고객에게 노출되고 있습니다.
             </p>
@@ -86,7 +86,7 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
       )}
 
       {/* 상단: locale 선택 */}
-      <section className="flex items-center gap-3 p-3 rounded-md bg-[var(--color-bg-secondary,#fafbfb)]">
+      <section className="flex items-center gap-3 p-3 rounded-md bg-[var(--color-bg-secondary)]">
         <span className="text-[12px] font-medium text-[var(--color-text-dim)]">미리보기 언어</span>
         <div className="flex gap-1">
           {PO_WIZARD_LOCALES.map(loc => (
@@ -134,7 +134,7 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
           {indications.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-4">
               {indications.map((ind, i) => (
-                <span key={i} className="px-2 py-1 rounded-full bg-[var(--color-bg-tertiary,#f3f4f6)] text-[11px]">
+                <span key={i} className="px-2 py-1 rounded-full bg-[var(--color-bg-tertiary)] text-[11px]">
                   {ind}
                 </span>
               ))}
@@ -157,7 +157,7 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
                   className={`
                     rounded-md p-3 border
                     ${v.isDefault
-                      ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft,#fde7e4)]'
+                      ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)]'
                       : 'border-[var(--color-border)]'}
                   `}
                 >

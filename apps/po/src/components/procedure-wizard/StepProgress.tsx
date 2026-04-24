@@ -31,7 +31,7 @@ export function StepProgress({ steps, activeIndex, onStepClick }: StepProgressPr
             className={`
               flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-colors
               ${isActive
-                ? 'bg-[var(--color-primary-soft,#fde7e4)] text-[var(--color-text)]'
+                ? 'bg-[var(--color-primary-soft)] text-[var(--color-text)]'
                 : reachable
                   ? 'text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]'
                   : 'text-[var(--color-text-dim)]'}
@@ -43,8 +43,8 @@ export function StepProgress({ steps, activeIndex, onStepClick }: StepProgressPr
               ${isActive
                 ? 'bg-[var(--color-primary)] text-white'
                 : step.done
-                  ? 'bg-[var(--color-success,#16a34a)] text-white'
-                  : 'bg-[var(--color-bg-tertiary,#f3f4f6)] text-[var(--color-text-dim)]'}
+                  ? 'bg-[var(--color-success)] text-white'
+                  : 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-dim)]'}
             `}>
               {step.done && !isActive ? <Check size={13} /> : i + 1}
             </span>
