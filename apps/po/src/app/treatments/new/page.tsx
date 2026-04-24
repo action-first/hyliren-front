@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
@@ -16,6 +16,7 @@ import { emptyWizardForm } from '@/lib/wizard/defaults';
 import {
   stepIsValid, allStepsValid, stepsValidForDraft, sanitizeWizardForm,
 } from '@/lib/wizard/validation';
+import { track } from '@hyliren/shared/src/events';
 import type { WizardForm } from '@/lib/wizard/types';
 import type { ProcedureStatus } from '@hyliren/shared';
 
@@ -37,6 +38,17 @@ export default function NewProcedurePage() {
   // H3: setState race 로 인한 중복 제출 방지
   const savingRef = useRef(false);
 
+  // Instrumentation: wizard 진입 (등록 완료율 = save_success ÷ start)
+  useEffect(() => {
+    if (!member) return;
+    track({
+      eventType: 'treatment_wizard_start',
+      actorType: 'member',
+      actorId: member.id,
+      metadata: { source: 'po', locale: 'ko', mode: 'create' },
+    });
+  }, [member]);
+
   const stepsWithDone = useMemo(
     () => STEPS.map((s, i) => ({ ...s, done: stepIsValid(form, i) })),
     [form],
@@ -53,8 +65,7 @@ export default function NewProcedurePage() {
       showToast('로그인이 필요합니다.', 'error');
       return;
     }
-    // QA Medium: draft 는 백엔드 정책에 맞춰 최소 요건만 검증.
-    // published 만 전체 스텝 요구.
+    // D1: draft 저장은 Step 1 최소 필드만, published 는 전체 검증
     const ok = status === 'published' ? allStepsValid(form) : stepsValidForDraft(form);
     if (!ok) {
       showToast(
@@ -98,6 +109,13 @@ export default function NewProcedurePage() {
           i18n: v.i18n,
         })),
       });
+      track({
+        eventType: 'treatment_wizard_save_success',
+        actorType: 'member',
+        actorId: member.id,
+        targetId: res.procedure.id,
+        metadata: { source: 'po', locale: 'ko', mode: 'create', value: status },
+      });
       showToast(
         status === 'published' ? '시술이 공개되었습니다.' : '임시저장되었습니다.',
         'success',
@@ -105,6 +123,12 @@ export default function NewProcedurePage() {
       router.push(`/treatments/${res.procedure.id}/edit`);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '저장 실패';
+      track({
+        eventType: 'treatment_wizard_save_fail',
+        actorType: 'member',
+        actorId: member.id,
+        metadata: { source: 'po', locale: 'ko', mode: 'create', value: status, label: msg.slice(0, 120) },
+      });
       showToast(msg, 'error');
     } finally {
       savingRef.current = false;

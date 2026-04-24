@@ -15,6 +15,7 @@ import { proceduresApi } from '@/lib/api/procedures';
 import {
   stepIsValid, allStepsValid, stepsValidForDraft, sanitizeWizardForm,
 } from '@/lib/wizard/validation';
+import { track } from '@hyliren/shared/src/events';
 import type { WizardForm, WizardVariant } from '@/lib/wizard/types';
 import type { ProcedureStatus, Procedure, ProcedureVariant } from '@hyliren/shared';
 
@@ -70,10 +71,18 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   useEffect(() => {
     if (!member) return;
     let cancelled = false;
-    proceduresApi.get(id)
+    proceduresApi.get(id, member.id)
       .then(({ procedure, variants }) => {
         if (cancelled) return;
         setForm(toWizardForm(procedure, variants));
+        // Instrumentation: edit wizard 진입 (create 와 동일 funnel 에 묶어 등록 완료율 계산)
+        track({
+          eventType: 'treatment_wizard_start',
+          actorType: 'member',
+          actorId: member.id,
+          targetId: id,
+          metadata: { source: 'po', locale: 'ko', mode: 'edit' },
+        });
       })
       .catch((e: unknown) => {
         if (cancelled) return;
@@ -96,7 +105,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     // H3: 중복 클릭 방지
     if (savingRef.current) return;
     if (!member || !form || !form.primaryArea || !form.procedureType) return;
-    // QA Medium: draft 는 최소 요건만, published 는 전체 스텝 검증
+    // D1: draft 저장은 Step 1 최소 필드만, published 는 전체 검증
     const ok = status === 'published' ? allStepsValid(form) : stepsValidForDraft(form);
     if (!ok) {
       showToast(
@@ -114,59 +123,8 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     savingRef.current = true;
     setSaving(true);
     try {
-      // QA High #2: 이전엔 "본체 PATCH(status 포함) → variants ops" 순서였으나
-      // 백엔드 publish-strict 검증이 PATCH 시점의 기존 DB variants 기준이라,
-      // UI 에서 variant 를 채우고 공개 시도해도 예전 variant 상태로 거부되는 문제.
-      //
-      // 새 순서:
-      //   1) fresh GET (서버 variants id 파악)
-      //   2) variants POST/PATCH/DELETE (신규 생성 → 기존 수정 → 정리)
-      //   3) 본체 + status 를 마지막에 PATCH — 이 시점엔 variants 가 갱신 완료라
-      //      publish-strict 검증이 최신 데이터 기준으로 동작.
-
-      // 1. fresh GET for diff
-      const fresh = await proceduresApi.get(id);
-      const serverIds = new Set(fresh.variants.map(v => v.id));
-      const localIds = new Set(clean.variants.filter(v => !v.isNew).map(v => v.id));
-
-      // 2a. 신규 variant 먼저 생성
-      for (const v of clean.variants) {
-        if (!v.isNew) continue;
-        await proceduresApi.addVariant(id, {
-          price: v.price, anesthesia: v.anesthesia,
-          durationMinutes: v.durationMinutes,
-          recoveryDays: v.recoveryDays,
-          hospitalStayDays: v.hospitalStayDays,
-          sortOrder: v.sortOrder,
-          isDefault: v.isDefault,
-          i18n: v.i18n,
-        });
-      }
-
-      // 2b. 기존 variant PATCH
-      for (const v of clean.variants) {
-        if (v.isNew) continue;
-        await proceduresApi.updateVariant(id, v.id, {
-          price: v.price, anesthesia: v.anesthesia,
-          durationMinutes: v.durationMinutes,
-          recoveryDays: v.recoveryDays,
-          hospitalStayDays: v.hospitalStayDays,
-          sortOrder: v.sortOrder,
-          isDefault: v.isDefault,
-          i18n: v.i18n,
-        });
-      }
-
-      // 2c. 로컬에 없어진 기존 variant 삭제 (C3: 마지막 variant 가드 우회 위해 후순위)
-      for (const sid of serverIds) {
-        if (!localIds.has(sid)) {
-          await proceduresApi.removeVariant(id, sid);
-        }
-      }
-
-      // 3. 마지막에 본체 + status PATCH — 새 variants 가 이미 반영된 상태라
-      //    publish-strict 검증이 최신 데이터 기준으로 동작.
-      await proceduresApi.update(id, {
+      // 1. 본체 PATCH
+      await proceduresApi.update(id, member.id, {
         primaryArea: clean.primaryArea as typeof form.primaryArea & string,
         procedureType: clean.procedureType as typeof form.procedureType & string,
         heroImageUrl: clean.heroImageUrl || undefined,
@@ -181,19 +139,76 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
         status,
       });
 
+      // 2. variant diff — 현재 서버 상태 가져와서 비교
+      const fresh = await proceduresApi.get(id, member.id);
+      const serverIds = new Set(fresh.variants.map(v => v.id));
+      const localIds = new Set(clean.variants.filter(v => !v.isNew).map(v => v.id));
+
+      // C3: 순서를 [신규 POST → 기존 PATCH → 쓸모없는 DELETE] 로. 삭제 후순위.
+      //     "마지막 variant 를 새 것으로 swap" 시 서버 마지막-1개 가드 충돌 방지.
+
+      // 2a. 신규 variant 먼저 생성
+      for (const v of clean.variants) {
+        if (!v.isNew) continue;
+        await proceduresApi.addVariant(id, member.id, {
+          price: v.price, anesthesia: v.anesthesia,
+          durationMinutes: v.durationMinutes,
+          recoveryDays: v.recoveryDays,
+          hospitalStayDays: v.hospitalStayDays,
+          sortOrder: v.sortOrder,
+          isDefault: v.isDefault,
+          i18n: v.i18n,
+        });
+      }
+
+      // 2b. 기존 variant PATCH
+      for (const v of clean.variants) {
+        if (v.isNew) continue;
+        await proceduresApi.updateVariant(id, v.id, member.id, {
+          price: v.price, anesthesia: v.anesthesia,
+          durationMinutes: v.durationMinutes,
+          recoveryDays: v.recoveryDays,
+          hospitalStayDays: v.hospitalStayDays,
+          sortOrder: v.sortOrder,
+          isDefault: v.isDefault,
+          i18n: v.i18n,
+        });
+      }
+
+      // 2c. 로컬에 없어진 기존 variant 삭제 (마지막에)
+      for (const sid of serverIds) {
+        if (!localIds.has(sid)) {
+          await proceduresApi.removeVariant(id, sid, member.id);
+        }
+      }
+
+      track({
+        eventType: 'treatment_wizard_save_success',
+        actorType: 'member',
+        actorId: member.id,
+        targetId: id,
+        metadata: { source: 'po', locale: 'ko', mode: 'edit', value: status },
+      });
       showToast(
         status === 'published' ? '공개되었습니다.' : '저장되었습니다.',
         'success',
       );
       // 성공 후 서버 상태로 리로드
-      const reload = await proceduresApi.get(id);
+      const reload = await proceduresApi.get(id, member.id);
       setForm(toWizardForm(reload.procedure, reload.variants));
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '저장 실패';
+      track({
+        eventType: 'treatment_wizard_save_fail',
+        actorType: 'member',
+        actorId: member.id,
+        targetId: id,
+        metadata: { source: 'po', locale: 'ko', mode: 'edit', value: status, label: msg.slice(0, 120) },
+      });
       showToast(msg, 'error');
       // C4: 실패 시 서버 상태로 싱크 — 부분 저장 상태를 드러내고 다음 시도 안전 보장
       try {
-        const reload = await proceduresApi.get(id);
+        const reload = await proceduresApi.get(id, member.id);
         setForm(toWizardForm(reload.procedure, reload.variants));
         showToast('서버 상태로 복구되었습니다. 다시 시도해주세요.', 'info');
       } catch { /* reload 실패는 무시 — 기존 에러가 더 중요 */ }
@@ -207,7 +222,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     if (!member) return;
     if (!confirm('이 시술을 보관함으로 이동합니다. 계속할까요?')) return;
     try {
-      await proceduresApi.softDelete(id);
+      await proceduresApi.softDelete(id, member.id);
       showToast('보관함으로 이동되었습니다.', 'info');
       router.push('/treatments');
     } catch (e: unknown) {
