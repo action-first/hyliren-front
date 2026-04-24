@@ -68,6 +68,12 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   // H3: setState race 로 인한 중복 제출 방지
   const savingRef = useRef(false);
 
+  // Auto-save 상태 — body header indicator 로 노출
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+  const autoSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedBodyRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (!member) return;
     let cancelled = false;
@@ -95,6 +101,74 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     () => form ? STEPS.map((s, i) => ({ ...s, done: stepIsValid(form, i) })) : STEPS,
     [form],
   );
+
+  /**
+   * Auto-save (draft only, body+i18n 한정).
+   * - form 변경 감지 → 2s 디바운스 → PATCH.
+   * - variant 변경은 auto-save 대상 아님 (diff 비용·정확성 이슈) — 임시저장 버튼 눌러야 반영.
+   * - published 상태는 explicit 공개 클릭으로만 저장 (실수 방지).
+   */
+  useEffect(() => {
+    if (!form || !member || saving) return;
+
+    const bodySnap = JSON.stringify({
+      primaryArea: form.primaryArea,
+      procedureType: form.procedureType,
+      heroImageUrl: form.heroImageUrl,
+      galleryImageUrls: form.galleryImageUrls,
+      slug: form.slug,
+      basePrice: form.basePrice,
+      baseAnesthesia: form.baseAnesthesia,
+      baseDurationMinutes: form.baseDurationMinutes,
+      baseRecoveryDays: form.baseRecoveryDays,
+      baseHospitalStayDays: form.baseHospitalStayDays,
+      i18n: form.i18n,
+    });
+
+    // 최초 load 는 baseline 설정만
+    if (lastSavedBodyRef.current === null) {
+      lastSavedBodyRef.current = bodySnap;
+      return;
+    }
+    if (lastSavedBodyRef.current === bodySnap) return;
+
+    // draft 만 자동 저장. published 는 "공개" 버튼으로 명시적.
+    if (form.status !== 'draft') return;
+    if (!stepsValidForDraft(form)) return;
+    // 타입 narrowing — stepsValidForDraft 가 보장하지만 TS 는 모름
+    if (!form.primaryArea || !form.procedureType) return;
+    const primaryArea = form.primaryArea;
+    const procedureType = form.procedureType;
+
+    if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
+    autoSaveRef.current = setTimeout(async () => {
+      const clean = sanitizeWizardForm(form);
+      setSaveStatus('saving');
+      try {
+        await proceduresApi.update(id, member.id, {
+          primaryArea,
+          procedureType,
+          heroImageUrl: clean.heroImageUrl || undefined,
+          galleryImageUrls: clean.galleryImageUrls.filter(u => u.trim()),
+          slug: clean.slug || undefined,
+          basePrice: clean.basePrice,
+          baseAnesthesia: clean.baseAnesthesia,
+          baseDurationMinutes: clean.baseDurationMinutes,
+          baseRecoveryDays: clean.baseRecoveryDays,
+          baseHospitalStayDays: clean.baseHospitalStayDays,
+          i18n: clean.i18n,
+          status: 'draft',
+        });
+        lastSavedBodyRef.current = bodySnap;
+        setSaveStatus('saved');
+        setSavedAt(Date.now());
+      } catch {
+        setSaveStatus('error');
+      }
+    }, 2000);
+
+    return () => { if (autoSaveRef.current) clearTimeout(autoSaveRef.current); };
+  }, [form, member, id, saving]);
 
   function patch(p: Partial<WizardForm>) {
     setForm(prev => prev ? { ...prev, ...p } : prev);
@@ -196,6 +270,10 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       // 성공 후 서버 상태로 리로드
       const reload = await proceduresApi.get(id, member.id);
       setForm(toWizardForm(reload.procedure, reload.variants));
+      // Auto-save baseline 동기화 — 이 시점 form = 방금 저장된 상태
+      lastSavedBodyRef.current = null; // effect 가 다음 render 에서 재설정
+      setSaveStatus('saved');
+      setSavedAt(Date.now());
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '저장 실패';
       track({
@@ -263,6 +341,8 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
           onPrev={() => setActiveStep(Math.max(0, activeStep - 1))}
           onNext={() => setActiveStep(Math.min(STEPS.length - 1, activeStep + 1))}
           nextDisabled={!stepIsValid(form, activeStep)}
+          saveStatus={saveStatus}
+          savedAt={savedAt}
           actions={
             <>
               <Button variant="secondary" size="sm" onClick={archive} disabled={saving}>

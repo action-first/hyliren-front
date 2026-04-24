@@ -74,30 +74,36 @@ export function Step1Basics({ form, onChange }: Step1Props) {
     });
   }
 
-  return (
-    <div className="flex flex-col gap-5">
-      <section>
-        <h2 className="text-[14px] font-bold text-[var(--color-text)] mb-3">분류</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <Select
-            label="부위 *"
-            value={form.primaryArea || ''}
-            options={[{ value: '', label: '선택…' }, ...BODY_AREA_OPTIONS]}
-            onChange={v => onChange({ primaryArea: v as BodyArea })}
-          />
-          <Select
-            label="시술 유형 *"
-            value={form.procedureType || ''}
-            options={[{ value: '', label: '선택…' }, ...PROCEDURE_TYPE_OPTIONS]}
-            onChange={v => onChange({ procedureType: v as ProcedureType })}
-          />
-        </div>
-      </section>
+  // Smart default: procedureType 선택 시 title placeholder 에 해당 시술명 제안
+  const procedureTypeSuggestion = form.procedureType
+    ? PROCEDURE_TYPE_LABEL[form.procedureType as ProcedureType]?.replace(/^[^·]*·\s*/, '')
+    : '';
+  const titlePlaceholder = activeLocale === 'ko'
+    ? (procedureTypeSuggestion ? `예: ${procedureTypeSuggestion} (자연스러운 라인)` : '예: 쌍꺼풀 수술')
+    : activeLocale === 'zh-CN'
+      ? '例: 双眼皮手术'
+      : '';
 
-      <section>
-        <h2 className="text-[14px] font-bold text-[var(--color-text)] mb-3">대표 이미지</h2>
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-2 gap-3">
+        <Select
+          label="부위 *"
+          value={form.primaryArea || ''}
+          options={[{ value: '', label: '선택…' }, ...BODY_AREA_OPTIONS]}
+          onChange={v => onChange({ primaryArea: v as BodyArea })}
+        />
+        <Select
+          label="시술 유형 *"
+          value={form.procedureType || ''}
+          options={[{ value: '', label: '선택…' }, ...PROCEDURE_TYPE_OPTIONS]}
+          onChange={v => onChange({ procedureType: v as ProcedureType })}
+        />
+      </div>
+
+      <div>
         <Input
-          label="이미지 URL *"
+          label="대표 이미지 URL *"
           value={form.heroImageUrl}
           onChange={e => onChange({ heroImageUrl: e.target.value })}
           placeholder="https://…"
@@ -110,10 +116,9 @@ export function Step1Basics({ form, onChange }: Step1Props) {
             <img src={form.heroImageUrl} alt="" className="w-full h-full object-cover" />
           </div>
         )}
-      </section>
+      </div>
 
-      <section>
-        <h2 className="text-[14px] font-bold text-[var(--color-text)] mb-3">시술명 (언어별)</h2>
+      <div>
         <LocaleTabs
           active={activeLocale}
           sourceLocale={form.sourceLocale}
@@ -121,22 +126,21 @@ export function Step1Basics({ form, onChange }: Step1Props) {
           onChange={setActiveLocale}
         />
         <Input
-          label={`시술명 (${activeLocale === form.sourceLocale ? '원본' : '번역'})`}
+          label={`시술명 * (${activeLocale === form.sourceLocale ? '원본' : '번역'})`}
           value={currentBlock.title}
           onChange={e => updateTitle(e.target.value)}
-          placeholder={activeLocale === 'ko' ? '예: 쌍꺼풀 수술' : activeLocale === 'zh-CN' ? '例: 双眼皮手术' : ''}
+          placeholder={titlePlaceholder}
         />
         {activeLocale !== form.sourceLocale && !currentBlock.title && (
           <p className="text-[11px] text-[var(--color-text-dim)] mt-1.5">
             비워두면 {form.sourceLocale} 원본으로 자동 fallback 됩니다.
           </p>
         )}
-      </section>
+      </div>
 
-      <section>
-        <h2 className="text-[14px] font-bold text-[var(--color-text)] mb-3">URL Slug <span className="text-[11px] font-normal text-[var(--color-text-dim)]">(선택)</span></h2>
+      <div>
         <Input
-          label="Slug"
+          label="URL Slug (선택)"
           value={form.slug}
           onChange={e => onChange({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
           placeholder="비워두면 자동 생성됩니다"
@@ -144,7 +148,7 @@ export function Step1Basics({ form, onChange }: Step1Props) {
         <p className="text-[11px] text-[var(--color-text-dim)] mt-1.5">
           영문 소문자·숫자·하이픈만 사용. URL 에 노출됩니다: /procedures/<strong>{form.slug || '...'}</strong>
         </p>
-      </section>
+      </div>
     </div>
   );
 }
