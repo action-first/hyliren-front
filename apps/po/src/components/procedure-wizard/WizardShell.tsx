@@ -78,8 +78,8 @@ export function WizardShell({
               의도: 파괴/이탈 관련 액션(임시저장)을 네비게이션(이전/다음)과
                    시각적으로 떨어뜨려 혼동·오클릭 감소.
             */}
-            <div className="flex items-end justify-between gap-4 mb-5 pb-4 border-b border-[var(--color-border)]">
-              <div className="flex items-end gap-3 min-w-0">
+            <div className="flex items-center justify-between gap-4 mb-5 pb-4 border-b border-[var(--color-border)]">
+              <div className="flex items-center gap-3 min-w-0">
                 <div className="min-w-0">
                   {title && (
                     <p className="text-[11px] font-medium text-[var(--color-text-dim)] mb-0.5">
@@ -91,7 +91,7 @@ export function WizardShell({
                   </h1>
                 </div>
                 {actions && (
-                  <div className="flex items-center gap-2 pb-0.5">
+                  <div className="flex items-center gap-2">
                     {actions}
                   </div>
                 )}

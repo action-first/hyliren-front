@@ -348,26 +348,37 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
               <Button variant="secondary" size="sm" onClick={archive} disabled={saving}>
                 보관함
               </Button>
-              <Button
-                variant="secondary" size="sm"
-                onClick={() => submit('draft')}
-                disabled={saving || !stepsValidForDraft(form)}
-              >
-                임시저장
-              </Button>
+              {/* 마지막 step 에선 primaryAction (저장) 이 대체 — 임시저장 미노출 */}
+              {activeStep < STEPS.length - 1 && (
+                <Button
+                  variant="secondary" size="sm"
+                  onClick={() => submit('draft')}
+                  disabled={saving || !stepsValidForDraft(form)}
+                >
+                  임시저장
+                </Button>
+              )}
             </>
           }
           primaryAction={{
-            label: form.status === 'published' ? '수정 공개' : '공개',
-            onClick: () => submit('published'),
-            disabled: !allStepsValid(form),
+            // 저장 = 현재 status 유지. 공개 전환은 Step4 배너의 별도 액션.
+            label: '저장',
+            onClick: () => submit(form.status),
+            disabled: saving || !stepsValidForDraft(form),
             loading: saving,
           }}
         >
           {activeStep === 0 && <Step1Basics form={form} onChange={patch} />}
           {activeStep === 1 && <Step2Pricing form={form} onChange={patch} />}
           {activeStep === 2 && <Step3Content form={form} onChange={patch} />}
-          {activeStep === 3 && <Step4Preview form={form} />}
+          {activeStep === 3 && (
+            <Step4Preview
+              form={form}
+              onPublish={() => submit('published')}
+              publishDisabled={!allStepsValid(form)}
+              publishing={saving}
+            />
+          )}
         </WizardShell>
       </div>
     </div>

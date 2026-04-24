@@ -174,19 +174,23 @@ export default function NewProcedurePage() {
           onNext={() => setActiveStep(Math.min(STEPS.length - 1, activeStep + 1))}
           nextDisabled={!stepIsValid(form, activeStep)}
           actions={
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => submit('draft')}
-              disabled={saving || !stepsValidForDraft(form)}
-            >
-              임시저장
-            </Button>
+            // 마지막 step 에서는 헤더 primaryAction (저장) 이 이미 있으므로
+            // 임시저장 버튼 미노출 — 중복 방지.
+            activeStep < STEPS.length - 1 ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => submit('draft')}
+                disabled={saving || !stepsValidForDraft(form)}
+              >
+                임시저장
+              </Button>
+            ) : null
           }
           primaryAction={{
-            label: '공개',
-            onClick: () => submit('published'),
-            disabled: !allStepsValid(form),
+            label: '저장',
+            onClick: () => submit('draft'),
+            disabled: saving || !stepsValidForDraft(form),
             loading: saving,
           }}
         >

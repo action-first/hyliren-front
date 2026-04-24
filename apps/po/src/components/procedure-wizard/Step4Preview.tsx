@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Badge } from '@hyliren/ui';
+import { Badge, Button } from '@hyliren/ui';
+import { Eye, EyeOff } from 'lucide-react';
 import type { Locale } from '@hyliren/shared';
 import { pickI18n, getEffectiveVariant } from '@hyliren/shared/src/domain/procedure';
 import type { WizardForm } from '@/lib/wizard/types';
@@ -9,13 +10,19 @@ import { PO_WIZARD_LOCALES } from './config';
 
 interface Step4Props {
   form: WizardForm;
+  /** 공개 전환 액션 (edit mode 에서 전달). 없으면 banner 미노출. */
+  onPublish?: () => void;
+  /** 공개 요건 미충족 시 버튼 disabled. */
+  publishDisabled?: boolean;
+  /** 공개 API 진행 중 */
+  publishing?: boolean;
 }
 
 /**
  * 전체 FO 상세페이지를 시뮬레이션하는 preview.
  * pickI18n + getEffectiveVariant 를 그대로 써서 실제 FO 렌더와 동일한 fallback 적용.
  */
-export function Step4Preview({ form }: Step4Props) {
+export function Step4Preview({ form, onPublish, publishDisabled, publishing }: Step4Props) {
   const [previewLocale, setPreviewLocale] = useState<Locale>(form.sourceLocale);
 
   const i18n = pickI18n(form.i18n, previewLocale, form.sourceLocale);
@@ -47,7 +54,38 @@ export function Step4Preview({ form }: Step4Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 상단: locale 선택 + 공개 설정 */}
+      {/* 공개 상태 배너 — edit mode 에서만 (onPublish 전달 시) */}
+      {onPublish && (
+        form.status === 'draft' ? (
+          <section className="flex items-center justify-between gap-3 p-3 rounded-md border border-[var(--color-warning,#eab308)] bg-[var(--color-warning-soft,#fef9c3)]">
+            <div className="flex items-center gap-2">
+              <EyeOff size={16} className="text-[var(--color-warning,#b45309)]" />
+              <div>
+                <p className="text-[12px] font-semibold text-[var(--color-text)]">비공개 (임시저장)</p>
+                <p className="text-[11px] text-[var(--color-text-dim)]">
+                  고객에게 아직 노출되지 않습니다. 검토 후 공개하세요.
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="accent" size="sm"
+              onClick={onPublish}
+              disabled={publishDisabled || publishing}
+            >
+              {publishing ? '공개 중...' : '공개하기'}
+            </Button>
+          </section>
+        ) : form.status === 'published' ? (
+          <section className="flex items-center gap-2 p-3 rounded-md border border-[var(--color-success,#16a34a)] bg-[var(--color-success-soft,#dcfce7)]">
+            <Eye size={16} className="text-[var(--color-success,#15803d)]" />
+            <p className="text-[12px] font-semibold text-[var(--color-text)]">
+              공개 중 · 고객에게 노출되고 있습니다.
+            </p>
+          </section>
+        ) : null
+      )}
+
+      {/* 상단: locale 선택 */}
       <section className="flex items-center gap-3 p-3 rounded-md bg-[var(--color-bg-secondary,#fafbfb)]">
         <span className="text-[12px] font-medium text-[var(--color-text-dim)]">미리보기 언어</span>
         <div className="flex gap-1">
