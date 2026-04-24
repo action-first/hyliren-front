@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Input, Select } from '@hyliren/ui';
-import { BODY_AREAS, PROCEDURE_TYPES } from '@hyliren/shared';
+import { BODY_AREAS, proceduresByArea, PROCEDURE_TYPE_AREAS } from '@hyliren/shared';
 import type { BodyArea, ProcedureType, Locale } from '@hyliren/shared';
 import { LocaleTabs } from './LocaleTabs';
 import type { WizardForm } from '@/lib/wizard/types';
@@ -49,9 +49,14 @@ const PROCEDURE_TYPE_LABEL: Record<ProcedureType, string> = {
   other: '기타',
 };
 
-const PROCEDURE_TYPE_OPTIONS = PROCEDURE_TYPES.map(t => ({
-  value: t, label: PROCEDURE_TYPE_LABEL[t],
-}));
+/** 선택된 부위에 속하는 시술만 옵션으로. 부위 미선택 시 빈 목록. */
+function procedureOptionsForArea(area: BodyArea | ''): { value: string; label: string }[] {
+  if (!area) return [];
+  return proceduresByArea(area).map(t => ({
+    value: t,
+    label: PROCEDURE_TYPE_LABEL[t].replace(/^[^·]*·\s*/, ''), // 부위 prefix 제거
+  }));
+}
 
 export function Step1Basics({ form, onChange }: Step1Props) {
   const [activeLocale, setActiveLocale] = useState<Locale>(form.sourceLocale);
@@ -74,6 +79,18 @@ export function Step1Basics({ form, onChange }: Step1Props) {
     });
   }
 
+  /** 부위 변경 시, 기존 시술 유형이 새 부위에 속하지 않으면 초기화. */
+  function changePrimaryArea(area: BodyArea) {
+    const currentType = form.procedureType as ProcedureType | '';
+    const belongsToArea = currentType && PROCEDURE_TYPE_AREAS[currentType] === area;
+    onChange({
+      primaryArea: area,
+      procedureType: belongsToArea ? form.procedureType : '',
+    });
+  }
+
+  const typeOptions = procedureOptionsForArea(form.primaryArea || '');
+
   // Smart default: procedureType 선택 시 title placeholder 에 해당 시술명 제안
   const procedureTypeSuggestion = form.procedureType
     ? PROCEDURE_TYPE_LABEL[form.procedureType as ProcedureType]?.replace(/^[^·]*·\s*/, '')
@@ -91,12 +108,15 @@ export function Step1Basics({ form, onChange }: Step1Props) {
           label="부위 *"
           value={form.primaryArea || ''}
           options={[{ value: '', label: '선택…' }, ...BODY_AREA_OPTIONS]}
-          onChange={v => onChange({ primaryArea: v as BodyArea })}
+          onChange={v => changePrimaryArea(v as BodyArea)}
         />
         <Select
           label="시술 유형 *"
           value={form.procedureType || ''}
-          options={[{ value: '', label: '선택…' }, ...PROCEDURE_TYPE_OPTIONS]}
+          options={[
+            { value: '', label: form.primaryArea ? '선택…' : '먼저 부위를 선택하세요' },
+            ...typeOptions,
+          ]}
           onChange={v => onChange({ procedureType: v as ProcedureType })}
         />
       </div>
