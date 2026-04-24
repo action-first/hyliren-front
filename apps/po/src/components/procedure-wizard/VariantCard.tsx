@@ -76,7 +76,7 @@ export function VariantCard({
     <div className={`
       rounded-lg border p-4 bg-white
       ${variant.isDefault
-        ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary-soft,#fde7e4)]'
+        ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary-soft)]'
         : 'border-[var(--color-border)]'}
     `}>
       {/* 헤더 */}
@@ -92,7 +92,7 @@ export function VariantCard({
             대표 옵션
           </label>
           {variant.isNew && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-warning-soft,#fef9c3)] text-[var(--color-warning-text,#854d0e)]">
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-warning-soft)] text-[var(--color-warning)]">
               저장 대기
             </span>
           )}
@@ -105,7 +105,7 @@ export function VariantCard({
           className={`
             p-1.5 rounded transition-colors
             ${canDelete
-              ? 'text-[var(--color-text-dim)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-soft,#fef2f2)]'
+              ? 'text-[var(--color-text-dim)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)]'
               : 'text-[var(--color-text-dim)] opacity-40 cursor-not-allowed'}
           `}
         >

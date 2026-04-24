@@ -64,7 +64,7 @@ export function WizardShell({
     <div className="flex flex-col h-full">
       <div className="flex flex-1 overflow-hidden">
         {/* 좌측 세로 stepper (컴팩트 200px) */}
-        <aside className="w-[200px] shrink-0 border-r border-[var(--color-border)] p-3 bg-[var(--color-bg-secondary,#fafbfb)]">
+        <aside className="w-[200px] shrink-0 border-r border-[var(--color-border)] p-3 bg-[var(--color-bg-secondary)]">
           <StepProgress steps={steps} activeIndex={activeIndex} onStepClick={onStepChange} />
         </aside>
 
@@ -149,7 +149,7 @@ function SaveIndicator({ status, savedAt }: { status?: 'idle' | 'saving' | 'save
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-[11px] text-[var(--color-success,#16a34a)]">
+    <span className="inline-flex items-center gap-1 text-[11px] text-[var(--color-success)]">
       <Check size={11} />
       저장됨 {savedAt ? `· ${formatSavedAgo(savedAt)}` : ''}
     </span>

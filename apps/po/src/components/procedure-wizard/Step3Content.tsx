@@ -93,7 +93,7 @@ export function Step3Content({ form, onChange }: Step3Props) {
             </label>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {block.indications.map((ind, i) => (
-                <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--color-bg-tertiary,#f3f4f6)] text-[11px]">
+                <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--color-bg-tertiary)] text-[11px]">
                   {ind}
                   <button
                     type="button"
@@ -139,7 +139,7 @@ export function Step3Content({ form, onChange }: Step3Props) {
               key={i}
               className="
                 relative group aspect-square rounded-md overflow-hidden
-                border border-[var(--color-border)] bg-[var(--color-bg-tertiary,#f3f4f6)]
+                border border-[var(--color-border)] bg-[var(--color-bg-tertiary)]
               "
             >
               <img src={url} alt="" className="w-full h-full object-cover" />
@@ -183,7 +183,7 @@ export function Step3Content({ form, onChange }: Step3Props) {
                   aspect-square rounded-md border border-dashed border-[var(--color-border)]
                   flex flex-col items-center justify-center gap-1
                   text-[var(--color-text-dim)] hover:text-[var(--color-primary)]
-                  hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft,#fde7e4)]
+                  hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]
                   transition-colors
                 "
               >
