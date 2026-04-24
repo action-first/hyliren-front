@@ -153,7 +153,7 @@ export const updateProcedureSchema = z.object({
   slug: z.string().min(3).max(120).regex(/^[a-z0-9-]+$/).optional(),
   primaryArea: bodyAreaEnum.optional(),
   procedureType: procedureTypeEnum.optional(),
-  heroImageUrl: z.string().url().optional(),
+  heroImageUrl: z.string().url().or(z.literal('')).optional(),
   galleryImageUrls: z.array(z.string().url()).max(8).optional(),
   status: procedureStatusEnum.optional(),
 
