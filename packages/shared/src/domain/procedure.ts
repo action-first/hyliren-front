@@ -11,9 +11,15 @@ import { LOCALES } from '../constants';
 /**
  * variant 의 숫자 override 필드가 null 이면 procedure.base* 승계.
  * FO 렌더 · 카드 가격 표시에 쓸 "effective" 값 머지.
+ *
+ * Pick 으로 받아 PO wizard 의 WizardVariant (procedureId/timestamps 없는 편집 상태)
+ * 도 캐스팅 없이 통과하도록 한다.
  */
 export function getEffectiveVariant(
-  variant: ProcedureVariant,
+  variant: Pick<
+    ProcedureVariant,
+    'price' | 'anesthesia' | 'durationMinutes' | 'recoveryDays' | 'hospitalStayDays'
+  >,
   procedure: Pick<
     Procedure,
     'basePrice' | 'baseAnesthesia' | 'baseDurationMinutes'
@@ -40,7 +46,7 @@ export function getEffectiveVariant(
  * variants 가 비어 있으면 basePrice 단일값.
  */
 export function computePriceRange(
-  variants: ProcedureVariant[],
+  variants: Array<Pick<ProcedureVariant, 'price'>>,
   procedure: Pick<Procedure, 'basePrice'>,
 ): { priceMin: number; priceMax: number } {
   if (variants.length === 0) {
