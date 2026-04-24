@@ -12,7 +12,9 @@ import { Step4Preview } from '@/components/procedure-wizard/Step4Preview';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
 import { proceduresApi } from '@/lib/api/procedures';
-import { stepIsValid, allStepsValid, sanitizeWizardForm } from '@/lib/wizard/validation';
+import {
+  stepIsValid, allStepsValid, stepsValidForDraft, sanitizeWizardForm,
+} from '@/lib/wizard/validation';
 import type { WizardForm, WizardVariant } from '@/lib/wizard/types';
 import type { ProcedureStatus, Procedure, ProcedureVariant } from '@hyliren/shared';
 
@@ -94,8 +96,15 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     // H3: 중복 클릭 방지
     if (savingRef.current) return;
     if (!member || !form || !form.primaryArea || !form.procedureType) return;
-    if (!allStepsValid(form)) {
-      showToast('필수 입력값을 모두 채워주세요.', 'error');
+    // QA Medium: draft 는 최소 요건만, published 는 전체 스텝 검증
+    const ok = status === 'published' ? allStepsValid(form) : stepsValidForDraft(form);
+    if (!ok) {
+      showToast(
+        status === 'published'
+          ? '필수 입력값을 모두 채워주세요.'
+          : '분류와 원본 언어 타이틀은 최소한 입력해야 저장할 수 있어요.',
+        'error',
+      );
       return;
     }
 
@@ -247,7 +256,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
               <Button
                 variant="secondary" size="sm"
                 onClick={() => submit('draft')}
-                disabled={saving || !allStepsValid(form)}
+                disabled={saving || !stepsValidForDraft(form)}
               >
                 임시저장
               </Button>

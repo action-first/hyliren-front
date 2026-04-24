@@ -13,7 +13,9 @@ import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
 import { proceduresApi } from '@/lib/api/procedures';
 import { emptyWizardForm } from '@/lib/wizard/defaults';
-import { stepIsValid, allStepsValid, sanitizeWizardForm } from '@/lib/wizard/validation';
+import {
+  stepIsValid, allStepsValid, stepsValidForDraft, sanitizeWizardForm,
+} from '@/lib/wizard/validation';
 import type { WizardForm } from '@/lib/wizard/types';
 import type { ProcedureStatus } from '@hyliren/shared';
 
@@ -51,8 +53,16 @@ export default function NewProcedurePage() {
       showToast('로그인이 필요합니다.', 'error');
       return;
     }
-    if (!allStepsValid(form)) {
-      showToast('필수 입력값을 모두 채워주세요.', 'error');
+    // QA Medium: draft 는 백엔드 정책에 맞춰 최소 요건만 검증.
+    // published 만 전체 스텝 요구.
+    const ok = status === 'published' ? allStepsValid(form) : stepsValidForDraft(form);
+    if (!ok) {
+      showToast(
+        status === 'published'
+          ? '필수 입력값을 모두 채워주세요.'
+          : '분류와 원본 언어 타이틀은 최소한 입력해야 저장할 수 있어요.',
+        'error',
+      );
       return;
     }
     if (!form.primaryArea || !form.procedureType) return;
@@ -119,7 +129,7 @@ export default function NewProcedurePage() {
               variant="secondary"
               size="sm"
               onClick={() => submit('draft')}
-              disabled={saving || !allStepsValid(form)}
+              disabled={saving || !stepsValidForDraft(form)}
             >
               임시저장
             </Button>
