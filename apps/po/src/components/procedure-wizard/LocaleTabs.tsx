@@ -1,7 +1,7 @@
 'use client';
 
 import type { Locale } from '@hyliren/shared';
-import { LOCALES } from '@hyliren/shared';
+import { PO_WIZARD_LOCALES } from './config';
 
 const LABELS: Record<Locale, { flag: string; name: string }> = {
   'ko':    { flag: '🇰🇷', name: '한국어' },
@@ -16,16 +16,22 @@ interface LocaleTabsProps {
   /** locale 별 "필수 필드 채움 여부" — 탭 뱃지 표시용 */
   completed: Partial<Record<Locale, boolean>>;
   onChange: (locale: Locale) => void;
+  /** 노출할 locale 목록. 생략 시 PO_WIZARD_LOCALES (현재 ko+zh-CN). */
+  locales?: Locale[];
 }
 
 /**
  * 번역 편집 영역 상단에 배치. 현재 선택된 locale 의 입력 영역만 노출.
  * sourceLocale 은 "원본*" 뱃지, 나머지는 "번역 완료" 체크 여부에 따라 뱃지 다름.
+ * ja/en 확장 시엔 config.ts 의 PO_WIZARD_LOCALES 에 추가.
  */
-export function LocaleTabs({ active, sourceLocale, completed, onChange }: LocaleTabsProps) {
+export function LocaleTabs({
+  active, sourceLocale, completed, onChange,
+  locales = PO_WIZARD_LOCALES,
+}: LocaleTabsProps) {
   return (
     <div className="flex gap-0 border-b border-[var(--color-border)] mb-3">
-      {LOCALES.map(loc => {
+      {locales.map(loc => {
         const isActive = loc === active;
         const isSource = loc === sourceLocale;
         const isDone = completed[loc];
