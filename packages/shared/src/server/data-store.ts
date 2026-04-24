@@ -7,10 +7,17 @@
  * API Route에서만 import할 것 (클라이언트 번들에 포함 금지).
  */
 import fs from 'fs';
-import type { Concern, ConcernPhoto, Proposal, ProposalItem } from '../types';
+import type {
+  Concern, ConcernPhoto, Proposal, ProposalItem,
+  Procedure, ProcedureVariant, ProcedureBookmark,
+} from '../types';
+import { computePriceRange } from '../domain/procedure';
 import type { EventActorType, EventTargetType } from '../constants';
 import { MOCK_CONCERNS, MOCK_CONCERN_PHOTOS } from '../mock/concerns';
 import { MOCK_PROPOSALS, MOCK_PROPOSAL_ITEMS } from '../mock/proposals';
+import {
+  MOCK_PROCEDURES, MOCK_PROCEDURE_VARIANTS, MOCK_PROCEDURE_BOOKMARKS,
+} from '../mock/procedures';
 
 const STORE_FILE = '/tmp/hyliren-store.json';
 
@@ -19,6 +26,9 @@ type StoreData = {
   concernPhotos: ConcernPhoto[];
   proposals: Proposal[];
   proposalItems: ProposalItem[];
+  procedures: Procedure[];
+  procedureVariants: ProcedureVariant[];
+  procedureBookmarks: ProcedureBookmark[];
 };
 
 function seed(): StoreData {
@@ -27,12 +37,35 @@ function seed(): StoreData {
     concernPhotos: [...MOCK_CONCERN_PHOTOS],
     proposals: [...MOCK_PROPOSALS],
     proposalItems: [...MOCK_PROPOSAL_ITEMS],
+    procedures: [...MOCK_PROCEDURES],
+    procedureVariants: [...MOCK_PROCEDURE_VARIANTS],
+    procedureBookmarks: [...MOCK_PROCEDURE_BOOKMARKS],
   };
 }
 
 function load(): StoreData {
   try {
-    return JSON.parse(fs.readFileSync(STORE_FILE, 'utf-8')) as StoreData;
+    const raw = JSON.parse(fs.readFileSync(STORE_FILE, 'utf-8')) as Partial<StoreData>;
+    // 기존 스토어에 신설 필드 (procedures 계열) 가 없으면 seed 로 병합.
+    // 배포 중 /tmp 파일 리셋 없이 스키마 확장 가능.
+    const defaults = seed();
+    const merged: StoreData = {
+      concerns: raw.concerns ?? defaults.concerns,
+      concernPhotos: raw.concernPhotos ?? defaults.concernPhotos,
+      proposals: raw.proposals ?? defaults.proposals,
+      proposalItems: raw.proposalItems ?? defaults.proposalItems,
+      procedures: raw.procedures ?? defaults.procedures,
+      procedureVariants: raw.procedureVariants ?? defaults.procedureVariants,
+      procedureBookmarks: raw.procedureBookmarks ?? defaults.procedureBookmarks,
+    };
+    if (
+      raw.procedures === undefined ||
+      raw.procedureVariants === undefined ||
+      raw.procedureBookmarks === undefined
+    ) {
+      fs.writeFileSync(STORE_FILE, JSON.stringify(merged));
+    }
+    return merged;
   } catch {
     const data = seed();
     fs.writeFileSync(STORE_FILE, JSON.stringify(data));
@@ -101,6 +134,190 @@ export function updateProposal(id: string, updates: Partial<Proposal>): Proposal
   data.proposals[idx] = { ...data.proposals[idx], ...updates };
   save(data);
   return data.proposals[idx];
+}
+
+// ---- Procedures ----
+
+export function getProcedures(): Procedure[] {
+  return load().procedures.filter(p => !p.deletedAt);
+}
+
+export function getProcedureById(id: string): Procedure | null {
+  return load().procedures.find(p => p.id === id && !p.deletedAt) ?? null;
+}
+
+export function getProcedureBySlug(slug: string): Procedure | null {
+  return load().procedures.find(p => p.slug === slug && !p.deletedAt) ?? null;
+}
+
+export function addProcedure(
+  procedure: Procedure,
+  variants: ProcedureVariant[],
+): void {
+  const data = load();
+  data.procedures.push(procedure);
+  data.procedureVariants.push(...variants);
+  save(data);
+}
+
+/**
+ * Procedure 부분 업데이트. base* 값이 포함되면 variants 집계 재계산.
+ * i18n 은 부분 병합이 필요한 경우 상위 라우트에서 머지 후 이 함수로 전달.
+ */
+export function updateProcedure(id: string, updates: Partial<Procedure>): Procedure | null {
+  const data = load();
+  const idx = data.procedures.findIndex(p => p.id === id);
+  if (idx === -1) return null;
+
+  const next: Procedure = {
+    ...data.procedures[idx],
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  };
+  data.procedures[idx] = next;
+
+  // base* 변경 또는 명시 priceMin/priceMax 재산정 트리거
+  const basePriceChanged = updates.basePrice !== undefined;
+  const priceManualOverride = updates.priceMin !== undefined || updates.priceMax !== undefined;
+  if (basePriceChanged && !priceManualOverride) {
+    const variants = data.procedureVariants.filter(v => v.procedureId === id);
+    const range = computePriceRange(variants, next);
+    data.procedures[idx] = { ...next, priceMin: range.priceMin, priceMax: range.priceMax };
+  }
+
+  save(data);
+  return data.procedures[idx];
+}
+
+export function softDeleteProcedure(id: string): Procedure | null {
+  return updateProcedure(id, { deletedAt: new Date().toISOString(), status: 'archived' });
+}
+
+/** viewCount / consultClickCount / bookmarkCount atomic 증감 */
+export function incrementProcedureMetric(
+  id: string,
+  metric: 'viewCount' | 'consultClickCount' | 'bookmarkCount',
+  delta = 1,
+): void {
+  const data = load();
+  const idx = data.procedures.findIndex(p => p.id === id);
+  if (idx === -1) return;
+  data.procedures[idx] = {
+    ...data.procedures[idx],
+    [metric]: Math.max(0, data.procedures[idx][metric] + delta),
+  };
+  save(data);
+}
+
+// ---- Procedure Variants ----
+
+export function getProcedureVariants(procedureId: string): ProcedureVariant[] {
+  return load().procedureVariants
+    .filter(v => v.procedureId === procedureId)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+export function addProcedureVariant(variant: ProcedureVariant): void {
+  const data = load();
+  data.procedureVariants.push(variant);
+  recalcPriceRange(data, variant.procedureId);
+  save(data);
+}
+
+export function updateProcedureVariant(
+  id: string,
+  updates: Partial<Omit<ProcedureVariant, 'id' | 'procedureId'>>,
+): ProcedureVariant | null {
+  const data = load();
+  const idx = data.procedureVariants.findIndex(v => v.id === id);
+  if (idx === -1) return null;
+  data.procedureVariants[idx] = {
+    ...data.procedureVariants[idx],
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  };
+  recalcPriceRange(data, data.procedureVariants[idx].procedureId);
+  save(data);
+  return data.procedureVariants[idx];
+}
+
+export function removeProcedureVariant(id: string): void {
+  const data = load();
+  const variant = data.procedureVariants.find(v => v.id === id);
+  if (!variant) return;
+  data.procedureVariants = data.procedureVariants.filter(v => v.id !== id);
+  recalcPriceRange(data, variant.procedureId);
+  save(data);
+}
+
+function recalcPriceRange(data: StoreData, procedureId: string): void {
+  const procIdx = data.procedures.findIndex(p => p.id === procedureId);
+  if (procIdx === -1) return;
+  const variants = data.procedureVariants.filter(v => v.procedureId === procedureId);
+  const range = computePriceRange(variants, data.procedures[procIdx]);
+  data.procedures[procIdx] = {
+    ...data.procedures[procIdx],
+    priceMin: range.priceMin,
+    priceMax: range.priceMax,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+// ---- Procedure Bookmarks ----
+
+export function getProcedureBookmarks(userId: string): ProcedureBookmark[] {
+  return load().procedureBookmarks.filter(b => b.userId === userId);
+}
+
+export function isProcedureBookmarked(userId: string, procedureId: string): boolean {
+  return load().procedureBookmarks.some(b => b.userId === userId && b.procedureId === procedureId);
+}
+
+export function addProcedureBookmark(userId: string, procedureId: string): ProcedureBookmark | null {
+  const data = load();
+  // 중복 방지 (Unique userId + procedureId)
+  const existing = data.procedureBookmarks.find(
+    b => b.userId === userId && b.procedureId === procedureId,
+  );
+  if (existing) return existing;
+
+  const bookmark: ProcedureBookmark = {
+    id: `pb-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    userId,
+    procedureId,
+    createdAt: new Date().toISOString(),
+  };
+  data.procedureBookmarks.push(bookmark);
+
+  const procIdx = data.procedures.findIndex(p => p.id === procedureId);
+  if (procIdx !== -1) {
+    data.procedures[procIdx] = {
+      ...data.procedures[procIdx],
+      bookmarkCount: data.procedures[procIdx].bookmarkCount + 1,
+    };
+  }
+  save(data);
+  return bookmark;
+}
+
+export function removeProcedureBookmark(userId: string, procedureId: string): boolean {
+  const data = load();
+  const before = data.procedureBookmarks.length;
+  data.procedureBookmarks = data.procedureBookmarks.filter(
+    b => !(b.userId === userId && b.procedureId === procedureId),
+  );
+  const removed = before - data.procedureBookmarks.length;
+  if (removed === 0) return false;
+
+  const procIdx = data.procedures.findIndex(p => p.id === procedureId);
+  if (procIdx !== -1) {
+    data.procedures[procIdx] = {
+      ...data.procedures[procIdx],
+      bookmarkCount: Math.max(0, data.procedures[procIdx].bookmarkCount - 1),
+    };
+  }
+  save(data);
+  return true;
 }
 
 // ---- Proposal Items ----

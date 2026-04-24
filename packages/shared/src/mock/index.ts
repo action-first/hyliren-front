@@ -11,3 +11,8 @@ export { MOCK_USERS, MOCK_BUYER_PROFILES } from './users';
 export { MOCK_MEMBERS, MOCK_PARTNER_PROFILES } from './members';
 export { MOCK_CONCERNS, MOCK_CONCERN_PHOTOS } from './concerns';
 export { MOCK_PROPOSALS, MOCK_PROPOSAL_ITEMS } from './proposals';
+export {
+  MOCK_PROCEDURES,
+  MOCK_PROCEDURE_VARIANTS,
+  MOCK_PROCEDURE_BOOKMARKS,
+} from './procedures';
