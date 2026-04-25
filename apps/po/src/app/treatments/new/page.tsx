@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
@@ -16,6 +16,7 @@ import { emptyWizardForm } from '@/lib/wizard/defaults';
 import {
   stepIsValid, allStepsValid, stepsValidForDraft, sanitizeWizardForm,
 } from '@/lib/wizard/validation';
+import { track } from '@hyliren/shared/src/events';
 import type { WizardForm } from '@/lib/wizard/types';
 import type { ProcedureStatus } from '@hyliren/shared';
 
@@ -26,16 +27,50 @@ const STEPS = [
   { key: 'preview', label: '미리보기·공개' },
 ];
 
+/** 이탈 → 재진입 시 작성본 복구 키. 첫 create 성공 시 제거. */
+const DRAFT_STORAGE_KEY = 'po-wizard-new-draft-v1';
+
+function loadPersistedForm(): WizardForm | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as WizardForm;
+  } catch {
+    return null;
+  }
+}
+
 export default function NewProcedurePage() {
   const router = useRouter();
   const member = usePOAuthStore(s => s.member);
   const { showToast } = useToastStore();
 
-  const [form, setForm] = useState<WizardForm>(() => emptyWizardForm());
+  const [form, setForm] = useState<WizardForm>(() => loadPersistedForm() ?? emptyWizardForm());
   const [activeStep, setActiveStep] = useState(0);
   const [saving, setSaving] = useState(false);
   // H3: setState race 로 인한 중복 제출 방지
   const savingRef = useRef(false);
+
+  // sessionStorage persist — 탭 닫고 다시 열어도 작성본 유지 (silent).
+  // 첫 서버 저장 성공 시 제거 (submit 성공 path).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(form));
+    } catch { /* quota/sandbox issue — 무시 */ }
+  }, [form]);
+
+  // Instrumentation: wizard 진입 (등록 완료율 = save_success ÷ start)
+  useEffect(() => {
+    if (!member) return;
+    track({
+      eventType: 'treatment_wizard_start',
+      actorType: 'member',
+      actorId: member.id,
+      metadata: { source: 'po', locale: 'ko', mode: 'create' },
+    });
+  }, [member]);
 
   const stepsWithDone = useMemo(
     () => STEPS.map((s, i) => ({ ...s, done: stepIsValid(form, i) })),
@@ -53,8 +88,7 @@ export default function NewProcedurePage() {
       showToast('로그인이 필요합니다.', 'error');
       return;
     }
-    // QA Medium: draft 는 백엔드 정책에 맞춰 최소 요건만 검증.
-    // published 만 전체 스텝 요구.
+    // D1: draft 저장은 Step 1 최소 필드만, published 는 전체 검증
     const ok = status === 'published' ? allStepsValid(form) : stepsValidForDraft(form);
     if (!ok) {
       showToast(
@@ -98,13 +132,28 @@ export default function NewProcedurePage() {
           i18n: v.i18n,
         })),
       });
+      track({
+        eventType: 'treatment_wizard_save_success',
+        actorType: 'member',
+        actorId: member.id,
+        targetId: res.procedure.id,
+        metadata: { source: 'po', locale: 'ko', mode: 'create', value: status },
+      });
       showToast(
         status === 'published' ? '시술이 공개되었습니다.' : '임시저장되었습니다.',
         'success',
       );
+      // sessionStorage 작성본 제거 — 서버에 저장 완료됐으므로 더 보관할 필요 없음
+      try { sessionStorage.removeItem(DRAFT_STORAGE_KEY); } catch {}
       router.push(`/treatments/${res.procedure.id}/edit`);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '저장 실패';
+      track({
+        eventType: 'treatment_wizard_save_fail',
+        actorType: 'member',
+        actorId: member.id,
+        metadata: { source: 'po', locale: 'ko', mode: 'create', value: status, label: msg.slice(0, 120) },
+      });
       showToast(msg, 'error');
     } finally {
       savingRef.current = false;
@@ -125,19 +174,23 @@ export default function NewProcedurePage() {
           onNext={() => setActiveStep(Math.min(STEPS.length - 1, activeStep + 1))}
           nextDisabled={!stepIsValid(form, activeStep)}
           actions={
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => submit('draft')}
-              disabled={saving || !stepsValidForDraft(form)}
-            >
-              임시저장
-            </Button>
+            // 마지막 step 에서는 헤더 primaryAction (저장) 이 이미 있으므로
+            // 임시저장 버튼 미노출 — 중복 방지.
+            activeStep < STEPS.length - 1 ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => submit('draft')}
+                disabled={saving || !stepsValidForDraft(form)}
+              >
+                임시저장
+              </Button>
+            ) : null
           }
           primaryAction={{
-            label: '공개',
-            onClick: () => submit('published'),
-            disabled: !allStepsValid(form),
+            label: '저장',
+            onClick: () => submit('draft'),
+            disabled: saving || !stepsValidForDraft(form),
             loading: saving,
           }}
         >

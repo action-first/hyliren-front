@@ -23,6 +23,8 @@ export {
   LOCALES,
   DEFAULT_SOURCE_LOCALE,
   PROCEDURE_TYPES,
+  PROCEDURE_TYPE_AREAS,
+  proceduresByArea,
   PROCEDURE_STATUSES,
 } from './enums';
 
