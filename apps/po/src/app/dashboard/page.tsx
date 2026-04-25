@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import type { Concern, Proposal } from '@hyliren/shared';
+import type { ProposalStatus } from '@hyliren/shared';
 import {
   CONCERN_STATUS_KR, PROPOSAL_STATUS_KR, BODY_AREA_BADGE,
   formatBudget, formatDateRange,
@@ -11,8 +11,9 @@ import {
 import { AdminPage, DateFilter } from '@hyliren/ui';
 import type { DateRange } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
-import { usePOAuthStore } from '@/store/po-auth';
 import { useCreditsStore } from '@/store/credits';
+import { listConcerns, type ConcernSummaryWire } from '@/lib/api/concern';
+import { listMyProposals, type ProposalDetailWire } from '@/lib/api/proposal';
 import {
   FileText, Eye, CheckCircle2, Coins,
   TrendingUp, TrendingDown, ArrowRight, Sparkles,
@@ -245,31 +246,28 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
 // 메인
 // ════════════════════════════════════════════════════════════
 export default function DashboardPage() {
-  const { member } = usePOAuthStore();
   const { balance, transactions } = useCreditsStore();
-  const memberId = member?.id ?? 'm-001';
 
   const [dateRange, setDateRange] = useState<DateRange>('30d');
-  const [concerns, setConcerns] = useState<Concern[]>([]);
-  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [concerns, setConcerns] = useState<ConcernSummaryWire[]>([]);
+  const [proposals, setProposals] = useState<ProposalDetailWire[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/dashboard?memberId=${memberId}`)
-      .then(r => r.json())
-      .then(data => {
-        setConcerns(data.concerns ?? []);
-        setProposals(data.proposals ?? []);
+    Promise.all([listConcerns(), listMyProposals()])
+      .then(([concernData, proposalData]) => {
+        setConcerns(concernData.concerns ?? []);
+        setProposals(proposalData.proposals ?? []);
         setLoading(false);
       }).catch(() => setLoading(false));
-  }, [memberId]);
+  }, []);
 
   // KPI
   const openConcerns = concerns.filter(c => c.status === 'submitted' || c.status === 'proposal_received');
   const myProposals = proposals;
   const viewedCount = myProposals.filter(p => p.viewedAt !== null).length;
   const viewRate = myProposals.length > 0 ? Math.round((viewedCount / myProposals.length) * 100) : 0;
-  const selectedCount = myProposals.filter(isProposalAccepted).length;
+  const selectedCount = myProposals.filter(p => isProposalAccepted({ status: p.status as ProposalStatus })).length;
   const selectedRate = myProposals.length > 0 ? Math.round((selectedCount / myProposals.length) * 100) : 0;
 
   // 도넛 — 제안서 상태

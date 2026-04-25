@@ -1,4 +1,7 @@
-/** 백엔드 wire shape — 필드명은 API 응답 그대로 */
+/**
+ * 백엔드 wire shape — 필드명은 API 응답 그대로.
+ * 금액 wire 값은 KRW 원 단위이며 mapper/requests 에서 FO 화면용 만원 단위로 변환한다.
+ */
 
 export interface ProposalItemWire {
   id: string;

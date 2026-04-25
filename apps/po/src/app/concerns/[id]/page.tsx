@@ -9,6 +9,7 @@ import {
 import { Card, Badge, Button, SectionHeader, AdminPage, Spinner } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
 import { getConcern, type ConcernDetailWire } from '@/lib/api/concern';
+import { findMyProposalByConcern, formatKrwAsMan, type ProposalDetailWire } from '@/lib/api/proposal';
 import { ApiError } from '@/lib/api/errors';
 import Link from 'next/link';
 
@@ -57,14 +58,19 @@ const SOURCE_KR: Record<string, string> = {
 export default function ConcernDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [concern, setConcern] = useState<ConcernDetailWire | null>(null);
+  const [myProposal, setMyProposal] = useState<ProposalDetailWire | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFoundError, setNotFoundError] = useState(false);
 
   useEffect(() => {
     if (!id) return;
-    getConcern(id)
-      .then((data) => {
+    Promise.all([
+      getConcern(id),
+      findMyProposalByConcern(id).catch(() => null),
+    ])
+      .then(([data, proposal]) => {
         setConcern(data);
+        setMyProposal(proposal);
         setLoading(false);
       })
       .catch((err) => {
@@ -95,9 +101,15 @@ export default function ConcernDetailPage() {
       title="고민 상세"
       prefix="po"
       actions={
-        <Link href={`/concerns/${concern.id}/propose`}>
-          <Button variant="accent" size="sm">제안서 작성</Button>
-        </Link>
+        myProposal ? (
+          <Link href={`/proposals/${myProposal.id}`}>
+            <Button variant="secondary" size="sm">내 제안서 보기</Button>
+          </Link>
+        ) : (
+          <Link href={`/concerns/${concern.id}/propose`}>
+            <Button variant="accent" size="sm">제안서 작성</Button>
+          </Link>
+        )
       }
     >
       {/* ══ 2열 레이아웃 ══ */}
@@ -167,15 +179,30 @@ export default function ConcernDetailPage() {
             </Card>
           )}
 
-          {/* 내 제안서 — 다음 PR (proposal 작업) 에서 backend 연결 예정 */}
           <Card padding="md">
             <SectionHeader title="내 제안서" />
-            <div style={{ textAlign: 'center', padding: '32px 0' }}>
-              <p style={{ fontSize: 14, color: '#94a3b8', marginBottom: 12 }}>아직 제안서를 발송하지 않았습니다</p>
-              <Link href={`/concerns/${concern.id}/propose`}>
-                <Button variant="accent" size="sm">제안서 작성하기</Button>
-              </Link>
-            </div>
+            {myProposal ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginTop: 12 }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>
+                    {formatKrwAsMan(myProposal.totalPrice)} · 회복 {myProposal.recoveryDays}일
+                  </div>
+                  <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
+                    {myProposal.items.map(item => item.treatmentName).join(', ')}
+                  </div>
+                </div>
+                <Link href={`/proposals/${myProposal.id}`}>
+                  <Button variant="secondary" size="sm">상세 보기</Button>
+                </Link>
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                <p style={{ fontSize: 14, color: '#94a3b8', marginBottom: 12 }}>아직 제안서를 발송하지 않았습니다</p>
+                <Link href={`/concerns/${concern.id}/propose`}>
+                  <Button variant="accent" size="sm">제안서 작성하기</Button>
+                </Link>
+              </div>
+            )}
           </Card>
         </div>
 

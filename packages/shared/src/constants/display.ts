@@ -7,6 +7,21 @@
 /** 제안서 1건 발송 시 차감 크레딧 */
 export const CREDIT_COST = 3;
 
+/** @unit KRW 원. 화면 입력/표시는 만원 단위를 쓰며 API/DB wire 값은 원 단위다. */
+export const PRICE_MAN_UNIT = 10000;
+
+export function manToKrw(value: number): number {
+  return Math.round(value * PRICE_MAN_UNIT);
+}
+
+export function krwToMan(value: number): number {
+  return Math.round(value / PRICE_MAN_UNIT);
+}
+
+export function formatKrwAsMan(value: number): string {
+  return `${krwToMan(value).toLocaleString('ko-KR')}만원`;
+}
+
 // ── 뱃지 색상 타입 ──
 export interface BadgeColor {
   bg: string;

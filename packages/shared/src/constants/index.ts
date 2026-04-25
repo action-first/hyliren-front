@@ -56,6 +56,10 @@ export type {
 // Display — 한글 라벨, 뱃지 색상, 포맷 유틸
 export {
   CREDIT_COST,
+  PRICE_MAN_UNIT,
+  manToKrw,
+  krwToMan,
+  formatKrwAsMan,
   CONCERN_STATUS_KR,
   CONCERN_STATUS_BADGE,
   PROPOSAL_STATUS_KR,

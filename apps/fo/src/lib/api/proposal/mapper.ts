@@ -1,4 +1,5 @@
 import type { Proposal, ProposalItem, AnesthesiaType, ProposalStatus } from '@hyliren/shared';
+import { krwToMan } from '@hyliren/shared';
 
 import type { ProposalListItemWire, ProposalItemWire } from './types';
 
@@ -19,7 +20,7 @@ export function mapProposalItem(wire: ProposalItemWire): ProposalItem {
     proposalId: wire.proposalId,
     treatmentName: wire.treatmentName,
     treatmentNameZh: wire.treatmentNameZh,
-    price: wire.price,
+    price: krwToMan(wire.price),
     description: wire.description,
     sortOrder: wire.sortOrder,
     createdAt: wire.createdAt,
@@ -34,7 +35,7 @@ export function mapProposal(wire: ProposalListItemWire): Proposal {
     version: wire.version,
     isActive: wire.isActive,
     status: toProposalStatus(wire.status),
-    totalPrice: wire.totalPrice,
+    totalPrice: krwToMan(wire.totalPrice),
     recoveryDays: wire.recoveryDays,
     anesthesiaType: toAnesthesia(wire.anesthesiaType),
     hospitalStayDays: wire.hospitalStayDays,
