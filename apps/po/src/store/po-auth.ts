@@ -67,6 +67,8 @@ export const usePOAuthStore = create<POAuthState>()(
         return;
       }
 
+      // client.ts 가 401 시 자동 refresh + retry 처리. 이 단계의 catch 는
+      // refresh 까지 실패한 경우(=세션 만료)만 도달.
       set({ status: 'authenticating', error: null });
       try {
         const member = await partnerAuthApi.fetchMe();
@@ -78,20 +80,8 @@ export const usePOAuthStore = create<POAuthState>()(
           error: null,
         });
       } catch {
-        try {
-          await partnerAuthApi.refreshTokens();
-          const member = await partnerAuthApi.fetchMe();
-          set({
-            member,
-            profile: profileFor(member.id),
-            status: 'authenticated',
-            isGuest: false,
-            error: null,
-          });
-        } catch {
-          partnerTokenStore.clearTokens();
-          set({ member: null, profile: null, status: 'guest', isGuest: true });
-        }
+        partnerTokenStore.clearTokens();
+        set({ member: null, profile: null, status: 'guest', isGuest: true });
       }
     },
 

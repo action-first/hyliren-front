@@ -1,5 +1,14 @@
+/**
+ * Partner Auth API client — direct backend 호출 (BFF 미경유).
+ * FO 의 `lib/api/auth.ts` 와 동일 컨벤션. 토큰 저장은 client.ts 가 담당.
+ */
 import type { Member } from '@hyliren/shared';
-import { partnerTokenStore, type PartnerTokens } from '@/lib/auth/token-store';
+import { request, setTokens, clearTokens } from './client';
+
+interface TokenPair {
+  accessToken: string;
+  refreshToken: string;
+}
 
 interface PartnerMeWire {
   memberId: string;
@@ -15,8 +24,6 @@ export interface PartnerLoginInput {
   password: string;
 }
 
-let refreshPromise: Promise<PartnerTokens> | null = null;
-
 function toMember(wire: PartnerMeWire): Member {
   return {
     id: wire.memberId,
@@ -28,67 +35,25 @@ function toMember(wire: PartnerMeWire): Member {
   };
 }
 
-async function parseJson<T>(res: Response): Promise<T> {
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error ?? data.message ?? `HTTP ${res.status}`);
-  }
-  return data as T;
-}
-
 export async function login(input: PartnerLoginInput): Promise<Member> {
-  const tokens = await parseJson<PartnerTokens>(await fetch('/api/auth/login', {
+  const tokens = await request<TokenPair>('/auth/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  }));
-  partnerTokenStore.setTokens(tokens);
+    auth: false,
+    body: input,
+  });
+  setTokens(tokens);
   return fetchMe();
 }
 
-async function runRefresh(): Promise<PartnerTokens> {
-  const refreshToken = partnerTokenStore.getRefreshToken();
-  if (!refreshToken) throw new Error('로그인이 필요합니다');
-
-  const tokens = await parseJson<PartnerTokens>(await fetch('/api/auth/refresh', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
-  }));
-  partnerTokenStore.setTokens(tokens);
-  return tokens;
-}
-
-export async function refreshTokens(): Promise<PartnerTokens> {
-  if (!refreshPromise) {
-    refreshPromise = runRefresh().finally(() => { refreshPromise = null; });
-  }
-  return refreshPromise;
-}
-
 export async function fetchMe(): Promise<Member> {
-  const token = partnerTokenStore.getAccessToken();
-  if (!token) throw new Error('로그인이 필요합니다');
-
-  const me = await parseJson<PartnerMeWire>(await fetch('/api/auth/me', {
-    headers: { Authorization: `Bearer ${token}` },
-  }));
-  return toMember(me);
+  const wire = await request<PartnerMeWire>('/auth/me', { method: 'GET' });
+  return toMember(wire);
 }
 
 export async function logout(): Promise<void> {
-  const token = partnerTokenStore.getAccessToken();
   try {
-    if (token) {
-      const res = await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-    }
+    await request<void>('/auth/logout', { method: 'POST' });
   } finally {
-    partnerTokenStore.clearTokens();
+    clearTokens();
   }
 }

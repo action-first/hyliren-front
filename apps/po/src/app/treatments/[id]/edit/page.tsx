@@ -70,7 +70,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   useEffect(() => {
     if (!member) return;
     let cancelled = false;
-    proceduresApi.get(id, member.id)
+    proceduresApi.get(id)
       .then(({ procedure, variants }) => {
         if (cancelled) return;
         setForm(toWizardForm(procedure, variants));
@@ -125,14 +125,14 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       //      publish-strict 검증이 최신 데이터 기준으로 동작.
 
       // 1. fresh GET for diff
-      const fresh = await proceduresApi.get(id, member.id);
+      const fresh = await proceduresApi.get(id);
       const serverIds = new Set(fresh.variants.map(v => v.id));
       const localIds = new Set(clean.variants.filter(v => !v.isNew).map(v => v.id));
 
       // 2a. 신규 variant 먼저 생성
       for (const v of clean.variants) {
         if (!v.isNew) continue;
-        await proceduresApi.addVariant(id, member.id, {
+        await proceduresApi.addVariant(id, {
           price: v.price, anesthesia: v.anesthesia,
           durationMinutes: v.durationMinutes,
           recoveryDays: v.recoveryDays,
@@ -146,7 +146,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       // 2b. 기존 variant PATCH
       for (const v of clean.variants) {
         if (v.isNew) continue;
-        await proceduresApi.updateVariant(id, v.id, member.id, {
+        await proceduresApi.updateVariant(id, v.id, {
           price: v.price, anesthesia: v.anesthesia,
           durationMinutes: v.durationMinutes,
           recoveryDays: v.recoveryDays,
@@ -160,13 +160,13 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       // 2c. 로컬에 없어진 기존 variant 삭제 (C3: 마지막 variant 가드 우회 위해 후순위)
       for (const sid of serverIds) {
         if (!localIds.has(sid)) {
-          await proceduresApi.removeVariant(id, sid, member.id);
+          await proceduresApi.removeVariant(id, sid);
         }
       }
 
       // 3. 마지막에 본체 + status PATCH — 새 variants 가 이미 반영된 상태라
       //    publish-strict 검증이 최신 데이터 기준으로 동작.
-      await proceduresApi.update(id, member.id, {
+      await proceduresApi.update(id, {
         primaryArea: clean.primaryArea as typeof form.primaryArea & string,
         procedureType: clean.procedureType as typeof form.procedureType & string,
         heroImageUrl: clean.heroImageUrl || undefined,
@@ -186,14 +186,14 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
         'success',
       );
       // 성공 후 서버 상태로 리로드
-      const reload = await proceduresApi.get(id, member.id);
+      const reload = await proceduresApi.get(id);
       setForm(toWizardForm(reload.procedure, reload.variants));
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '저장 실패';
       showToast(msg, 'error');
       // C4: 실패 시 서버 상태로 싱크 — 부분 저장 상태를 드러내고 다음 시도 안전 보장
       try {
-        const reload = await proceduresApi.get(id, member.id);
+        const reload = await proceduresApi.get(id);
         setForm(toWizardForm(reload.procedure, reload.variants));
         showToast('서버 상태로 복구되었습니다. 다시 시도해주세요.', 'info');
       } catch { /* reload 실패는 무시 — 기존 에러가 더 중요 */ }
@@ -207,7 +207,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     if (!member) return;
     if (!confirm('이 시술을 보관함으로 이동합니다. 계속할까요?')) return;
     try {
-      await proceduresApi.softDelete(id, member.id);
+      await proceduresApi.softDelete(id);
       showToast('보관함으로 이동되었습니다.', 'info');
       router.push('/treatments');
     } catch (e: unknown) {
