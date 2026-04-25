@@ -53,9 +53,10 @@ export function Step2Pricing({ form, onChange }: Step2Props) {
   return (
     <div className="flex flex-col gap-6">
       {/* 기본값 */}
-      <div>
+      <section>
+        <h2 className="text-[14px] font-bold text-[var(--color-text)] mb-1">기본값</h2>
         <p className="text-[12px] text-[var(--color-text-dim)] mb-3">
-          기본값 — 옵션별로 다른 값이 필요하면 각 옵션 카드에서 개별 설정.
+          옵션마다 다른 값이 필요하면 각 옵션 카드에서 개별 설정할 수 있습니다.
         </p>
         <div className="grid grid-cols-2 gap-3">
           <Input
@@ -90,14 +91,17 @@ export function Step2Pricing({ form, onChange }: Step2Props) {
             onChange={e => onChange({ baseHospitalStayDays: Number(e.target.value) || 0 })}
           />
         </div>
-      </div>
+      </section>
 
       {/* Variants */}
-      <div>
+      <section>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[12px] text-[var(--color-text-dim)]">
-            시술 옵션 — 예: 쌍꺼풀 → 매몰/부분절개/절개. 최소 1개, 대표 1개.
-          </p>
+          <div>
+            <h2 className="text-[14px] font-bold text-[var(--color-text)]">시술 옵션</h2>
+            <p className="text-[12px] text-[var(--color-text-dim)] mt-0.5">
+              예: 쌍꺼풀 → 매몰/부분절개/절개. 최소 1개, 대표 옵션 1개 선택.
+            </p>
+          </div>
           <Button variant="secondary" size="sm" onClick={addVariant}>
             <Plus size={13} /> 옵션 추가
           </Button>
@@ -120,7 +124,7 @@ export function Step2Pricing({ form, onChange }: Step2Props) {
               />
             ))}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

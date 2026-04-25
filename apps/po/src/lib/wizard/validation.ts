@@ -46,9 +46,10 @@ export function allStepsValid(form: WizardForm): boolean {
 /**
  * 임시저장(draft) 최소 요건.
  *
- * CPO D1: 사용자가 등록 중 이탈해도 작성본 보존 가능해야 한다.
- * → 분류(어디/무엇)와 원본 언어 타이틀만 있으면 저장 허용.
- * 가격·옵션·상세·이미지는 모두 공개 전까지 보류 가능.
+ * QA Medium: 기존엔 draft 저장도 allStepsValid 를 요구해 사용자가 거의
+ * 모든 필드를 채워야만 저장됐다. 백엔드 draft 정책(title >=1 + 분류만 필수)
+ * 보다 과도하게 엄격. 이탈 후 재개 가능성을 높이기 위해 draft 는
+ * primaryArea + procedureType + sourceLocale title 만 있으면 허용.
  */
 export function stepsValidForDraft(form: WizardForm): boolean {
   const sourceTitle = form.i18n[form.sourceLocale]?.title?.trim() ?? '';
