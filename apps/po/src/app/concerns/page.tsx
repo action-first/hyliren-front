@@ -6,13 +6,13 @@ import {
   BODY_AREAS, CONCERN_STATUS_KR, CONCERN_STATUS_BADGE, BODY_AREA_DOT,
   formatDateKR, formatDateRange, formatBudget,
 } from '@hyliren/shared';
-import type { Concern, Proposal } from '@hyliren/shared';
 import {
   AdminPage, DataGrid,
   badgeCellRenderer, dotTextRenderer, countBadgeCellRenderer, actionCellRenderer,
 } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
+import { listConcerns, type ConcernSummaryWire } from '@/lib/api/concern';
 import type { ColDef } from 'ag-grid-community';
 
 // ── 타입 ──
@@ -81,37 +81,31 @@ const columnDefs: ColDef<ConcernRow>[] = [
 // ── 페이지 ──
 export default function ConcernListPage() {
   const router = useRouter();
-  const [allConcerns, setAllConcerns] = useState<Concern[]>([]);
-  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [allConcerns, setAllConcerns] = useState<ConcernSummaryWire[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/concerns').then(r => r.json()),
-      fetch('/api/proposals').then(r => r.json()),
-    ]).then(([cData, pData]) => {
-      setAllConcerns(cData.concerns ?? []);
-      setProposals(pData.proposals ?? []);
-      setLoading(false);
-    }).catch(() => { setError(true); setLoading(false); });
+    listConcerns()
+      .then((data) => {
+        setAllConcerns(data.concerns);
+        setLoading(false);
+      })
+      .catch(() => { setError(true); setLoading(false); });
   }, []);
 
-  const rowData: ConcernRow[] = allConcerns.map(c => {
-    const pCount = proposals.filter(p => p.concernId === c.id && p.isActive).length;
-    return {
-      id: c.id,
-      primaryArea: c.primaryArea,
-      bodyAreaDetail: c.bodyAreaDetail || '',
-      description: c.description.length > 50 ? c.description.slice(0, 50) + '...' : c.description,
-      budget: formatBudget(c.budgetMin, c.budgetMax),
-      visitDate: formatDateRange(c.visitDateFrom, c.visitDateTo),
-      status: c.status,
-      statusLabel: CONCERN_STATUS_KR[c.status] || c.status,
-      createdAt: formatDateKR(c.createdAt),
-      proposalCount: pCount,
-    };
-  });
+  const rowData: ConcernRow[] = allConcerns.map(c => ({
+    id: c.id,
+    primaryArea: c.primaryArea,
+    bodyAreaDetail: c.bodyAreaDetail || '',
+    description: c.description.length > 50 ? c.description.slice(0, 50) + '...' : c.description,
+    budget: formatBudget(c.budgetMin, c.budgetMax),
+    visitDate: formatDateRange(c.visitDateFrom, c.visitDateTo),
+    status: c.status,
+    statusLabel: CONCERN_STATUS_KR[c.status] || c.status,
+    createdAt: formatDateKR(c.createdAt),
+    proposalCount: c.proposalCount,
+  }));
 
   if (loading) return null;
 

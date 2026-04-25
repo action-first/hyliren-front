@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import type { AnesthesiaType, Concern } from '@hyliren/shared';
+import type { AnesthesiaType } from '@hyliren/shared';
 import { Card, Button, Input, Textarea, SectionHeader, AdminPage, Select } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
 import { usePOAuthStore } from '@/store/po-auth';
@@ -12,6 +12,7 @@ import { useCreditsStore } from '@/store/credits';
 import { useToastStore } from '@/store/toast';
 import { ChevronDown } from 'lucide-react';
 import { CREDIT_COST } from '@hyliren/shared';
+import { getConcern, type ConcernDetailWire } from '@/lib/api/concern';
 
 interface FormItem {
   name: string;
@@ -33,14 +34,10 @@ export default function ProposePage({ params }: Props) {
   const { id } = use(params);
   const router = useRouter();
 
-  const [concern, setConcern] = useState<Concern | null>(null);
+  const [concern, setConcern] = useState<ConcernDetailWire | null>(null);
   useEffect(() => {
-    fetch('/api/concerns')
-      .then(r => r.json())
-      .then(data => {
-        const found = (data.concerns ?? []).find((c: Concern) => c.id === id);
-        if (found) setConcern(found);
-      });
+    if (!id) return;
+    getConcern(id).then(setConcern).catch(() => { /* notFound 시 silent — 페이지 렌더가 concern null 가드 */ });
   }, [id]);
   const { member } = usePOAuthStore();
   const { treatments } = useTreatmentsStore();

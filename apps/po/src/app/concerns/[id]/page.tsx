@@ -1,13 +1,15 @@
-import { notFound } from 'next/navigation';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { notFound, useParams } from 'next/navigation';
 import {
-  MOCK_USERS, MOCK_BUYER_PROFILES, MOCK_PARTNER_PROFILES,
   CONCERN_STATUS_KR, CONCERN_STATUS_BADGE, BODY_AREA_BADGE,
-  ANESTHESIA_KR, PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE,
   formatBudget, formatDateRange, formatDateKR,
 } from '@hyliren/shared';
-import { getConcerns, getConcernPhotos, getProposals } from '@hyliren/shared/src/server/data-store';
-import { Card, Badge, Button, SectionHeader, AdminPage } from '@hyliren/ui';
+import { Card, Badge, Button, SectionHeader, AdminPage, Spinner } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
+import { getConcern, type ConcernDetailWire } from '@/lib/api/concern';
+import { ApiError } from '@/lib/api/errors';
 import Link from 'next/link';
 
 // ── 스타일 토큰 ──
@@ -52,24 +54,39 @@ const SOURCE_KR: Record<string, string> = {
   organic: '직접 유입', referral: '추천', article: '아티클', ad: '광고', direct: '다이렉트',
 };
 
-interface Props { params: Promise<{ id: string }> }
+export default function ConcernDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const [concern, setConcern] = useState<ConcernDetailWire | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFoundError, setNotFoundError] = useState(false);
 
-export default async function ConcernDetailPage({ params }: Props) {
-  const { id } = await params;
-  const concern = getConcerns().find(c => c.id === id);
-  if (!concern) notFound();
+  useEffect(() => {
+    if (!id) return;
+    getConcern(id)
+      .then((data) => {
+        setConcern(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (err instanceof ApiError && err.status === 404) {
+          setNotFoundError(true);
+        }
+        setLoading(false);
+      });
+  }, [id]);
 
-  const photos = getConcernPhotos().filter(p => p.concernId === concern.id);
-  const allProposals = getProposals().filter(p => p.concernId === concern.id && p.isActive);
+  if (loading) {
+    return (
+      <AdminPage sidebar={<POSidebar active="/concerns" />} title="고민 상세" prefix="po">
+        <div className="flex items-center justify-center py-20"><Spinner /></div>
+      </AdminPage>
+    );
+  }
 
-  // PO에서는 현재 파트너의 제안서만 표시 (MVP: m-001 하드코딩)
-  const currentMemberId = 'm-001';
-  const myProposals = allProposals.filter(p => p.memberId === currentMemberId);
-  const otherProposalCount = allProposals.length - myProposals.length;
+  if (notFoundError || !concern) {
+    notFound();
+  }
 
-  // 고객 정보
-  const user = MOCK_USERS.find(u => u.id === concern.userId);
-  const buyerProfile = MOCK_BUYER_PROFILES.find(p => p.userId === concern.userId);
   const statusLabel = CONCERN_STATUS_KR[concern.status] ?? concern.status;
 
   return (
@@ -125,10 +142,6 @@ export default async function ConcernDetailPage({ params }: Props) {
                 <div style={S.value}>{formatDateRange(concern.visitDateFrom, concern.visitDateTo)}</div>
               </div>
               <div>
-                <div style={S.label}>여권</div>
-                <div style={S.value}>{concern.hasPassport ? '보유' : '미보유'}</div>
-              </div>
-              <div>
                 <div style={S.label}>유입 경로</div>
                 <div style={S.value}>{SOURCE_KR[concern.source] || concern.source}</div>
               </div>
@@ -136,58 +149,33 @@ export default async function ConcernDetailPage({ params }: Props) {
           </Card>
 
           {/* 사진 */}
-          {photos.length > 0 && (
+          {concern.photos.length > 0 && (
             <Card padding="md">
-              <SectionHeader title={`첨부 사진 (${photos.length}장)`} />
+              <SectionHeader title={`첨부 사진 (${concern.photos.length}장)`} />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 12 }}>
-                {photos.map(p => (
+                {concern.photos.map(p => (
                   <div key={p.id} style={{
                     aspectRatio: '1', background: '#f8fafc', borderRadius: 8,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     border: '1px solid #f1f5f9', color: '#cbd5e1', fontSize: 13,
-                  }}>사진</div>
+                    overflow: 'hidden',
+                  }}>
+                    {p.url ? <img src={p.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '사진'}
+                  </div>
                 ))}
               </div>
             </Card>
           )}
 
-          {/* 내 제안서 */}
+          {/* 내 제안서 — 다음 PR (proposal 작업) 에서 backend 연결 예정 */}
           <Card padding="md">
-            <SectionHeader
-              title="내 제안서"
-              subtitle={myProposals.length > 0 ? `${myProposals.length}건 발송됨` : undefined}
-            />
-            {myProposals.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px 0' }}>
-                <p style={{ fontSize: 14, color: '#94a3b8', marginBottom: 12 }}>아직 제안서를 발송하지 않았습니다</p>
-                <Link href={`/concerns/${concern.id}/propose`}>
-                  <Button variant="accent" size="sm">제안서 작성하기</Button>
-                </Link>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
-                {myProposals.map(p => {
-                  const pStatusLabel = PROPOSAL_STATUS_KR[p.status] ?? p.status;
-                  return (
-                    <div key={p.id} style={{
-                      padding: '14px 16px', background: '#f8fafc', borderRadius: 10,
-                      border: '1px solid #f1f5f9',
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                        <span style={{ fontSize: 18, fontWeight: 700, color: '#0f172a' }}>{p.totalPrice}만원</span>
-                        <StatusBadge label={pStatusLabel} map={PROPOSAL_STATUS_BADGE} />
-                      </div>
-                      <div style={{ display: 'flex', gap: 16, fontSize: 13, color: '#64748b' }}>
-                        <span>회복 {p.recoveryDays}일</span>
-                        <span>{ANESTHESIA_KR[p.anesthesiaType] ?? p.anesthesiaType}</span>
-                        <span>발송 {formatDateKR(p.sentAt)}</span>
-                        <span>{p.viewedAt ? `열람 ${formatDateKR(p.viewedAt)}` : '미열람'}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            <SectionHeader title="내 제안서" />
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <p style={{ fontSize: 14, color: '#94a3b8', marginBottom: 12 }}>아직 제안서를 발송하지 않았습니다</p>
+              <Link href={`/concerns/${concern.id}/propose`}>
+                <Button variant="accent" size="sm">제안서 작성하기</Button>
+              </Link>
+            </div>
           </Card>
         </div>
 
@@ -204,65 +192,12 @@ export default async function ConcernDetailPage({ params }: Props) {
               <MetaRow label="등록일">{formatDateKR(concern.createdAt)}</MetaRow>
               <MetaRow label="수정일">{formatDateKR(concern.updatedAt)}</MetaRow>
               <hr style={S.divider} />
-              <MetaRow label="접수 제안서">{allProposals.length}건</MetaRow>
-              {otherProposalCount > 0 && (
-                <MetaRow label="타 병원 제안">
-                  <span style={{ fontSize: 13, color: '#94a3b8' }}>{otherProposalCount}건</span>
-                </MetaRow>
-              )}
+              <MetaRow label="접수 제안서">{concern.proposalCount}건</MetaRow>
             </div>
           </Card>
 
-          {/* 고객 정보 카드 */}
-          <Card padding="md">
-            <SectionHeader title="고객 정보" />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
-              <MetaRow label="이름">{user?.name ?? '-'}</MetaRow>
-              <hr style={S.divider} />
-              <MetaRow label="국적">{buyerProfile?.country ?? '-'}</MetaRow>
-              <MetaRow label="언어">{user?.locale === 'zh-CN' ? '中文' : user?.locale ?? '-'}</MetaRow>
-              {buyerProfile?.birthYear && (
-                <MetaRow label="나이대">{new Date().getFullYear() - buyerProfile.birthYear}세</MetaRow>
-              )}
-              {buyerProfile?.gender && (
-                <MetaRow label="성별">
-                  {buyerProfile.gender === 'female' ? '여성' : buyerProfile.gender === 'male' ? '남성' : '기타'}
-                </MetaRow>
-              )}
-            </div>
-          </Card>
-
-          {/* 고민 이력 */}
-          <Card padding="md">
-            <SectionHeader title="이 고객의 다른 고민" />
-            {(() => {
-              const otherConcerns = getConcerns().filter(c => c.userId === concern.userId && c.id !== concern.id && !c.deletedAt);
-              if (otherConcerns.length === 0) return (
-                <p style={{ fontSize: 13, color: '#94a3b8', marginTop: 12 }}>다른 고민이 없습니다</p>
-              );
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
-                  {otherConcerns.map(c => {
-                    const cStatus = CONCERN_STATUS_KR[c.status] ?? c.status;
-                    return (
-                      <Link key={c.id} href={`/concerns/${c.id}`} style={{ textDecoration: 'none' }}>
-                        <div style={{
-                          padding: '10px 12px', background: '#f8fafc', borderRadius: 8,
-                          border: '1px solid #f1f5f9', transition: 'background 150ms', cursor: 'pointer',
-                        }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: 13, fontWeight: 500, color: '#334155' }}>{c.primaryArea} {c.bodyAreaDetail || ''}</span>
-                            <span style={{ fontSize: 11, color: '#94a3b8' }}>{cStatus}</span>
-                          </div>
-                          <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>{formatDateKR(c.createdAt)}</div>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              );
-            })()}
-          </Card>
+          {/* 고객 정보 / 다른 고민은 partner 미노출 정책상 제거.
+              필요 시 backend 에 별도 마스킹된 endpoint 추가 후 복구 (백로그). */}
         </div>
       </div>
     </AdminPage>
