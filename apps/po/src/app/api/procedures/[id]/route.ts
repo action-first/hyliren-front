@@ -1,171 +1,68 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  getProcedureById, getProcedureVariants,
-  updateProcedure, softDeleteProcedure, ensureUniqueSlug,
-} from '@hyliren/shared/src/server/data-store';
 import type { Procedure, ProcedureVariant } from '@hyliren/shared';
-import { updateProcedureSchema } from '../schema';
-import { callBackend, isRealMode, proxyErrorToResponse } from '@/lib/api/partner-proxy';
+import { callBackend, proxyErrorToResponse } from '@/lib/api/partner-proxy';
 
 /**
- * GET /api/procedures/[id]?memberId=...
- * PO — 본인 시술 상세 + variants. i18n 원본 그대로 반환 (편집 UI 가 locale 탭으로 다룸).
+ * GET /api/procedures/[id]
+ * Partner 백엔드 프록시. 소유권/i18n 처리는 백엔드 책임.
  */
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-
-  if (isRealMode()) {
-    try {
-      const data = await callBackend<{ procedure: Procedure; variants: ProcedureVariant[] }>(req, {
-        method: 'GET',
-        path: `/procedures/${id}`,
-      });
-      return NextResponse.json(data);
-    } catch (e) {
-      return proxyErrorToResponse(e);
-    }
+  try {
+    const data = await callBackend<{ procedure: Procedure; variants: ProcedureVariant[] }>(req, {
+      method: 'GET',
+      path: `/procedures/${id}`,
+    });
+    return NextResponse.json(data);
+  } catch (e) {
+    return proxyErrorToResponse(e);
   }
-
-  const memberId = req.nextUrl.searchParams.get('memberId');
-
-  const procedure = getProcedureById(id);
-  if (!procedure) return NextResponse.json({ error: '시술을 찾을 수 없습니다' }, { status: 404 });
-  if (memberId && procedure.memberId !== memberId) {
-    return NextResponse.json({ error: '권한이 없습니다' }, { status: 403 });
-  }
-
-  const variants = getProcedureVariants(id);
-  return NextResponse.json({ procedure, variants });
 }
 
 /**
- * PATCH /api/procedures/[id]?memberId=...
- * 본체 필드 부분 업데이트 + i18n 은 locale 단위 upsert (기존 번역 유지).
+ * PATCH /api/procedures/[id]
+ * 본체 + i18n upsert + publish-strict 검증 모두 백엔드 책임.
  */
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-
   let body: unknown;
   try { body = await req.json(); }
   catch { return NextResponse.json({ error: '유효한 JSON 요청이 필요합니다' }, { status: 400 }); }
 
-  if (isRealMode()) {
-    try {
-      const data = await callBackend<{ procedure: Procedure }>(req, {
-        method: 'PATCH',
-        path: `/procedures/${id}`,
-        body,
-      });
-      return NextResponse.json({ ok: true, ...data });
-    } catch (e) {
-      return proxyErrorToResponse(e);
-    }
+  try {
+    const data = await callBackend<{ procedure: Procedure }>(req, {
+      method: 'PATCH',
+      path: `/procedures/${id}`,
+      body,
+    });
+    return NextResponse.json({ ok: true, ...data });
+  } catch (e) {
+    return proxyErrorToResponse(e);
   }
-
-  const memberId = req.nextUrl.searchParams.get('memberId');
-
-  const existing = getProcedureById(id);
-  if (!existing) return NextResponse.json({ error: '시술을 찾을 수 없습니다' }, { status: 404 });
-  if (memberId && existing.memberId !== memberId) {
-    return NextResponse.json({ error: '권한이 없습니다' }, { status: 403 });
-  }
-
-  const parsed = updateProcedureSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message || '입력값이 올바르지 않습니다' },
-      { status: 400 },
-    );
-  }
-
-  const patch = parsed.data;
-  const next: Partial<Procedure> = { ...patch };
-
-  // slug 바뀌는 경우 유니크 보장 (자기 자신 excludeId)
-  if (patch.slug && patch.slug !== existing.slug) {
-    next.slug = ensureUniqueSlug(patch.slug, id);
-  }
-
-  // i18n 은 기존 + patch locale 병합 (locale 단위 upsert)
-  const mergedI18n = patch.i18n ? { ...existing.i18n, ...patch.i18n } : existing.i18n;
-  if (patch.i18n) {
-    next.i18n = mergedI18n;
-  }
-
-  // published 전환 시 publish-strict 검증 (real 백엔드 procedure.service.ts 와 동일 계약)
-  const nextStatus = patch.status ?? existing.status;
-  if (nextStatus === 'published') {
-    const mergedHero = patch.heroImageUrl ?? existing.heroImageUrl;
-    const mergedBasePrice = patch.basePrice ?? existing.basePrice;
-    const sourceLocale = existing.sourceLocale;
-    const sourceBlock = mergedI18n[sourceLocale];
-
-    if (!sourceBlock || (sourceBlock.title ?? '').trim().length < 2) {
-      return NextResponse.json({ error: '공개하려면 타이틀이 2자 이상이어야 합니다' }, { status: 400 });
-    }
-    if (mergedBasePrice <= 0) {
-      return NextResponse.json({ error: '공개하려면 기본 가격이 필요합니다' }, { status: 400 });
-    }
-    if (!mergedHero) {
-      return NextResponse.json({ error: '공개하려면 대표 이미지가 필요합니다' }, { status: 400 });
-    }
-    const variants = getProcedureVariants(id);
-    for (let i = 0; i < variants.length; i++) {
-      const vSrc = variants[i].i18n[sourceLocale];
-      if (!vSrc || (vSrc.name ?? '').trim().length < 1) {
-        return NextResponse.json(
-          { error: `공개하려면 모든 옵션에 이름이 필요합니다 (index ${i})` },
-          { status: 400 },
-        );
-      }
-    }
-  }
-
-  // draft → published 전환 시 publishedAt 세팅
-  if (patch.status === 'published' && existing.status !== 'published') {
-    next.publishedAt = new Date().toISOString();
-  }
-
-  const updated = updateProcedure(id, next);
-  return NextResponse.json({ ok: true, procedure: updated });
 }
 
 /**
- * DELETE /api/procedures/[id]?memberId=...
- * Soft delete. status → 'archived'.
+ * DELETE /api/procedures/[id]
+ * status → 'archived' (백엔드 softDelete).
  */
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-
-  if (isRealMode()) {
-    try {
-      const data = await callBackend<{ procedure: Procedure }>(req, {
-        method: 'DELETE',
-        path: `/procedures/${id}`,
-      });
-      return NextResponse.json({ ok: true, ...data });
-    } catch (e) {
-      return proxyErrorToResponse(e);
-    }
+  try {
+    const data = await callBackend<{ procedure: Procedure }>(req, {
+      method: 'DELETE',
+      path: `/procedures/${id}`,
+    });
+    return NextResponse.json({ ok: true, ...data });
+  } catch (e) {
+    return proxyErrorToResponse(e);
   }
-
-  const memberId = req.nextUrl.searchParams.get('memberId');
-
-  const existing = getProcedureById(id);
-  if (!existing) return NextResponse.json({ error: '시술을 찾을 수 없습니다' }, { status: 404 });
-  if (memberId && existing.memberId !== memberId) {
-    return NextResponse.json({ error: '권한이 없습니다' }, { status: 403 });
-  }
-
-  const archived = softDeleteProcedure(id);
-  return NextResponse.json({ ok: true, procedure: archived });
 }

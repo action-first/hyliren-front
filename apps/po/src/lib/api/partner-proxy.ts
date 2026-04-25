@@ -1,30 +1,29 @@
 /**
  * Partner Backend BFF 어댑터.
  *
- * PO 의 `/api/procedures/*` Next.js route handler 가 mock(data-store) 과 real(백엔드)
- * 사이를 전환할 때 공통 유틸. 다음 3가지를 담당한다:
+ * PO 의 `/api/procedures/*` Next.js route handler 가 항상 Partner 백엔드
+ * (`/partner/api/v1/procedures`) 로 프록시. mock 분기 제거 후 단일 경로.
  *
- *   1. `API_MODE` env 로 모드 판단 (기본 'mock')
+ *   1. env URL 정규화 — `/partner`, `/partner/api/v1`, bare host 모두 수용
  *   2. 백엔드 요청 — Authorization 헤더 자동 전달, `?memberId=` 쿼리 제거
- *   3. 응답 언래핑 — 백엔드 envelope `{ success, data, timestamp }` → `data`
- *
- * ResponseInterceptor (글로벌) 가 씌운 envelope 는 여기서 벗기고, 라우트 핸들러가
- * PO 클라이언트 기존 계약 (`{ ok: true, ... }`) 에 맞춰 재포장한다.
+ *   3. 응답 언래핑 — envelope `{ success, data, timestamp }` 의 data 반환
+ *      · 204 No Content: undefined (void 엔드포인트 — variant PATCH/DELETE)
+ *      · success:true + data 없음: undefined (void)
+ *      · success:false 또는 success 누락: 502 throw
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 
-export function isRealMode(): boolean {
-  return process.env.API_MODE === 'real';
-}
-
-/** 백엔드 base URL. ex) http://localhost:3002/partner/api/v1 */
+/** 백엔드 base URL. 정규화: 반환값은 항상 `.../partner/api/v1` 로 끝남. */
 function backendBaseUrl(): string {
-  const url = process.env.BACKEND_URL;
+  const url = process.env.PARTNER_BACKEND_URL ?? process.env.BACKEND_URL;
   if (!url) {
-    throw new Error('BACKEND_URL env 가 설정되지 않았습니다 (API_MODE=real 시 필수)');
+    throw new Error('PARTNER_BACKEND_URL 또는 BACKEND_URL env 가 필요합니다');
   }
-  return url.replace(/\/$/, '');
+  const trimmed = url.replace(/\/$/, '');
+  if (trimmed.endsWith('/partner/api/v1')) return trimmed;
+  if (trimmed.endsWith('/partner')) return `${trimmed}/api/v1`;
+  return `${trimmed}/partner/api/v1`;
 }
 
 export interface ProxyOptions {
@@ -40,8 +39,8 @@ export interface ProxyOptions {
 /**
  * 백엔드 호출 + envelope 언래핑.
  *
- * 성공(`{ success: true, data: T }`)이면 `data` 반환.
- * 실패(non-2xx 또는 `{ success: false }`)이면 Error throw — route handler 가 catch 해서 적절한 상태코드로 변환.
+ * 성공(2xx + `{success:true}`)이면 data 반환 (void 엔드포인트는 undefined).
+ * 실패(non-2xx 또는 `{success:false}` 또는 malformed envelope)이면 ProxyError throw.
  */
 export async function callBackend<T>(req: NextRequest, opts: ProxyOptions): Promise<T> {
   const base = backendBaseUrl();
@@ -62,23 +61,32 @@ export async function callBackend<T>(req: NextRequest, opts: ProxyOptions): Prom
     method: opts.method,
     headers,
     body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
-    // next: { revalidate: 0 },  // 항상 프레시 — 런타임 실시간 데이터
     cache: 'no-store',
   });
 
-  const text = await res.text();
-  const json: unknown = text ? JSON.parse(text) : {};
-
+  // 비 2xx — 에러 body 읽고 throw
   if (!res.ok) {
-    const err = json as { message?: string; error?: string };
-    throw new ProxyError(err.message ?? err.error ?? `Backend ${res.status}`, res.status);
+    const text = await res.text();
+    const errJson = text ? (JSON.parse(text) as { message?: string; error?: string }) : {};
+    throw new ProxyError(errJson.message ?? errJson.error ?? `Backend ${res.status}`, res.status);
   }
 
+  // 204 No Content — 정상 void 응답 (body 없음)
+  if (res.status === 204) return undefined as T;
+
+  const text = await res.text();
+  const json: unknown = text ? JSON.parse(text) : {};
   const envelope = json as { success?: boolean; data?: T; message?: string };
+
   if (envelope.success === false) {
     throw new ProxyError(envelope.message ?? 'Backend 응답 실패', 502);
   }
-  return (envelope.data ?? ({} as T)) as T;
+  // envelope 형식 미충족 (success 필드 없음) — malformed 로 간주
+  if (envelope.success !== true) {
+    throw new ProxyError('Backend 응답 형식이 올바르지 않습니다', 502);
+  }
+  // success:true + data 없음 = void (ResponseInterceptor 가 undefined data 를 JSON drop)
+  return envelope.data as T;
 }
 
 export class ProxyError extends Error {
