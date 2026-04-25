@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation';
 import type { AnesthesiaType } from '@hyliren/shared';
 import { Card, Button, Input, Textarea, SectionHeader, AdminPage, Select } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
-import { usePOAuthStore } from '@/store/po-auth';
 import { useTreatmentsStore } from '@/store/treatments';
-import { useSubmittedProposalsStore } from '@/store/submitted-proposals';
 import { useCreditsStore } from '@/store/credits';
 import { useToastStore } from '@/store/toast';
 import { ChevronDown } from 'lucide-react';
 import { CREDIT_COST } from '@hyliren/shared';
 import { getConcern, type ConcernDetailWire } from '@/lib/api/concern';
+import { createProposal } from '@/lib/api/proposal';
+import { ApiError } from '@/lib/api/errors';
 
 interface FormItem {
   name: string;
@@ -39,9 +39,7 @@ export default function ProposePage({ params }: Props) {
     if (!id) return;
     getConcern(id).then(setConcern).catch(() => { /* notFound 시 silent — 페이지 렌더가 concern null 가드 */ });
   }, [id]);
-  const { member } = usePOAuthStore();
   const { treatments } = useTreatmentsStore();
-  const { submit } = useSubmittedProposalsStore();
   const { balance, deduct } = useCreditsStore();
   const { showToast } = useToastStore();
 
@@ -89,51 +87,44 @@ export default function ProposePage({ params }: Props) {
   const [sending, setSending] = useState(false);
 
   async function handleSend() {
+    if (sending) return;
+    // backend 가 트랜잭션 내에서 잔액 검증 + 차감 + 거래 기록을 atomic 처리.
+    // FE 측 잔액 표시는 store 캐시일 뿐이므로 사전 차단은 UX 가이드 수준.
     if (balance < CREDIT_COST) {
       showToast(`크레딧이 부족합니다. 현재 잔액: ${balance}개`, 'error');
       return;
     }
-    if (sending) return;
     setSending(true);
 
-    const payload = {
-      concernId: id,
-      memberId: member?.id ?? 'm-001',
-      items: items.filter(i => i.name.trim()),
-      totalPrice,
-      recoveryDays,
-      anesthesiaType: anesthesia,
-      hospitalStayDays: stayDays,
-      availableDateFrom: dateFrom || null,
-      availableDateTo: dateTo || null,
-      consultationNote: note.trim() || null,
-      creditsCharged: CREDIT_COST,
-    };
-
     try {
-      const res = await fetch('/api/proposals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      await createProposal(id, {
+        items: items.filter(i => i.name.trim()).map((i, idx) => ({
+          treatmentName: i.name.trim(),
+          treatmentNameZh: i.nameZh?.trim() || null,
+          price: i.price,
+          sortOrder: idx,
+        })),
+        totalPrice,
+        recoveryDays,
+        anesthesiaType: anesthesia,
+        hospitalStayDays: stayDays,
+        availableDateFrom: dateFrom || undefined,
+        availableDateTo: dateTo || undefined,
+        consultationNote: note.trim() || undefined,
       });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        showToast(err.error || '제안서 발송에 실패했습니다.', 'error');
-        return;
-      }
-
-      // API 성공 후에만 크레딧 차감 + 로컬 저장
-      const ok = deduct(CREDIT_COST, `제안서 발송 (${id})`);
-      if (!ok) {
-        showToast('크레딧 차감에 실패했습니다.', 'error');
-        return;
-      }
-      submit(payload);
-      showToast('제안서가 발송되었습니다. 크레딧 3개 차감.', 'success');
+      // backend 가 차감했으므로 로컬 store 도 동기화 (UI 즉시 반영용 — 다음 fetch 시 backend 값으로 덮임)
+      // TODO: 백로그 — 크레딧 잔액도 backend 단일 source 로 (현재 client store 와 분리)
+      deduct(CREDIT_COST, `제안서 발송 (${id})`);
+      showToast(`제안서가 발송되었습니다. 크레딧 ${CREDIT_COST}개 차감.`, 'success');
       router.push('/proposals');
-    } catch {
-      showToast('네트워크 오류가 발생했습니다. 다시 시도해주세요.', 'error');
+    } catch (err) {
+      if (err instanceof ApiError) {
+        // backend 의 BadRequestException (크레딧 부족) / ConflictException (중복) 등 그대로 노출
+        showToast(err.message || '제안서 발송에 실패했습니다.', 'error');
+      } else {
+        showToast('네트워크 오류가 발생했습니다. 다시 시도해주세요.', 'error');
+      }
     } finally {
       setSending(false);
     }

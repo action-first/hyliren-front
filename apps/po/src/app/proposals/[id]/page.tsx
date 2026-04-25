@@ -1,20 +1,24 @@
+'use client';
+
+import { useEffect, useState, use } from 'react';
 import { notFound } from 'next/navigation';
 import {
-  MOCK_PARTNER_PROFILES,
   PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE,
   ANESTHESIA_KR, CONCERN_STATUS_KR,
   formatDateKR, formatDateRange, formatBudget,
+  CREDIT_COST,
 } from '@hyliren/shared';
-import { getConcerns, getProposals, getProposalItems } from '@hyliren/shared/src/server/data-store';
-import { Card, Badge, SectionHeader, AdminPage } from '@hyliren/ui';
+import { Card, Badge, SectionHeader, AdminPage, Spinner } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
+import { getConcern, type ConcernDetailWire } from '@/lib/api/concern';
+import { formatKrwAsMan, listMyProposals, type ProposalDetailWire } from '@/lib/api/proposal';
+import { ApiError } from '@/lib/api/errors';
 
-// ── 스타일 토큰 ──
 const S = {
   label: { fontSize: 13, color: '#94a3b8', marginBottom: 2 } as const,
   value: { fontSize: 14, color: '#0f172a', fontWeight: 500 } as const,
   metaRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } as const,
-  divider: { height: 1, background: '#f1f5f9', margin: 0 } as const,
+  divider: { height: 1, background: '#f1f5f9', margin: 0, border: 0 } as const,
 };
 
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -53,30 +57,60 @@ function getStepIndex(status: string): number {
 
 interface Props { params: Promise<{ id: string }> }
 
-export default async function ProposalDetailPage({ params }: Props) {
-  const { id } = await params;
-  const proposal = getProposals().find(p => p.id === id);
-  if (!proposal) notFound();
+export default function ProposalDetailPage({ params }: Props) {
+  const { id } = use(params);
+  const [proposal, setProposal] = useState<ProposalDetailWire | null>(null);
+  const [concern, setConcern] = useState<ConcernDetailWire | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFoundError, setNotFoundError] = useState(false);
 
-  const items = getProposalItems().filter(i => i.proposalId === id);
-  const concern = getConcerns().find(c => c.id === proposal.concernId);
+  useEffect(() => {
+    listMyProposals()
+      .then(async (data) => {
+        const found = data.proposals.find(p => p.id === id);
+        if (!found) {
+          setNotFoundError(true);
+          setLoading(false);
+          return;
+        }
+
+        setProposal(found);
+        try {
+          setConcern(await getConcern(found.concernId));
+        } catch (err) {
+          if (!(err instanceof ApiError && err.status === 404)) {
+            throw err;
+          }
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <AdminPage sidebar={<POSidebar active="/activity" />} title="제안서 상세" prefix="po">
+        <div className="flex items-center justify-center py-20"><Spinner /></div>
+      </AdminPage>
+    );
+  }
+
+  if (notFoundError || !proposal) {
+    notFound();
+  }
+
   const currentStep = getStepIndex(proposal.status);
   const statusLabel = PROPOSAL_STATUS_KR[proposal.status] ?? proposal.status;
 
   return (
     <AdminPage
-      sidebar={<POSidebar active="/proposals" />}
+      sidebar={<POSidebar active="/activity" />}
       title={`제안서 상세 — ${concern ? `${concern.primaryArea} ${concern.bodyAreaDetail ?? ''}` : ''}`}
       prefix="po"
       actions={<StatusBadge label={statusLabel} map={PROPOSAL_STATUS_BADGE} />}
     >
-      {/* ══ 2열 레이아웃 ══ */}
       <div className="detail-grid">
-
-        {/* ══ 좌측: 메인 콘텐츠 ══ */}
         <div className="detail-main">
-
-          {/* 상태 타임라인 */}
           <Card padding="md">
             <div className="flex items-center gap-1">
               {TIMELINE_STEPS.map((step, i) => (
@@ -95,12 +129,11 @@ export default async function ProposalDetailPage({ params }: Props) {
             </div>
           </Card>
 
-          {/* 시술 항목 */}
           <Card padding="md">
             <SectionHeader title="시술 항목" />
-            {items.length > 0 ? (
+            {proposal.items.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
-                {items.map((item, i) => (
+                {proposal.items.map((item, i) => (
                   <div key={item.id ?? i} style={{
                     padding: '12px 16px', background: '#f8fafc', borderRadius: 8,
                     border: '1px solid #f1f5f9',
@@ -110,7 +143,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                       <div style={{ fontSize: 14, fontWeight: 500, color: '#0f172a' }}>{item.treatmentName}</div>
                       {item.treatmentNameZh && <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{item.treatmentNameZh}</div>}
                     </div>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{item.price}만원</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{formatKrwAsMan(item.price)}</span>
                   </div>
                 ))}
               </div>
@@ -118,17 +151,14 @@ export default async function ProposalDetailPage({ params }: Props) {
               <p style={{ color: '#94a3b8', fontSize: 13, marginTop: 16 }}>항목 정보 없음</p>
             )}
 
-            {/* 총 비용 */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, paddingTop: 16, borderTop: '1px solid #f1f5f9' }}>
               <span style={{ fontSize: 14, fontWeight: 600, color: '#64748b' }}>총 예상 비용</span>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                <span style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{proposal.totalPrice}</span>
-                <span style={{ fontSize: 14, color: '#94a3b8' }}>만원</span>
+                <span style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{formatKrwAsMan(proposal.totalPrice)}</span>
               </div>
             </div>
           </Card>
 
-          {/* 시술 정보 */}
           <Card padding="md">
             <SectionHeader title="시술 정보" />
             <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px 24px' }}>
@@ -160,10 +190,7 @@ export default async function ProposalDetailPage({ params }: Props) {
           </Card>
         </div>
 
-        {/* ══ 우측: 사이드바 ══ */}
         <div className="detail-sticky-sidebar">
-
-          {/* 상태 메타 */}
           <Card padding="md">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <MetaRow label="상태">
@@ -173,11 +200,10 @@ export default async function ProposalDetailPage({ params }: Props) {
               <MetaRow label="발송일">{formatDateKR(proposal.sentAt)}</MetaRow>
               <MetaRow label="열람일">{proposal.viewedAt ? formatDateKR(proposal.viewedAt) : '미열람'}</MetaRow>
               <hr style={S.divider} />
-              <MetaRow label="크레딧 차감">{proposal.creditsCharged ?? 3}개</MetaRow>
+              <MetaRow label="크레딧 차감">{CREDIT_COST}개</MetaRow>
             </div>
           </Card>
 
-          {/* 연결된 고민 */}
           {concern && (
             <Card padding="md">
               <SectionHeader title="연결된 고민" />

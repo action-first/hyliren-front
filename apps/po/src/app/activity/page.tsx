@@ -4,16 +4,18 @@ import { useState, useEffect } from 'react';
 import {
   PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE,
   formatDateKR,
+  formatBudget,
+  CREDIT_COST,
 } from '@hyliren/shared';
-import type { Proposal, Concern } from '@hyliren/shared';
 import {
   Card, AdminPage, DataGrid,
   badgeCellRenderer, dotTextRenderer,
 } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
-import { usePOAuthStore } from '@/store/po-auth';
 import { useCreditsStore } from '@/store/credits';
+import { listConcerns, type ConcernSummaryWire } from '@/lib/api/concern';
+import { formatKrwAsMan, listMyProposals, type ProposalDetailWire } from '@/lib/api/proposal';
 import type { ColDef } from 'ag-grid-community';
 import React from 'react';
 
@@ -72,24 +74,22 @@ const columnDefs: ColDef<ActivityRow>[] = [
 ];
 
 export default function ActivityPage() {
-  const { member } = usePOAuthStore();
   const { balance, transactions } = useCreditsStore();
-  const memberId = member?.id ?? 'm-001';
 
-  const [proposals, setProposals] = useState<Proposal[]>([]);
-  const [concerns, setConcerns] = useState<Concern[]>([]);
+  const [proposals, setProposals] = useState<ProposalDetailWire[]>([]);
+  const [concerns, setConcerns] = useState<ConcernSummaryWire[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
-      fetch(`/api/proposals?memberId=${memberId}`).then(r => r.json()),
-      fetch('/api/concerns').then(r => r.json()),
+      listMyProposals(),
+      listConcerns(),
     ]).then(([pData, cData]) => {
       setProposals(pData.proposals ?? []);
       setConcerns(cData.concerns ?? []);
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [memberId]);
+  }, []);
 
   // ── 통합 타임라인 데이터 ──
   const rowData: ActivityRow[] = [
@@ -100,8 +100,8 @@ export default function ActivityPage() {
         date: formatDateKR(p.sentAt),
         type: 'proposal',
         typeLabel: '제안서 발송',
-        description: `${concern?.primaryArea || '-'} ${concern?.bodyAreaDetail || ''} · ${p.totalPrice}만원`,
-        credit: `-${p.creditsCharged ?? 3}`,
+        description: `${concern ? `${concern.primaryArea} ${concern.bodyAreaDetail || ''}` : '-'} · ${formatBudget(concern?.budgetMin ?? null, concern?.budgetMax ?? null)} · ${formatKrwAsMan(p.totalPrice)}`,
+        credit: `-${CREDIT_COST}`,
         statusLabel: PROPOSAL_STATUS_KR[p.status] || p.status,
       };
     }),
