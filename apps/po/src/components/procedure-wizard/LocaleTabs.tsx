@@ -55,7 +55,7 @@ export function LocaleTabs({
               <span className="text-[10px] font-bold text-[var(--color-primary)]">*</span>
             )}
             {!isSource && isDone && (
-              <span className="text-[10px] text-[var(--color-success,#16a34a)]">✓</span>
+              <span className="text-[10px] text-[var(--color-success)]">✓</span>
             )}
           </button>
         );

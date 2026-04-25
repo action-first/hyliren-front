@@ -190,4 +190,13 @@
     color: var(--text-disabled);
   }
 
+  /* Wizard step 전환 애니메이션 — 2열 form 컬럼의 step 교체 시 부드럽게 페이드인 */
+  @keyframes wizard-step-in {
+    0%   { opacity: 0; transform: translateY(4px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .wizard-step-in {
+    animation: wizard-step-in 180ms ease-out;
+  }
+
 }
