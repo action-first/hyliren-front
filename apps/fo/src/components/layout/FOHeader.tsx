@@ -3,14 +3,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Bell, User } from 'lucide-react';
-import { MOCK_PROPOSALS } from '@hyliren/shared';
 import { useAuthStore } from '@/store/auth';
 import { AuthModal } from '@/components/auth/AuthModal';
 
 export function FOHeader() {
   const { isLoggedIn, user } = useAuthStore();
   const [showAuth, setShowAuth] = useState(false);
-  const unreadCount = MOCK_PROPOSALS.filter(p => p.isActive && p.status === 'sent' && !p.viewedAt).length;
+  // 미읽은 제안서 카운트는 customer backend 의 "내 모든 제안" 집계 엔드포인트
+  // 추가 후 연결 (현재 customer API 는 concernId 별 listProposals 만 제공).
+  // 임시로 0 — 뱃지 숨김 처리.
+  const unreadCount = 0;
 
   return (
     <>
