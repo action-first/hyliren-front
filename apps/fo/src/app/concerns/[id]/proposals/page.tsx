@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { use } from 'react';
-import { MOCK_CONCERNS, MOCK_PARTNER_PROFILES, track } from '@hyliren/shared';
+import { track } from '@hyliren/shared';
 import { Button, Badge, MobileBottomCTA, Spinner } from '@hyliren/ui';
 import { ArrowRight, Sparkles, Inbox } from 'lucide-react';
 import { ExperienceCard } from '@/components/common/ExperienceCard';
@@ -18,9 +18,8 @@ interface Props { params: Promise<{ id: string }>; }
 export default function ProposalListPage({ params }: Props) {
   const { id } = use(params);
   const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
-  const mockConcern = MOCK_CONCERNS.find(c => c.id === id);
   const { concern: apiConcern } = useConcern(id);
-  const concern = apiConcern || mockConcern || userCreatedConcerns.find(c => c.id === id);
+  const concern = apiConcern || userCreatedConcerns.find(c => c.id === id);
   const t = useLocaleStore(s => s.t);
   const { selectedProposalIds: selected, toggleSelect } = useDecisionStore();
 
@@ -67,11 +66,10 @@ export default function ProposalListPage({ params }: Props) {
         {/* ── Proposal Cards — Experience Card Inbox ── */}
         <div className="flex flex-col gap-4 px-5">
           {proposals.map((proposal, idx) => {
-            const mockProfile = MOCK_PARTNER_PROFILES.find(p => p.memberId === proposal.memberId);
             const items = allItems.filter(i => i.proposalId === proposal.id);
             const isSelected = selected.has(proposal.id);
-            const hospitalName = proposal.hospitalName || mockProfile?.hospitalName || '';
-            const valueProp = VALUE_PROPS[proposal.memberId] || mockProfile?.description || '';
+            const hospitalName = proposal.hospitalName;
+            const valueProp = VALUE_PROPS[proposal.memberId] ?? '';
             const meta = [
               `회복 ${proposal.recoveryDays}일`,
               `${proposal.anesthesiaType === 'local' ? '부분' : proposal.anesthesiaType === 'sedation' ? '수면' : '전신'}마취`,
@@ -84,7 +82,6 @@ export default function ProposalListPage({ params }: Props) {
                 gradient={GRADIENTS[idx % GRADIENTS.length]}
                 valueProp={valueProp}
                 hospitalName={hospitalName}
-                verified={mockProfile?.verified}
                 rating={4.8}
                 price={proposal.totalPrice}
                 meta={meta}
@@ -101,7 +98,7 @@ export default function ProposalListPage({ params }: Props) {
         {/* Analysis nudge */}
         <Link href={`/concerns/${concern.id}/compare`} className="no-underline block mt-5 px-5"
           onClick={() => track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: 'proposal_list' } })}>
-          <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl fo-gradient-accent">
+          <div className="flex items-center gap-3 px-4 py-3.5 rounded-[var(--app-radius-md)] fo-gradient-accent">
             <Sparkles size={18} className="text-[var(--color-primary)] shrink-0" />
             <div className="flex-1">
               <span className="text-[13px] font-semibold text-[var(--color-text)] block">{t('proposal.list.analysisCta')}</span>

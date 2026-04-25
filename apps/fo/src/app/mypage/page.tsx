@@ -12,6 +12,7 @@ import { AREA_ACCENT } from '@/lib/area-styles';
 import { useReportStore } from '@/store/report';
 import { useLocaleStore } from '@/store/locale';
 import { useMyConcerns } from '@/lib/hooks/concern';
+import { listProposals, mapProposal } from '@/lib/api/proposal';
 import { AuthModal } from '@/components/auth/AuthModal';
 
 export default function MyPage() {
@@ -25,14 +26,16 @@ export default function MyPage() {
   // MOCK_CONCERNS 직접 import 시 사용자 신규 등록이 누락되어 지난 dashboard 건과 동일한 버그 재발.
   const { concerns: apiConcerns, loading: concernsLoading } = useMyConcerns();
   const [proposals, setProposals] = useState<Proposal[] | null>(null);
-  const userId = user?.id;
   useEffect(() => {
-    if (!userId) { setProposals(null); return; }
-    fetch(`/api/proposals?userId=${userId}`)
-      .then(r => r.json())
-      .then(d => setProposals(d.proposals ?? []))
-      .catch(() => setProposals([]));
-  }, [userId]);
+    if (concernsLoading) return;
+    if (apiConcerns.length === 0) {
+      setProposals([]);
+      return;
+    }
+    Promise.all(
+      apiConcerns.map(c => listProposals(c.id).then(w => w.proposals.map(mapProposal)).catch(() => [] as Proposal[])),
+    ).then(results => setProposals(results.flat()));
+  }, [apiConcerns, concernsLoading]);
 
   if (isGuest || !user) {
     return (
@@ -85,7 +88,7 @@ export default function MyPage() {
 
       {/* ── Stats ── */}
       <div className="px-5 mb-5">
-        <div className="grid grid-cols-4 rounded-xl bg-[var(--color-bg-secondary)] py-4">
+        <div className="grid grid-cols-4 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)] py-4">
           <Link href="/dashboard" className="flex flex-col items-center gap-1 no-underline">
             <span className="text-[1.125rem] font-bold text-[var(--color-text)]">{concerns.length}</span>
             <span className="text-[10px] text-[var(--color-text-dim)]">{t('mypage.registeredConcerns')}</span>
@@ -126,12 +129,12 @@ export default function MyPage() {
               const cProposalCount = userProposals.filter(p => p.concernId === c.id).length;
               return (
                 <Link key={c.id} href={`/concerns/${c.id}`} className="no-underline block">
-                  <div className="px-4 py-3.5 rounded-xl bg-white"
+                  <div className="px-4 py-3.5 rounded-[var(--app-radius)] bg-[var(--color-bg)]"
                     style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-1.5">
                         {c.bodyAreas.slice(0, 2).map(area => (
-                          <span key={area} className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${AREA_ACCENT[area] || 'bg-gray-50 text-gray-600'}`}>
+                          <span key={area} className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${AREA_ACCENT[area] || 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}`}>
                             {area}
                           </span>
                         ))}
@@ -160,7 +163,7 @@ export default function MyPage() {
       {/* ── Menu ── */}
       <section className="px-5">
         <h2 className="text-[15px] font-bold text-[var(--color-text)] mb-3">{t('mypage.settings')}</h2>
-        <div className="rounded-xl bg-white overflow-hidden"
+        <div className="rounded-[var(--app-radius)] bg-[var(--color-bg)] overflow-hidden"
           style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
           {[
             { icon: FileText, label: t('mypage.purchasedReportsMenu'), value: `${purchasedIds.size}${t('common.items')}`, href: '/mypage/reports', iconColor: 'text-[var(--color-primary)]' },
@@ -187,7 +190,7 @@ export default function MyPage() {
         {/* Logout */}
         <button type="button"
           onClick={logout}
-          className="flex items-center justify-center gap-2 w-full py-3.5 mt-6 rounded-xl bg-transparent border border-[var(--color-border-light)] cursor-pointer"
+          className="flex items-center justify-center gap-2 w-full py-3.5 mt-6 rounded-[var(--app-radius)] bg-transparent border border-[var(--color-border-light)] cursor-pointer"
         >
           <LogOut size={14} className="text-[var(--color-text-dim)]" />
           <span className="text-[13px] text-[var(--color-text-dim)]">{t('mypage.logout')}</span>

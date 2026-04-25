@@ -25,7 +25,7 @@ export function SelectableProposalCard({
   return (
     <button
       onClick={() => onCardClick ? onCardClick() : onToggle()}
-      className={`w-full text-left rounded-xl bg-white transition-all duration-150 cursor-pointer border-0 p-0 ${
+      className={`w-full text-left rounded-[var(--app-radius)] bg-[var(--color-bg)] transition-all duration-150 cursor-pointer border-0 p-0 ${
         selected ? 'ring-2 ring-[var(--color-primary)] ring-offset-1' : ''
       }`}
       style={{ boxShadow: 'var(--app-shadow-card-sm)' }}
@@ -53,7 +53,7 @@ export function SelectableProposalCard({
               {hospitalName}
             </span>
             {verified && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-[9px] font-semibold text-emerald-600 shrink-0">
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[var(--color-success-soft)] text-[9px] font-semibold text-[var(--color-success)] shrink-0">
                 <ShieldCheck size={9} /> 인증
               </span>
             )}

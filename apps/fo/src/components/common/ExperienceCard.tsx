@@ -41,7 +41,7 @@ export function ExperienceCard({
   const isPrimary = variant === 'primary';
 
   return (
-    <div className={`rounded-[20px] overflow-hidden bg-white transition-all duration-200 ${
+    <div className={`rounded-[20px] overflow-hidden bg-[var(--color-bg)] transition-all duration-200 ${
       selected !== undefined && selected
         ? 'ring-2 ring-[var(--color-primary)] ring-offset-2'
         : ''
@@ -64,7 +64,7 @@ export function ExperienceCard({
         )}
 
         {verified && (
-          <span className={`absolute ${unread ? 'top-10' : 'top-3'} right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm text-[11px] font-semibold text-emerald-600`}>
+          <span className={`absolute ${unread ? 'top-10' : 'top-3'} right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--color-bg)]/90 backdrop-blur-sm text-[11px] font-semibold text-[var(--color-success)]`}>
             <ShieldCheck size={12} /> 인증
           </span>
         )}
@@ -75,7 +75,7 @@ export function ExperienceCard({
             className={`absolute top-3 left-3 w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer border-0 ${
               selected
                 ? 'bg-[var(--color-primary)] text-white'
-                : 'bg-white/70 backdrop-blur-sm text-[var(--color-text-dim)]'
+                : 'bg-[var(--color-bg)]/70 backdrop-blur-sm text-[var(--color-text-dim)]'
             }`}>
             {selected ? <Check size={16} strokeWidth={3} /> : <Heart size={16} />}
           </button>
@@ -84,7 +84,7 @@ export function ExperienceCard({
         {coverTags && coverTags.length > 0 && (
           <div className="absolute bottom-3 left-3 flex gap-1.5">
             {coverTags.map(tag => (
-              <span key={tag} className="px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm text-[11px] font-semibold text-[var(--color-text)]">
+              <span key={tag} className="px-2.5 py-1 rounded-full bg-[var(--color-bg)]/90 backdrop-blur-sm text-[11px] font-semibold text-[var(--color-text)]">
                 {tag}
               </span>
             ))}

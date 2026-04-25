@@ -2,7 +2,7 @@
 
 import { use } from 'react';
 import Link from 'next/link';
-import { MOCK_CONCERNS, MOCK_PROPOSALS, MOCK_PARTNER_PROFILES, track } from '@hyliren/shared';
+import { track } from '@hyliren/shared';
 import { Button, Badge } from '@hyliren/ui';
 import {
   Calendar, Languages, Car, MapPin, Hotel, HeartPulse,
@@ -11,6 +11,8 @@ import {
 import { useLocaleStore } from '@/store/locale';
 import { useDecisionStore } from '@/store/decision';
 import { useUserConcernsStore } from '@/store/user-concerns';
+import { useConcern } from '@/lib/hooks/concern';
+import { useProposalsForConcern } from '@/lib/hooks/proposal';
 import { STATUS_LABELS, STATUS_COLORS } from '@/domain/lifecycle';
 
 interface Props { params: Promise<{ id: string }>; }
@@ -28,19 +30,18 @@ export default function ServicesPage({ params }: Props) {
   const t = useLocaleStore(s => s.t);
   const { id } = use(params);
   const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
-  const concern = MOCK_CONCERNS.find(c => c.id === id) || userCreatedConcerns.find(c => c.id === id);
+  const { concern: apiConcern } = useConcern(id);
+  const { proposals: realProposals } = useProposalsForConcern(id);
+  const { selectedHospitalId } = useDecisionStore();
+  const concern = apiConcern || userCreatedConcerns.find(c => c.id === id);
   if (!concern) {
     return <div className="p-8 text-center text-[var(--color-text-secondary)]">{t('concern.notFound')}</div>;
   }
 
-  const { selectedHospitalId } = useDecisionStore();
-  const proposals = MOCK_PROPOSALS.filter(p => p.concernId === concern.id && p.isActive);
+  const proposals = realProposals.filter(p => p.isActive);
   const selectedProposal = selectedHospitalId
     ? proposals.find(p => p.id === selectedHospitalId)
     : proposals[0];
-  const profile = selectedProposal
-    ? MOCK_PARTNER_PROFILES.find(pp => pp.memberId === selectedProposal.memberId)
-    : null;
 
   const services: ServiceItem[] = [
     { key: 'schedule', icon: Calendar, title: '일정 관리', desc: '시술 날짜와 사전 검진 일정을 조율합니다', status: 'available' },
@@ -73,12 +74,12 @@ export default function ServicesPage({ params }: Props) {
       </div>
 
       {/* Selected hospital */}
-      {profile && selectedProposal && (
-        <div className="rounded-2xl fo-gradient-accent px-4 py-3.5 mb-5">
+      {selectedProposal && (
+        <div className="rounded-[var(--app-radius-md)] fo-gradient-accent px-4 py-3.5 mb-5">
           <span className="text-[10px] text-[var(--color-text-dim)] block mb-1">선택한 병원</span>
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[15px] font-bold text-[var(--color-text)]">{profile.hospitalName}</span>
+              <span className="text-[15px] font-bold text-[var(--color-text)]">{selectedProposal.hospitalName}</span>
               <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[var(--color-text-dim)]">
                 <span>{selectedProposal.totalPrice}{t('common.currency')}</span>
                 <span>{t('common.recovery')} {selectedProposal.recoveryDays}{t('common.days')}</span>
@@ -93,7 +94,7 @@ export default function ServicesPage({ params }: Props) {
 
       {/* Visit info */}
       {concern.visitDateFrom && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--color-bg-secondary)] mb-5">
+        <div className="flex items-center gap-3 px-4 py-3 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)] mb-5">
           <MapPin size={16} className="text-[var(--color-primary)] shrink-0" />
           <div>
             <span className="text-[13px] font-medium text-[var(--color-text)]">방문 예정</span>
@@ -110,7 +111,7 @@ export default function ServicesPage({ params }: Props) {
           return (
             <button key={service.key} type="button"
               onClick={() => track({ eventType: 'service_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: service.key } })}
-              className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white border-0 text-left cursor-pointer w-full"
+              className="flex items-center gap-3.5 px-4 py-4 rounded-[var(--app-radius-md)] bg-[var(--color-bg)] border-0 text-left cursor-pointer w-full"
               style={{ boxShadow: 'var(--app-shadow-card-light)' }}>
               <div className="w-10 h-10 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center shrink-0">
                 <Icon size={18} className="text-[var(--color-primary)]" />
@@ -125,8 +126,8 @@ export default function ServicesPage({ params }: Props) {
                 <span className="text-[11px] text-[var(--color-text-dim)] leading-relaxed">{service.desc}</span>
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                <StatusIcon size={12} className={service.status === 'available' ? 'text-[var(--color-text-dim)]' : 'text-emerald-500'} />
-                <span className={`text-[10px] ${service.status === 'available' ? 'text-[var(--color-text-dim)]' : 'text-emerald-600 font-medium'}`}>
+                <StatusIcon size={12} className={service.status === 'available' ? 'text-[var(--color-text-dim)]' : 'text-[var(--color-success)]'} />
+                <span className={`text-[10px] ${service.status === 'available' ? 'text-[var(--color-text-dim)]' : 'text-[var(--color-success)] font-medium'}`}>
                   {STATUS_TEXT[service.status]}
                 </span>
               </div>
@@ -136,7 +137,7 @@ export default function ServicesPage({ params }: Props) {
       </div>
 
       {/* Bottom CTA */}
-      <div className="rounded-2xl bg-[var(--color-bg-secondary)] px-4 py-4">
+      <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)] px-4 py-4">
         <p className="text-[13px] text-[var(--color-text-secondary)] text-center leading-relaxed mb-3">
           서비스는 병원 확정 후 순차적으로 준비됩니다.<br />
           필요한 서비스를 미리 확인해두세요.

@@ -75,7 +75,7 @@ export function StepFeedback() {
       </div>
 
       <div className="mt-auto pb-2">
-        <div className="flex items-center gap-2 p-3 rounded-2xl bg-white"
+        <div className="flex items-center gap-2 p-3 rounded-[var(--app-radius-md)] bg-[var(--color-bg)]"
           style={{ boxShadow: 'var(--app-shadow-card-emphasis)' }}>
           <textarea
             ref={textareaRef}

@@ -28,7 +28,7 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
   const hasMore = proposals.length > INITIAL_SHOW;
   const visibleProposals = expanded ? proposals : proposals.slice(0, INITIAL_SHOW);
   const hiddenCount = proposals.length - INITIAL_SHOW;
-  const accent = AREA_ACCENT[concern.primaryArea] || 'bg-gray-50 text-gray-600';
+  const accent = AREA_ACCENT[concern.primaryArea] || 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]';
 
   function renderCard(p: Proposal, idx: number) {
     const profile = profiles.find(pp => pp.memberId === p.memberId);
@@ -56,7 +56,7 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
   return (
     <section
       id={`concern-${concern.id}`}
-      className="mb-6 rounded-2xl bg-[var(--color-bg-secondary)] p-4 scroll-mt-16"
+      className="mb-6 rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)] p-4 scroll-mt-16"
     >
       {/* 고민 헤더 */}
       <div className="flex items-center gap-2 mb-3">
@@ -79,12 +79,12 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
       {/* 예산·방문 칩 */}
       <div className="flex items-center gap-2 mb-3">
         {concern.budgetMin && concern.budgetMax && (
-          <span className="flex items-center gap-0.5 px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-[var(--color-text-secondary)]">
+          <span className="flex items-center gap-0.5 px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-bg)] text-[11px] font-medium text-[var(--color-text-secondary)]">
             <Banknote size={11} /> {concern.budgetMin}~{concern.budgetMax}만
           </span>
         )}
         {concern.visitDateFrom && (
-          <span className="flex items-center gap-0.5 px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-[var(--color-text-secondary)]">
+          <span className="flex items-center gap-0.5 px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-bg)] text-[11px] font-medium text-[var(--color-text-secondary)]">
             <Calendar size={11} /> {concern.visitDateFrom.slice(5)}~ 방문
           </span>
         )}
@@ -107,7 +107,7 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center justify-center gap-1 w-full mt-2.5 py-2.5 rounded-xl border border-dashed border-[var(--color-border-light)] bg-transparent text-[12px] font-medium text-[var(--color-text-secondary)] cursor-pointer"
+          className="flex items-center justify-center gap-1 w-full mt-2.5 py-2.5 rounded-[var(--app-radius)] border border-dashed border-[var(--color-border-light)] bg-transparent text-[12px] font-medium text-[var(--color-text-secondary)] cursor-pointer"
         >
           {expanded ? (
             <>접기 <ChevronUp size={14} /></>

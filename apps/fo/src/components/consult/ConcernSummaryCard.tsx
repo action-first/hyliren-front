@@ -22,7 +22,7 @@ export function AIAnalysisResultCard({ result, compact = false }: Props) {
   ].filter(r => r.value);
 
   return (
-    <div className="rounded-2xl bg-white overflow-hidden" style={{ boxShadow: 'var(--app-shadow-card-md)' }}>
+    <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg)] overflow-hidden" style={{ boxShadow: 'var(--app-shadow-card-md)' }}>
       <div className="flex items-center gap-2 px-4 py-2.5 fo-gradient-accent">
         <Sparkles size={14} className="text-[var(--color-primary)]" />
         <span className="text-[12px] font-semibold text-[var(--color-text)]">{t('consult.summaryTitle')}</span>
@@ -43,7 +43,7 @@ export function AIAnalysisResultCard({ result, compact = false }: Props) {
             <span className="text-[10px] text-[var(--color-text-dim)] block mb-2">{t('consult.summaryProcedures')}</span>
             <div className="flex flex-col gap-2">
               {options.map(opt => (
-                <div key={opt.key} className="px-3 py-2.5 rounded-xl bg-[var(--color-bg-secondary)]">
+                <div key={opt.key} className="px-3 py-2.5 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
                   <span className="text-[12px] font-semibold text-[var(--color-text)] block mb-0.5">{opt.name}</span>
                   <span className="text-[11px] text-[var(--color-text-dim)] leading-relaxed">{opt.description}</span>
                 </div>

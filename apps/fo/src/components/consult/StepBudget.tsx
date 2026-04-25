@@ -39,10 +39,10 @@ export function StepBudget() {
               key={opt.key}
               type="button"
               onClick={() => setBudgetRange(opt.key)}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border-0 cursor-pointer transition-all text-left ${
+              className={`flex items-center gap-3 px-4 py-3.5 rounded-[var(--app-radius)] border-0 cursor-pointer transition-all text-left ${
                 selected
                   ? 'bg-[var(--color-primary-soft)] ring-2 ring-[var(--color-primary)]'
-                  : 'bg-white'
+                  : 'bg-[var(--color-bg)]'
               }`}
               style={!selected ? { boxShadow: 'var(--app-shadow-card-sm)' } : undefined}
             >

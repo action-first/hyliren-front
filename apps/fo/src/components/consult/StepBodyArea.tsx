@@ -38,10 +38,10 @@ export function StepBodyArea() {
             key={area.key}
             type="button"
             onClick={() => setSelectedBodyArea(area.key)}
-            className={`flex items-center gap-3.5 px-4 py-4 rounded-xl border-0 cursor-pointer transition-all text-left ${
+            className={`flex items-center gap-3.5 px-4 py-4 rounded-[var(--app-radius)] border-0 cursor-pointer transition-all text-left ${
               selectedBodyArea === area.key
                 ? 'bg-[var(--color-primary-soft)] ring-2 ring-[var(--color-primary)] ring-offset-1'
-                : 'bg-white'
+                : 'bg-[var(--color-bg)]'
             }`}
             style={selectedBodyArea !== area.key ? { boxShadow: 'var(--app-shadow-card-sm)' } : undefined}
           >

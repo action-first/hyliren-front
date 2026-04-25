@@ -137,19 +137,19 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
           </p>
 
           <div className="flex flex-col gap-2 mb-5">
-            <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[var(--color-bg-secondary)]">
-              <Shield size={14} className="text-emerald-500 shrink-0" />
+            <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
+              <Shield size={14} className="text-[var(--color-success)] shrink-0" />
               <span className="text-[12px] text-[var(--color-text-secondary)]">{t('auth.saveConcern')}</span>
             </div>
-            <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[var(--color-bg-secondary)]">
-              <CheckCircle size={14} className="text-emerald-500 shrink-0" />
+            <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
+              <CheckCircle size={14} className="text-[var(--color-success)] shrink-0" />
               <span className="text-[12px] text-[var(--color-text-secondary)]">{t('auth.receiveProposal')}</span>
             </div>
           </div>
 
           {/* WeChat — 준비 중(외부 의존) */}
           <button type="button" disabled
-            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-[var(--color-bg-secondary)] text-[var(--color-text-dim)] text-[14px] font-medium border-0 mb-3 relative cursor-not-allowed">
+            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)] text-[var(--color-text-dim)] text-[14px] font-medium border-0 mb-3 relative cursor-not-allowed">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="opacity-40">
               <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.986a.96.96 0 0 1 0 1.92.96.96 0 0 1 0-1.92zm5.812 0a.96.96 0 0 1 0 1.92.96.96 0 0 1 0-1.92zm3.2 4.394c-3.627 0-6.593 2.427-6.593 5.45 0 3.022 2.966 5.45 6.593 5.45a8.08 8.08 0 0 0 2.258-.32.672.672 0 0 1 .56.078l1.493.872a.268.268 0 0 0 .13.044c.122 0 .228-.104.228-.232 0-.056-.024-.11-.038-.166l-.305-1.161a.46.46 0 0 1 .166-.52C20.87 18.858 21.8 17.17 21.8 15.29v-.54c-.27-2.723-3.1-4.91-6.503-4.91h-.5zm-1.612 2.754a.768.768 0 1 1 0 1.536.768.768 0 0 1 0-1.536zm4.023 0a.768.768 0 1 1 0 1.536.768.768 0 0 1 0-1.536z"/>
             </svg>
@@ -166,7 +166,7 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
           </div>
 
           <button type="button" onClick={() => { setErrorMessage(null); setStep('email'); }}
-            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-[var(--color-bg-secondary)] text-[var(--color-text)] text-[14px] font-medium border-0 cursor-pointer">
+            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)] text-[var(--color-text)] text-[14px] font-medium border-0 cursor-pointer">
             <Mail size={16} />
             {t('auth.emailLogin')}
           </button>
@@ -243,7 +243,7 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
           </div>
 
           {errorMessage && (
-            <p className="text-[11px] text-red-400 mb-3 px-1">{errorMessage}</p>
+            <p className="text-[11px] text-[var(--color-danger)] mb-3 px-1">{errorMessage}</p>
           )}
 
           <Button variant="accent" size="xl" fullWidth
@@ -308,7 +308,7 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
             </button>
           </div>
           {password.length > 0 && !passwordValid && (
-            <p className="text-[11px] text-red-400 mb-2 px-1">{t('auth.error.passwordRule')}</p>
+            <p className="text-[11px] text-[var(--color-danger)] mb-2 px-1">{t('auth.error.passwordRule')}</p>
           )}
 
           <input
@@ -325,11 +325,11 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
             className="fo-input mb-2"
           />
           {passwordConfirm.length > 0 && !passwordMatch && (
-            <p className="text-[11px] text-red-400 mb-2 px-1">{t('auth.passwordMismatch')}</p>
+            <p className="text-[11px] text-[var(--color-danger)] mb-2 px-1">{t('auth.passwordMismatch')}</p>
           )}
 
           {errorMessage && (
-            <p className="text-[11px] text-red-400 mb-3 px-1">{errorMessage}</p>
+            <p className="text-[11px] text-[var(--color-danger)] mb-3 px-1">{errorMessage}</p>
           )}
 
           <Button variant="accent" size="xl" fullWidth
@@ -344,8 +344,8 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
       {/* ═══ STEP: Welcome ═══ */}
       {step === 'welcome' && (
         <div className="flex flex-col items-center pt-4">
-          <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
-            <CheckCircle size={32} className="text-emerald-500" />
+          <div className="w-16 h-16 rounded-full bg-[var(--color-success-soft)] flex items-center justify-center mb-4">
+            <CheckCircle size={32} className="text-[var(--color-success)]" />
           </div>
           <h2 className="text-[1.25rem] font-bold text-[var(--color-text)] mb-1.5">
             {t('auth.welcomeTitle')}

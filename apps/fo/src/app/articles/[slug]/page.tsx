@@ -32,7 +32,7 @@ function renderBody(article: Article) {
         const quiz = ARTICLE_QUIZZES[article.slug];
         if (quiz) {
           elements.push(
-            <div key={`quiz-${i}`} className="my-6 rounded-2xl bg-[var(--color-bg-secondary)] p-5">
+            <div key={`quiz-${i}`} className="my-6 rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)] p-5">
               <p className="text-[15px] font-bold text-[var(--color-text)] mb-4">{quiz.title}</p>
               <div className="flex flex-col gap-3">
                 {quiz.items.map((item, qi) => (
@@ -40,7 +40,7 @@ function renderBody(article: Article) {
                     <p className="text-[12px] font-medium text-[var(--color-text-secondary)] mb-1.5">{item.question}</p>
                     <div className="flex flex-wrap gap-1.5">
                       {item.options.map((opt, oi) => (
-                        <span key={oi} className="px-3 py-1.5 rounded-full bg-white text-[12px] text-[var(--color-text)] border border-[var(--color-border-light)]">
+                        <span key={oi} className="px-3 py-1.5 rounded-full bg-[var(--color-bg)] text-[12px] text-[var(--color-text)] border border-[var(--color-border-light)]">
                           {opt}
                         </span>
                       ))}
@@ -58,7 +58,7 @@ function renderBody(article: Article) {
       const img = getArticleImage(article, type);
       if (img) {
         elements.push(
-          <div key={`img-${i}`} className="my-5 rounded-xl overflow-hidden">
+          <div key={`img-${i}`} className="my-5 rounded-[var(--app-radius)] overflow-hidden">
             <img src={img.src} alt={img.alt} className="w-full" loading="lazy" />
           </div>,
         );
@@ -210,7 +210,7 @@ export default function ArticleDetailPage() {
 
       {/* Hero image */}
       <div className="px-5 mb-4">
-        <div className="rounded-2xl overflow-hidden">
+        <div className="rounded-[var(--app-radius-md)] overflow-hidden">
           <img src={article.heroImage} alt={article.title} className="w-full aspect-[16/9] object-cover" />
         </div>
       </div>
@@ -240,7 +240,7 @@ export default function ArticleDetailPage() {
 
       {/* Bottom CTA */}
       <div className="px-5 mt-6">
-        <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl fo-gradient-accent">
+        <div className="flex items-center gap-3 px-4 py-3.5 rounded-[var(--app-radius-md)] fo-gradient-accent">
           <div className="flex-1">
             <span className="text-[13px] font-semibold text-[var(--color-text)] block">{t('articles.bottomTitle')}</span>
             <span className="text-[11px] text-[var(--color-text-dim)]">{t('articles.bottomDesc')}</span>

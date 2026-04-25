@@ -146,8 +146,8 @@ export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {
   if (done) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-5">
-        <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mb-5">
-          <Sparkles size={28} className="text-emerald-500" />
+        <div className="w-16 h-16 rounded-full bg-[var(--color-success-soft)] flex items-center justify-center mb-5">
+          <Sparkles size={28} className="text-[var(--color-success)]" />
         </div>
         <h2 className="text-[1.25rem] font-bold text-[var(--color-text)] mb-2">{t('consult.completeTitle')}</h2>
         <p className="text-[13px] text-[var(--color-text-dim)] text-center leading-relaxed mb-4">
@@ -185,43 +185,43 @@ export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {
       {photos.length > 0 && (
         <div className="flex gap-2 mb-4">
           {photos.map((p, i) => (
-            <div key={i} className="w-16 h-20 rounded-xl overflow-hidden">
+            <div key={i} className="w-16 h-20 rounded-[var(--app-radius)] overflow-hidden">
               <img src={p} alt="" className="w-full h-full object-cover" />
             </div>
           ))}
         </div>
       )}
 
-      <div className="rounded-2xl bg-[var(--color-bg-secondary)] px-4 py-3 mb-3">
+      <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)] px-4 py-3 mb-3">
         <span className="text-[10px] text-[var(--color-text-dim)] block mb-1">{t('consult.confirmYourConcern')}</span>
         <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{narrativeInput}</p>
       </div>
 
       <div className="flex flex-wrap gap-2 mb-3">
         {selectedBodyArea && (
-          <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-[11px] font-medium text-blue-600">
+          <span className="px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-info-soft)] text-[11px] font-medium text-[var(--color-info)]">
             {selectedBodyArea}
           </span>
         )}
         {budgetRange && (
-          <span className="px-2.5 py-1 rounded-lg bg-[var(--color-bg-secondary)] text-[11px] font-medium text-[var(--color-text-secondary)]">
+          <span className="px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)] text-[11px] font-medium text-[var(--color-text-secondary)]">
             {BUDGET_LABELS[budgetRange]}
           </span>
         )}
         {visitTiming && (
-          <span className="px-2.5 py-1 rounded-lg bg-[var(--color-bg-secondary)] text-[11px] font-medium text-[var(--color-text-secondary)]">
+          <span className="px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)] text-[11px] font-medium text-[var(--color-text-secondary)]">
             {VISIT_TIMING_LABELS[visitTiming]}
           </span>
         )}
         {stayDuration && (
-          <span className="px-2.5 py-1 rounded-lg bg-[var(--color-bg-secondary)] text-[11px] font-medium text-[var(--color-text-secondary)]">
+          <span className="px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)] text-[11px] font-medium text-[var(--color-text-secondary)]">
             체류 {STAY_DURATION_LABELS[stayDuration]}
           </span>
         )}
       </div>
 
       {feedbackTurns.length > 0 && (
-        <div className="rounded-2xl bg-[var(--color-bg-secondary)] px-4 py-3 mb-3">
+        <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)] px-4 py-3 mb-3">
           <span className="text-[10px] text-[var(--color-text-dim)] block mb-1.5">
             {t('consult.confirmAdditional')} ({feedbackTurns.filter(ft => ft.role === 'user').length}{t('common.times')})
           </span>
@@ -236,7 +236,7 @@ export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {
       </div>
 
       {apiError && (
-        <div className="mb-3 px-4 py-3 rounded-xl bg-red-50 text-[12px] text-red-600">
+        <div className="mb-3 px-4 py-3 rounded-[var(--app-radius)] bg-[var(--color-danger-soft)] text-[12px] text-[var(--color-danger)]">
           {apiError}
         </div>
       )}
@@ -248,7 +248,7 @@ export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {
         </Button>
         <button
           onClick={() => setStep('feedback')}
-          className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-transparent border-0 cursor-pointer text-[12px] text-[var(--color-text-dim)]">
+          className="flex items-center justify-center gap-1.5 w-full py-2 rounded-[var(--app-radius)] bg-transparent border-0 cursor-pointer text-[12px] text-[var(--color-text-dim)]">
           <Edit3 size={12} />
           {t('consult.confirmExplainMore')}
         </button>

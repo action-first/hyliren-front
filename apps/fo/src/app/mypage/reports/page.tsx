@@ -1,40 +1,55 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MOCK_PROPOSALS, MOCK_PARTNER_PROFILES, MOCK_PROPOSAL_ITEMS } from '@hyliren/shared';
-import { Button, Badge } from '@hyliren/ui';
+import { Button, Badge, Spinner } from '@hyliren/ui';
 import { ArrowLeft, ArrowRight, FileCheck, ShieldCheck, Star, Clock, Inbox } from 'lucide-react';
 import { useReportStore } from '@/store/report';
+import { getProposal } from '@/lib/api/proposal';
+import type { ProposalDetailWire } from '@/lib/api/proposal/types';
 
 const RISK_LABELS: Record<string, { text: string; color: string }> = {
-  low: { text: '낮음', color: 'text-emerald-600 bg-emerald-50' },
-  medium: { text: '보통', color: 'text-amber-600 bg-amber-50' },
-  high: { text: '주의', color: 'text-red-500 bg-red-50' },
+  low: { text: '낮음', color: 'text-[var(--color-success)] bg-[var(--color-success-soft)]' },
+  medium: { text: '보통', color: 'text-[var(--color-warning)] bg-[var(--color-warning-soft)]' },
+  high: { text: '주의', color: 'text-[var(--color-danger)] bg-[var(--color-danger-soft)]' },
 };
 
 const PRICE_LABELS: Record<string, { text: string; color: string }> = {
-  low: { text: '저렴', color: 'text-emerald-600' },
-  fair: { text: '적정', color: 'text-blue-600' },
-  high: { text: '높음', color: 'text-amber-600' },
+  low: { text: '저렴', color: 'text-[var(--color-success)]' },
+  fair: { text: '적정', color: 'text-[var(--color-info)]' },
+  high: { text: '높음', color: 'text-[var(--color-warning)]' },
 };
+
+interface ReportItem {
+  proposal: ProposalDetailWire;
+  priceAdequacy: 'low' | 'fair' | 'high';
+  riskLevel: 'low' | 'medium' | 'high';
+}
 
 export default function PurchasedReportsPage() {
   const { purchasedIds } = useReportStore();
   const purchasedList = Array.from(purchasedIds);
+  const [reports, setReports] = useState<ReportItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // 구매한 리포트에 해당하는 제안 데이터
-  const reports = purchasedList
-    .map(proposalId => {
-      const proposal = MOCK_PROPOSALS.find(p => p.id === proposalId);
-      if (!proposal) return null;
-      const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === proposal.memberId);
-      const items = MOCK_PROPOSAL_ITEMS.filter(i => i.proposalId === proposal.id);
-      // 간이 분석 데이터 (실제로는 서버에서 받아옴)
-      const priceAdequacy = proposal.totalPrice < 200 ? 'low' : proposal.totalPrice > 400 ? 'high' : 'fair';
-      const riskLevel = proposal.anesthesiaType === 'general' ? 'medium' : 'low';
-      return { proposal, profile, items, priceAdequacy, riskLevel };
-    })
-    .filter((r): r is NonNullable<typeof r> => r !== null);
+  useEffect(() => {
+    if (purchasedList.length === 0) {
+      setReports([]);
+      setLoading(false);
+      return;
+    }
+    Promise.all(
+      purchasedList.map(id => getProposal(id).catch(() => null)),
+    ).then(results => {
+      const valid = results.filter((r): r is ProposalDetailWire => r !== null);
+      setReports(valid.map(p => ({
+        proposal: p,
+        priceAdequacy: p.totalPrice < 200 ? 'low' : p.totalPrice > 400 ? 'high' : 'fair',
+        riskLevel: p.anesthesiaType === 'general' ? 'medium' : 'low',
+      })));
+      setLoading(false);
+    });
+  }, [purchasedList.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex flex-col pb-10">
@@ -52,8 +67,10 @@ export default function PurchasedReportsPage() {
         </p>
       </div>
 
-      {/* Empty state */}
-      {reports.length === 0 ? (
+      {/* Loading */}
+      {loading ? (
+        <div className="flex items-center justify-center py-16"><Spinner /></div>
+      ) : reports.length === 0 ? (
         <div className="flex flex-col items-center justify-center px-5 pt-12 pb-10">
           <div className="w-14 h-14 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center mb-4">
             <Inbox size={24} className="text-[var(--color-text-dim)]" />
@@ -70,22 +87,22 @@ export default function PurchasedReportsPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-3 px-5">
-          {reports.map(({ proposal, profile, items, priceAdequacy, riskLevel }) => {
+          {reports.map(({ proposal, priceAdequacy, riskLevel }) => {
             const price = PRICE_LABELS[priceAdequacy] || PRICE_LABELS.fair;
             const risk = RISK_LABELS[riskLevel] || RISK_LABELS.low;
             const meta = `회복 ${proposal.recoveryDays}일 · ${proposal.anesthesiaType === 'local' ? '부분' : proposal.anesthesiaType === 'sedation' ? '수면' : '전신'}마취`;
 
             return (
-              <Link key={proposal.id} href={`/mypage/reports/${proposal.id}`} className="no-underline block rounded-2xl bg-white p-4"
+              <Link key={proposal.id} href={`/mypage/reports/${proposal.id}`} className="no-underline block rounded-[var(--app-radius-card)] bg-[var(--color-bg)] p-4"
                 style={{ boxShadow: 'var(--app-shadow-card-sm)' }}
               >
                 {/* 병원명 + 인증 */}
                 <div className="flex items-center gap-1.5 mb-1">
                   <span className="text-[14px] font-semibold text-[var(--color-text)]">
-                    {profile?.hospitalName || ''}
+                    {proposal.hospitalName}
                   </span>
-                  {profile?.verified && (
-                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-[9px] font-semibold text-emerald-600">
+                  {proposal.hospitalIsCertified && (
+                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[var(--color-success-soft)] text-[9px] font-semibold text-[var(--color-success)]">
                       <ShieldCheck size={9} /> 인증
                     </span>
                   )}
@@ -101,11 +118,11 @@ export default function PurchasedReportsPage() {
                 </div>
 
                 {/* 시술 태그 */}
-                {items.length > 0 && (
+                {proposal.items.length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-3">
-                    {items.slice(0, 3).map(item => (
+                    {proposal.items.slice(0, 3).map(item => (
                       <span key={item.id} className="px-2 py-0.5 rounded-full border border-[var(--color-border-light)] text-[10px] font-medium text-[var(--color-text-secondary)]">
-                        {item.treatmentName}
+                        {item.procedureName}
                       </span>
                     ))}
                   </div>
@@ -113,17 +130,17 @@ export default function PurchasedReportsPage() {
 
                 {/* 검증 결과 요약 */}
                 <div className="flex gap-2 pt-3 border-t border-[var(--color-border-light)]">
-                  <div className="flex-1 flex flex-col items-center gap-1 py-2 rounded-lg bg-[var(--color-bg-secondary)]">
+                  <div className="flex-1 flex flex-col items-center gap-1 py-2 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)]">
                     <span className="text-[10px] text-[var(--color-text-dim)]">가격 적정성</span>
                     <span className={`text-[12px] font-bold ${price.color}`}>{price.text}</span>
                   </div>
-                  <div className="flex-1 flex flex-col items-center gap-1 py-2 rounded-lg bg-[var(--color-bg-secondary)]">
+                  <div className="flex-1 flex flex-col items-center gap-1 py-2 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)]">
                     <span className="text-[10px] text-[var(--color-text-dim)]">리스크</span>
                     <span className={`text-[12px] font-bold px-2 py-0.5 rounded ${risk.color}`}>{risk.text}</span>
                   </div>
-                  <div className="flex-1 flex flex-col items-center gap-1 py-2 rounded-lg bg-[var(--color-bg-secondary)]">
+                  <div className="flex-1 flex flex-col items-center gap-1 py-2 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)]">
                     <span className="text-[10px] text-[var(--color-text-dim)]">과잉진료</span>
-                    <span className="text-[12px] font-bold text-emerald-600">의심 없음</span>
+                    <span className="text-[12px] font-bold text-[var(--color-success)]">의심 없음</span>
                   </div>
                 </div>
 

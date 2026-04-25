@@ -73,15 +73,8 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
 
   function handleCardClick(proposalId: string) {
     setDetailProposalId(proposalId);
-    // 읽음 상태 갱신
-    const proposal = allProposals.find(p => p.id === proposalId);
-    if (proposal && !proposal.viewedAt) {
-      fetch('/api/proposals', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: proposalId, viewedAt: new Date().toISOString() }),
-      }).catch(() => {});
-    }
+    // TODO: 백엔드에 proposal viewedAt mutation 추가되면 연결.
+    // 현재 customer API 는 proposal 읽음 처리 endpoint 미노출.
   }
 
   function handleCompareIntent(proposalId: string) {
@@ -157,8 +150,8 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
 
         {/* Re-entry */}
         <Link href="/consult" className="no-underline block mt-2">
-          <div className="flex items-center gap-3 px-4 py-4 rounded-2xl fo-gradient-accent">
-            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-3 px-4 py-4 rounded-[var(--app-radius-md)] fo-gradient-accent">
+            <div className="w-8 h-8 rounded-full bg-[var(--color-bg)] flex items-center justify-center shrink-0">
               <Plus size={16} className="text-[var(--color-primary)]" />
             </div>
             <div className="flex-1">
