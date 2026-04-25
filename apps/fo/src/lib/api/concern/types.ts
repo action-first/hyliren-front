@@ -74,19 +74,14 @@ export interface ConcernPhotoWire {
   sortOrder: number;
 }
 
-/**
- * Backend `CreateConcernRequestDto` 와 1:1 매칭. 추가 필드를 보내면
- * `whitelist:true` 정책으로 400. AI 분석 데이터(rawNarrative/aiSummary/
- * feedbackTurns)는 별도 endpoint(`requestAIAnalysis`, `submitAIAnalysisFeedback`)
- * 로 보낸다.
- *
- * 백로그 (backend 한계 — jyjung 의 API 그대로 사용):
- * - createConcern 시점에 rawNarrative 보존을 위해서는 backend DTO 확장이
- *   필요 (현재는 description 만 entity 에 저장). 여기서는 안 보내고 FE
- *   client state 로만 유지.
- */
 export interface CreateConcernBody {
   description: string;
+  /**
+   * 고객 최초 입력 원문. description 이 AI 로 정제·요약된 버전이면
+   * rawNarrative 는 편집 전 원본을 보존 (DB concerns.raw_narrative).
+   * 누락 시 서버는 description 값을 그대로 raw_narrative 로 복사 or null 저장.
+   */
+  rawNarrative?: string;
   areas?: string[];
   detail?: string;
   budgetMin?: number;
@@ -95,32 +90,16 @@ export interface CreateConcernBody {
   visitDateTo?: string;
   photos?: string[];
   source?: string;
-}
-
-export interface AIAnalysisFeedbackBody {
-  /** Backend `AIAnalysisFeedbackRequestDto.message` 와 매칭. role/timestamp 는 server-side 로 생성됨. */
-  message: string;
-}
-
-/**
- * Backend `AIAnalysisResponseDto` 와 매칭. `getAIAnalysis` 응답.
- * 현재 backend `requestAIAnalysis` / `submitAIAnalysisFeedback` 가 LLM 미통합
- * placeholder 라 이 응답이 채워지지 않음 — getAIAnalysis 호출은 백엔드 LLM
- * 통합 이후 활용 예정 (백로그).
- */
-export interface AIAnalysisWire {
-  id: string;
-  concernId: string;
-  aiMessage: string;
-  summaryArea: string;
-  summaryDetail: string;
-  summaryDirection: string;
-  summaryBudget: number | null;
-  summaryVisitDate: string | null;
-  suggestedProcedures: { name: string; description: string }[];
-  tags: string[];
-  version: number;
-  createdAt: string;
+  /**
+   * AI 분석 결과 전체 JSON. StepAIProcessing → StepAIReview → StepConfirm
+   * 흐름에서 생성된 analysisResult 를 그대로 포함 (DB concerns.ai_summary).
+   */
+  aiSummary?: Record<string, unknown>;
+  /**
+   * 사용자가 StepFeedback 에서 추가한 AI 대화 턴.
+   * DB concerns.feedback_turns 에 JSONB 배열로 저장.
+   */
+  feedbackTurns?: ConcernFeedbackTurnWire[];
 }
 
 export interface UpdateConcernBody {

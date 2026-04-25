@@ -61,12 +61,6 @@ interface ConcernFlowState {
   visitTiming: VisitTiming | null;
   stayDuration: StayDuration | null;
 
-  /**
-   * Backend 에 생성된 concern id (DRAFT 상태). StepAIProcessing 진입 시 createConcern
-   * 호출로 받음. StepFeedback / StepConfirm 에서 후속 endpoint 호출 시 사용.
-   */
-  currentConcernId: string | null;
-
   /** API response — single flat object */
   analysisResult: AnalysisResponse | null;
 
@@ -75,7 +69,6 @@ interface ConcernFlowState {
   analysisCount: number;
 
   setStep: (step: ConversationStep) => void;
-  setCurrentConcernId: (id: string | null) => void;
   setSelectedBodyArea: (area: string) => void;
   setBodyAreaDetail: (detail: string) => void;
   setPhotos: (photos: string[]) => void;
@@ -101,14 +94,12 @@ export const useConcernFlowStore = create<ConcernFlowState>((set) => ({
   budgetRange: null,
   visitTiming: null,
   stayDuration: null,
-  currentConcernId: null,
   analysisResult: null,
   feedbackInput: '',
   feedbackTurns: [],
   analysisCount: 0,
 
   setStep: (step) => set({ step }),
-  setCurrentConcernId: (currentConcernId) => set({ currentConcernId }),
   setSelectedBodyArea: (selectedBodyArea) => set({ selectedBodyArea }),
   setBodyAreaDetail: (bodyAreaDetail) => set({ bodyAreaDetail }),
   setPhotos: (photos) => set({ photos }),
@@ -131,7 +122,6 @@ export const useConcernFlowStore = create<ConcernFlowState>((set) => ({
     budgetRange: null,
     visitTiming: null,
     stayDuration: null,
-    currentConcernId: null,
     analysisResult: null,
     feedbackInput: '',
     feedbackTurns: [],

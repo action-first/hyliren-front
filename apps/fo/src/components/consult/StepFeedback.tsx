@@ -5,12 +5,11 @@ import { Send } from 'lucide-react';
 import { useConcernFlowStore } from '@/store/concern-flow';
 import { useLocaleStore } from '@/store/locale';
 import type { FeedbackTurn } from '@/server/concern-analysis/types';
-import { submitAIAnalysisFeedback } from '@/lib/api/concern';
 
 export function StepFeedback() {
   const t = useLocaleStore(s => s.t);
   const {
-    analysisResult, feedbackInput, feedbackTurns, currentConcernId,
+    analysisResult, feedbackInput, feedbackTurns,
     setFeedbackInput, addFeedbackTurn, setStep,
   } = useConcernFlowStore();
 
@@ -30,17 +29,9 @@ export function StepFeedback() {
 
   function handleSubmitFeedback() {
     if (!feedbackInput.trim()) return;
-    const message = feedbackInput.trim();
-    const userTurn: FeedbackTurn = { role: 'user', message };
+    const userTurn: FeedbackTurn = { role: 'user', message: feedbackInput.trim() };
     addFeedbackTurn(userTurn);
     setFeedbackInput('');
-
-    // Backend 에 turn 기록 (fire-and-forget — backend placeholder 라 실패해도 UX 영향 없음).
-    // 백로그: backend LLM 통합 후 응답 ai turn 을 받아 자동 추가.
-    if (currentConcernId) {
-      submitAIAnalysisFeedback(currentConcernId, { message }).catch(() => { /* silent */ });
-    }
-
     setStep('processing');
   }
 

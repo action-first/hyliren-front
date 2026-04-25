@@ -9,7 +9,7 @@ import type { BudgetRange, VisitTiming } from '@/store/concern-flow';
 import { useLocaleStore } from '@/store/locale';
 import { AIAnalysisResultCard } from './ConcernSummaryCard';
 import { track } from '@hyliren/shared';
-import { createConcern, submitConcern, updateConcern } from '@/lib/api/concern';
+import { createConcern, submitConcern } from '@/lib/api/concern';
 import { ApiError } from '@/lib/api/errors';
 
 function buildBudget(range: BudgetRange | null): { budgetMin?: number; budgetMax?: number } {
@@ -51,10 +51,10 @@ export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {
   const t = useLocaleStore(s => s.t);
   const router = useRouter();
   const {
-    analysisResult, photos, narrativeInput, analysisCount,
+    analysisResult, photos, narrativeInput, feedbackTurns, analysisCount,
     selectedBodyArea, budgetRange, visitTiming, stayDuration,
-    bodyAreaDetail, currentConcernId, feedbackTurns,
-    setStep, setCurrentConcernId, resetFlow,
+    bodyAreaDetail,
+    setStep, resetFlow,
   } = useConcernFlowStore();
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
@@ -75,40 +75,29 @@ export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {
       },
     });
 
-    try {
-      // ─── 1. concernId 확보 ──────────────────────────────────────────────
-      // 정상 흐름: StepAIProcessing 에서 createConcern 으로 이미 DRAFT 생성됨.
-      // Fallback: backend 호출 실패로 currentConcernId 가 null 이면 여기서 생성.
-      let concernId = currentConcernId;
-      if (!concernId) {
-        const areas = analysisResult!.extractedSummary.bodyAreas?.length
-          ? analysisResult!.extractedSummary.bodyAreas
-          : selectedBodyArea ? [selectedBodyArea] : [];
-        const created = await createConcern({
-          description: narrativeInput,
-          areas,
-          detail: analysisResult!.extractedSummary.bodyAreaDetail || bodyAreaDetail || undefined,
-          photos,
-          source: 'organic',
-          ...buildBudget(budgetRange),
-          ...buildVisitDates(visitTiming),
-        });
-        concernId = created.id;
-        setCurrentConcernId(concernId);
-      } else {
-        // 이미 생성된 DRAFT 의 budget/visitDate 가 사용자 입력 후 변경되었을 수
-        // 있으므로 마지막에 갱신. backend UpdateConcernRequestDto 가 받는 필드만.
-        const update: Parameters<typeof updateConcern>[1] = {
-          ...buildBudget(budgetRange),
-          ...buildVisitDates(visitTiming),
-        };
-        if (Object.keys(update).length > 0) {
-          await updateConcern(concernId, update).catch(() => { /* silent — 핵심 흐름 차단 안 함 */ });
-        }
-      }
+    const areas = analysisResult!.extractedSummary.bodyAreas?.length
+      ? analysisResult!.extractedSummary.bodyAreas
+      : selectedBodyArea ? [selectedBodyArea] : [];
 
-      // ─── 2. 제출 ────────────────────────────────────────────────────────
-      await submitConcern(concernId);
+    // DB concerns 테이블의 raw_narrative / ai_summary / feedback_turns 컬럼에 대응.
+    // 현재 프로토타입은 store 에만 보관 중이므로 submit 시점에 함께 전송해야
+    // 본개발 real backend 전환 순간 데이터 소실 없이 그대로 저장된다.
+    const body = {
+      description: narrativeInput,
+      rawNarrative: narrativeInput,                              // 고객 원문 (description 과 동일하지만 향후 AI 정제본이 들어갈 때 구분)
+      areas,
+      detail: analysisResult!.extractedSummary.bodyAreaDetail || bodyAreaDetail || undefined,
+      photos,
+      source: 'organic' as const,
+      aiSummary: analysisResult as unknown as Record<string, unknown>,  // AI 분석 결과 전체 JSON
+      feedbackTurns: feedbackTurns.map(ft => ({ role: ft.role, message: ft.message })),  // 대화 턴 히스토리
+      ...buildBudget(budgetRange),
+      ...buildVisitDates(visitTiming),
+    };
+
+    try {
+      const { id } = await createConcern(body);
+      await submitConcern(id);
     } catch (err) {
       if (err instanceof ApiError && err.isUnauthorized()) {
         track({
@@ -119,6 +108,7 @@ export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {
         onAuthRequired?.();
         return;
       }
+      // 서버 오류 vs 그 외 에러 분기. 영문 ApiError.message 직접 노출하지 않음.
       const msg = err instanceof ApiError && err.isServerError()
         ? '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
         : '제출에 실패했습니다. 다시 시도해주세요.';
