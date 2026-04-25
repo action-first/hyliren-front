@@ -42,10 +42,10 @@ function SelectionGroup<T extends string>({
               key={opt.key}
               type="button"
               onClick={() => onSelect(opt.key)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl border-0 cursor-pointer transition-all text-left ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-[var(--app-radius)] border-0 cursor-pointer transition-all text-left ${
                 isSelected
                   ? 'bg-[var(--color-primary-soft)] ring-2 ring-[var(--color-primary)]'
-                  : 'bg-white'
+                  : 'bg-[var(--color-bg)]'
               }`}
               style={!isSelected ? { boxShadow: 'var(--app-shadow-card-sm)' } : undefined}
             >

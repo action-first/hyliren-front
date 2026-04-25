@@ -15,14 +15,26 @@ export function StepNarrative() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const searchParams = useSearchParams();
 
-  // Pre-populate from query params (area/detail from home page)
+  // Pre-populate from query params (area/detail from home and procedure detail).
   useEffect(() => {
-    if (narrativeInput) return; // don't override if already typed
     const area = searchParams.get('area');
     const detail = searchParams.get('detail');
-    if (area || detail) {
+    const procedure = searchParams.get('procedure');
+    const tag = searchParams.get('tag');
+    const hasProcedureIntent = Boolean(procedure || tag);
+    if (narrativeInput && !hasProcedureIntent) return; // don't override if already typed
+
+    if (area || detail || procedure || tag) {
+      const interest = [procedure, tag].filter(Boolean).join(' · ');
       const hint = [area, detail].filter(Boolean).join(' ');
-      setNarrativeInput(`${hint} 관련 고민이 있어요. `);
+      if (hasProcedureIntent && narrativeInput.includes(interest)) return;
+      setNarrativeInput(
+        interest && narrativeInput.trim()
+          ? `${narrativeInput.trim()}\n\n관심 시술은 ${interest}입니다. `
+          : interest
+            ? `${hint} 관련 고민이 있어요. 관심 시술은 ${interest}입니다. `
+            : `${hint} 관련 고민이 있어요. `,
+      );
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -63,7 +75,7 @@ export function StepNarrative() {
 
       {/* Narrative input */}
       <div className="flex-1 mb-6">
-        <div className="rounded-2xl bg-white p-4" style={{ boxShadow: 'var(--app-shadow-card-md)' }}>
+        <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg)] p-4" style={{ boxShadow: 'var(--app-shadow-card-md)' }}>
           <textarea
             ref={textareaRef}
             value={narrativeInput}

@@ -1,39 +1,108 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { Member, PartnerProfile } from '@hyliren/shared';
-import { MOCK_MEMBERS, MOCK_PARTNER_PROFILES } from '@hyliren/shared';
+import { MOCK_PARTNER_PROFILES } from '@hyliren/shared';
+import * as partnerAuthApi from '@/lib/api/partner-auth';
+import { partnerTokenStore } from '@/lib/auth/token-store';
+
+export type POAuthStatus = 'idle' | 'authenticating' | 'authenticated' | 'guest';
 
 interface POAuthState {
   member: Member | null;
   profile: PartnerProfile | null;
+  status: POAuthStatus;
   isGuest: boolean;
-  login: (memberId: string) => void;
-  logout: () => void;
+  error: string | null;
+  setMember: (member: Member | null) => void;
+  loginWithPassword: (input: partnerAuthApi.PartnerLoginInput) => Promise<void>;
+  refreshSession: () => Promise<void>;
+  logout: () => Promise<void>;
   updateProfile: (updates: Partial<Omit<PartnerProfile, 'memberId' | 'createdAt'>>) => void;
 }
 
+function profileFor(memberId: string): PartnerProfile | null {
+  return MOCK_PARTNER_PROFILES.find(p => p.memberId === memberId) ?? null;
+}
+
 export const usePOAuthStore = create<POAuthState>()(
-  persist(
-    (set) => ({
-      member: MOCK_MEMBERS.find(m => m.id === 'm-001') ?? null,
-      profile: MOCK_PARTNER_PROFILES.find(p => p.memberId === 'm-001') ?? null,
-      isGuest: false,
+  (set) => ({
+    member: null,
+    profile: null,
+    status: 'idle',
+    isGuest: false,
+    error: null,
 
-      login: (memberId) => {
-        const member = MOCK_MEMBERS.find(m => m.id === memberId) ?? null;
-        const profile = MOCK_PARTNER_PROFILES.find(p => p.memberId === memberId) ?? null;
-        set({ member, profile, isGuest: false });
-      },
-
-      logout: () => set({ member: null, profile: null, isGuest: true }),
-
-      updateProfile: (updates) =>
-        set(s => ({
-          profile: s.profile ? { ...s.profile, ...updates } : null,
-        })),
+    setMember: (member) => set({
+      member,
+      profile: member ? profileFor(member.id) : null,
+      status: member ? 'authenticated' : 'guest',
+      isGuest: !member,
+      error: null,
     }),
-    { name: 'po-auth' },
-  ),
+
+    loginWithPassword: async (input) => {
+      set({ status: 'authenticating', error: null });
+      try {
+        const member = await partnerAuthApi.login(input);
+        set({
+          member,
+          profile: profileFor(member.id),
+          status: 'authenticated',
+          isGuest: false,
+          error: null,
+        });
+      } catch (e) {
+        const message = e instanceof Error ? e.message : '로그인에 실패했습니다';
+        partnerTokenStore.clearTokens();
+        set({ status: 'guest', member: null, profile: null, isGuest: true, error: message });
+        throw e;
+      }
+    },
+
+    refreshSession: async () => {
+      const token = partnerTokenStore.getAccessToken();
+      if (!token) {
+        set({ member: null, profile: null, status: 'guest', isGuest: true, error: null });
+        return;
+      }
+
+      // client.ts 가 401 시 자동 refresh + retry 처리. 이 단계의 catch 는
+      // refresh 까지 실패한 경우(=세션 만료)만 도달.
+      set({ status: 'authenticating', error: null });
+      try {
+        const member = await partnerAuthApi.fetchMe();
+        set({
+          member,
+          profile: profileFor(member.id),
+          status: 'authenticated',
+          isGuest: false,
+          error: null,
+        });
+      } catch {
+        partnerTokenStore.clearTokens();
+        set({ member: null, profile: null, status: 'guest', isGuest: true });
+      }
+    },
+
+    logout: async () => {
+      let serverFailed = false;
+      try {
+        await partnerAuthApi.logout();
+      } catch {
+        serverFailed = true;
+      } finally {
+        partnerTokenStore.clearTokens();
+        set({ member: null, profile: null, status: 'guest', isGuest: true, error: null });
+      }
+      if (serverFailed) {
+        throw new Error('로그아웃 정리에 실패했습니다');
+      }
+    },
+
+    updateProfile: (updates) =>
+      set(s => ({
+        profile: s.profile ? { ...s.profile, ...updates } : null,
+      })),
+  }),
 );

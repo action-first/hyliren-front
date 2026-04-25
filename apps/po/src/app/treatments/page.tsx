@@ -44,7 +44,6 @@ export default function TreatmentsPage() {
     setLoading(true);
     try {
       const res = await proceduresApi.list({
-        memberId: member.id,
         status: filter === 'all' ? undefined : filter,
       });
       setProcedures(res.procedures);

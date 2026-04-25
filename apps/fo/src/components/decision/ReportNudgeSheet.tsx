@@ -64,8 +64,8 @@ export function ReportNudgeSheet({ concernId, proposalId, delay = 5000 }: Props)
             ].map(item => {
               const Icon = item.icon;
               return (
-                <div key={item.label} className="flex items-start gap-3 px-4 py-3 rounded-xl bg-[var(--color-bg-secondary)]">
-                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 mt-0.5">
+                <div key={item.label} className="flex items-start gap-3 px-4 py-3 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
+                  <div className="w-8 h-8 rounded-full bg-[var(--color-bg)] flex items-center justify-center shrink-0 mt-0.5">
                     <Icon size={16} className="text-[var(--color-primary)]" />
                   </div>
                   <div>

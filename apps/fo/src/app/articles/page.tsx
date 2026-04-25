@@ -43,11 +43,11 @@ export default function ArticlesPage() {
         <div className="flex gap-3 overflow-x-auto pb-1 -mr-5 pr-5" style={{ scrollbarWidth: 'none' }}>
           {featured.map(a => (
             <Link key={a.id} href={`/articles/${a.slug}`}
-              className="min-w-[15rem] max-w-[16rem] shrink-0 rounded-2xl overflow-hidden bg-white no-underline"
+              className="min-w-[15rem] max-w-[16rem] shrink-0 rounded-[var(--app-radius-md)] overflow-hidden bg-[var(--color-bg)] no-underline"
               style={{ boxShadow: 'var(--app-shadow-card-light)' }}>
               <div className="h-24 overflow-hidden relative">
                 <img src={a.heroImage} alt={a.title} className="w-full h-full object-cover" />
-                <div className={`absolute bottom-0 left-0 right-0 h-1 ${AREA_COLORS[a.bodyArea] || 'bg-gray-300'}`} />
+                <div className={`absolute bottom-0 left-0 right-0 h-1 ${AREA_COLORS[a.bodyArea] || 'bg-[var(--color-border)]'}`} />
               </div>
               <div className="px-3.5 py-3">
                 <div className="flex items-center gap-1.5 mb-1.5">
@@ -85,11 +85,11 @@ export default function ArticlesPage() {
       <div className="flex flex-col gap-2.5 px-5">
         {filtered.map(a => (
           <Link key={a.id} href={`/articles/${a.slug}`}
-            className="flex gap-3 p-3 rounded-xl bg-white no-underline"
+            className="flex gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
             style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
-            <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 relative">
+            <div className="w-16 h-16 rounded-[var(--app-radius-sm)] overflow-hidden shrink-0 relative">
               <img src={a.heroImage} alt={a.title} className="w-full h-full object-cover" />
-              <div className={`absolute bottom-0 left-0 right-0 h-1 ${AREA_COLORS[a.bodyArea] || 'bg-gray-300'}`} />
+              <div className={`absolute bottom-0 left-0 right-0 h-1 ${AREA_COLORS[a.bodyArea] || 'bg-[var(--color-border)]'}`} />
             </div>
             <div className="flex flex-col gap-1 justify-center min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
@@ -111,7 +111,7 @@ export default function ArticlesPage() {
 
       {/* Bottom CTA */}
       <div className="px-5 mt-6">
-        <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl fo-gradient-accent">
+        <div className="flex items-center gap-3 px-4 py-3.5 rounded-[var(--app-radius-md)] fo-gradient-accent">
           <div className="flex-1">
             <span className="text-[13px] font-semibold text-[var(--color-text)] block">{t('articles.bottomTitle')}</span>
             <span className="text-[11px] text-[var(--color-text-dim)]">{t('articles.bottomDesc')}</span>

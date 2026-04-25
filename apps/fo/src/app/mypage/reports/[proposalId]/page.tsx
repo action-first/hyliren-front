@@ -1,23 +1,23 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { MOCK_PROPOSALS, MOCK_PARTNER_PROFILES, MOCK_PROPOSAL_ITEMS } from '@hyliren/shared';
-import type { Proposal, PartnerProfile } from '@hyliren/shared';
-import { Badge } from '@hyliren/ui';
+import { Spinner } from '@hyliren/ui';
 import {
   ArrowLeft, ShieldCheck, Star, BarChart3, FileCheck, Activity,
   CheckCircle, XCircle, Clock,
 } from 'lucide-react';
 import { useReportStore, type FullReport } from '@/store/report';
-import { useLocaleStore } from '@/store/locale';
+import { getProposal } from '@/lib/api/proposal';
+import type { ProposalDetailWire } from '@/lib/api/proposal/types';
 
-/* ── Mock report generator (동일 로직) ── */
-function generateFullReport(proposal: Proposal, profile: PartnerProfile | undefined): FullReport {
+/* ── 임시 분석 generator — 추후 백엔드 분석 서비스로 대체 ── */
+function generateFullReport(proposal: ProposalDetailWire): FullReport {
   const avgPrice = Math.round(proposal.totalPrice * 1.1);
   return {
     proposalId: proposal.id,
-    hospitalName: profile?.hospitalName || '',
+    hospitalName: proposal.hospitalName,
     priceScore: proposal.totalPrice < 200 ? 85 : proposal.totalPrice > 400 ? 55 : 72,
     priceVerdict: proposal.totalPrice <= avgPrice
       ? '이 제안의 가격은 시장 평균 대비 합리적인 수준입니다.'
@@ -34,21 +34,21 @@ function generateFullReport(proposal: Proposal, profile: PartnerProfile | undefi
       { procedure: '주요 시술', riskLevel: 'low', description: '일반적으로 안전한 시술이며, 심각한 부작용 사례가 매우 드뭅니다', recoveryDays: `${proposal.recoveryDays}일`, frequency: '한국 내 연간 10만 건 이상 시행' },
       ...(proposal.anesthesiaType === 'general' ? [{ procedure: '전신마취', riskLevel: 'medium' as const, description: '전신마취에 따른 일반적 위험이 존재하며, 사전 건강 검진이 필요합니다', recoveryDays: '당일~1일', frequency: '정상 범위' }] : []),
     ],
-    conclusion: `종합적으로, ${profile?.hospitalName}의 이 제안은 가격과 시술 구성 면에서 ${proposal.totalPrice <= avgPrice ? '합리적인' : '검토가 필요한'} 수준입니다. 최종 결정 전 병원 상담을 통해 개인 상태에 맞는 정밀 진단을 받으시기를 권합니다.`,
+    conclusion: `종합적으로, ${proposal.hospitalName}의 이 제안은 가격과 시술 구성 면에서 ${proposal.totalPrice <= avgPrice ? '합리적인' : '검토가 필요한'} 수준입니다. 최종 결정 전 병원 상담을 통해 개인 상태에 맞는 정밀 진단을 받으시기를 권합니다.`,
     disclaimer: '이 리포트는 일반적인 시장 데이터와 시술 정보를 기반으로 작성되었으며, 개인의 의료 상태에 따라 결과가 달라질 수 있습니다. 정확한 판단은 반드시 병원 상담을 통해 이루어져야 합니다.',
   };
 }
 
 const RISK_LABEL: Record<string, { text: string; color: string }> = {
-  low: { text: '낮음', color: 'text-emerald-600' },
-  medium: { text: '보통', color: 'text-amber-600' },
-  high: { text: '주의', color: 'text-red-500' },
+  low: { text: '낮음', color: 'text-[var(--color-success)]' },
+  medium: { text: '보통', color: 'text-[var(--color-warning)]' },
+  high: { text: '주의', color: 'text-[var(--color-danger)]' },
 };
 
 const VERDICT_COLOR: Record<string, string> = {
-  below: 'text-emerald-600',
-  fair: 'text-blue-600',
-  above: 'text-amber-600',
+  below: 'text-[var(--color-success)]',
+  fair: 'text-[var(--color-info)]',
+  above: 'text-[var(--color-warning)]',
 };
 
 const VERDICT_LABEL: Record<string, string> = {
@@ -59,14 +59,31 @@ const VERDICT_LABEL: Record<string, string> = {
 
 export default function ReportDetailPage() {
   const { proposalId } = useParams<{ proposalId: string }>();
-  const t = useLocaleStore(s => s.t);
   const { isPurchased } = useReportStore();
+  const [proposal, setProposal] = useState<ProposalDetailWire | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  const proposal = MOCK_PROPOSALS.find(p => p.id === proposalId);
-  const profile = proposal ? MOCK_PARTNER_PROFILES.find(pp => pp.memberId === proposal.memberId) : undefined;
-  const items = proposal ? MOCK_PROPOSAL_ITEMS.filter(i => i.proposalId === proposal.id) : [];
+  useEffect(() => {
+    if (!proposalId) return;
+    getProposal(proposalId)
+      .then(p => {
+        setProposal(p);
+        setLoading(false);
+      })
+      .catch(() => {
+        setNotFound(true);
+        setLoading(false);
+      });
+  }, [proposalId]);
 
-  if (!proposal || !isPurchased(proposalId)) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]"><Spinner /></div>
+    );
+  }
+
+  if (notFound || !proposal || !isPurchased(proposalId)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-5">
         <p className="text-[15px] font-semibold text-[var(--color-text)] mb-2">리포트를 찾을 수 없습니다</p>
@@ -77,7 +94,8 @@ export default function ReportDetailPage() {
     );
   }
 
-  const report = generateFullReport(proposal, profile);
+  const report = generateFullReport(proposal);
+  const items = proposal.items;
   const meta = `회복 ${proposal.recoveryDays}일 · ${proposal.anesthesiaType === 'local' ? '부분' : proposal.anesthesiaType === 'sedation' ? '수면' : '전신'}마취`;
 
   return (
@@ -92,9 +110,9 @@ export default function ReportDetailPage() {
       {/* 병원 요약 */}
       <div className="px-5 pt-2 pb-4">
         <div className="flex items-center gap-1.5 mb-1">
-          <h1 className="text-[1.25rem] font-bold text-[var(--color-text)]">{profile?.hospitalName}</h1>
-          {profile?.verified && (
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-[9px] font-semibold text-emerald-600">
+          <h1 className="text-[1.25rem] font-bold text-[var(--color-text)]">{proposal.hospitalName}</h1>
+          {proposal.hospitalIsCertified && (
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[var(--color-success-soft)] text-[9px] font-semibold text-[var(--color-success)]">
               <ShieldCheck size={9} /> 인증
             </span>
           )}
@@ -110,7 +128,7 @@ export default function ReportDetailPage() {
           <div className="flex flex-wrap gap-1">
             {items.map(item => (
               <span key={item.id} className="px-2 py-0.5 rounded-full border border-[var(--color-border-light)] text-[10px] font-medium text-[var(--color-text-secondary)]">
-                {item.treatmentName}
+                {item.procedureName}
               </span>
             ))}
           </div>
@@ -121,11 +139,11 @@ export default function ReportDetailPage() {
       <div className="px-5 mb-4">
         <div className="grid grid-cols-3 gap-2">
           {[
-            { label: '가격 적정성', value: report.priceScore + '점', color: report.priceScore >= 70 ? 'text-emerald-600' : 'text-amber-600' },
-            { label: '리스크', value: RISK_LABEL[report.overallRisk]?.text || '낮음', color: RISK_LABEL[report.overallRisk]?.color || 'text-emerald-600' },
-            { label: '과잉진료', value: '의심 없음', color: 'text-emerald-600' },
+            { label: '가격 적정성', value: report.priceScore + '점', color: report.priceScore >= 70 ? 'text-[var(--color-success)]' : 'text-[var(--color-warning)]' },
+            { label: '리스크', value: RISK_LABEL[report.overallRisk]?.text || '낮음', color: RISK_LABEL[report.overallRisk]?.color || 'text-[var(--color-success)]' },
+            { label: '과잉진료', value: '의심 없음', color: 'text-[var(--color-success)]' },
           ].map(m => (
-            <div key={m.label} className="flex flex-col items-center gap-1 py-3 rounded-xl bg-[var(--color-bg-secondary)]">
+            <div key={m.label} className="flex flex-col items-center gap-1 py-3 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
               <span className="text-[10px] text-[var(--color-text-dim)]">{m.label}</span>
               <span className={`text-[13px] font-bold ${m.color}`}>{m.value}</span>
             </div>
@@ -135,7 +153,7 @@ export default function ReportDetailPage() {
 
       {/* Section 1: 가격 분석 */}
       <div className="px-5 mb-4">
-        <div className="rounded-2xl bg-white border border-[var(--color-border-light)] overflow-hidden">
+        <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg)] border border-[var(--color-border-light)] overflow-hidden">
           <div className="flex items-center gap-2 px-4 py-3 bg-[var(--color-bg-secondary)]">
             <BarChart3 size={15} className="text-[var(--color-primary)]" />
             <span className="text-[13px] font-semibold text-[var(--color-text)]">가격 적정성 분석</span>
@@ -161,7 +179,7 @@ export default function ReportDetailPage() {
 
       {/* Section 2: 과잉진료 검증 */}
       <div className="px-5 mb-4">
-        <div className="rounded-2xl bg-white border border-[var(--color-border-light)] overflow-hidden">
+        <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg)] border border-[var(--color-border-light)] overflow-hidden">
           <div className="flex items-center gap-2 px-4 py-3 bg-[var(--color-bg-secondary)]">
             <FileCheck size={15} className="text-[var(--color-primary)]" />
             <span className="text-[13px] font-semibold text-[var(--color-text)]">과잉진료 검증</span>
@@ -170,13 +188,13 @@ export default function ReportDetailPage() {
             <p className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed mb-2">{report.overtreatmentVerdict}</p>
             {report.necessaryItems.map(item => (
               <div key={item} className="flex items-start gap-2 py-1.5">
-                <CheckCircle size={13} className="text-emerald-500 shrink-0 mt-0.5" />
+                <CheckCircle size={13} className="text-[var(--color-success)] shrink-0 mt-0.5" />
                 <span className="text-[11px] text-[var(--color-text)] leading-relaxed">{item}</span>
               </div>
             ))}
             {report.unnecessaryItems.map(item => (
               <div key={item} className="flex items-start gap-2 py-1.5">
-                <XCircle size={13} className="text-red-400 shrink-0 mt-0.5" />
+                <XCircle size={13} className="text-[var(--color-danger)] shrink-0 mt-0.5" />
                 <span className="text-[11px] text-[var(--color-text)] leading-relaxed">{item}</span>
               </div>
             ))}
@@ -186,7 +204,7 @@ export default function ReportDetailPage() {
 
       {/* Section 3: 리스크 평가 */}
       <div className="px-5 mb-4">
-        <div className="rounded-2xl bg-white border border-[var(--color-border-light)] overflow-hidden">
+        <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg)] border border-[var(--color-border-light)] overflow-hidden">
           <div className="flex items-center gap-2 px-4 py-3 bg-[var(--color-bg-secondary)]">
             <Activity size={15} className="text-[var(--color-primary)]" />
             <span className="text-[13px] font-semibold text-[var(--color-text)]">리스크 평가</span>
@@ -214,7 +232,7 @@ export default function ReportDetailPage() {
 
       {/* Section 4: 종합 의견 */}
       <div className="px-5 mb-4">
-        <div className="rounded-2xl fo-gradient-accent-br px-4 py-4">
+        <div className="rounded-[var(--app-radius-md)] fo-gradient-accent-br px-4 py-4">
           <span className="text-[12px] font-semibold text-[var(--color-primary)] block mb-2">종합 의견</span>
           <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{report.conclusion}</p>
         </div>

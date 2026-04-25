@@ -213,8 +213,16 @@ export function updateProcedure(id: string, updates: Partial<Procedure>): Proced
   return data.procedures[idx];
 }
 
+/**
+ * 보관함 이동 — status='archived' 만 세팅. deletedAt 은 건드리지 않음.
+ *
+ * 백엔드 ProcedureService.softDelete 와 동일 계약:
+ * archived 는 "보관함 탭에서 사용자가 여전히 볼 수 있어야 하는 상태" 이므로
+ * deletedAt 을 세팅하면 getProcedures 의 !deletedAt 필터가 archived 까지
+ * 숨기는 회귀가 발생한다. deletedAt 은 향후 hard-delete 전용으로 예약.
+ */
 export function softDeleteProcedure(id: string): Procedure | null {
-  return updateProcedure(id, { deletedAt: new Date().toISOString(), status: 'archived' });
+  return updateProcedure(id, { status: 'archived' });
 }
 
 /** viewCount / consultClickCount / bookmarkCount atomic 증감 */
@@ -271,6 +279,45 @@ export function removeProcedureVariant(id: string): void {
   if (!variant) return;
   data.procedureVariants = data.procedureVariants.filter(v => v.id !== id);
   recalcPriceRange(data, variant.procedureId);
+  save(data);
+}
+
+/**
+ * variant default 불변식 강제 — procedure 당 isDefault=true 가 정확히 1개가
+ * 되도록 조정. 백엔드 (apps/partner) 의 ensureSingleDefault 와 동일 계약.
+ *
+ * 선택 우선순위:
+ *   1. preferredId 존재 + procedure 에 속하면 그것
+ *   2. 현재 isDefault=true 가 정확히 1개면 그것 유지
+ *   3. 그 외엔 sortOrder 최하
+ *
+ * variants 0개면 no-op.
+ */
+export function ensureSingleDefaultVariant(procedureId: string, preferredId?: string): void {
+  const data = load();
+  const variants = data.procedureVariants.filter(v => v.procedureId === procedureId);
+  if (variants.length === 0) return;
+
+  let targetId: string;
+  if (preferredId && variants.some(v => v.id === preferredId)) {
+    targetId = preferredId;
+  } else {
+    const currentDefaults = variants.filter(v => v.isDefault);
+    if (currentDefaults.length === 1) {
+      targetId = currentDefaults[0].id;
+    } else {
+      const sorted = [...variants].sort((a, b) => a.sortOrder - b.sortOrder);
+      targetId = sorted[0].id;
+    }
+  }
+
+  const now = new Date().toISOString();
+  data.procedureVariants = data.procedureVariants.map(v => {
+    if (v.procedureId !== procedureId) return v;
+    const shouldBeDefault = v.id === targetId;
+    if (v.isDefault === shouldBeDefault) return v;
+    return { ...v, isDefault: shouldBeDefault, updatedAt: now };
+  });
   save(data);
 }
 

@@ -40,10 +40,11 @@
   --color-surface-elevated: #ffffff;
 
   /* ---- Radius (Airbnb scale) ---- */
-  --app-radius: 12px;         /* cards */
-  --app-radius-sm: 8px;       /* buttons, inputs */
+  --app-radius-sm: 8px;       /* buttons, inputs, small tiles */
+  --app-radius: 12px;         /* general cards, info chips */
   --app-radius-badge: 14px;   /* badges */
-  --app-radius-card: 20px;    /* large cards */
+  --app-radius-md: 16px;      /* primary content cards (concern/dashboard/report section panels) */
+  --app-radius-card: 20px;    /* large feature cards (home procedure, mypage report) */
   --app-radius-pill: 32px;    /* pills, search */
 
   /* ---- Shadow (three-layer Airbnb system) ---- */

@@ -59,7 +59,7 @@ export function StickyConsultCTA({ phase, unreadCount = 0 }: StickyConsultCTAPro
     return (
       <div className="fixed bottom-[calc(var(--fo-bottom-bar-height)+var(--fo-safe-area-bottom))] inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-30 px-5 pb-2 pt-3 fo-gradient-fade-up">
         <Link href="/dashboard" className="no-underline block">
-          <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-[var(--color-bg-secondary)]"
+          <div className="flex items-center gap-3 px-5 py-3.5 rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)]"
             style={{ boxShadow: 'var(--app-shadow-card-light)' }}>
             <Clock size={20} className="text-[var(--color-primary)] shrink-0" />
             <div className="flex-1">

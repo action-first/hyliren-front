@@ -2,17 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import type { Proposal } from '@hyliren/shared';
-import { MOCK_PROPOSALS, MOCK_PARTNER_PROFILES, MOCK_PROPOSAL_ITEMS, MOCK_CONCERNS } from '@hyliren/shared';
 import { Button, Badge, BottomSheet } from '@hyliren/ui';
 import { ArrowRight, Camera, MessageCircle, FileText, ChevronRight, ShieldCheck, Clock } from 'lucide-react';
-import { ExperienceCard } from '@/components/common/ExperienceCard';
-import { VALUE_PROPS, CARD_GRADIENTS as G } from '@/lib/constants';
 import { ARTICLES } from '@/lib/articles-data';
 import { getAreaBar } from '@/lib/area-styles';
 import { useLocaleStore } from '@/store/locale';
-import { useAuthStore } from '@/store/auth';
 import { useUserConcernsStore } from '@/store/user-concerns';
+import { useMyConcerns } from '@/lib/hooks/concern';
+import { listProcedures } from '@/lib/api/procedure';
+import type { ProcedureListItemWire } from '@/lib/api/procedure';
 
 type UserPhase = 'idle' | 'waiting' | 'proposals_ready';
 
@@ -27,31 +25,26 @@ const CONCERN_DEFS = [
 
 export default function HomePage() {
   const t = useLocaleStore(s => s.t);
-  const userId = useAuthStore(s => s.user?.id) ?? 'u-001';
+  const { concerns: apiConcerns } = useMyConcerns();
   const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
   const userConcerns = [
-    ...MOCK_CONCERNS.filter(c => c.userId === userId && !c.deletedAt && c.status !== 'draft'),
+    ...apiConcerns.filter(c => !c.deletedAt && c.status !== 'draft'),
     ...userCreatedConcerns,
   ];
 
-  // 실제 제안서 fetch — null이면 아직 로딩 중 (MOCK으로 fallback)
-  const [realProposals, setRealProposals] = useState<Proposal[] | null>(null);
+  const [popularProcedures, setPopularProcedures] = useState<ProcedureListItemWire[]>([]);
+  const [proceduresLoading, setProceduresLoading] = useState(true);
+
   useEffect(() => {
-    fetch(`/api/proposals?userId=${userId}`)
-      .then(r => r.json())
-      .then(d => setRealProposals(d.proposals ?? []))
-      .catch(() => setRealProposals([]));
-  }, [userId]);
+    listProcedures({ sort: 'popular', limit: 6 })
+      .then(d => setPopularProcedures(d.procedures))
+      .catch(() => setPopularProcedures([]))
+      .finally(() => setProceduresLoading(false));
+  }, []);
 
-  const effectiveProposals = realProposals ?? MOCK_PROPOSALS.filter(p => p.isActive && p.status !== 'draft');
-  const userProposalCount = effectiveProposals.filter(p => p.status === 'sent' && !p.viewedAt).length;
+  // TODO: 백엔드에 unread proposal 집계 endpoint 추가되면 연결 (현재는 진입 시점에 도착 알림 미노출)
+  const userProposalCount = 0;
   const phase: UserPhase = userConcerns.length === 0 ? 'idle' : userProposalCount > 0 ? 'proposals_ready' : 'waiting';
-
-  // FEATURED 섹션은 마케팅 쇼케이스 — mock 고정
-  const proposals = MOCK_PROPOSALS
-    .filter(p => p.isActive && p.status !== 'draft')
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 4);
 
   return (
     <div className="flex flex-col pb-28">
@@ -117,8 +110,8 @@ export default function HomePage() {
           ].map(item => {
             const Icon = item.icon;
             return (
-              <div key={item.step} className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl bg-[var(--color-bg-secondary)]">
-                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+              <div key={item.step} className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
+                <div className="w-8 h-8 rounded-full bg-[var(--color-bg)] flex items-center justify-center">
                   <Icon size={15} className="text-[var(--color-primary)]" />
                 </div>
                 <span className="text-[11px] font-semibold text-[var(--color-text)]">{item.title}</span>
@@ -135,7 +128,7 @@ export default function HomePage() {
           TRUST — 신뢰 지표 (HOW IT WORKS 직후)
          ═══════════════════════════════════════ */}
       <section className="px-5 pb-8">
-        <div className="flex items-center justify-center px-3 py-4 rounded-xl bg-[var(--color-bg-secondary)]">
+        <div className="flex items-center justify-center px-3 py-4 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
           <div className="flex-1 flex flex-col items-center gap-0.5">
             <span className="text-[1rem] font-bold text-[var(--color-text)]">150+</span>
             <span className="text-[10px] text-[var(--color-text-dim)]">{t('landing.trustHospitals')}</span>
@@ -161,7 +154,7 @@ export default function HomePage() {
         <div className="flex flex-col gap-2">
           {CONCERN_DEFS.map((c, i) => (
             <Link key={i} href={`/consult?area=${c.area}&detail=${c.detail}`}
-              className="flex items-center justify-between px-4 py-3.5 rounded-xl bg-white no-underline"
+              className="flex items-center justify-between px-4 py-3.5 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
               style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
               <span className="text-[14px] text-[var(--color-text)]">{t(c.key)}</span>
               <ChevronRight size={16} className="text-[var(--color-text-dim)]" />
@@ -171,65 +164,29 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════
-          FEATURED — "이런 제안을 받아보실 수 있어요"
+          PROCEDURES — PO DB 기반 공개 시술/수술 영역
          ═══════════════════════════════════════ */}
-      {proposals.length > 0 && (
+      {(proceduresLoading || popularProcedures.length > 0) && (
         <section className="px-5 pb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[1.0625rem] font-bold text-[var(--color-text)] tracking-[-0.18px]">{t('landing.featuredTitle')}</h2>
-            <Link href="/decision" className="flex items-center gap-0.5 text-[11px] text-[var(--color-text-dim)] no-underline">
-              {t('common.viewAll')} <ChevronRight size={14} />
-            </Link>
+            <div>
+              <h2 className="text-[1.0625rem] font-bold text-[var(--color-text)] tracking-[-0.18px]">이런 제안을 받아볼 수 있어요</h2>
+              <p className="text-[11px] text-[var(--color-text-dim)] mt-1">관심 있는 시술은 상담 신청에 태그처럼 함께 전달돼요</p>
+            </div>
           </div>
-
-          {(() => {
-            const p = proposals[0];
-            const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
-            const items = MOCK_PROPOSAL_ITEMS.filter(i => i.proposalId === p.id);
-            const meta = `회복 ${p.recoveryDays}일 · ${p.anesthesiaType === 'local' ? '부분' : p.anesthesiaType === 'sedation' ? '수면' : '전신'}마취`;
-            return (
-              <Link href="/decision" className="no-underline block mb-3">
-                <ExperienceCard
-                  variant="primary"
-                  gradient={G[0]}
-                  valueProp={VALUE_PROPS[p.memberId] || profile?.description || ''}
-                  hospitalName={profile?.hospitalName || ''}
-                  verified={profile?.verified}
-                  rating={4.8}
-                  price={p.totalPrice}
-                  meta={meta}
-                  coverTags={items.slice(0, 2).map(i => i.treatmentName)}
-                  quote={p.consultationNote}
-                  unread={!p.viewedAt}
-                />
-              </Link>
-            );
-          })()}
-
-          <div className="flex flex-col gap-3">
-            {proposals.slice(1, 3).map((p, idx) => {
-              const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
-              const items = MOCK_PROPOSAL_ITEMS.filter(i => i.proposalId === p.id);
-              const meta = `회복 ${p.recoveryDays}일 · ${p.anesthesiaType === 'local' ? '부분' : p.anesthesiaType === 'sedation' ? '수면' : '전신'}마취`;
-              return (
-                <Link key={p.id} href="/decision" className="no-underline block">
-                  <ExperienceCard
-                    variant="secondary"
-                    gradient={G[(idx + 1) % G.length]}
-                    valueProp={VALUE_PROPS[p.memberId] || profile?.description || ''}
-                    hospitalName={profile?.hospitalName || ''}
-                    verified={profile?.verified}
-                    rating={4.8}
-                    price={p.totalPrice}
-                    meta={meta}
-                    coverTags={items.slice(0, 2).map(i => i.treatmentName)}
-                    quote={p.consultationNote}
-                    unread={!p.viewedAt}
-                  />
-                </Link>
-              );
-            })}
-          </div>
+          {proceduresLoading ? (
+            <div className="flex flex-col gap-3" aria-busy="true" aria-label="시술 정보를 불러오는 중">
+              <div className="aspect-[16/10] rounded-[var(--app-radius-card)] bg-[var(--color-bg-secondary)] animate-pulse" />
+              <div className="aspect-[16/10] rounded-[var(--app-radius-card)] bg-[var(--color-bg-secondary)] animate-pulse" />
+              <div className="aspect-[16/10] rounded-[var(--app-radius-card)] bg-[var(--color-bg-secondary)] animate-pulse" />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {popularProcedures.slice(0, 4).map((procedure, i) => (
+                <ProcedureFeatureCard key={procedure.id} procedure={procedure} featured={i === 0} />
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -246,9 +203,9 @@ export default function HomePage() {
         <div className="flex flex-col gap-2.5">
           {ARTICLES.slice(0, 3).map(a => (
             <Link key={a.id} href={`/articles/${a.slug}`}
-              className="flex gap-3 p-3 rounded-xl bg-white no-underline"
+              className="flex gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
               style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
-              <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 relative">
+              <div className="w-14 h-14 rounded-[var(--app-radius-sm)] overflow-hidden shrink-0 relative">
                 <img src={a.heroImage} alt={a.title} className="w-full h-full object-cover" />
                 <div className={`absolute bottom-0 left-0 right-0 h-1 ${getAreaBar(a.bodyArea)}`} />
               </div>
@@ -271,6 +228,64 @@ export default function HomePage() {
         <ProposalArrivedSheet count={userProposalCount} />
       )}
     </div>
+  );
+}
+
+function formatProcedurePrice(min: number, max: number): string {
+  const toMan = (value: number) => `${Math.round(value / 10000).toLocaleString('ko-KR')}만`;
+  return min === max ? toMan(min) : `${toMan(min)}~${toMan(max)}`;
+}
+
+function procedureTypeLabel(type: string): string {
+  return type
+    .replace(/^eye_/, '눈 ')
+    .replace(/^nose_/, '코 ')
+    .replace(/^lift_/, '리프팅 ')
+    .replace(/^skin_/, '피부 ')
+    .replace(/^diet_/, '다이어트 ')
+    .replace(/^contour_/, '윤곽 ')
+    .replace(/_/g, ' ');
+}
+
+function ProcedureFeatureCard({ procedure, featured = false }: { procedure: ProcedureListItemWire; featured?: boolean }) {
+  return (
+    <Link href={`/procedures/${procedure.slug}`} className="no-underline block">
+      <article
+        className="rounded-[var(--app-radius-card)] overflow-hidden bg-[var(--color-bg)]"
+        style={{ boxShadow: 'var(--app-shadow-card-light)' }}
+      >
+        <div className="relative overflow-hidden bg-[var(--color-bg-tertiary)] aspect-[16/10]">
+          {procedure.heroImageUrl ? (
+            <img src={procedure.heroImageUrl} alt={procedure.title} className="w-full h-full object-cover" />
+          ) : null}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
+          <div className="absolute left-3 top-3 flex gap-1.5">
+            {featured && <Badge variant="primary" size="sm">이번 주 인기</Badge>}
+            <Badge variant="default" size="sm">{procedure.primaryArea}</Badge>
+          </div>
+          <div className="absolute left-4 right-4 bottom-4">
+            <h3 className="font-bold text-white text-[1.05rem] leading-tight drop-shadow-sm">
+              {procedure.title}
+            </h3>
+          </div>
+        </div>
+
+        <div className="px-4 pt-3 pb-3.5">
+          <p className="text-[14px] text-[var(--color-text)] leading-snug font-medium mb-1.5">
+            내 고민에 맞는지 상담으로 확인해보세요
+          </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[15px] font-bold text-[var(--color-text)]">
+                {formatProcedurePrice(procedure.priceMin, procedure.priceMax)}
+              </span>
+              <span className="text-[11px] text-[var(--color-text-dim)]">· 참고가</span>
+            </div>
+            <ChevronRight size={15} className="text-[var(--color-text-dim)]" />
+          </div>
+        </div>
+      </article>
+    </Link>
   );
 }
 

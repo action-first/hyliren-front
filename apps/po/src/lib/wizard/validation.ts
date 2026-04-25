@@ -44,6 +44,19 @@ export function allStepsValid(form: WizardForm): boolean {
 }
 
 /**
+ * 임시저장(draft) 최소 요건.
+ *
+ * QA Medium: 기존엔 draft 저장도 allStepsValid 를 요구해 사용자가 거의
+ * 모든 필드를 채워야만 저장됐다. 백엔드 draft 정책(title >=1 + 분류만 필수)
+ * 보다 과도하게 엄격. 이탈 후 재개 가능성을 높이기 위해 draft 는
+ * primaryArea + procedureType + sourceLocale title 만 있으면 허용.
+ */
+export function stepsValidForDraft(form: WizardForm): boolean {
+  const sourceTitle = form.i18n[form.sourceLocale]?.title?.trim() ?? '';
+  return form.primaryArea !== '' && form.procedureType !== '' && sourceTitle !== '';
+}
+
+/**
  * Submit 직전에 i18n 객체를 정리 (C1).
  *
  * Step3 에서 사용자가 비소스 locale 탭을 전환하면 Step3Content 가 빈 block

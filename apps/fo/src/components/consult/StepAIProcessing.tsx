@@ -86,7 +86,7 @@ export function StepAIProcessing() {
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-5">
       <div className="relative w-20 h-20 mb-8">
         <div className="absolute inset-0 rounded-full fo-gradient-accent-br animate-pulse" />
-        <div className="absolute inset-2 rounded-full bg-white flex items-center justify-center">
+        <div className="absolute inset-2 rounded-full bg-[var(--color-bg)] flex items-center justify-center">
           <div className="w-6 h-6 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
         </div>
       </div>

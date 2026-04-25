@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { Proposal } from '@hyliren/shared';
 import { track } from '@hyliren/shared';
 import { useMyConcerns } from '@/lib/hooks/concern';
+import { listProposals, mapProposal } from '@/lib/api/proposal';
 import { Button, Badge, Spinner } from '@hyliren/ui';
 import {
   ArrowRight, Plus, FileText, Clock, ChevronRight,
@@ -36,13 +37,21 @@ export default function DashboardPage() {
   const { concerns: apiConcerns, loading: concernsLoading } = useMyConcerns();
   const userConcerns = apiConcerns.filter(c => !c.deletedAt);
 
+  // 사용자 전체 unread/per-concern proposal 집계용으로 concern 별로 listProposals 를
+  // 병렬 호출. 백엔드에 user-level aggregate endpoint 가 추가되면 단일 호출로 교체.
   const [realProposals, setRealProposals] = useState<Proposal[] | null>(null);
   useEffect(() => {
-    fetch(`/api/proposals?userId=${userId}`)
-      .then(r => r.json())
-      .then(d => setRealProposals(d.proposals ?? []))
-      .catch(() => setRealProposals([]));
-  }, [userId]);
+    if (concernsLoading) return;
+    if (apiConcerns.length === 0) {
+      setRealProposals([]);
+      return;
+    }
+    Promise.all(
+      apiConcerns.map(c => listProposals(c.id).then(w => w.proposals.map(mapProposal)).catch(() => [] as Proposal[])),
+    ).then(results => {
+      setRealProposals(results.flat());
+    });
+  }, [apiConcerns, concernsLoading]);
 
   const ready = !concernsLoading && realProposals !== null;
   const dashboardPhase = ready
@@ -184,7 +193,7 @@ function DashboardHero({ phase, state }: { phase: string; state: DashboardState 
   const config = configs[phase] || configs.empty;
 
   return (
-    <div className={`relative rounded-2xl overflow-hidden px-5 pt-5 pb-5 bg-gradient-to-b ${config.gradient}`}>
+    <div className={`relative rounded-[var(--app-radius-md)] overflow-hidden px-5 pt-5 pb-5 bg-gradient-to-b ${config.gradient}`}>
       <h1 className="text-[1.25rem] font-bold text-[var(--color-text)] leading-tight whitespace-pre-line mb-1">
         {config.title}
       </h1>
@@ -225,13 +234,13 @@ function ConcernStatusCard({
 
   return (
     <Link href={href} className="no-underline block">
-      <div className="rounded-2xl bg-white px-4 py-4"
+      <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg)] px-4 py-4"
         style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
         {/* 1행: bodyArea 컬러 뱃지 + 상태 + NEW */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
             {bodyAreas.map(area => (
-              <span key={area} className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${AREA_ACCENT[area] || 'bg-gray-50 text-gray-600'}`}>
+              <span key={area} className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${AREA_ACCENT[area] || 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}`}>
                 {area}
               </span>
             ))}
@@ -257,12 +266,12 @@ function ConcernStatusCard({
         {(budgetMin || visitDateFrom) && (
           <div className="flex items-center gap-2 mb-2.5">
             {budgetMin && budgetMax && (
-              <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)]">
+              <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)]">
                 <Banknote size={10} /> {budgetMin}~{budgetMax}만
               </span>
             )}
             {visitDateFrom && (
-              <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)]">
+              <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)]">
                 <Calendar size={10} /> {visitDateFrom.slice(5)}~
               </span>
             )}
@@ -299,7 +308,7 @@ function WaitingStatePanel({ bodyArea }: { bodyArea: string }) {
 
   return (
     <section className="mt-7">
-      <div className="rounded-2xl bg-[var(--color-bg-secondary)] px-5 py-5">
+      <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)] px-5 py-5">
         <div className="flex items-center gap-2 mb-3">
           <Clock size={16} className="text-[var(--color-primary)]" />
           <span className="text-[14px] font-semibold text-[var(--color-text)]">{t('dashboard.waitingTitle')}</span>
@@ -309,12 +318,12 @@ function WaitingStatePanel({ bodyArea }: { bodyArea: string }) {
           {t('dashboard.waitingHint')}
         </p>
         <div className="flex flex-col gap-2">
-          <Link href="/consult" className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-white no-underline"
+          <Link href="/consult" className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
             style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
             <Plus size={16} className="text-[var(--color-primary)]" />
             <span className="text-[13px] font-medium text-[var(--color-text)]">{t('dashboard.addAnother')}</span>
           </Link>
-          <Link href="/articles" className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-white no-underline"
+          <Link href="/articles" className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
             style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
             <BookOpen size={16} className="text-[var(--color-text-dim)]" />
             <span className="text-[13px] font-medium text-[var(--color-text)]">{t('dashboard.readInfo')}</span>
@@ -342,9 +351,9 @@ function RecommendedArticlesSection({ bodyArea, status }: { bodyArea: string; st
       </div>
       <div className="flex flex-col gap-2.5">
         {displayArticles.map(a => (
-          <Link key={a.id} href={`/articles/${a.slug}`} className="flex gap-3 p-3 rounded-xl bg-white no-underline"
+          <Link key={a.id} href={`/articles/${a.slug}`} className="flex gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
             style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
-            <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 relative">
+            <div className="w-14 h-14 rounded-[var(--app-radius-sm)] overflow-hidden shrink-0 relative">
               <img src={a.heroImage} alt={a.title} className="w-full h-full object-cover" />
               <div className={`absolute bottom-0 left-0 right-0 h-1 ${
                 getAreaBar(a.bodyArea)
@@ -366,8 +375,8 @@ function ReEntryCTA() {
   return (
     <section className="mt-7">
       <Link href="/consult" className="no-underline block">
-        <div className="flex items-center gap-3 px-4 py-4 rounded-2xl fo-gradient-accent">
-          <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-3 px-4 py-4 rounded-[var(--app-radius-md)] fo-gradient-accent">
+          <div className="w-8 h-8 rounded-full bg-[var(--color-bg)] flex items-center justify-center shrink-0">
             <Plus size={16} className="text-[var(--color-primary)]" />
           </div>
           <div className="flex-1">

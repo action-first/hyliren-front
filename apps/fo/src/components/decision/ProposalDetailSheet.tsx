@@ -31,13 +31,13 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
 
   return (
     <BottomSheet open onClose={onClose} noPadding scrollable>
-        <div className="bg-white rounded-t-3xl" style={{ boxShadow: 'var(--app-shadow-sheet)' }}>
+        <div className="bg-[var(--color-bg)] rounded-t-3xl" style={{ boxShadow: 'var(--app-shadow-sheet)' }}>
           {/* Header */}
-          <div className="sticky top-0 bg-white z-10 px-5 pt-4 pb-3 border-b border-[var(--color-border-light)]">
+          <div className="sticky top-0 bg-[var(--color-bg)] z-10 px-5 pt-4 pb-3 border-b border-[var(--color-border-light)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-[15px] font-semibold text-[var(--color-text)]">{profile?.hospitalName}</span>
-                {profile?.verified && <ShieldCheck size={14} className="text-emerald-500" />}
+                {profile?.verified && <ShieldCheck size={14} className="text-[var(--color-success)]" />}
               </div>
               <button onClick={onClose} className="w-8 h-8 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center border-0 cursor-pointer">
                 <X size={16} className="text-[var(--color-text-dim)]" />
@@ -65,7 +65,7 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
               ].map(info => {
                 const Icon = info.icon;
                 return (
-                  <div key={info.label} className="flex flex-col items-center gap-1 py-3 rounded-xl bg-[var(--color-bg-secondary)]">
+                  <div key={info.label} className="flex flex-col items-center gap-1 py-3 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
                     <Icon size={16} className="text-[var(--color-text-dim)]" />
                     <span className="text-[10px] text-[var(--color-text-dim)]">{info.label}</span>
                     <span className="text-[13px] font-semibold text-[var(--color-text)]">{info.value}</span>
@@ -79,7 +79,7 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
               <span className="text-[12px] font-semibold text-[var(--color-text-dim)] block mb-2">{t('common.treatmentItems')}</span>
               <div className="flex flex-col gap-1.5">
                 {items.map(item => (
-                  <div key={item.id} className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-[var(--color-bg-secondary)]">
+                  <div key={item.id} className="flex items-center justify-between px-3.5 py-2.5 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
                     <span className="text-[13px] text-[var(--color-text)]">{item.treatmentName}</span>
                     <span className="text-[13px] font-semibold text-[var(--color-text)]">{item.price}{t('common.man')}</span>
                   </div>
@@ -89,7 +89,7 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
 
             {/* Consultation note */}
             {proposal.consultationNote && (
-              <div className="px-4 py-3 rounded-xl bg-[var(--color-bg-secondary)] mb-5">
+              <div className="px-4 py-3 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)] mb-5">
                 <span className="text-[10px] text-[var(--color-text-dim)] block mb-1">{t('common.hospitalNote')}</span>
                 <p className="text-[13px] text-[var(--color-text)] leading-relaxed italic">
                   &ldquo;{proposal.consultationNote}&rdquo;
@@ -101,7 +101,7 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
           {/* Anxiety trigger — 구매 전에만 */}
           {!purchased && (
             <div className="px-5 pb-4">
-              <div className="rounded-xl bg-gradient-to-br from-[#fff8f0] to-[var(--color-bg-wash)] px-4 py-3.5"
+              <div className="rounded-[var(--app-radius)] bg-gradient-to-br from-[#fff8f0] to-[var(--color-bg-wash)] px-4 py-3.5"
                 style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
                 <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">
                   {t('detail.priceQuestion', { price: proposal.totalPrice })}
@@ -114,7 +114,7 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
           )}
 
           {/* Sticky CTA */}
-          <div className="sticky bottom-0 bg-white border-t border-[var(--color-border-light)] px-5 py-4">
+          <div className="sticky bottom-0 bg-[var(--color-bg)] border-t border-[var(--color-border-light)] px-5 py-4">
             {purchased ? (
               <Button variant="primary" size="xl" fullWidth onClick={onAnalyze}>
                 검증 리포트 보기

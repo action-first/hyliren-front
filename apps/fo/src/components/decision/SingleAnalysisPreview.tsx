@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { useReportStore, type ReportPreview, type FullReport } from '@/store/report';
 import { useLocaleStore } from '@/store/locale';
-import { useAuthStore } from '@/store/auth';
 
 interface Props {
   proposal: Proposal;
@@ -59,17 +58,15 @@ function generateFullReport(proposal: Proposal, profile: PartnerProfile | undefi
 }
 
 /* ── Label maps (colors only — text from i18n) ── */
-const ADEQUACY_COLOR = { low: 'text-emerald-600', fair: 'text-[var(--color-text)]', high: 'text-amber-600' };
-const RISK_COLOR = { low: 'text-emerald-600', medium: 'text-amber-600', high: 'text-red-500' };
-const OVER_COLOR = { none: 'text-emerald-600', suspected: 'text-amber-600', likely: 'text-red-500' };
-const VERDICT_COLOR = { below: 'text-emerald-600', fair: 'text-[var(--color-text)]', above: 'text-amber-600' };
+const ADEQUACY_COLOR = { low: 'text-[var(--color-success)]', fair: 'text-[var(--color-text)]', high: 'text-[var(--color-warning)]' };
+const RISK_COLOR = { low: 'text-[var(--color-success)]', medium: 'text-[var(--color-warning)]', high: 'text-[var(--color-danger)]' };
+const OVER_COLOR = { none: 'text-[var(--color-success)]', suspected: 'text-[var(--color-warning)]', likely: 'text-[var(--color-danger)]' };
+const VERDICT_COLOR = { below: 'text-[var(--color-success)]', fair: 'text-[var(--color-text)]', above: 'text-[var(--color-warning)]' };
 
 export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
   const t = useLocaleStore(s => s.t);
   const router = useRouter();
   const { markPurchased, isPurchased: checkPurchased, setFullReport } = useReportStore();
-  const currentUserId = useAuthStore(s => s.user?.id) ?? 'u-001';
-  const currentUserName = useAuthStore(s => s.user?.name) ?? '테스트유저';
   const purchased = checkPurchased(proposal.id);
   const preview = generatePreview(proposal, profile);
 
@@ -84,29 +81,16 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
 
   function handlePurchase() {
     track({ eventType: 'report_purchased', actorType: 'user', targetType: 'proposal', targetId: proposal.id, metadata: { source: 'fo', locale: 'ko', value: '4900' } });
-    // payment 기록
-    fetch('/api/payments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'report_purchase',
-        amount: 4900,
-        currency: 'KRW',
-        actorType: 'buyer',
-        actorId: currentUserId,
-        actorName: currentUserName,
-        relatedId: proposal.id,
-        status: 'paid',
-      }),
-    }).catch(() => {});
+    // TODO: 백엔드에 payment endpoint 가 추가되면 direct request<T> 로 호출.
+    // 현재는 useReportStore (localStorage) 만으로 구매 상태 유지.
     markPurchased(proposal.id);
   }
 
   return (
     <BottomSheet open onClose={onClose} noPadding scrollable>
-        <div className="bg-white rounded-t-3xl" style={{ boxShadow: 'var(--app-shadow-sheet)' }}>
+        <div className="bg-[var(--color-bg)] rounded-t-3xl" style={{ boxShadow: 'var(--app-shadow-sheet)' }}>
           {/* Header */}
-          <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-[var(--color-border-light)]">
+          <div className="sticky top-0 bg-[var(--color-bg)] z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-[var(--color-border-light)]">
             <span className="text-[15px] font-semibold text-[var(--color-text)]">
               {profile?.hospitalName} {purchased ? t('report.verificationReport') : t('report.analysis')}
             </span>
@@ -129,7 +113,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
               ].map(row => {
                 const Icon = row.icon;
                 return (
-                  <div key={row.label} className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-[var(--color-bg-secondary)]">
+                  <div key={row.label} className="flex items-center gap-3 px-4 py-3.5 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
                     <Icon size={18} className="text-[var(--color-text-dim)] shrink-0" />
                     <span className="text-[13px] text-[var(--color-text)] flex-1">{row.label}</span>
                     <span
@@ -154,7 +138,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
               <div className="flex flex-col gap-4 mb-5">
 
                 {/* Section 1: 가격 분석 */}
-                <div className="rounded-2xl bg-white border border-[var(--color-border-light)] overflow-hidden">
+                <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg)] border border-[var(--color-border-light)] overflow-hidden">
                   <div className="flex items-center gap-2 px-4 py-3 bg-[var(--color-bg-secondary)]">
                     <BarChart3 size={15} className="text-[var(--color-primary)]" />
                     <span className="text-[13px] font-semibold text-[var(--color-text)]">{t('report.priceAnalysis')}</span>
@@ -178,7 +162,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
                 </div>
 
                 {/* Section 2: 과잉진료 검증 */}
-                <div className="rounded-2xl bg-white border border-[var(--color-border-light)] overflow-hidden">
+                <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg)] border border-[var(--color-border-light)] overflow-hidden">
                   <div className="flex items-center gap-2 px-4 py-3 bg-[var(--color-bg-secondary)]">
                     <FileCheck size={15} className="text-[var(--color-primary)]" />
                     <span className="text-[13px] font-semibold text-[var(--color-text)]">{t('report.overtreatmentVerify')}</span>
@@ -187,13 +171,13 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
                     <p className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed mb-2">{fullReport.overtreatmentVerdict}</p>
                     {fullReport.necessaryItems.map(item => (
                       <div key={item} className="flex items-start gap-2 py-1.5">
-                        <CheckCircle size={13} className="text-emerald-500 shrink-0 mt-0.5" />
+                        <CheckCircle size={13} className="text-[var(--color-success)] shrink-0 mt-0.5" />
                         <span className="text-[11px] text-[var(--color-text)] leading-relaxed">{item}</span>
                       </div>
                     ))}
                     {fullReport.unnecessaryItems.map(item => (
                       <div key={item} className="flex items-start gap-2 py-1.5">
-                        <XCircle size={13} className="text-red-400 shrink-0 mt-0.5" />
+                        <XCircle size={13} className="text-[var(--color-danger)] shrink-0 mt-0.5" />
                         <span className="text-[11px] text-[var(--color-text)] leading-relaxed">{item}</span>
                       </div>
                     ))}
@@ -201,7 +185,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
                 </div>
 
                 {/* Section 3: 리스크 평가 */}
-                <div className="rounded-2xl bg-white border border-[var(--color-border-light)] overflow-hidden">
+                <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg)] border border-[var(--color-border-light)] overflow-hidden">
                   <div className="flex items-center gap-2 px-4 py-3 bg-[var(--color-bg-secondary)]">
                     <Activity size={15} className="text-[var(--color-primary)]" />
                     <span className="text-[13px] font-semibold text-[var(--color-text)]">{t('report.riskAssessment')}</span>
@@ -227,7 +211,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
                 </div>
 
                 {/* Section 4: 종합 의견 */}
-                <div className="rounded-2xl fo-gradient-accent-br px-4 py-4">
+                <div className="rounded-[var(--app-radius-md)] fo-gradient-accent-br px-4 py-4">
                   <span className="text-[12px] font-semibold text-[var(--color-primary)] block mb-2">{t('report.overallOpinion')}</span>
                   <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{fullReport.conclusion}</p>
                 </div>
@@ -241,27 +225,27 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
             {!purchased && (
               <>
                 {/* Value prop — 구매 전 설득 */}
-                <div className="rounded-2xl bg-gradient-to-br from-[#fff8f0] to-[var(--color-bg-wash)] px-4 py-4 mb-3"
+                <div className="rounded-[var(--app-radius-md)] bg-gradient-to-br from-[#fff8f0] to-[var(--color-bg-wash)] px-4 py-4 mb-3"
                   style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
                   <p className="text-[13px] font-semibold text-[var(--color-text)] mb-2">{t('report.valuePropTitle')}</p>
                   <div className="flex flex-col gap-2">
                     <div className="flex items-start gap-2">
-                      <span className="text-[12px] text-emerald-500 mt-0.5">✓</span>
+                      <span className="text-[12px] text-[var(--color-success)] mt-0.5">✓</span>
                       <span className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed">{t('report.valueProp1')}</span>
                     </div>
                     <div className="flex items-start gap-2">
-                      <span className="text-[12px] text-emerald-500 mt-0.5">✓</span>
+                      <span className="text-[12px] text-[var(--color-success)] mt-0.5">✓</span>
                       <span className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed">{t('report.valueProp2')}</span>
                     </div>
                     <div className="flex items-start gap-2">
-                      <span className="text-[12px] text-emerald-500 mt-0.5">✓</span>
+                      <span className="text-[12px] text-[var(--color-success)] mt-0.5">✓</span>
                       <span className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed">{t('report.valueProp3')}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Locked: 상세 분석 */}
-                <div className="relative rounded-2xl overflow-hidden mb-3">
+                <div className="relative rounded-[var(--app-radius-md)] overflow-hidden mb-3">
                   <div className="filter blur-[6px] pointer-events-none select-none px-4 py-4 bg-[var(--color-bg-secondary)]">
                     <div className="h-3 w-3/4 bg-[var(--color-border)] rounded mb-2" />
                     <div className="h-3 w-1/2 bg-[var(--color-border)] rounded mb-3" />
@@ -271,7 +255,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
                     <div className="h-3 w-3/4 bg-[var(--color-border)] rounded mb-2" />
                     <div className="h-3 w-1/2 bg-[var(--color-border)] rounded" />
                   </div>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[1px]">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--color-bg)]/60 backdrop-blur-[1px]">
                     <div className="w-10 h-10 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center mb-2">
                       <Lock size={18} className="text-[var(--color-text-dim)]" />
                     </div>
@@ -281,13 +265,13 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
                 </div>
 
                 {/* Locked: 비교 우위 */}
-                <div className="relative rounded-2xl overflow-hidden mb-5">
+                <div className="relative rounded-[var(--app-radius-md)] overflow-hidden mb-5">
                   <div className="filter blur-[6px] pointer-events-none select-none px-4 py-3.5 bg-[var(--color-bg-secondary)]">
                     <div className="h-3 w-2/3 bg-[var(--color-border)] rounded mb-2" />
                     <div className="h-3 w-full bg-[var(--color-border)] rounded mb-2" />
                     <div className="h-3 w-3/4 bg-[var(--color-border)] rounded" />
                   </div>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[1px]">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--color-bg)]/60 backdrop-blur-[1px]">
                     <Lock size={14} className="text-[var(--color-text-dim)] mb-1" />
                     <span className="text-[12px] font-semibold text-[var(--color-text)]">{t('report.blurCompare')}</span>
                   </div>
@@ -297,7 +281,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
           </div>
 
           {/* Sticky CTA */}
-          <div className="sticky bottom-0 bg-white border-t border-[var(--color-border-light)] px-5 py-4">
+          <div className="sticky bottom-0 bg-[var(--color-bg)] border-t border-[var(--color-border-light)] px-5 py-4">
             {purchased ? (
               <Button variant="primary" size="xl" fullWidth onClick={() => { onClose(); router.push(`/mypage/reports/${proposal.id}`); }}>
                 리포트 상세 보기

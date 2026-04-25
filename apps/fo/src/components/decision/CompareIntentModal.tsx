@@ -31,8 +31,8 @@ export function CompareIntentModal({ prices, hospitalNames, onClose, onProceedTo
     <BottomSheet open onClose={onClose} showHandle showClose>
           {/* Concrete anxiety — 숫자로 불안 시각화 */}
           <div className="flex items-start gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
-              <AlertTriangle size={20} className="text-amber-500" />
+            <div className="w-10 h-10 rounded-full bg-[var(--color-warning-soft)] flex items-center justify-center shrink-0">
+              <AlertTriangle size={20} className="text-[var(--color-warning)]" />
             </div>
             <div>
               <h2 className="text-[1.25rem] font-bold text-[var(--color-text)] leading-tight mb-1">
@@ -46,11 +46,11 @@ export function CompareIntentModal({ prices, hospitalNames, onClose, onProceedTo
           </div>
 
           {/* Price comparison — concrete */}
-          <div className="rounded-xl bg-[var(--color-bg-secondary)] px-4 py-3.5 mb-5">
+          <div className="rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)] px-4 py-3.5 mb-5">
             {hospitalNames.map((name, i) => (
               <div key={name} className={`flex items-center justify-between py-2 ${i > 0 ? 'border-t border-[var(--color-border-light)]' : ''}`}>
                 <span className="text-[13px] text-[var(--color-text)]">{name}</span>
-                <span className={`text-[15px] font-bold ${prices[i] === minPrice ? 'text-emerald-600' : prices[i] === maxPrice ? 'text-amber-600' : 'text-[var(--color-text)]'}`}>
+                <span className={`text-[15px] font-bold ${prices[i] === minPrice ? 'text-[var(--color-success)]' : prices[i] === maxPrice ? 'text-[var(--color-warning)]' : 'text-[var(--color-text)]'}`}>
                   {prices[i]}{t('common.currency')}
                 </span>
               </div>

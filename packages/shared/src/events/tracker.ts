@@ -1,7 +1,8 @@
 /**
  * Event Tracker — Day 1부터 수집
  *
- * MVP: console.log로 출력. 나중에 실제 API/analytics로 교체.
+ * MVP: console.log 만 수행. 백엔드 events endpoint 가 추가되면 이 함수에서
+ * direct request<T> 호출로 연결한다 (BFF 경유 금지).
  * metadata 규약: { source, locale } 필수
  */
 
@@ -41,21 +42,7 @@ export type RequiredEventType = typeof REQUIRED_EVENTS[number];
 
 export function track(event: TrackEvent): void {
   if (typeof window !== 'undefined') {
-    // 콘솔 로그
     console.log('[HYLIREN_EVENT]', JSON.stringify({ ...event, timestamp: new Date().toISOString() }));
-
-    // data-store에 이벤트 기록 (fire-and-forget)
-    fetch('/api/events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        eventType: event.eventType,
-        actorType: event.actorType,
-        targetType: event.targetType,
-        targetId: event.targetId,
-        metadata: event.metadata ? Object.fromEntries(Object.entries(event.metadata).map(([k, v]) => [k, String(v)])) : undefined,
-      }),
-    }).catch(() => {}); // 실패해도 무시
   }
 }
 

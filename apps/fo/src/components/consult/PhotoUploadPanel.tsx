@@ -41,7 +41,7 @@ export function PhotoUploadPanel({ photos, onAdd, onRemove }: Props) {
           return (
             <div key={i} className="relative">
               {photo ? (
-                <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
+                <div className="relative aspect-[3/4] rounded-[var(--app-radius-md)] overflow-hidden">
                   <img src={photo} alt={slot.label} className="w-full h-full object-cover" />
                   <button onClick={() => onRemove(i)}
                     className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/50 flex items-center justify-center border-0 cursor-pointer">
@@ -53,8 +53,8 @@ export function PhotoUploadPanel({ photos, onAdd, onRemove }: Props) {
                 </div>
               ) : (
                 <button onClick={() => handleSlotClick(i)}
-                  className="w-full aspect-[3/4] rounded-2xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-bg-secondary)] flex flex-col items-center justify-center gap-1.5 cursor-pointer">
-                  <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-[var(--color-text-dim)]">
+                  className="w-full aspect-[3/4] rounded-[var(--app-radius-md)] border-2 border-dashed border-[var(--color-border)] bg-[var(--color-bg-secondary)] flex flex-col items-center justify-center gap-1.5 cursor-pointer">
+                  <div className="w-9 h-9 rounded-full bg-[var(--color-bg)] flex items-center justify-center text-[var(--color-text-dim)]">
                     <Icon size={18} strokeWidth={1.5} />
                   </div>
                   <span className="text-[10px] font-semibold text-[var(--color-text-secondary)]">{slot.label}</span>

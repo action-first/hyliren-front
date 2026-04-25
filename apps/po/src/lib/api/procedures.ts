@@ -1,6 +1,7 @@
 /**
- * Procedure API client — PO wizard 에서 사용.
- * 모든 호출은 ?memberId=... 로 소유권 식별 (현재 인증 미구현, 런칭 전 교체 예정).
+ * Procedure API client — direct backend 호출 (BFF 미경유).
+ * memberId 는 JWT 에서 추출되므로 인자로 받지 않는다.
+ * FO 의 `lib/api/procedure/` 모듈과 동일 컨벤션 (request<T> 사용).
  */
 import type {
   Procedure, ProcedureVariant, ProcedureStatus,
@@ -8,93 +9,81 @@ import type {
 import type {
   CreateProcedureInput, UpdateProcedureInput,
   VariantInput, UpdateVariantInput,
-} from '@/app/api/procedures/schema';
+} from '@/lib/api/procedures-schema';
+import { request } from './client';
 
 interface ProceduresListResp {
   procedures: Procedure[];
   total: number;
 }
+
 interface ProcedureDetailResp {
   procedure: Procedure;
   variants: ProcedureVariant[];
 }
 
-async function handle<T>(res: Response): Promise<T> {
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
-  return data as T;
+interface ProcedureMutationResp {
+  procedure: Procedure;
 }
 
+interface VariantMutationResp {
+  variant: ProcedureVariant;
+}
+
+const BASE = '/api/v1/procedures';
+
 export const proceduresApi = {
-  list: async (params: { memberId: string; status?: ProcedureStatus }) => {
-    const qs = new URLSearchParams({ memberId: params.memberId });
+  list: async (params: { status?: ProcedureStatus } = {}): Promise<ProceduresListResp> => {
+    const qs = new URLSearchParams();
     if (params.status) qs.set('status', params.status);
-    return handle<ProceduresListResp>(await fetch(`/api/procedures?${qs}`));
+    const query = qs.toString();
+    return request<ProceduresListResp>(`${BASE}${query ? `?${query}` : ''}`);
   },
 
-  get: async (id: string, memberId: string) => {
-    const qs = new URLSearchParams({ memberId });
-    return handle<ProcedureDetailResp>(await fetch(`/api/procedures/${id}?${qs}`));
+  get: async (id: string): Promise<ProcedureDetailResp> => {
+    return request<ProcedureDetailResp>(`${BASE}/${encodeURIComponent(id)}`);
   },
 
-  create: async (body: CreateProcedureInput) => {
-    return handle<{ ok: true; procedure: Procedure; variants: ProcedureVariant[] }>(
-      await fetch('/api/procedures', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      }),
-    );
+  create: async (body: CreateProcedureInput): Promise<ProcedureDetailResp> => {
+    return request<ProcedureDetailResp>(BASE, {
+      method: 'POST',
+      body,
+    });
   },
 
-  update: async (id: string, memberId: string, body: UpdateProcedureInput) => {
-    const qs = new URLSearchParams({ memberId });
-    return handle<{ ok: true; procedure: Procedure }>(
-      await fetch(`/api/procedures/${id}?${qs}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      }),
-    );
+  update: async (id: string, body: UpdateProcedureInput): Promise<ProcedureMutationResp> => {
+    return request<ProcedureMutationResp>(`${BASE}/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body,
+    });
   },
 
-  softDelete: async (id: string, memberId: string) => {
-    const qs = new URLSearchParams({ memberId });
-    return handle<{ ok: true; procedure: Procedure }>(
-      await fetch(`/api/procedures/${id}?${qs}`, { method: 'DELETE' }),
-    );
+  softDelete: async (id: string): Promise<ProcedureMutationResp> => {
+    return request<ProcedureMutationResp>(`${BASE}/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
   },
 
-  addVariant: async (procedureId: string, memberId: string, body: VariantInput) => {
-    const qs = new URLSearchParams({ memberId });
-    return handle<{ ok: true; variant: ProcedureVariant }>(
-      await fetch(`/api/procedures/${procedureId}/variants?${qs}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      }),
-    );
+  addVariant: async (procedureId: string, body: VariantInput): Promise<VariantMutationResp> => {
+    return request<VariantMutationResp>(`${BASE}/${encodeURIComponent(procedureId)}/variants`, {
+      method: 'POST',
+      body,
+    });
   },
 
   updateVariant: async (
-    procedureId: string, variantId: string, memberId: string, body: UpdateVariantInput,
-  ) => {
-    const qs = new URLSearchParams({ memberId });
-    return handle<{ ok: true; variant: ProcedureVariant }>(
-      await fetch(`/api/procedures/${procedureId}/variants/${variantId}?${qs}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      }),
+    procedureId: string, variantId: string, body: UpdateVariantInput,
+  ): Promise<VariantMutationResp> => {
+    return request<VariantMutationResp>(
+      `${BASE}/${encodeURIComponent(procedureId)}/variants/${encodeURIComponent(variantId)}`,
+      { method: 'PATCH', body },
     );
   },
 
-  removeVariant: async (procedureId: string, variantId: string, memberId: string) => {
-    const qs = new URLSearchParams({ memberId });
-    return handle<{ ok: true }>(
-      await fetch(`/api/procedures/${procedureId}/variants/${variantId}?${qs}`, {
-        method: 'DELETE',
-      }),
+  removeVariant: async (procedureId: string, variantId: string): Promise<void> => {
+    await request<void>(
+      `${BASE}/${encodeURIComponent(procedureId)}/variants/${encodeURIComponent(variantId)}`,
+      { method: 'DELETE' },
     );
   },
 };

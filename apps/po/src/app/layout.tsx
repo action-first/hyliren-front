@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import './globals.css';
 import Toast from '@/components/common/Toast';
+import { PartnerSessionBootstrap } from '@/components/auth/PartnerSessionBootstrap';
+import { PartnerAuthGate } from '@/components/auth/PartnerAuthGate';
 
 export const metadata: Metadata = {
   title: '한옌리런 파트너 오피스',
@@ -14,7 +17,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="stylesheet" as="style" crossOrigin="anonymous" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
       </head>
       <body>
-        {children}
+        <PartnerSessionBootstrap />
+        <Suspense fallback={null}>
+          <PartnerAuthGate>{children}</PartnerAuthGate>
+        </Suspense>
         <Toast />
       </body>
     </html>

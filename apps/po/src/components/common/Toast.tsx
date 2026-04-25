@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useToastStore } from '@/store/toast';
 
-type ToastType = 'error' | 'success' | 'info';
+type ToastType = 'error' | 'success' | 'info' | 'warning';
 
 interface ToastItem {
   id: string;
@@ -15,12 +15,14 @@ const typeStyles: Record<ToastType, string> = {
   error:   'bg-red-900 text-white',
   success: 'bg-[var(--color-text)] text-white',
   info:    'bg-[var(--color-primary)] text-white',
+  warning: 'bg-[var(--color-warning)] text-[var(--color-text)]',
 };
 
 const typeIcons: Record<ToastType, string> = {
   error: '✕',
   success: '✓',
   info: 'ℹ',
+  warning: '!',
 };
 
 function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: () => void }) {

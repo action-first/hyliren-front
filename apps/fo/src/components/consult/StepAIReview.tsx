@@ -26,13 +26,13 @@ export function StepAIReview() {
       </div>
 
       {isFallback && (
-        <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 mb-3">
-          <p className="text-[12px] text-amber-700 leading-relaxed">
+        <div className="rounded-[var(--app-radius)] bg-[var(--color-warning-soft)] border border-[var(--color-warning-soft)] px-4 py-3 mb-3">
+          <p className="text-[12px] text-[var(--color-warning)] leading-relaxed">
             분석 서버에 연결할 수 없어 기본 안내를 표시하고 있습니다. 네트워크를 확인하고 다시 시도해 주세요.
           </p>
           <button
             onClick={() => setStep('processing')}
-            className="mt-2 text-[12px] font-medium text-amber-800 underline bg-transparent border-0 cursor-pointer p-0"
+            className="mt-2 text-[12px] font-medium text-[var(--color-warning)] underline bg-transparent border-0 cursor-pointer p-0"
           >
             다시 분석하기
           </button>
@@ -40,7 +40,7 @@ export function StepAIReview() {
       )}
 
       {/* Empathy */}
-      <div className="rounded-2xl fo-gradient-wash-br px-4 py-4 mb-3"
+      <div className="rounded-[var(--app-radius-md)] fo-gradient-wash-br px-4 py-4 mb-3"
         style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
         <p className="text-[14px] text-[var(--color-text)] leading-[1.7]">
           {analysisResult.empathy}
@@ -48,7 +48,7 @@ export function StepAIReview() {
       </div>
 
       {/* Education */}
-      <div className="rounded-2xl bg-white px-4 py-4 mb-3"
+      <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg)] px-4 py-4 mb-3"
         style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
         <p className="text-[13px] text-[var(--color-text-secondary)] leading-[1.7]">
           {analysisResult.education}
@@ -67,7 +67,7 @@ export function StepAIReview() {
         </Button>
         <button
           onClick={() => setStep('feedback')}
-          className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl bg-transparent border-0 cursor-pointer text-[13px] font-medium text-[var(--color-text-secondary)]">
+          className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-[var(--app-radius)] bg-transparent border-0 cursor-pointer text-[13px] font-medium text-[var(--color-text-secondary)]">
           <MessageCircle size={14} />
           {t('consult.reviewEdit')}
         </button>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import type { Proposal, PartnerProfile, ProposalItem } from '@hyliren/shared';
+import type { ProposalItem } from '@hyliren/shared';
 import { track } from '@hyliren/shared';
 import { Button, BottomSheet } from '@hyliren/ui';
 import {
@@ -10,10 +10,10 @@ import {
 } from 'lucide-react';
 import { useReportStore } from '@/store/report';
 import { useLocaleStore } from '@/store/locale';
+import type { ProposalWithHospital } from '@/lib/hooks/proposal';
 
 interface Props {
-  proposals: Proposal[];
-  profiles: PartnerProfile[];
+  proposals: ProposalWithHospital[];
   items: ProposalItem[];
   concernId: string;
   onClose: () => void;
@@ -33,12 +33,11 @@ interface ProposalScore {
   bestAt: string[];
 }
 
-function generateCompareScores(proposals: Proposal[], profiles: PartnerProfile[]): ProposalScore[] {
+function generateCompareScores(proposals: ProposalWithHospital[]): ProposalScore[] {
   const lowestPrice = Math.min(...proposals.map(p => p.totalPrice));
   const fastestRecovery = Math.min(...proposals.map(p => p.recoveryDays));
 
   return proposals.map(p => {
-    const profile = profiles.find(pp => pp.memberId === p.memberId);
     const priceScore = p.totalPrice === lowestPrice ? 90 : Math.max(50, 90 - Math.round((p.totalPrice - lowestPrice) / lowestPrice * 40));
     const riskScore = p.anesthesiaType === 'local' ? 95 : p.anesthesiaType === 'sedation' ? 85 : 70;
     const valueScore = Math.round((priceScore * 0.4 + riskScore * 0.3 + (p.recoveryDays === fastestRecovery ? 90 : 70) * 0.3));
@@ -47,11 +46,13 @@ function generateCompareScores(proposals: Proposal[], profiles: PartnerProfile[]
     const bestAt: string[] = [];
     if (p.totalPrice === lowestPrice) bestAt.push('lowestPrice');
     if (p.recoveryDays === fastestRecovery) bestAt.push('fastRecovery');
-    if (profile?.verified) bestAt.push('verifiedHospital');
+    // TODO: 백엔드 listProposals 응답에 hospitalVerified 필드 추가 시 재연결.
+    //       현재 list DTO 는 hospitalName/hospitalLogo 만 반환하고 verified 는
+    //       detail DTO (hospitalIsCertified) 에만 노출됨.
 
     return {
       proposalId: p.id,
-      hospitalName: profile?.hospitalName || '',
+      hospitalName: p.hospitalName,
       priceScore,
       riskScore,
       valueScore,
@@ -63,16 +64,16 @@ function generateCompareScores(proposals: Proposal[], profiles: PartnerProfile[]
   }).sort((a, b) => b.totalScore - a.totalScore);
 }
 
-const SCORE_COLOR = (s: number) => s >= 80 ? 'text-emerald-600' : s >= 60 ? 'text-[var(--color-text)]' : 'text-amber-600';
-const BAR_COLOR = (s: number) => s >= 80 ? 'bg-emerald-400' : s >= 60 ? 'bg-[var(--color-border)]' : 'bg-amber-400';
+const SCORE_COLOR = (s: number) => s >= 80 ? 'text-[var(--color-success)]' : s >= 60 ? 'text-[var(--color-text)]' : 'text-[var(--color-warning)]';
+const BAR_COLOR = (s: number) => s >= 80 ? 'bg-[var(--color-success)]' : s >= 60 ? 'bg-[var(--color-border)]' : 'bg-[var(--color-warning)]';
 
-export function CompareReport({ proposals, profiles, items, concernId, onClose }: Props) {
+export function CompareReport({ proposals, items, concernId, onClose }: Props) {
   const t = useLocaleStore(s => s.t);
   const { isPurchased: checkPurchased, markPurchased } = useReportStore();
 
   // "compare report" 는 concernId 기준으로 구매 여부 판단
   const purchased = checkPurchased(`compare-${concernId}`);
-  const scores = generateCompareScores(proposals, profiles);
+  const scores = generateCompareScores(proposals);
   const winner = scores[0];
 
   useEffect(() => {
@@ -88,9 +89,9 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
 
   return (
     <BottomSheet open onClose={onClose} noPadding scrollable>
-        <div className="bg-white" style={{ boxShadow: 'var(--app-shadow-sheet)' }}>
+        <div className="bg-[var(--color-bg)]" style={{ boxShadow: 'var(--app-shadow-sheet)' }}>
           {/* Header */}
-          <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-[var(--color-border-light)]">
+          <div className="sticky top-0 bg-[var(--color-bg)] z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-[var(--color-border-light)]">
             <span className="text-[15px] font-semibold text-[var(--color-text)]">
               {t('report.compareTitle', { count: proposals.length })}
             </span>
@@ -101,7 +102,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
 
           <div className="px-5 py-4">
             {/* ═══ FREE: 종합 순위 ═══ */}
-            <div className="rounded-2xl border border-[var(--color-border-light)] overflow-hidden mb-4">
+            <div className="rounded-[var(--app-radius-md)] border border-[var(--color-border-light)] overflow-hidden mb-4">
               <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-secondary)]">
                 <Crown size={14} className="text-[var(--color-primary)]" />
                 <span className="text-[12px] font-semibold text-[var(--color-text)]">{t('report.ranking')}</span>
@@ -127,7 +128,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
             </div>
 
             {/* ═══ FREE: 가격 비교 바 ═══ */}
-            <div className="rounded-2xl border border-[var(--color-border-light)] overflow-hidden mb-4">
+            <div className="rounded-[var(--app-radius-md)] border border-[var(--color-border-light)] overflow-hidden mb-4">
               <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-secondary)]">
                 <BarChart3 size={14} className="text-[var(--color-primary)]" />
                 <span className="text-[12px] font-semibold text-[var(--color-text)]">{t('report.priceCompare')}</span>
@@ -157,7 +158,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
             {purchased ? (
               <>
                 {/* A vs B 나란히 비교표 */}
-                <div className="rounded-2xl border border-[var(--color-border-light)] overflow-hidden mb-4">
+                <div className="rounded-[var(--app-radius-md)] border border-[var(--color-border-light)] overflow-hidden mb-4">
                   <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-secondary)]">
                     <Activity size={14} className="text-[var(--color-primary)]" />
                     <span className="text-[12px] font-semibold text-[var(--color-text)]">{t('report.comparisonTable')}</span>
@@ -186,7 +187,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
                     { label: t('report.overall'), render: (s: ProposalScore) => `${s.totalScore}${t('common.score')}`, best: (s: ProposalScore) => s.totalScore >= 80 },
                     { label: t('common.recovery'), render: (s: ProposalScore) => { const p = findProposal(s); return p ? `${p.recoveryDays}${t('common.days')}` : '—'; }, best: (s: ProposalScore) => { const p = findProposal(s); return p ? p.recoveryDays === fastestRecovery : false; } },
                     { label: t('common.anesthesia'), render: (s: ProposalScore) => { const p = findProposal(s); return !p ? '—' : p.anesthesiaType === 'local' ? t('common.anesthesiaLocalShort') : p.anesthesiaType === 'sedation' ? t('common.anesthesiaSedationShort') : t('common.anesthesiaGeneralShort'); }, best: (s: ProposalScore) => { const p = findProposal(s); return p ? p.anesthesiaType !== 'general' : false; } },
-                    { label: t('common.verified'), render: (s: ProposalScore) => { const profile = profiles.find(pp => pp.hospitalName === s.hospitalName); return profile?.verified ? '✓' : '—'; }, best: (s: ProposalScore) => { const profile = profiles.find(pp => pp.hospitalName === s.hospitalName); return !!profile?.verified; } },
+                    { label: t('common.verified'), render: () => '—', best: () => false },
                   ]; })().map(row => (
                     <div key={row.label} className="flex border-b border-[var(--color-border-light)] last:border-0">
                       <div className="w-20 shrink-0 px-3 py-2.5 bg-[var(--color-bg-secondary)] flex items-center">
@@ -194,7 +195,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
                       </div>
                       {scores.map((s, i) => (
                         <div key={s.proposalId} className={`flex-1 px-2 py-2.5 flex items-center justify-center ${i === 0 ? 'bg-[var(--color-primary-soft)]/30' : ''}`}>
-                          <span className={`text-[12px] font-semibold ${row.best(s) ? 'text-emerald-600' : 'text-[var(--color-text)]'}`}>
+                          <span className={`text-[12px] font-semibold ${row.best(s) ? 'text-[var(--color-success)]' : 'text-[var(--color-text)]'}`}>
                             {row.render(s)}
                           </span>
                         </div>
@@ -204,7 +205,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
                 </div>
 
                 {/* 병원별 한 줄 평가 */}
-                <div className="rounded-2xl border border-[var(--color-border-light)] overflow-hidden mb-4">
+                <div className="rounded-[var(--app-radius-md)] border border-[var(--color-border-light)] overflow-hidden mb-4">
                   <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-secondary)]">
                     <ShieldCheck size={14} className="text-[var(--color-primary)]" />
                     <span className="text-[12px] font-semibold text-[var(--color-text)]">{t('report.hospitalEval')}</span>
@@ -217,11 +218,11 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
                           <span className={`text-[11px] font-bold ${SCORE_COLOR(s.totalScore)}`}>{s.totalScore}{t('common.score')}</span>
                         </div>
                         <div className="flex items-start gap-1.5 mb-1">
-                          <CheckCircle size={12} className="text-emerald-500 shrink-0 mt-0.5" />
+                          <CheckCircle size={12} className="text-[var(--color-success)] shrink-0 mt-0.5" />
                           <span className="text-[11px] text-[var(--color-text-secondary)] leading-relaxed">{s.priceVerdict}</span>
                         </div>
                         <div className="flex items-start gap-1.5">
-                          <AlertTriangle size={12} className="text-amber-500 shrink-0 mt-0.5" />
+                          <AlertTriangle size={12} className="text-[var(--color-warning)] shrink-0 mt-0.5" />
                           <span className="text-[11px] text-[var(--color-text-secondary)] leading-relaxed">{s.riskVerdict}</span>
                         </div>
                       </div>
@@ -230,7 +231,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
                 </div>
 
                 {/* 종합 의견 */}
-                <div className="rounded-2xl fo-gradient-accent-br px-4 py-4 mb-3">
+                <div className="rounded-[var(--app-radius-md)] fo-gradient-accent-br px-4 py-4 mb-3">
                   <span className="text-[12px] font-semibold text-[var(--color-primary)] block mb-2">{t('report.overallOpinion')}</span>
                   <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
                     {proposals.length}개 제안을 종합 분석한 결과, {winner.hospitalName}이 가격과 리스크 면에서 가장 균형 잡힌 제안입니다.
@@ -245,7 +246,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
             ) : (
               /* ═══ NOT PURCHASED: Blur ═══ */
               <>
-                <div className="relative rounded-2xl overflow-hidden mb-3">
+                <div className="relative rounded-[var(--app-radius-md)] overflow-hidden mb-3">
                   <div className="filter blur-[6px] pointer-events-none select-none px-4 py-4 bg-[var(--color-bg-secondary)]">
                     <div className="h-3 w-3/4 bg-[var(--color-border)] rounded mb-2" />
                     <div className="h-3 w-1/2 bg-[var(--color-border)] rounded mb-3" />
@@ -254,7 +255,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
                     <div className="h-3 w-5/6 bg-[var(--color-border)] rounded mb-3" />
                     <div className="h-3 w-3/4 bg-[var(--color-border)] rounded" />
                   </div>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[1px]">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--color-bg)]/60 backdrop-blur-[1px]">
                     <div className="w-10 h-10 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center mb-2">
                       <Lock size={18} className="text-[var(--color-text-dim)]" />
                     </div>
@@ -267,7 +268,7 @@ export function CompareReport({ proposals, profiles, items, concernId, onClose }
           </div>
 
           {/* Sticky CTA */}
-          <div className="sticky bottom-0 bg-white border-t border-[var(--color-border-light)] px-5 py-4">
+          <div className="sticky bottom-0 bg-[var(--color-bg)] border-t border-[var(--color-border-light)] px-5 py-4">
             {purchased ? (
               <Button variant="primary" size="xl" fullWidth onClick={onClose}>
                 {t('common.confirm')}

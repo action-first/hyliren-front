@@ -2,7 +2,7 @@
 
 import { use, useState } from 'react';
 import Link from 'next/link';
-import { MOCK_PROPOSALS, MOCK_PARTNER_PROFILES, track } from '@hyliren/shared';
+import { track } from '@hyliren/shared';
 import { Button, Badge } from '@hyliren/ui';
 import {
   ArrowRight, Edit3, Camera, ChevronRight,
@@ -11,18 +11,19 @@ import {
 import { computeConcernActions, getRecommendedArticles } from '@/domain/lifecycle';
 import { useLocaleStore } from '@/store/locale';
 import { useConcern } from '@/lib/hooks/concern';
+import { useProposalsForConcern } from '@/lib/hooks/proposal';
 
 function ConcernPhoto({ url }: { url: string }) {
   const [failed, setFailed] = useState(false);
   if (failed) {
     return (
-      <div className="w-24 h-28 rounded-xl bg-[var(--color-bg-secondary)] flex items-center justify-center shrink-0">
+      <div className="w-24 h-28 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)] flex items-center justify-center shrink-0">
         <Camera size={28} className="text-[var(--color-text-dim)]" />
       </div>
     );
   }
   return (
-    <div className="w-24 h-28 rounded-xl bg-[var(--color-bg-secondary)] overflow-hidden shrink-0">
+    <div className="w-24 h-28 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)] overflow-hidden shrink-0">
       <img src={url} alt="" className="w-full h-full object-cover" onError={() => setFailed(true)} />
     </div>
   );
@@ -34,6 +35,7 @@ export default function ConcernDetailPage({ params }: Props) {
   const t = useLocaleStore(s => s.t);
   const { id } = use(params);
   const { concern, photos, loading, error } = useConcern(id);
+  const { proposals: realProposals } = useProposalsForConcern(id);
 
   if (loading) {
     return (
@@ -52,8 +54,8 @@ export default function ConcernDetailPage({ params }: Props) {
     );
   }
 
-  const proposals = MOCK_PROPOSALS.filter(p => p.concernId === concern.id && p.isActive);
-  const actions = computeConcernActions(concern, MOCK_PROPOSALS);
+  const proposals = realProposals.filter(p => p.isActive);
+  const actions = computeConcernActions(concern, realProposals);
   const articles = getRecommendedArticles(concern.primaryArea, concern.status);
 
   return (
@@ -78,19 +80,19 @@ export default function ConcernDetailPage({ params }: Props) {
 
         <div className="flex flex-wrap gap-2 mb-3">
           {concern.budgetMin && concern.budgetMax && (
-            <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[var(--color-bg-secondary)]">
+            <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)]">
               <Wallet size={12} className="text-[var(--color-text-dim)]" />
               <span className="text-[11px] text-[var(--color-text-secondary)]">{concern.budgetMin}~{concern.budgetMax}{t('common.currency')}</span>
             </div>
           )}
           {concern.visitDateFrom && (
-            <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[var(--color-bg-secondary)]">
+            <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)]">
               <Calendar size={12} className="text-[var(--color-text-dim)]" />
               <span className="text-[11px] text-[var(--color-text-secondary)]">{concern.visitDateFrom.slice(5)}~</span>
             </div>
           )}
           {proposals.length > 0 && (
-            <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[var(--color-bg-secondary)]">
+            <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)]">
               <span className="text-[11px] text-[var(--color-text-secondary)]">{t('decision.proposalCount', { count: proposals.length })}</span>
             </div>
           )}
@@ -104,7 +106,7 @@ export default function ConcernDetailPage({ params }: Props) {
             {actions.canAddPhotos && photos.length < 3 && (
               <button type="button"
                 onClick={() => track({ eventType: 'concern_photo_added', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko' } })}
-                className="w-24 h-28 rounded-xl border-2 border-dashed border-[var(--color-border)] flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-transparent shrink-0">
+                className="w-24 h-28 rounded-[var(--app-radius)] border-2 border-dashed border-[var(--color-border)] flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-transparent shrink-0">
                 <Camera size={20} className="text-[var(--color-text-dim)]" />
                 <span className="text-[10px] text-[var(--color-text-dim)]">{t('concern.form.photosAddMore')}</span>
               </button>
@@ -123,7 +125,7 @@ export default function ConcernDetailPage({ params }: Props) {
       {/* ══════════════════════════════════════
           SECTION 2: 현재 상태 + 다음 행동
          ══════════════════════════════════════ */}
-      <section className="rounded-2xl bg-[var(--color-bg-secondary)] px-4 py-4 mb-5">
+      <section className="rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)] px-4 py-4 mb-5">
         <div className="flex items-center gap-2 mb-2">
           <Badge variant={actions.statusColor}>{actions.statusLabel}</Badge>
           {actions.hasNewProposal && (
@@ -138,7 +140,7 @@ export default function ConcernDetailPage({ params }: Props) {
 
         {actions.extraActions.map(action => (
           <Link key={action.label} href={action.href} className="no-underline block mb-3">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-[var(--app-radius-sm)] bg-[var(--color-bg)]">
               <Sparkles size={13} className="text-[var(--color-primary)]" />
               <span className="text-[12px] font-medium text-[var(--color-primary)]">{action.label}</span>
             </div>
@@ -175,27 +177,24 @@ export default function ConcernDetailPage({ params }: Props) {
             </Link>
           </div>
           <div className="flex flex-col gap-2">
-            {proposals.slice(0, 3).map(p => {
-              const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
-              return (
-                <Link key={p.id} href={`/concerns/${concern.id}/proposals`} className="no-underline block">
-                  <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl bg-white"
-                    style={{ boxShadow: 'var(--app-shadow-card-light)' }}>
-                    <div className="w-9 h-9 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center text-[12px] font-bold text-[var(--color-text-dim)] shrink-0">
-                      {(profile?.hospitalName || '병')[0]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[13px] font-medium text-[var(--color-text)]">{profile?.hospitalName}</span>
-                      <div className="flex items-center gap-2 text-[11px] text-[var(--color-text-dim)]">
-                        <span>{p.totalPrice}{t('common.currency')}</span>
-                        <span>{t('common.recovery')} {p.recoveryDays}{t('common.days')}</span>
-                      </div>
-                    </div>
-                    {!p.viewedAt && <span className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />}
+            {proposals.slice(0, 3).map(p => (
+              <Link key={p.id} href={`/concerns/${concern.id}/proposals`} className="no-underline block">
+                <div className="flex items-center gap-3 px-3.5 py-3 rounded-[var(--app-radius)] bg-[var(--color-bg)]"
+                  style={{ boxShadow: 'var(--app-shadow-card-light)' }}>
+                  <div className="w-9 h-9 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center text-[12px] font-bold text-[var(--color-text-dim)] shrink-0">
+                    {(p.hospitalName || '병')[0]}
                   </div>
-                </Link>
-              );
-            })}
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[13px] font-medium text-[var(--color-text)]">{p.hospitalName}</span>
+                    <div className="flex items-center gap-2 text-[11px] text-[var(--color-text-dim)]">
+                      <span>{p.totalPrice}{t('common.currency')}</span>
+                      <span>{t('common.recovery')} {p.recoveryDays}{t('common.days')}</span>
+                    </div>
+                  </div>
+                  {!p.viewedAt && <span className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />}
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
       )}
@@ -205,12 +204,12 @@ export default function ConcernDetailPage({ params }: Props) {
          ══════════════════════════════════════ */}
       {actions.canBuyService && (
         <section className="mb-5">
-          <div className="rounded-2xl bg-white px-4 py-4"
+          <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg)] px-4 py-4"
             style={{ boxShadow: 'var(--app-shadow-card-light)' }}>
             <h3 className="text-[14px] font-semibold text-[var(--color-text)] mb-3">{t('concern.servicePrep')}</h3>
             <div className="flex flex-col gap-2">
               {['일정 관리', '통역 서비스', '픽업 서비스'].map(service => (
-                <div key={service} className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[var(--color-bg-secondary)]">
+                <div key={service} className="flex items-center justify-between px-3 py-2.5 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
                   <span className="text-[13px] text-[var(--color-text)]">{service}</span>
                   <ChevronRight size={14} className="text-[var(--color-text-dim)]" />
                 </div>
@@ -232,9 +231,9 @@ export default function ConcernDetailPage({ params }: Props) {
         </div>
         <div className="flex flex-col gap-2">
           {articles.slice(0, 3).map((a, i) => (
-            <Link key={i} href="/articles" className="flex gap-3 p-3 rounded-xl bg-white no-underline"
+            <Link key={i} href="/articles" className="flex gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
               style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
-              <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0">
+              <div className="w-12 h-12 rounded-[var(--app-radius-sm)] overflow-hidden shrink-0">
                 <div className={`w-full h-full bg-gradient-to-br ${a.gradient} flex items-center justify-center`}>
                   <BookOpen size={14} className="text-white/50" />
                 </div>
@@ -251,7 +250,7 @@ export default function ConcernDetailPage({ params }: Props) {
       {/* ══════════════════════════════════════
           SECTION 6: 재진입 CTA
          ══════════════════════════════════════ */}
-      <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-[var(--color-bg-secondary)]">
+      <div className="flex items-center gap-3 px-4 py-3.5 rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)]">
         <MessageCircle size={18} className="text-[var(--color-text-dim)]" />
         <div className="flex-1">
           <span className="text-[13px] text-[var(--color-text-secondary)]">{t('concern.reentryQuestion')}</span>
