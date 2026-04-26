@@ -174,9 +174,11 @@
 }
 .datagrid-btn:hover { background: #f9fafb; color: #374151; border-color: #9ca3af; }
 .datagrid-btn--primary {
-  background: var(--interactive-default, #2C6ECB); color: #fff; border-color: var(--interactive-default, #2C6ECB);
+  background: var(--interactive-default); color: #fff; border-color: var(--interactive-default);
 }
-.datagrid-btn--primary:hover { background: #1F5199; border-color: #1F5199; }
+.datagrid-btn--primary:hover {
+  background: var(--interactive-hovered); border-color: var(--interactive-hovered); color: #fff;
+}
 /* 검색 카드 안 버튼 — 인풋과 동일 높이 */
 .datagrid-search-actions .datagrid-btn {
   height: 34px; padding: 0 16px; font-size: 13px; font-weight: 600;
