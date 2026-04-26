@@ -135,7 +135,7 @@ export default function TreatmentsPage() {
       />
 
       {/* 상태 필터 탭 */}
-      <div className="flex gap-1 mt-3 mb-4 border-b border-[var(--color-border)]">
+      <div className="flex gap-1 mt-3 mb-4 border-b border-[var(--border-default)]">
         {STATUS_TABS.map(tab => (
           <button
             key={tab.key}
@@ -144,8 +144,8 @@ export default function TreatmentsPage() {
             className={`
               px-3 py-2 text-[12px] font-medium border-b-2 -mb-px transition-colors
               ${filter === tab.key
-                ? 'border-[var(--color-primary)] text-[var(--color-text)]'
-                : 'border-transparent text-[var(--color-text-dim)] hover:text-[var(--color-text)]'}
+                ? 'border-[var(--interactive-default)] text-[var(--text-default)]'
+                : 'border-transparent text-[var(--text-disabled)] hover:text-[var(--text-default)]'}
             `}
           >
             {tab.label}
@@ -164,10 +164,10 @@ export default function TreatmentsPage() {
         <Card padding="md" className="mt-4">
           <div className="text-center py-10">
             <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
-            <p className="text-[13px] font-medium text-[var(--color-text)] mb-1">
+            <p className="text-[13px] font-medium text-[var(--text-default)] mb-1">
               목록을 불러오지 못했어요
             </p>
-            <p className="text-[12px] text-[var(--color-text-dim)] mb-4">{loadError}</p>
+            <p className="text-[12px] text-[var(--text-disabled)] mb-4">{loadError}</p>
             <Button variant="secondary" size="sm" onClick={() => void load()}>
               다시 시도
             </Button>
@@ -178,7 +178,7 @@ export default function TreatmentsPage() {
       {!loading && !loadError && procedures?.length === 0 && (
         <Card padding="md" className="mt-4">
           <div className="text-center py-12">
-            <p className="text-[13px] text-[var(--color-text-dim)] mb-3">
+            <p className="text-[13px] text-[var(--text-disabled)] mb-3">
               {filter === 'all'
                 ? '등록된 시술이 없습니다.'
                 : `${STATUS_TABS.find(t => t.key === filter)?.label} 상태의 시술이 없습니다.`}
@@ -198,14 +198,14 @@ export default function TreatmentsPage() {
             return (
               <Link key={p.id} href={`/treatments/${p.id}/edit`} className="no-underline">
                 <Card padding="none" hoverable>
-                  <div className="h-32 bg-[var(--color-bg-tertiary)] flex items-center justify-center overflow-hidden rounded-t-[var(--app-radius)]">
+                  <div className="h-32 bg-[var(--surface-subdued)] flex items-center justify-center overflow-hidden rounded-t-[var(--app-radius)]">
                     {p.heroImageUrl
                       ? <img src={p.heroImageUrl} alt="" className="w-full h-full object-cover" />
-                      : <ImageIcon size={28} className="text-[var(--color-text-dim)]" />}
+                      : <ImageIcon size={28} className="text-[var(--text-disabled)]" />}
                   </div>
                   <div className="p-3">
                     <div className="flex items-start justify-between mb-1.5">
-                      <p className="text-[13px] font-semibold text-[var(--color-text)] mb-0.5 line-clamp-1">
+                      <p className="text-[13px] font-semibold text-[var(--text-default)] mb-0.5 line-clamp-1">
                         {title}
                       </p>
                       <Badge variant={STATUS_VARIANT[p.status]} size="sm">
@@ -214,13 +214,13 @@ export default function TreatmentsPage() {
                     </div>
                     <div className="flex items-center gap-2 mb-1.5">
                       <Badge variant="info" size="sm">{p.primaryArea}</Badge>
-                      <span className="text-[12px] font-semibold text-[var(--color-text)]">
+                      <span className="text-[12px] font-semibold text-[var(--text-default)]">
                         {p.priceMin === p.priceMax
                           ? `${(p.priceMin / 10000).toFixed(0)}만`
                           : `${(p.priceMin / 10000).toFixed(0)}~${(p.priceMax / 10000).toFixed(0)}만`}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border-light)] text-[11px] text-[var(--color-text-dim)]">
+                    <div className="flex items-center justify-between pt-2 border-t border-[var(--border-subdued)] text-[11px] text-[var(--text-disabled)]">
                       {/* D2: draft/archived 는 public 노출 전이라 조회·북마크 의미 없음 */}
                       <span>
                         {p.status === 'published'

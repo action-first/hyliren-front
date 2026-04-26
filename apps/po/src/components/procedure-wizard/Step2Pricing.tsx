@@ -54,7 +54,7 @@ export function Step2Pricing({ form, onChange }: Step2Props) {
     <div className="flex flex-col gap-6">
       {/* 기본값 */}
       <div>
-        <p className="text-[12px] text-[var(--color-text-dim)] mb-3">
+        <p className="text-[12px] text-[var(--text-disabled)] mb-3">
           기본값 — 옵션별로 다른 값이 필요하면 각 옵션 카드에서 개별 설정.
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -95,7 +95,7 @@ export function Step2Pricing({ form, onChange }: Step2Props) {
       {/* Variants */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[12px] text-[var(--color-text-dim)]">
+          <p className="text-[12px] text-[var(--text-disabled)]">
             시술 옵션 — 예: 쌍꺼풀 → 매몰/부분절개/절개. 최소 1개, 대표 1개.
           </p>
           <Button variant="secondary" size="sm" onClick={addVariant}>

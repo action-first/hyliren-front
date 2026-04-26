@@ -64,7 +64,7 @@ export function WizardShell({
     <div className="flex flex-col h-full">
       <div className="flex flex-1 overflow-hidden">
         {/* 좌측 세로 stepper (컴팩트 200px) */}
-        <aside className="w-[200px] shrink-0 border-r border-[var(--color-border)] p-3 bg-[var(--color-bg-secondary)]">
+        <aside className="w-[200px] shrink-0 border-r border-[var(--border-default)] p-3 bg-[var(--surface-default)]">
           <StepProgress steps={steps} activeIndex={activeIndex} onStepClick={onStepChange} />
         </aside>
 
@@ -78,15 +78,15 @@ export function WizardShell({
               의도: 파괴/이탈 관련 액션(임시저장)을 네비게이션(이전/다음)과
                    시각적으로 떨어뜨려 혼동·오클릭 감소.
             */}
-            <div className="flex items-center justify-between gap-4 mb-5 pb-4 border-b border-[var(--color-border)]">
+            <div className="flex items-center justify-between gap-4 mb-5 pb-4 border-b border-[var(--border-default)]">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="min-w-0">
                   {title && (
-                    <p className="text-[11px] font-medium text-[var(--color-text-dim)] mb-0.5">
+                    <p className="text-[11px] font-medium text-[var(--text-disabled)] mb-0.5">
                       {title}
                     </p>
                   )}
-                  <h1 className="text-[18px] font-bold text-[var(--color-text)] leading-tight">
+                  <h1 className="text-[18px] font-bold text-[var(--text-default)] leading-tight">
                     {currentStep?.label}
                   </h1>
                 </div>
@@ -137,8 +137,8 @@ function SaveIndicator({ status, savedAt }: { status?: 'idle' | 'saving' | 'save
   if (!status || status === 'idle') return null;
   if (status === 'saving') {
     return (
-      <span className="inline-flex items-center gap-1 text-[11px] text-[var(--color-text-dim)]">
-        <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-text-dim)] animate-pulse" />
+      <span className="inline-flex items-center gap-1 text-[11px] text-[var(--text-disabled)]">
+        <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-disabled)] animate-pulse" />
         저장 중…
       </span>
     );

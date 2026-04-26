@@ -30,7 +30,7 @@ export function LocaleTabs({
   locales = PO_WIZARD_LOCALES,
 }: LocaleTabsProps) {
   return (
-    <div className="flex gap-0 border-b border-[var(--color-border)] mb-3">
+    <div className="flex gap-0 border-b border-[var(--border-default)] mb-3">
       {locales.map(loc => {
         const isActive = loc === active;
         const isSource = loc === sourceLocale;
@@ -45,14 +45,14 @@ export function LocaleTabs({
               flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium
               border-b-2 transition-colors -mb-px
               ${isActive
-                ? 'border-[var(--color-primary)] text-[var(--color-text)]'
-                : 'border-transparent text-[var(--color-text-dim)] hover:text-[var(--color-text)]'}
+                ? 'border-[var(--interactive-default)] text-[var(--text-default)]'
+                : 'border-transparent text-[var(--text-disabled)] hover:text-[var(--text-default)]'}
             `}
           >
             <span className="text-[14px]">{flag}</span>
             <span>{name}</span>
             {isSource && (
-              <span className="text-[10px] font-bold text-[var(--color-primary)]">*</span>
+              <span className="text-[10px] font-bold text-[var(--interactive-default)]">*</span>
             )}
             {!isSource && isDone && (
               <span className="text-[10px] text-[var(--color-success)]">✓</span>
