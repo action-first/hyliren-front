@@ -178,7 +178,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
           </p>
           <div className="flex justify-end gap-2">
             <Button variant="secondary" onClick={onClose}>취소</Button>
-            <Button variant="accent" onClick={handleSend} disabled={!canSend || sending}>
+            <Button variant="primary" onClick={handleSend} disabled={!canSend || sending}>
               {sending ? '발송 중…' : '제안서 발송'}
             </Button>
           </div>

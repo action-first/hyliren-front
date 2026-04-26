@@ -255,7 +255,7 @@ export default function ComparePage({ params }: Props) {
             <p className="text-[11px] text-[var(--color-text-dim)] leading-relaxed mb-3">
               {t('proposal.compare.analysisDesc')}
             </p>
-            <Button variant="accent" size="md" fullWidth
+            <Button variant="primary" size="md" fullWidth
               onClick={() => {
                 track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: 'compare_page' } });
                 setShowCompareReport(true);
@@ -272,7 +272,7 @@ export default function ComparePage({ params }: Props) {
       {/* ── Sticky CTA ── */}
       <MobileBottomCTA>
         {selectedId ? (
-          <Button variant="primary" fullWidth size="xl"
+          <Button variant="neutral" fullWidth size="xl"
             onClick={async () => {
               track({ eventType: 'hospital_selected', actorType: 'user', targetType: 'proposal', targetId: selectedId, metadata: { source: 'fo', locale: 'ko', label: concern.primaryArea } });
               await useDecisionStore.getState().selectHospital(concern.id, selectedId);

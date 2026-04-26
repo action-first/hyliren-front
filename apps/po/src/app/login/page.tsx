@@ -124,7 +124,7 @@ function PartnerLoginForm() {
           </label>
 
           <Button
-            variant="accent"
+            variant="primary"
             size="md"
             type="submit"
             disabled={submitting || !email || !password || !!emailError}

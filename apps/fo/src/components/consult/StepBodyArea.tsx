@@ -57,7 +57,7 @@ export function StepBodyArea() {
       </div>
 
       <Button
-        variant="accent"
+        variant="primary"
         size="lg"
         fullWidth
         disabled={!selectedBodyArea}

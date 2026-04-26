@@ -119,7 +119,7 @@ export default function TreatmentsPage() {
       sidebar={<POSidebar active="/treatments" />}
       title="시술 관리"
       actions={
-        <Button variant="accent" size="sm" onClick={handleNewClick} disabled={creatingNew}>
+        <Button variant="primary" size="sm" onClick={handleNewClick} disabled={creatingNew}>
           <Plus size={13} /> 새 시술 등록
         </Button>
       }
@@ -183,7 +183,7 @@ export default function TreatmentsPage() {
                 ? '등록된 시술이 없습니다.'
                 : `${STATUS_TABS.find(t => t.key === filter)?.label} 상태의 시술이 없습니다.`}
             </p>
-            <Button variant="accent" size="sm" onClick={handleNewClick} disabled={creatingNew}>
+            <Button variant="primary" size="sm" onClick={handleNewClick} disabled={creatingNew}>
               <Plus size={13} /> 첫 시술 등록하기
             </Button>
           </div>
@@ -250,7 +250,7 @@ export default function TreatmentsPage() {
             <span className="font-semibold text-[var(--text-default)]">{draftTitle}</span> 으로 작성하던 시술이 있어요.
           </p>
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="accent" onClick={handleResumeDraft}>
+            <Button variant="primary" onClick={handleResumeDraft}>
               이어서 작성하기
             </Button>
             <Button variant="secondary" onClick={() => setDraftModalStep('confirm')}>
@@ -269,7 +269,7 @@ export default function TreatmentsPage() {
             <Button variant="secondary" onClick={() => setDraftModalStep('choose')}>
               뒤로
             </Button>
-            <Button variant="accent" onClick={handleConfirmNewWrite}>
+            <Button variant="primary" onClick={handleConfirmNewWrite}>
               삭제하고 새로 작성
             </Button>
           </div>

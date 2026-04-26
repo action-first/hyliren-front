@@ -248,7 +248,7 @@ export default function ProcedureDetailPage() {
       </section>
 
       <div className="fixed bottom-[calc(var(--fo-bottom-bar-height)+var(--fo-safe-area-bottom)+8px)] left-1/2 -translate-x-1/2 w-full max-w-[var(--fo-frame-max-width)] px-5 z-30">
-        <Button variant="accent" size="xl" fullWidth onClick={startConsult}>
+        <Button variant="primary" size="xl" fullWidth onClick={startConsult}>
           <MessageCircle size={18} />
           관심 태그로 상담 시작
         </Button>

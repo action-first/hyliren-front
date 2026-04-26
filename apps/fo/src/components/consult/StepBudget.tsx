@@ -74,7 +74,7 @@ export function StepBudget() {
       </button>
 
       <Button
-        variant="accent"
+        variant="primary"
         size="lg"
         fullWidth
         disabled={!budgetRange}

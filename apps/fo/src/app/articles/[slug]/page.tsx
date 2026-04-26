@@ -246,7 +246,7 @@ export default function ArticleDetailPage() {
             <span className="text-[11px] text-[var(--color-text-dim)]">{t('articles.bottomDesc')}</span>
           </div>
           <Link href="/consult" className="no-underline">
-            <Button variant="accent" size="sm">{article.ctaText} <ArrowRight size={12} /></Button>
+            <Button variant="primary" size="sm">{article.ctaText} <ArrowRight size={12} /></Button>
           </Link>
         </div>
       </div>

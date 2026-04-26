@@ -62,7 +62,7 @@ export function StepAIReview() {
 
       {/* CTA */}
       <div className="mt-auto flex flex-col gap-2 pb-2">
-        <Button variant="accent" size="xl" fullWidth onClick={() => setStep('confirm')}>
+        <Button variant="primary" size="xl" fullWidth onClick={() => setStep('confirm')}>
           {t('consult.reviewCta')}
         </Button>
         <button

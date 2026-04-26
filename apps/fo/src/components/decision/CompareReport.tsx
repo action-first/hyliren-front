@@ -270,12 +270,12 @@ export function CompareReport({ proposals, items, concernId, onClose }: Props) {
           {/* Sticky CTA */}
           <div className="sticky bottom-0 bg-[var(--color-bg)] border-t border-[var(--color-border-light)] px-5 py-4">
             {purchased ? (
-              <Button variant="primary" size="xl" fullWidth onClick={onClose}>
+              <Button variant="neutral" size="xl" fullWidth onClick={onClose}>
                 {t('common.confirm')}
               </Button>
             ) : (
               <>
-                <Button variant="accent" size="xl" fullWidth onClick={handlePurchase}>
+                <Button variant="primary" size="xl" fullWidth onClick={handlePurchase}>
                   {t('report.compareCta')}
                 </Button>
                 <p className="text-center text-[10px] text-[var(--color-text-dim)] mt-1.5">

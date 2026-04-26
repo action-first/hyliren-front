@@ -149,7 +149,7 @@ export default function ConcernDetailPage({ params }: Props) {
 
         {actions.primaryAction && (
           <Link href={actions.primaryAction.href} className="no-underline block">
-            <Button variant="accent" size="xl" fullWidth>
+            <Button variant="primary" size="xl" fullWidth>
               {actions.primaryAction.label}
               <ArrowRight size={18} />
             </Button>

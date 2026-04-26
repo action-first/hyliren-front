@@ -146,7 +146,7 @@ export default function ConcernDetailPage() {
               내 제안서 보기
             </Button>
           ) : (
-            <Button variant="accent" size="sm" onClick={() => setProposeOpen(true)}>
+            <Button variant="primary" size="sm" onClick={() => setProposeOpen(true)}>
               제안서 작성
             </Button>
           )
@@ -244,7 +244,7 @@ export default function ConcernDetailPage() {
                 <p className="text-[var(--text-base)] text-[var(--text-subdued)] mb-4">
                   아직 제안서를 발송하지 않았습니다
                 </p>
-                <Button variant="accent" size="sm" onClick={() => setProposeOpen(true)}>
+                <Button variant="primary" size="sm" onClick={() => setProposeOpen(true)}>
                   제안서 작성하기
                 </Button>
               </div>

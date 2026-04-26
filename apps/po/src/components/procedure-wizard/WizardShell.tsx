@@ -105,13 +105,13 @@ export function WizardShell({
                   </Button>
                 )}
                 {!isLast && (
-                  <Button variant="accent" size="sm" onClick={onNext} disabled={nextDisabled}>
+                  <Button variant="primary" size="sm" onClick={onNext} disabled={nextDisabled}>
                     다음 <ArrowRight size={13} />
                   </Button>
                 )}
                 {isLast && (
                   <Button
-                    variant="accent"
+                    variant="primary"
                     size="sm"
                     onClick={primaryAction.onClick}
                     disabled={primaryAction.disabled || primaryAction.loading}

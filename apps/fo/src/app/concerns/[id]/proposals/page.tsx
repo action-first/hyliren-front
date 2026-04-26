@@ -115,7 +115,7 @@ export default function ProposalListPage({ params }: Props) {
       <MobileBottomCTA>
         {selected.size >= 2 ? (
           <Link href={`/concerns/${concern.id}/compare`} className="w-full no-underline">
-            <Button variant="primary" fullWidth size="xl">
+            <Button variant="neutral" fullWidth size="xl">
               {t('proposal.list.compareButton', { count: selected.size })}
               <ArrowRight size={18} />
             </Button>

@@ -82,13 +82,60 @@ function shortDate(iso: string) {
   return iso;
 }
 
-function recentDays(n: number): string[] {
+function formatLocalDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function addDays(date: Date, days: number): Date {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function recentDays(n: number, end = new Date()): string[] {
   const dates: string[] = [];
   for (let i = n - 1; i >= 0; i--) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    dates.push(d.toISOString().slice(0, 10));
+    dates.push(formatLocalDate(addDays(end, -i)));
   }
   return dates;
+}
+
+function daysBetween(from: Date, to: Date): string[] {
+  const start = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  const end = new Date(to.getFullYear(), to.getMonth(), to.getDate());
+  const dates: string[] = [];
+  for (let cursor = start; cursor <= end; cursor = addDays(cursor, 1)) {
+    dates.push(formatLocalDate(cursor));
+  }
+  return dates;
+}
+
+function resolveDateWindow(range: DateRange, customFrom?: Date | null, customTo?: Date | null): { from: string; to: string; days: string[]; label: string } {
+  const today = new Date();
+  if (range === 'today') {
+    const day = formatLocalDate(today);
+    return { from: day, to: day, days: [day], label: '오늘' };
+  }
+  if (range === '7d') {
+    const days = recentDays(7, today);
+    return { from: days[0], to: days[days.length - 1], days, label: '최근 7일' };
+  }
+  if (range === 'custom' && customFrom) {
+    const to = customTo ?? customFrom;
+    const days = daysBetween(customFrom, to);
+    return { from: days[0], to: days[days.length - 1], days, label: '사용자 지정 기간' };
+  }
+  const days = recentDays(30, today);
+  return { from: days[0], to: days[days.length - 1], days, label: '최근 30일' };
+}
+
+function isDateInWindow(value: string | null | undefined, from: string, to: string): boolean {
+  if (!value) return false;
+  const day = value.slice(0, 10);
+  return day >= from && day <= to;
 }
 
 // ── KPI 카드 컴포넌트 (컴팩트 — 아이콘 좌측, 1줄 구성) ──
@@ -249,6 +296,8 @@ export default function DashboardPage() {
   const { balance, transactions } = useCreditsStore();
 
   const [dateRange, setDateRange] = useState<DateRange>('30d');
+  const [customFrom, setCustomFrom] = useState<Date | null>(null);
+  const [customTo, setCustomTo] = useState<Date | null>(null);
   const [concerns, setConcerns] = useState<ConcernSummaryWire[]>([]);
   const [proposals, setProposals] = useState<ProposalDetailWire[]>([]);
   const [loading, setLoading] = useState(true);
@@ -262,9 +311,14 @@ export default function DashboardPage() {
       }).catch(() => setLoading(false));
   }, []);
 
+  const dateWindow = resolveDateWindow(dateRange, customFrom, customTo);
+  const periodConcerns = concerns.filter(c => isDateInWindow(c.createdAt, dateWindow.from, dateWindow.to));
+  const periodProposals = proposals.filter(p => isDateInWindow(p.sentAt ?? p.createdAt, dateWindow.from, dateWindow.to));
+  const periodTransactions = transactions.filter(tx => isDateInWindow(tx.date, dateWindow.from, dateWindow.to));
+
   // KPI
-  const openConcerns = concerns.filter(c => c.status === 'submitted' || c.status === 'proposal_received');
-  const myProposals = proposals;
+  const openConcerns = periodConcerns.filter(c => c.status === 'submitted' || c.status === 'proposal_received');
+  const myProposals = periodProposals;
   const viewedCount = myProposals.filter(p => p.viewedAt !== null).length;
   const viewRate = myProposals.length > 0 ? Math.round((viewedCount / myProposals.length) * 100) : 0;
   const selectedCount = myProposals.filter(p => isProposalAccepted({ status: p.status as ProposalStatus })).length;
@@ -281,25 +335,29 @@ export default function DashboardPage() {
   }));
 
   // 도넛 — 부위별 분포
-  const areaGroups = concerns.reduce<Record<string, number>>((acc, c) => {
+  const areaGroups = periodConcerns.reduce<Record<string, number>>((acc, c) => {
     acc[c.primaryArea] = (acc[c.primaryArea] ?? 0) + 1; return acc;
   }, {});
   const areaPieData = Object.entries(areaGroups).map(([area, count]) => ({
     name: area, value: count, color: AREA_COLORS[area] ?? '#94a3b8',
   }));
 
-  // 주간 추이
-  const days = recentDays(7);
+  // 기간별 제안 추이
+  const days = dateWindow.days;
   const trendData = days.map(date => {
     const sent = myProposals.filter(p => p.sentAt?.slice(0, 10) === date).length;
     const viewed = myProposals.filter(p => p.viewedAt?.slice(0, 10) === date).length;
     return { date: shortDate(date), 발송: sent, 열람: viewed };
   });
 
-  // 크레딧 바
-  const barData = [...transactions].slice(0, 8).reverse().map(tx => ({
-    name: shortDate(tx.date), amount: tx.amount, reason: tx.reason,
-  }));
+  // 크레딧 일별 집계
+  const creditDailyData = days.map(date => {
+    const txs = periodTransactions.filter(tx => tx.date.slice(0, 10) === date);
+    const charge = txs.filter(tx => tx.amount > 0).reduce((sum, tx) => sum + tx.amount, 0);
+    const spend = txs.filter(tx => tx.amount < 0).reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+    return { name: shortDate(date), 충전: charge, 사용: spend, 순증감: charge - spend };
+  });
+  const hasCreditDailyData = creditDailyData.some(d => d.충전 > 0 || d.사용 > 0);
 
   // ── 로딩 ──
   if (loading) {
@@ -327,10 +385,17 @@ export default function DashboardPage() {
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-default)', margin: 0 }}>운영 현황</h2>
             <p style={{ fontSize: 13, color: 'var(--text-disabled)', marginTop: 2 }}>
-              {dateRange === 'today' ? '오늘' : dateRange === '7d' ? '최근 7일' : dateRange === '30d' ? '최근 30일' : '사용자 지정 기간'} 기준
+              {dateWindow.label} 기준
             </p>
           </div>
-          <DateFilter value={dateRange} onChange={setDateRange} />
+          <DateFilter
+            value={dateRange}
+            onChange={(range, from, to) => {
+              setDateRange(range);
+              setCustomFrom(from ?? null);
+              setCustomTo(to ?? null);
+            }}
+          />
         </div>
 
         {/* ═══ KPI 카드 ═══ */}
@@ -391,7 +456,7 @@ export default function DashboardPage() {
             )}
           </ChartCard>
 
-          <ChartCard title="주간 제안 추이" subtitle="최근 7일">
+          <ChartCard title="제안 추이" subtitle={dateWindow.label}>
             <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={trendData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
                 <defs>
@@ -420,9 +485,9 @@ export default function DashboardPage() {
 
         {/* ═══ 차트 2행: 부위별 고민 분포(바) + 크레딧 내역(바) ═══ */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <ChartCard title="부위별 고민 분포" subtitle={`총 ${concerns.length}건`}>
+          <ChartCard title="부위별 고민 분포" subtitle={`총 ${periodConcerns.length}건`}>
             {areaPieData.length > 0 ? (
-              <AreaTreemap data={areaPieData} total={concerns.length} />
+              <AreaTreemap data={areaPieData} total={periodConcerns.length} />
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 220, color: 'var(--text-disabled)', fontSize: 13 }}>
                 고민 데이터가 없습니다.
@@ -430,24 +495,21 @@ export default function DashboardPage() {
             )}
           </ChartCard>
 
-          <ChartCard title="크레딧 내역" subtitle="최근 거래">
-            {barData.length > 0 ? (
+          <ChartCard title="크레딧 내역" subtitle={`${dateWindow.label} 일별 집계`}>
+            {hasCreditDailyData ? (
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={barData} margin={{ top: 8, right: 4, left: -20, bottom: 0 }}>
+                <BarChart data={creditDailyData} margin={{ top: 8, right: 4, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subdued)" vertical={false} />
                   <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} />
                   <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(79,70,229,0.04)' }}
-                    formatter={(value, _name, props) => {
-                      const v = Number(value);
-                      return [`${v > 0 ? '+' : ''}${v}크레딧`, (props as { payload?: { reason?: string } }).payload?.reason ?? '거래'];
-                    }}
+                    formatter={(value, name) => [`${Number(value)}크레딧`, String(name)]}
                   />
-                  <Bar dataKey="amount" radius={[6, 6, 0, 0]} maxBarSize={32}>
-                    {barData.map((entry, i) => (
-                      <Cell key={i} fill={entry.amount > 0 ? C.main : C.negative} fillOpacity={0.85} />
-                    ))}
-                  </Bar>
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+                    formatter={(value: string) => <span style={{ fontSize: 12, color: 'var(--text-subdued)', marginLeft: 2 }}>{value}</span>}
+                  />
+                  <Bar dataKey="충전" fill={C.main} fillOpacity={0.85} radius={[6, 6, 0, 0]} maxBarSize={28} />
+                  <Bar dataKey="사용" fill={C.negative} fillOpacity={0.82} radius={[6, 6, 0, 0]} maxBarSize={28} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (

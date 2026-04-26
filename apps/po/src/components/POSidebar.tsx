@@ -184,7 +184,7 @@ export function POSidebar({ active }: { active: string }) {
         <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 12, textAlign: 'center' }}>결제는 데모 모드입니다</p>
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="secondary" size="sm" onClick={() => { setShowModal(false); setSelected(null); }}>취소</Button>
-          <Button variant="accent" size="sm" onClick={handleCharge} disabled={!selected}>
+          <Button variant="primary" size="sm" onClick={handleCharge} disabled={!selected}>
             {selected ? `${selected}크레딧 충전` : '충전'}
           </Button>
         </div>

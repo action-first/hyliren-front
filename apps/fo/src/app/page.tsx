@@ -83,7 +83,7 @@ export default function HomePage() {
         {/* CTA — 히어로 하단 상시 노출 */}
         <div className="px-5 pt-4 pb-8">
           <Link href="/consult" className="w-full no-underline block">
-            <Button variant="accent" size="xl" fullWidth>
+            <Button variant="primary" size="xl" fullWidth>
               {t('landing.cta')}
               <ArrowRight size={18} />
             </Button>
@@ -308,7 +308,7 @@ function ProposalArrivedSheet({ count }: { count: number }) {
       </div>
 
       <Link href="/decision" className="no-underline block">
-        <Button variant="accent" size="xl" fullWidth>
+        <Button variant="primary" size="xl" fullWidth>
           제안 확인하기
           <ArrowRight size={18} />
         </Button>
