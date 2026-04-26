@@ -110,7 +110,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   }, [id, member]);
 
   const stepsWithDone = useMemo(
-    () => form ? STEPS.map((s, i) => ({ ...s, done: stepIsValid(form, i) })) : STEPS,
+    () => STEPS.map((s, i) => ({ ...s, done: form ? stepIsValid(form, i) : false })),
     [form],
   );
 
@@ -477,10 +477,24 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       <div className="flex-1 flex flex-col bg-white">
         <WizardShell
           title="시술 수정"
-          mode="edit"
+          /* mode 분기:
+             - draft: sequential (1-3 = '다음' per-step / 4 = '공개하기'). 작성 완료 흐름.
+             - published/archived: free 탐색. '변경사항 저장' 어디서나. 부분 수정 흐름.
+             사용자 멘탈모델: draft 는 끝까지 채우는 '진행', non-draft 는 부분 수정 '편집'. */
+          mode={form.status === 'draft' ? 'create' : 'edit'}
           steps={stepsWithDone}
           activeIndex={activeStep}
-          onStepChange={setActiveStep}
+          onStepChange={i => {
+            // draft 는 sequential — 미완 step 건너뛰기 차단 (단, 뒤로 이동은 자유)
+            if (form.status === 'draft') {
+              if (i <= activeStep || stepsWithDone[i - 1]?.done) setActiveStep(i);
+            } else {
+              setActiveStep(i);
+            }
+          }}
+          onPrev={() => setActiveStep(Math.max(0, activeStep - 1))}
+          onNext={() => setActiveStep(Math.min(STEPS.length - 1, activeStep + 1))}
+          nextDisabled={!stepIsValid(form, activeStep)}
           saveStatus={saveStatus}
           savedAt={savedAt}
           headerInfo={<StatusChip status={form.status} />}
