@@ -66,12 +66,9 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
       await loginWithPassword({ email, password });
       setStep('welcome');
     } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
-        setStep('register');
-        setErrorMessage(null);
-      } else {
-        setErrorMessage(mapError(err));
-      }
+      // 401 은 잘못된 비번 / 미가입 이메일 둘 다라서 backend 가 의도적으로 구분 안 함
+      // (email enumeration 방지). FE 는 알람 표시만 하고 사용자가 직접 '회원가입 하기' 선택.
+      setErrorMessage(mapError(err));
     } finally {
       setSubmitting(false);
     }
