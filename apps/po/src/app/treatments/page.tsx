@@ -2,13 +2,15 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { POSidebar } from '@/components/POSidebar';
-import { Card, Button, Badge, SectionHeader, AdminPage, Spinner } from '@hyliren/ui';
+import { Card, Button, Badge, SectionHeader, AdminPage, Modal, Spinner } from '@hyliren/ui';
 import { proceduresApi } from '@/lib/api/procedures';
 import { usePOAuthStore } from '@/store/po-auth';
+import { useToastStore } from '@/store/toast';
 import { pickI18n } from '@hyliren/shared/src/domain/procedure';
 import type { Procedure, ProcedureStatus } from '@hyliren/shared';
-import { Plus, ImageIcon, Pencil, AlertTriangle } from 'lucide-react';
+import { Plus, ImageIcon, Pencil, AlertTriangle, FileEdit, FilePlus2 } from 'lucide-react';
 
 type StatusFilter = 'all' | ProcedureStatus;
 
@@ -32,6 +34,8 @@ const STATUS_VARIANT: Record<ProcedureStatus, 'default' | 'success' | 'warning' 
 };
 
 export default function TreatmentsPage() {
+  const router = useRouter();
+  const showToast = useToastStore(s => s.showToast);
   const member = usePOAuthStore(s => s.member);
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [procedures, setProcedures] = useState<Procedure[] | null>(null);
@@ -39,6 +43,12 @@ export default function TreatmentsPage() {
   // D3: 로드 실패 시 procedures=[] 로 덮어버리면 "0건" 이 보여져 공개 상품이
   //     사라진 것처럼 오인됨. 에러 상태를 분리해 재시도 경로를 명시적으로 제공.
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // 새 시술 등록 분기 모달 — draft 가 있으면 '이어서/새로' 선택, '새로' 는 confirm 단계 추가
+  const [draftModalOpen, setDraftModalOpen] = useState(false);
+  const [draftModalStep, setDraftModalStep] = useState<'choose' | 'confirm'>('choose');
+  const [existingDraft, setExistingDraft] = useState<Procedure | null>(null);
+  const [creatingNew, setCreatingNew] = useState(false);
 
   const load = useCallback(async () => {
     if (!member) return;
@@ -59,16 +69,59 @@ export default function TreatmentsPage() {
 
   useEffect(() => { void load(); }, [load]);
 
+  // "+ 새 시술 등록" 클릭 — draft 있으면 분기 모달, 없으면 바로 new
+  async function handleNewClick() {
+    if (creatingNew) return;
+    setCreatingNew(true);
+    try {
+      const res = await proceduresApi.list({ status: 'draft' });
+      const draft = res.procedures[0] ?? null;
+      if (draft) {
+        setExistingDraft(draft);
+        setDraftModalStep('choose');
+        setDraftModalOpen(true);
+      } else {
+        router.push('/treatments/new');
+      }
+    } catch {
+      // draft 조회 실패해도 new 페이지로 진입은 보장
+      router.push('/treatments/new');
+    } finally {
+      setCreatingNew(false);
+    }
+  }
+
+  function handleResumeDraft() {
+    if (!existingDraft) return;
+    setDraftModalOpen(false);
+    router.push(`/treatments/${existingDraft.id}/edit`);
+  }
+
+  async function handleConfirmNewWrite() {
+    if (!existingDraft) return;
+    try {
+      await proceduresApi.softDelete(existingDraft.id);
+      setDraftModalOpen(false);
+      router.push('/treatments/new');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '임시저장 삭제에 실패했습니다';
+      showToast(msg, 'error');
+    }
+  }
+
+  const draftTitle = existingDraft
+    ? pickI18n(existingDraft.i18n, 'ko', existingDraft.sourceLocale)?.content.title || '(제목 없음)'
+    : '';
+
   return (
+    <>
     <AdminPage
       sidebar={<POSidebar active="/treatments" />}
       title="시술 관리"
       actions={
-        <Link href="/treatments/new">
-          <Button variant="accent" size="sm">
-            <Plus size={13} /> 새 시술 등록
-          </Button>
-        </Link>
+        <Button variant="accent" size="sm" onClick={handleNewClick} disabled={creatingNew}>
+          <Plus size={13} /> 새 시술 등록
+        </Button>
       }
       prefix="po"
     >
@@ -130,11 +183,9 @@ export default function TreatmentsPage() {
                 ? '등록된 시술이 없습니다.'
                 : `${STATUS_TABS.find(t => t.key === filter)?.label} 상태의 시술이 없습니다.`}
             </p>
-            <Link href="/treatments/new">
-              <Button variant="accent" size="sm">
-                <Plus size={13} /> 첫 시술 등록하기
-              </Button>
-            </Link>
+            <Button variant="accent" size="sm" onClick={handleNewClick} disabled={creatingNew}>
+              <Plus size={13} /> 첫 시술 등록하기
+            </Button>
           </div>
         </Card>
       )}
@@ -186,5 +237,51 @@ export default function TreatmentsPage() {
         </div>
       )}
     </AdminPage>
+
+    {/* 새 시술 등록 분기 모달 — draft 가 있을 때 */}
+    <Modal
+      open={draftModalOpen}
+      onClose={() => setDraftModalOpen(false)}
+      title={draftModalStep === 'choose' ? '작성 중인 임시저장이 있습니다' : '새로 작성하시겠어요?'}
+    >
+      {draftModalStep === 'choose' && existingDraft && (
+        <div className="flex flex-col gap-4">
+          <p className="text-[var(--text-base)] text-[var(--text-default)] leading-relaxed">
+            <strong className="font-semibold">{draftTitle}</strong> 으로 임시저장된 작성건이 있습니다.
+            이어서 작성하거나 새로 시작할 수 있습니다.
+          </p>
+          <div className="flex flex-col gap-2">
+            <Button variant="accent" onClick={handleResumeDraft}>
+              <FileEdit size={14} /> 이어서 작성하기
+            </Button>
+            <Button variant="secondary" onClick={() => setDraftModalStep('confirm')}>
+              <FilePlus2 size={14} /> 새로 작성하기
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {draftModalStep === 'confirm' && (
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--color-danger-soft)]">
+            <AlertTriangle size={18} className="text-[var(--color-danger)] flex-shrink-0 mt-0.5" />
+            <p className="text-[var(--text-base)] text-[var(--text-default)] leading-relaxed">
+              <strong className="font-semibold">{draftTitle}</strong> 임시저장이
+              <strong className="text-[var(--color-danger)]"> 영구 삭제</strong>됩니다.
+              새로 작성을 시작하면 이전 작성건은 복구할 수 없습니다.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" onClick={() => setDraftModalStep('choose')}>
+              뒤로
+            </Button>
+            <Button variant="accent" onClick={handleConfirmNewWrite}>
+              삭제하고 새로 작성
+            </Button>
+          </div>
+        </div>
+      )}
+    </Modal>
+    </>
   );
 }
