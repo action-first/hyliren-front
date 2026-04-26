@@ -11,7 +11,12 @@ export interface SideSheetProps {
   /** 푸터 영역 — 액션 버튼 등. 미지정 시 푸터 미노출. */
   footer?: ReactNode;
   children: ReactNode;
-  /** sheet 너비. sm=360, md=480, lg=640. 기본 md. */
+  /**
+   * sheet 너비. 기본 md.
+   * - sm = 320px (컨펌 / 간단 메뉴)
+   * - md = 400px (read-only 뷰 / 일반 작성, 표준)
+   * - lg = 520px (복잡 form, 예외)
+   */
   width?: 'sm' | 'md' | 'lg';
   /** 닫기 버튼(X) 노출 여부. 기본 true. */
   showClose?: boolean;

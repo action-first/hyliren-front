@@ -141,22 +141,20 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
     <SideSheet
       open={open}
       onClose={onClose}
-      width="lg"
-      title={
-        <div className="flex items-center gap-2">
-          <span>제안서 작성</span>
-          <span className="text-[var(--text-subdued)] text-[var(--text-sm)] font-normal">
-            잔액 <strong className="text-[var(--text-default)]">{balance}</strong>크레딧 · 발송 시 {CREDIT_COST}개 차감
-          </span>
-        </div>
-      }
+      width="md"
+      title="제안서 작성"
       footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>취소</Button>
-          <Button variant="accent" onClick={handleSend} disabled={!canSend || sending}>
-            {sending ? '발송 중...' : `제안서 발송 (크레딧 ${CREDIT_COST}개)`}
-          </Button>
-        </>
+        <div className="w-full flex flex-col gap-2">
+          <p className="text-[var(--text-xs)] text-[var(--text-subdued)] text-right">
+            잔액 <strong className="text-[var(--text-default)]">{balance}</strong>크레딧 · 발송 시 {CREDIT_COST}개 차감
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" onClick={onClose}>취소</Button>
+            <Button variant="accent" onClick={handleSend} disabled={!canSend || sending}>
+              {sending ? '발송 중…' : '제안서 발송'}
+            </Button>
+          </div>
+        </div>
       }
     >
       <div className="propose-form">
@@ -195,24 +193,32 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
               </div>
             }
           />
-          <div className="propose-items-list mt-4">
+          <div className="flex flex-col gap-3 mt-4">
             {items.map((item, idx) => (
-              <div key={idx} className="propose-item-row">
+              <div
+                key={idx}
+                className="relative flex flex-col gap-2 p-3 rounded-[var(--app-radius)] bg-[var(--surface-subdued)] border border-[var(--border-subdued)]"
+              >
                 <Input
-                  label={idx === 0 ? '시술명' : undefined}
                   placeholder="시술명 (한국어)"
                   value={item.name}
                   onChange={e => updateItem(idx, 'name', e.target.value)}
                 />
                 <Input
-                  label={idx === 0 ? '가격 (만원)' : undefined}
                   type="number"
-                  placeholder="0"
+                  placeholder="가격 (만원)"
                   value={item.price || ''}
                   onChange={e => updateItem(idx, 'price', Number(e.target.value))}
                 />
                 {items.length > 1 && (
-                  <button className="propose-item-remove" onClick={() => removeItem(idx)}>×</button>
+                  <button
+                    type="button"
+                    aria-label="항목 삭제"
+                    className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-[var(--app-radius-sm)] bg-transparent border-0 text-[var(--text-disabled)] hover:bg-[var(--surface-hovered)] hover:text-[var(--text-default)] cursor-pointer text-[16px] leading-none"
+                    onClick={() => removeItem(idx)}
+                  >
+                    ×
+                  </button>
                 )}
               </div>
             ))}
@@ -254,18 +260,17 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
               onChange={nextValue => setAnesthesia(nextValue as AnesthesiaType)}
             />
           </div>
-          <div className="propose-form-row mt-4">
+          <div className="mt-3">
             <Input
               label="입원 기간 (일)"
               type="number"
               value={stayDays}
               onChange={e => setStayDays(Number(e.target.value))}
             />
-            <div />
           </div>
-          <div className="propose-form-row mt-4">
-            <Input label="시술 가능 시작일" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
-            <Input label="시술 가능 종료일" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+          <div className="propose-form-row mt-3">
+            <Input label="시작일" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+            <Input label="종료일" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
           </div>
         </Card>
 

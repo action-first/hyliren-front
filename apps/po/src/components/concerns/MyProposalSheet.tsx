@@ -102,12 +102,7 @@ export function MyProposalSheet({ concernId, open, onClose }: MyProposalSheetPro
       open={open}
       onClose={onClose}
       width="md"
-      title={
-        <div className="flex items-center gap-2">
-          <span>내 제안서</span>
-          {proposal && <StatusBadge label={statusLabel} />}
-        </div>
-      }
+      title="내 제안서"
     >
       {loading && (
         <div className="flex items-center justify-center py-20">
@@ -124,10 +119,14 @@ export function MyProposalSheet({ concernId, open, onClose }: MyProposalSheetPro
       )}
 
       {!loading && proposal && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
 
-          {/* 타임라인 */}
+          {/* 상태 + 타임라인 */}
           <Card padding="md">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[var(--text-sm)] text-[var(--text-subdued)]">진행 상태</span>
+              <StatusBadge label={statusLabel} />
+            </div>
             <div className="flex items-center gap-1">
               {TIMELINE_STEPS.map((step, i) => {
                 const reached = i <= currentStep;
@@ -139,7 +138,7 @@ export function MyProposalSheet({ concernId, open, onClose }: MyProposalSheetPro
                       }`}
                     >
                       <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold ${
+                        className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
                           reached
                             ? 'bg-[var(--interactive-default)] text-white'
                             : 'bg-[var(--surface-hovered)]'
@@ -204,34 +203,17 @@ export function MyProposalSheet({ concernId, open, onClose }: MyProposalSheetPro
             </div>
           </Card>
 
-          {/* 시술 정보 */}
+          {/* 시술 정보 — 좁은 sheet 친화 1-col list */}
           <Card padding="md">
             <SectionHeader title="시술 정보" />
-            <div className="grid grid-cols-2 gap-4 mt-3">
-              <div>
-                <div className="text-[var(--text-sm)] text-[var(--text-subdued)] mb-0.5">회복 기간</div>
-                <div className="text-[var(--text-base)] font-medium text-[var(--text-default)]">
-                  {proposal.recoveryDays}일
-                </div>
-              </div>
-              <div>
-                <div className="text-[var(--text-sm)] text-[var(--text-subdued)] mb-0.5">마취 유형</div>
-                <div className="text-[var(--text-base)] font-medium text-[var(--text-default)]">
-                  {ANESTHESIA_KR[proposal.anesthesiaType] ?? proposal.anesthesiaType}
-                </div>
-              </div>
-              <div>
-                <div className="text-[var(--text-sm)] text-[var(--text-subdued)] mb-0.5">입원 기간</div>
-                <div className="text-[var(--text-base)] font-medium text-[var(--text-default)]">
-                  {proposal.hospitalStayDays}일
-                </div>
-              </div>
-              <div>
-                <div className="text-[var(--text-sm)] text-[var(--text-subdued)] mb-0.5">시술 가능 기간</div>
-                <div className="text-[var(--text-base)] font-medium text-[var(--text-default)]">
-                  {formatDateRange(proposal.availableDateFrom, proposal.availableDateTo)}
-                </div>
-              </div>
+            <div className="flex flex-col gap-3 mt-3">
+              <MetaRow label="회복 기간">{proposal.recoveryDays}일</MetaRow>
+              <hr className="border-0 border-t border-[var(--border-subdued)]" />
+              <MetaRow label="마취 유형">{ANESTHESIA_KR[proposal.anesthesiaType] ?? proposal.anesthesiaType}</MetaRow>
+              <hr className="border-0 border-t border-[var(--border-subdued)]" />
+              <MetaRow label="입원 기간">{proposal.hospitalStayDays}일</MetaRow>
+              <hr className="border-0 border-t border-[var(--border-subdued)]" />
+              <MetaRow label="시술 가능 기간">{formatDateRange(proposal.availableDateFrom, proposal.availableDateTo)}</MetaRow>
             </div>
 
             {proposal.consultationNote && (

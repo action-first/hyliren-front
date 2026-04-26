@@ -231,8 +231,8 @@
     color: var(--interactive-default); font-weight: 600;
   }
 
-  /* ── Propose form ── */
-  .propose-form { display: flex; flex-direction: column; gap: 20px; }
+  /* ── Propose form (sheet 안 narrow 친화) ── */
+  .propose-form { display: flex; flex-direction: column; gap: 12px; }
   .propose-items-list { display: flex; flex-direction: column; gap: 8px; }
   .propose-item-row { display: grid; grid-template-columns: 1fr 8rem 2rem; gap: 8px; align-items: end; }
   .propose-item-remove {
@@ -439,9 +439,9 @@
   flex-direction: column;
   animation: side-sheet-slide-in 280ms cubic-bezier(0.32, 0.72, 0, 1);
 }
-.side-sheet--sm { width: 360px; max-width: 92vw; }
-.side-sheet--md { width: 480px; max-width: 92vw; }
-.side-sheet--lg { width: 640px; max-width: 95vw; }
+.side-sheet--sm { width: 320px; max-width: 92vw; }
+.side-sheet--md { width: 400px; max-width: 92vw; }
+.side-sheet--lg { width: 520px; max-width: 95vw; }
 
 .side-sheet-header {
   display: flex;
