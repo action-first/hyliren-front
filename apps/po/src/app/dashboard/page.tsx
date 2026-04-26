@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import type { ProposalStatus } from '@hyliren/shared';
 import {
@@ -8,15 +8,17 @@ import {
   formatBudget, formatDateRange,
   isProposalAccepted,
 } from '@hyliren/shared';
-import { AdminPage, DateFilter } from '@hyliren/ui';
+import { AdminPage, Card, Button, DateFilter } from '@hyliren/ui';
 import type { DateRange } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
 import { useCreditsStore } from '@/store/credits';
+import { useToastStore } from '@/store/toast';
 import { listConcerns, type ConcernSummaryWire } from '@/lib/api/concern';
 import { listMyProposals, type ProposalDetailWire } from '@/lib/api/proposal';
 import {
   FileText, Eye, CheckCircle2, Coins,
   TrendingUp, TrendingDown, ArrowRight, Sparkles,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
@@ -294,6 +296,7 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
 // ════════════════════════════════════════════════════════════
 export default function DashboardPage() {
   const { balance, transactions } = useCreditsStore();
+  const showToast = useToastStore(s => s.showToast);
 
   const [dateRange, setDateRange] = useState<DateRange>('7d');
   const [customFrom, setCustomFrom] = useState<Date | null>(null);
@@ -301,15 +304,25 @@ export default function DashboardPage() {
   const [concerns, setConcerns] = useState<ConcernSummaryWire[]>([]);
   const [proposals, setProposals] = useState<ProposalDetailWire[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setLoading(true);
+    setLoadError(null);
     Promise.all([listConcerns(), listMyProposals()])
       .then(([concernData, proposalData]) => {
         setConcerns(concernData.concerns ?? []);
         setProposals(proposalData.proposals ?? []);
-        setLoading(false);
-      }).catch(() => setLoading(false));
-  }, []);
+      })
+      .catch((e: unknown) => {
+        const msg = e instanceof Error ? e.message : '대시보드 데이터를 불러올 수 없습니다';
+        setLoadError(msg);
+        showToast(msg, 'error');
+      })
+      .finally(() => setLoading(false));
+  }, [showToast]);
+
+  useEffect(() => { load(); }, [load]);
 
   const dateWindow = resolveDateWindow(dateRange, customFrom, customTo);
   const periodConcerns = concerns.filter(c => isDateInWindow(c.createdAt, dateWindow.from, dateWindow.to));
@@ -365,13 +378,33 @@ export default function DashboardPage() {
       <AdminPage sidebar={<POSidebar active="/dashboard" />} title="대시보드" prefix="po">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
           {[1,2,3,4].map(i => (
-            <div key={i} style={{ background: 'var(--surface-default)', borderRadius: 16, padding: 24, border: '1px solid #f1f5f9' }}>
+            <div key={i} style={{ background: 'var(--surface-default)', borderRadius: 16, padding: 24, border: '1px solid var(--border-subdued)' }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--surface-hovered)', marginBottom: 16 }} />
               <div style={{ width: 60, height: 10, background: 'var(--surface-hovered)', borderRadius: 6, marginBottom: 8 }} />
               <div style={{ width: 80, height: 28, background: 'var(--surface-hovered)', borderRadius: 6 }} />
             </div>
           ))}
         </div>
+      </AdminPage>
+    );
+  }
+
+  // ── 에러 ── (treatments 패턴 일관: AlertTriangle + msg + 다시 시도)
+  if (loadError) {
+    return (
+      <AdminPage sidebar={<POSidebar active="/dashboard" />} title="대시보드" prefix="po">
+        <Card padding="md">
+          <div className="text-center py-10">
+            <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
+            <p className="text-[var(--text-sm)] font-medium text-[var(--text-default)] mb-1">
+              대시보드를 불러오지 못했어요
+            </p>
+            <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">{loadError}</p>
+            <Button variant="secondary" size="sm" onClick={load}>
+              다시 시도
+            </Button>
+          </div>
+        </Card>
       </AdminPage>
     );
   }

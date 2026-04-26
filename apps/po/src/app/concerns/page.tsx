@@ -7,11 +7,13 @@ import {
   formatDateKR, formatDateRange, formatBudget,
 } from '@hyliren/shared';
 import {
-  AdminPage, DataGrid,
+  AdminPage, Card, Spinner, Button, DataGrid,
   badgeCellRenderer, countBadgeCellRenderer,
 } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
+import { AlertTriangle } from 'lucide-react';
 import { POSidebar } from '@/components/POSidebar';
+import { useToastStore } from '@/store/toast';
 import { listConcerns, type ConcernListQuery, type ConcernSummaryWire } from '@/lib/api/concern';
 import type { ColDef } from 'ag-grid-community';
 
@@ -94,22 +96,30 @@ const columnDefs: ColDef<ConcernRow>[] = [
 // ── 페이지 ──
 export default function ConcernListPage() {
   const router = useRouter();
+  const showToast = useToastStore(s => s.showToast);
   const [allConcerns, setAllConcerns] = useState<ConcernSummaryWire[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  // 마지막 query 보존 — 재시도 / 에러 후 회복 시 사용 (treatments 패턴 일관)
+  const [lastQuery, setLastQuery] = useState<ConcernListQuery>({});
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // backend 호출 — 디폴트/검색 모두 같은 함수 경로
   const fetchConcerns = useCallback((query: ConcernListQuery) => {
     setLoading(true);
-    setError(false);
+    setLoadError(null);
+    setLastQuery(query);
     listConcerns(query)
       .then((data) => {
         setAllConcerns(data.concerns);
-        setLoading(false);
       })
-      .catch(() => { setError(true); setLoading(false); });
-  }, []);
+      .catch((e: unknown) => {
+        const msg = e instanceof Error ? e.message : '목록을 불러올 수 없습니다';
+        setLoadError(msg);
+        showToast(msg, 'error');
+      })
+      .finally(() => setLoading(false));
+  }, [showToast]);
 
   useEffect(() => {
     const { from, to } = defaultMonthRange();
@@ -145,27 +155,40 @@ export default function ConcernListPage() {
     // status 필터 (선택 시) — backend 미지원 영역
     .filter(r => !statusFilter || r.statusLabel === statusFilter);
 
-  if (loading) return null;
-
-  if (error) {
-    return (
-      <AdminPage sidebar={<POSidebar active="/concerns" />} title="고민 리스트" prefix="po">
-        <div className="text-center py-20 text-[var(--text-disabled)]">데이터를 불러오지 못했습니다. 새로고침해 주세요.</div>
-      </AdminPage>
-    );
-  }
-
   return (
     <AdminPage sidebar={<POSidebar active="/concerns" />} title="고민 리스트" prefix="po">
-      <DataGrid<ConcernRow>
-        columnDefs={columnDefs}
-        rowData={rowData}
-        searchFields={searchFields}
-        exportFileName="고민목록"
-        title="고민 목록"
-        onRowClick={(data) => router.push(`/concerns/${data.id}`)}
-        onSearch={handleSearch}
-      />
+      {loading && (
+        <Card padding="md">
+          <div className="flex items-center justify-center py-12"><Spinner /></div>
+        </Card>
+      )}
+
+      {!loading && loadError && (
+        <Card padding="md">
+          <div className="text-center py-10">
+            <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
+            <p className="text-[var(--text-sm)] font-medium text-[var(--text-default)] mb-1">
+              목록을 불러오지 못했어요
+            </p>
+            <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">{loadError}</p>
+            <Button variant="secondary" size="sm" onClick={() => fetchConcerns(lastQuery)}>
+              다시 시도
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {!loading && !loadError && (
+        <DataGrid<ConcernRow>
+          columnDefs={columnDefs}
+          rowData={rowData}
+          searchFields={searchFields}
+          exportFileName="고민목록"
+          title="고민 목록"
+          onRowClick={(data) => router.push(`/concerns/${data.id}`)}
+          onSearch={handleSearch}
+        />
+      )}
     </AdminPage>
   );
 }

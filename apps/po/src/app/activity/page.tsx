@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE,
   formatDateKR,
@@ -8,13 +8,15 @@ import {
   CREDIT_COST,
 } from '@hyliren/shared';
 import {
-  Card, AdminPage, DataGrid,
+  Card, AdminPage, DataGrid, Spinner, Button,
   badgeCellRenderer, dotTextRenderer,
 } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
+import { AlertTriangle, FileEdit } from 'lucide-react';
 import { POSidebar } from '@/components/POSidebar';
 import { MyProposalSheet } from '@/components/concerns/MyProposalSheet';
 import { useCreditsStore } from '@/store/credits';
+import { useToastStore } from '@/store/toast';
 import { listConcerns, type ConcernSummaryWire } from '@/lib/api/concern';
 import { formatKrwAsMan, listMyProposals, type ProposalDetailWire } from '@/lib/api/proposal';
 import type { ColDef } from 'ag-grid-community';
@@ -78,24 +80,32 @@ const columnDefs: ColDef<ActivityRow>[] = [
 
 export default function ActivityPage() {
   const { balance, transactions } = useCreditsStore();
+  const showToast = useToastStore(s => s.showToast);
 
   const [proposals, setProposals] = useState<ProposalDetailWire[]>([]);
   const [concerns, setConcerns] = useState<ConcernSummaryWire[]>([]);
   const [loading, setLoading] = useState(true);
-  // 제안서 row 클릭 시 사이드 시트로 상세 노출. concernId 기반 (MyProposalSheet 가
-  // findMyProposalByConcern 으로 조회). null = sheet 닫힘.
+  const [loadError, setLoadError] = useState<string | null>(null);
+  // 제안서 row 클릭 시 사이드 시트로 상세 노출. concernId 기반.
   const [selectedConcernId, setSelectedConcernId] = useState<string | null>(null);
 
-  useEffect(() => {
-    Promise.all([
-      listMyProposals(),
-      listConcerns(),
-    ]).then(([pData, cData]) => {
-      setProposals(pData.proposals ?? []);
-      setConcerns(cData.concerns ?? []);
-      setLoading(false);
-    }).catch(() => setLoading(false));
-  }, []);
+  const load = useCallback(() => {
+    setLoading(true);
+    setLoadError(null);
+    Promise.all([listMyProposals(), listConcerns()])
+      .then(([pData, cData]) => {
+        setProposals(pData.proposals ?? []);
+        setConcerns(cData.concerns ?? []);
+      })
+      .catch((e: unknown) => {
+        const msg = e instanceof Error ? e.message : '활동 내역을 불러올 수 없습니다';
+        setLoadError(msg);
+        showToast(msg, 'error');
+      })
+      .finally(() => setLoading(false));
+  }, [showToast]);
+
+  useEffect(() => { load(); }, [load]);
 
   // ── 통합 타임라인 데이터 ──
   const rowData: ActivityRow[] = [
@@ -123,12 +133,10 @@ export default function ActivityPage() {
     })),
   ].sort((a, b) => (a.date > b.date ? -1 : a.date < b.date ? 1 : 0));
 
-  if (loading) return null;
-
   return (
     <AdminPage sidebar={<POSidebar active="/activity" />} title="활동 내역" prefix="po">
 
-      {/* 크레딧 잔액 요약 */}
+      {/* 크레딧 잔액 요약 — 항상 노출 (로딩/에러 상태 무관) */}
       <Card padding="md" className="mb-5">
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
           <span style={{ fontSize: 13, color: 'var(--text-disabled)' }}>크레딧 잔액</span>
@@ -139,20 +147,56 @@ export default function ActivityPage() {
         </div>
       </Card>
 
-      {/* 통합 활동 DataGrid — 제안서 row 클릭 시 사이드 시트로 상세 노출. */}
-      <DataGrid<ActivityRow>
-        columnDefs={columnDefs}
-        rowData={rowData}
-        searchFields={searchFields}
-        exportFileName="활동내역"
-        title="발송 & 크레딧 내역"
-        onRowClick={(row) => {
-          // 제안서 row 만 클릭 가능 — 크레딧 충전/차감 row 는 detail 없음.
-          if (row.type === 'proposal' && row.concernId) {
-            setSelectedConcernId(row.concernId);
-          }
-        }}
-      />
+      {loading && (
+        <Card padding="md">
+          <div className="flex items-center justify-center py-12"><Spinner /></div>
+        </Card>
+      )}
+
+      {!loading && loadError && (
+        <Card padding="md">
+          <div className="text-center py-10">
+            <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
+            <p className="text-[var(--text-sm)] font-medium text-[var(--text-default)] mb-1">
+              활동 내역을 불러오지 못했어요
+            </p>
+            <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">{loadError}</p>
+            <Button variant="secondary" size="sm" onClick={load}>
+              다시 시도
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {!loading && !loadError && rowData.length === 0 && (
+        <Card padding="md">
+          <div className="text-center py-12">
+            <FileEdit size={28} className="mx-auto mb-2 text-[var(--text-disabled)]" />
+            <p className="text-[var(--text-base)] font-medium text-[var(--text-default)] mb-1">
+              아직 활동 내역이 없어요
+            </p>
+            <p className="text-[var(--text-sm)] text-[var(--text-subdued)]">
+              제안서를 발송하거나 크레딧을 충전하면 이곳에 기록됩니다.
+            </p>
+          </div>
+        </Card>
+      )}
+
+      {!loading && !loadError && rowData.length > 0 && (
+        <DataGrid<ActivityRow>
+          columnDefs={columnDefs}
+          rowData={rowData}
+          searchFields={searchFields}
+          exportFileName="활동내역"
+          title="발송 & 크레딧 내역"
+          onRowClick={(row) => {
+            // 제안서 row 만 클릭 가능 — 크레딧 충전/차감 row 는 detail 없음.
+            if (row.type === 'proposal' && row.concernId) {
+              setSelectedConcernId(row.concernId);
+            }
+          }}
+        />
+      )}
 
       {/* 제안서 상세 사이드 시트 — 같은 컴포넌트 (concern 상세 페이지와 일관). */}
       <MyProposalSheet
