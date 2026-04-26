@@ -3,9 +3,10 @@
 import { useMemo, useRef, useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Modal, Spinner, DropdownMenu, type DropdownMenuItem } from '@hyliren/ui';
-import { Eye, EyeOff, Trash2 } from 'lucide-react';
+import { EyeOff, Trash2 } from 'lucide-react';
 import { POSidebar } from '@/components/POSidebar';
 import { WizardShell } from '@/components/procedure-wizard/WizardShell';
+import { StatusChip } from '@/components/procedure-wizard/StatusChip';
 import { Step1Basics } from '@/components/procedure-wizard/Step1Basics';
 import { Step2Pricing } from '@/components/procedure-wizard/Step2Pricing';
 import { Step3Content } from '@/components/procedure-wizard/Step3Content';
@@ -376,24 +377,24 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   }
 
   const procedureTitle = pickI18n(form.i18n, 'ko', form.sourceLocale)?.content.title || '(제목 없음)';
-  const isLastStep = activeStep === STEPS.length - 1;
 
   /**
-   * primaryAction — status × step 컨텍스트. per-step strict 검증으로 미완성 데이터 commit 차단.
+   * 수정 화면 액션 정책 (확정):
    *
-   * 사용자 멘탈모델 (확정):
-   * - Step 1-3 = 데이터 입력. 완료 시 = '데이터 저장'. status 유지 (draft 는 draft).
-   * - Step 4 = 미리보기·공개 결정. 별도 ceremony.
+   * | status     | primary           | secondary  | menu               |
+   * |------------|-------------------|------------|--------------------|
+   * | draft      | 공개하기 (strict) | 임시저장   | (비움)             |
+   * | published  | 변경사항 저장     | (없음)     | 비공개로 전환      |
+   * | archived   | 변경사항 저장     | 다시 공개  | 영구 삭제          |
    *
-   * - draft × Step 1-3: '저장' = submit('draft'), per-step strict 검증
-   *                      현재 step 의 필수값이 다 채워졌을 때만 enable.
-   *                      미완성이면 '임시저장' (loose) 으로 백업 가능.
-   * - draft × Step 4:   '공개하기' = submit('published') allStepsValid strict.
-   * - published × all:  '저장' = submit('published') strict (publish 유지 조건).
-   * - archived × all:   '저장' = submit('archived') loose (비공개니 공개 조건 불필요).
+   * 원칙:
+   * - draft 는 어느 step 이든 'commit = 공개하기' 단일 의도. 미완성이면 disabled,
+   *   secondary '임시저장' 으로 백업.
+   * - published/archived 는 '변경사항 저장' 으로 status 유지.
+   * - 저장/임시저장 동시 visible 은 draft 외엔 회피 (사용자 불안 감소).
    */
   const primaryActionConfig = (() => {
-    if (form.status === 'draft' && isLastStep) {
+    if (form.status === 'draft') {
       return {
         label: '공개하기',
         onClick: () => submit('published'),
@@ -401,19 +402,9 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
         loading: saving,
       };
     }
-    if (form.status === 'draft') {
-      return {
-        label: '저장',
-        onClick: () => submit('draft'),
-        // per-step strict — 현재 step 의 필수값 완료 시만 'commit' 허용.
-        // 미완성 백업은 '임시저장' (secondary) 가 담당.
-        disabled: saving || !stepIsValid(form, activeStep),
-        loading: saving,
-      };
-    }
     if (form.status === 'published') {
       return {
-        label: '저장',
+        label: '변경사항 저장',
         onClick: () => submit('published'),
         disabled: saving || !allStepsValid(form),
         loading: saving,
@@ -421,7 +412,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     }
     // archived
     return {
-      label: '저장',
+      label: '변경사항 저장',
       onClick: () => submit('archived'),
       disabled: saving || !stepsValidForDraft(form),
       loading: saving,
@@ -429,13 +420,46 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   })();
 
   /**
-   * ⋮ 메뉴 — status 별 destructive/transition. 자주 안 쓰는 액션은 메뉴로 분리해
-   * 헤더의 자주 쓰고 안전한 액션 (저장/임시저장) 과 시각·인지 분리.
+   * 하단 bar 의 secondary visible button — status 별 분기.
+   * - draft: 임시저장 (loose, 미완성 백업)
+   * - archived: 다시 공개 (visible 로 두어 destructive 인 영구삭제와 시각 분리)
+   * - published: 없음
+   */
+  const secondaryButton = (() => {
+    if (form.status === 'draft') {
+      return (
+        <Button
+          variant="secondary" size="sm"
+          onClick={() => submit('draft')}
+          disabled={saving || !stepsValidForDraft(form)}
+        >
+          임시저장
+        </Button>
+      );
+    }
+    if (form.status === 'archived') {
+      return (
+        <Button
+          variant="secondary" size="sm"
+          onClick={() => setUnarchiveOpen(true)}
+          disabled={saving}
+        >
+          다시 공개
+        </Button>
+      );
+    }
+    return null;
+  })();
+
+  /**
+   * ⋮ menu — destructive 또는 가끔 쓰는 status transition.
+   * - published: 비공개로 전환
+   * - archived: 영구 삭제 (visible secondary 와 분리해 위험도 차등)
+   * - draft: 비움 (폐기는 list 의 '+ 새 시술 등록 → 새로 작성' 흐름)
    */
   const menuItems: DropdownMenuItem[] = (() => {
     if (form.status === 'archived') {
       return [
-        { label: '공개로 전환', icon: <Eye size={14} />, onClick: () => setUnarchiveOpen(true) },
         { label: '영구 삭제', icon: <Trash2 size={14} />, destructive: true, onClick: () => setDeleteOpen(true) },
       ];
     }
@@ -444,7 +468,6 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
         { label: '비공개로 전환', icon: <EyeOff size={14} />, onClick: () => setArchiveOpen(true) },
       ];
     }
-    // draft — 폐기는 list 의 '+ 새 시술 등록 → 새로 작성' 흐름. menu 비움.
     return [];
   })();
 
@@ -460,20 +483,8 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
           onStepChange={setActiveStep}
           saveStatus={saveStatus}
           savedAt={savedAt}
-          actions={
-            /* draft 의 visible secondary — 임시저장 (loose 검증, 미완성 백업).
-               per-step strict primary '저장' 이 disabled 일 때도 임시저장은 항상 노출.
-               published/archived 는 별도 secondary 없음 (primary 만). */
-            form.status === 'draft' ? (
-              <Button
-                variant="secondary" size="sm"
-                onClick={() => submit('draft')}
-                disabled={saving || !stepsValidForDraft(form)}
-              >
-                임시저장
-              </Button>
-            ) : null
-          }
+          headerInfo={<StatusChip status={form.status} />}
+          actions={secondaryButton}
           primaryAction={primaryActionConfig}
           menu={menuItems.length > 0 ? <DropdownMenu items={menuItems} /> : null}
         >
