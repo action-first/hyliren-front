@@ -196,37 +196,47 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
               </div>
             }
           />
-          <div className="flex flex-col gap-3 mt-4">
+          {/* 컬럼 헤더 */}
+          <div
+            className="grid gap-3 px-1 pb-2 mt-4 border-b border-[var(--border-subdued)] text-[var(--text-xs)] font-semibold text-[var(--text-subdued)]"
+            style={{ gridTemplateColumns: '1fr 6rem 2.25rem' }}
+          >
+            <span>시술명</span>
+            <span>가격 (만원)</span>
+            <span aria-hidden />
+          </div>
+
+          {/* 각 행 — divider 로 분리, 카드 nesting 없음 */}
+          <div className="flex flex-col">
             {items.map((item, idx) => (
               <div
                 key={idx}
-                className="flex flex-col gap-2 p-3 rounded-[var(--app-radius)] bg-[var(--surface-subdued)] border border-[var(--border-subdued)]"
+                className="grid gap-3 items-center py-3 border-b border-[var(--border-subdued)] last:border-b-0"
+                style={{ gridTemplateColumns: '1fr 6rem 2.25rem' }}
               >
                 <Input
                   placeholder="시술명 (한국어)"
                   value={item.name}
                   onChange={e => updateItem(idx, 'name', e.target.value)}
                 />
-                <div className="flex gap-3 items-end">
-                  {items.length > 1 && (
-                    <button
-                      type="button"
-                      aria-label="항목 삭제"
-                      className="w-9 h-[var(--input-height,32px)] flex-shrink-0 flex items-center justify-center rounded-[var(--app-radius-sm)] bg-transparent border border-[var(--border-default)] text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] hover:border-[var(--color-danger)] cursor-pointer transition-colors"
-                      onClick={() => removeItem(idx)}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <Input
-                      type="number"
-                      placeholder="가격 (만원)"
-                      value={item.price || ''}
-                      onChange={e => updateItem(idx, 'price', Number(e.target.value))}
-                    />
-                  </div>
-                </div>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={item.price || ''}
+                  onChange={e => updateItem(idx, 'price', Number(e.target.value))}
+                />
+                {items.length > 1 ? (
+                  <button
+                    type="button"
+                    aria-label="항목 삭제"
+                    className="w-9 h-[var(--input-height,32px)] flex items-center justify-center rounded-[var(--app-radius-sm)] bg-transparent border border-[var(--border-default)] text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] hover:border-[var(--color-danger)] cursor-pointer transition-colors"
+                    onClick={() => removeItem(idx)}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                ) : (
+                  <div className="w-9 h-[var(--input-height,32px)]" aria-hidden />
+                )}
               </div>
             ))}
           </div>
