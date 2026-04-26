@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { POSidebar } from '@/components/POSidebar';
 import { Card, Button, Input, Textarea, SectionHeader, Badge, AdminPage } from '@hyliren/ui';
 import { usePOAuthStore } from '@/store/po-auth';
@@ -22,6 +22,11 @@ export default function ProfilePage() {
   const [website, setWebsite] = useState(profile?.website ?? '');
   const [specialties, setSpecialties] = useState<BodyArea[]>(profile?.specialties ?? []);
   const [isDirty, setIsDirty] = useState(false);
+  /* 저장 동시성 보호 — 다중 클릭 / 다중 탭 race 방지.
+     현재 updateProfile 은 store 동기 호출이지만, '프로필 real API화' 후속 작업
+     대비해 mutation 패턴으로 구조화. 이 구조면 API 도입 시 바디 한 줄만 교체. */
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
 
   function markDirty() { setIsDirty(true); }
 
@@ -32,10 +37,23 @@ export default function ProfilePage() {
     markDirty();
   }
 
-  function handleSave() {
-    updateProfile({ hospitalName, hospitalNameZh, description, descriptionZh, address, phone, website, specialties });
-    setIsDirty(false);
-    showToast('파트너 정보가 저장되었습니다.', 'success');
+  async function handleSave() {
+    // 다중 클릭/탭 race 방지 — setState race 까지 차단하려고 ref 동시 사용.
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setSaving(true);
+    try {
+      // TODO(profile-api-migration): 여기를 실제 BE PATCH 호출로 교체
+      // (예: await partnerProfileApi.update({ hospitalName, ... }))
+      updateProfile({ hospitalName, hospitalNameZh, description, descriptionZh, address, phone, website, specialties });
+      setIsDirty(false);
+      showToast('파트너 정보가 저장되었습니다.', 'success');
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : '저장에 실패했습니다', 'error');
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
   }
 
   const fields = [hospitalName, hospitalNameZh, description, descriptionZh, address, phone, website];
@@ -43,11 +61,11 @@ export default function ProfilePage() {
   const completeness = Math.round((filledCount / 8) * 100);
 
   const statusBadge = profile?.verified ? (
-    <span className="flex items-center gap-1" style={{ fontSize: 13, fontWeight: 500, color: '#166534' }}>
+    <span className="flex items-center gap-1" style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-success)' }}>
       <ShieldCheck size={15} /> 인증 완료
     </span>
   ) : (
-    <span className="flex items-center gap-1" style={{ fontSize: 13, color: '#9ca3af' }}>
+    <span className="flex items-center gap-1" style={{ fontSize: 13, color: 'var(--text-disabled)' }}>
       <ShieldAlert size={15} /> 미인증
     </span>
   );
@@ -60,7 +78,9 @@ export default function ProfilePage() {
       actions={
         <div className="flex items-center gap-3">
           {statusBadge}
-          <Button variant="primary" size="sm" onClick={handleSave} disabled={!isDirty}>저장</Button>
+          <Button variant="primary" size="sm" onClick={handleSave} disabled={!isDirty || saving}>
+            {saving ? '저장 중...' : '저장'}
+          </Button>
         </div>
       }
     >
@@ -77,7 +97,7 @@ export default function ProfilePage() {
                   ? '거의 완성! 나머지 항목을 채워주세요'
                   : '프로필을 채워주세요. 완성도가 높을수록 고객 노출이 증가합니다'}
             />
-            <span style={{ fontSize: 18, fontWeight: 700, color: '#2C6ECB' }}>{completeness}%</span>
+            <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-primary)' }}>{completeness}%</span>
           </div>
           <div className="completeness-bar">
             <div className="completeness-fill" style={{ width: `${completeness}%` }} />
@@ -131,7 +151,9 @@ export default function ProfilePage() {
         </Card>
 
         <div className="flex justify-end">
-          <Button variant="primary" onClick={handleSave} disabled={!isDirty}>저장</Button>
+          <Button variant="primary" onClick={handleSave} disabled={!isDirty || saving}>
+            {saving ? '저장 중...' : '저장'}
+          </Button>
         </div>
       </div>
     </AdminPage>
