@@ -11,7 +11,7 @@ import {
 import { AdminPage, Card, Button, DateFilter } from '@hyliren/ui';
 import type { DateRange } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
-import { useCreditsStore } from '@/store/credits';
+import { useCreditBalance, useCreditTransactions } from '@/hooks/queries/credits';
 import { useToastStore } from '@/store/toast';
 import { toUserMessage } from '@/lib/api/error-messages';
 import { useConcerns } from '@/hooks/queries/concerns';
@@ -307,7 +307,11 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
 // 메인
 // ════════════════════════════════════════════════════════════
 export default function DashboardPage() {
-  const { balance, transactions } = useCreditsStore();
+  // 크레딧 = real BE. 잔액 + 거래 이력 (RQ — 다른 페이지와 cache 공유).
+  const balanceQ = useCreditBalance();
+  const transactionsQ = useCreditTransactions();
+  const balance = balanceQ.data?.balance ?? 0;
+  const transactions = transactionsQ.data?.transactions ?? [];
   const showToast = useToastStore(s => s.showToast);
 
   const [dateRange, setDateRange] = useState<DateRange>('7d');
@@ -339,7 +343,7 @@ export default function DashboardPage() {
   const dateWindow = resolveDateWindow(dateRange, customFrom, customTo);
   const periodConcerns = concerns.filter(c => isDateInWindow(c.createdAt, dateWindow.from, dateWindow.to));
   const periodProposals = proposals.filter(p => isDateInWindow(p.sentAt ?? p.createdAt, dateWindow.from, dateWindow.to));
-  const periodTransactions = transactions.filter(tx => isDateInWindow(tx.date, dateWindow.from, dateWindow.to));
+  const periodTransactions = transactions.filter(tx => isDateInWindow(tx.createdAt, dateWindow.from, dateWindow.to));
 
   // KPI
   const openConcerns = periodConcerns.filter(c => c.status === 'submitted' || c.status === 'proposal_received');
@@ -377,7 +381,7 @@ export default function DashboardPage() {
 
   // 크레딧 일별 집계
   const creditDailyData = days.map(date => {
-    const txs = periodTransactions.filter(tx => tx.date.slice(0, 10) === date);
+    const txs = periodTransactions.filter(tx => tx.createdAt.slice(0, 10) === date);
     const charge = txs.filter(tx => tx.amount > 0).reduce((sum, tx) => sum + tx.amount, 0);
     const spend = txs.filter(tx => tx.amount < 0).reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
     return { name: shortDate(date), 충전: charge, 사용: spend, 순증감: charge - spend };

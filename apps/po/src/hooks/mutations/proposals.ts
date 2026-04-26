@@ -21,6 +21,8 @@ export function useCreateProposal() {
       // 발송 후: proposals 목록 (모든 query 변형) + concerns 목록·상세 갱신
       queryClient.invalidateQueries({ queryKey: queryKeys.proposals.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.concerns.all });
+      // 발송 시 BE 가 크레딧 차감 → 잔액·거래이력 cache 무효화
+      queryClient.invalidateQueries({ queryKey: queryKeys.credits.all });
       // 같은 concern 의 myProposal 캐시는 직접 set — round-trip 회피
       queryClient.setQueryData(queryKeys.concerns.myProposal(variables.concernId), data);
     },

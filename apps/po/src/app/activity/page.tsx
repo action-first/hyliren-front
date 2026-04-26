@@ -15,14 +15,23 @@ import type { SearchField } from '@hyliren/ui';
 import { AlertTriangle, FileEdit } from 'lucide-react';
 import { POSidebar } from '@/components/POSidebar';
 import { MyProposalSheet } from '@/components/concerns/MyProposalSheet';
-import { useCreditsStore } from '@/store/credits';
 import { useToastStore } from '@/store/toast';
 import { toUserMessage } from '@/lib/api/error-messages';
 import { useConcerns } from '@/hooks/queries/concerns';
 import { useMyProposals } from '@/hooks/queries/proposals';
+import { useCreditBalance, useCreditTransactions } from '@/hooks/queries/credits';
 import { formatKrwAsMan } from '@/lib/api/proposal';
 import type { ColDef } from 'ag-grid-community';
 import React from 'react';
+
+/** BE CreditReason enum → 사용자 친화 한글 라벨. */
+const CREDIT_REASON_KR: Record<string, string> = {
+  purchase: '크레딧 충전',
+  refund: '크레딧 환불',
+  proposal_send: '제안서 발송',
+  subscription_grant: '구독 적립',
+  admin_adjust: '관리자 조정',
+};
 
 // ── 통합 활동 행 타입 ──
 interface ActivityRow {
@@ -81,15 +90,18 @@ const columnDefs: ColDef<ActivityRow>[] = [
 ];
 
 export default function ActivityPage() {
-  const { balance, transactions } = useCreditsStore();
   const showToast = useToastStore(s => s.showToast);
 
   // React Query — /proposals, /dashboard 와 cache 공유 (5분 staleTime).
   const proposalsQ = useMyProposals();
   const concernsQ = useConcerns();
-  const isLoading = proposalsQ.isLoading || concernsQ.isLoading;
-  const isError = proposalsQ.isError || concernsQ.isError;
-  const errorObj = proposalsQ.error || concernsQ.error;
+  const balanceQ = useCreditBalance();
+  const transactionsQ = useCreditTransactions();
+  const balance = balanceQ.data?.balance ?? 0;
+  const transactions = transactionsQ.data?.transactions ?? [];
+  const isLoading = proposalsQ.isLoading || concernsQ.isLoading || balanceQ.isLoading || transactionsQ.isLoading;
+  const isError = proposalsQ.isError || concernsQ.isError || balanceQ.isError || transactionsQ.isError;
+  const errorObj = proposalsQ.error || concernsQ.error || balanceQ.error || transactionsQ.error;
 
   // 에러 토스트
   useEffect(() => {
@@ -101,11 +113,16 @@ export default function ActivityPage() {
 
   const proposals = proposalsQ.data?.proposals ?? [];
   const concerns = concernsQ.data?.concerns ?? [];
-  const hasInitialLoad = proposalsQ.data !== undefined && concernsQ.data !== undefined;
+  const hasInitialLoad =
+    proposalsQ.data !== undefined &&
+    concernsQ.data !== undefined &&
+    transactionsQ.data !== undefined;
 
   const refetchAll = () => {
     void proposalsQ.refetch();
     void concernsQ.refetch();
+    void balanceQ.refetch();
+    void transactionsQ.refetch();
   };
 
   // 제안서 row 클릭 시 사이드 시트로 상세 노출. concernId 기반.
@@ -126,15 +143,19 @@ export default function ActivityPage() {
         concernId: p.concernId,
       };
     }),
-    ...transactions.filter(tx => tx.amount > 0).map(tx => ({
-      id: `tx-${tx.id}`,
-      date: tx.date,
-      type: 'credit',
-      typeLabel: '크레딧 충전',
-      description: tx.reason,
-      credit: `+${tx.amount}`,
-      statusLabel: '',
-    })),
+    /* BE 거래 이력 — proposal_send 는 proposal row 와 중복이라 제외.
+       그 외 충전/환불/구독 적립/관리자 조정만 별도 row 로. */
+    ...transactions
+      .filter(tx => tx.reason !== 'proposal_send')
+      .map(tx => ({
+        id: `tx-${tx.id}`,
+        date: formatDateKR(tx.createdAt),
+        type: 'credit',
+        typeLabel: CREDIT_REASON_KR[tx.reason] ?? '크레딧 거래',
+        description: CREDIT_REASON_KR[tx.reason] ?? tx.reason,
+        credit: tx.amount > 0 ? `+${tx.amount}` : `${tx.amount}`,
+        statusLabel: '',
+      })),
   ].sort((a, b) => (a.date > b.date ? -1 : a.date < b.date ? 1 : 0));
 
   return (
