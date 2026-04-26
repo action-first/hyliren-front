@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import type { AnesthesiaType } from '@hyliren/shared';
 import { CREDIT_COST } from '@hyliren/shared';
 import { Button, Card, Input, SectionHeader, Select, SideSheet, Textarea } from '@hyliren/ui';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Trash2 } from 'lucide-react';
 
 import { useTreatmentsStore } from '@/store/treatments';
 import { useCreditsStore } from '@/store/credits';
@@ -197,29 +197,33 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
             {items.map((item, idx) => (
               <div
                 key={idx}
-                className="relative flex flex-col gap-2 p-3 rounded-[var(--app-radius)] bg-[var(--surface-subdued)] border border-[var(--border-subdued)]"
+                className="flex flex-col gap-2 p-3 rounded-[var(--app-radius)] bg-[var(--surface-subdued)] border border-[var(--border-subdued)]"
               >
-                <Input
-                  placeholder="시술명 (한국어)"
-                  value={item.name}
-                  onChange={e => updateItem(idx, 'name', e.target.value)}
-                />
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1 min-w-0">
+                    <Input
+                      placeholder="시술명 (한국어)"
+                      value={item.name}
+                      onChange={e => updateItem(idx, 'name', e.target.value)}
+                    />
+                  </div>
+                  {items.length > 1 && (
+                    <button
+                      type="button"
+                      aria-label="항목 삭제"
+                      className="w-9 h-[var(--input-height,32px)] flex-shrink-0 flex items-center justify-center rounded-[var(--app-radius-sm)] bg-transparent border-0 text-[var(--text-subdued)] hover:bg-[var(--color-danger-soft)] hover:text-[var(--color-danger)] cursor-pointer transition-colors"
+                      onClick={() => removeItem(idx)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
                 <Input
                   type="number"
                   placeholder="가격 (만원)"
                   value={item.price || ''}
                   onChange={e => updateItem(idx, 'price', Number(e.target.value))}
                 />
-                {items.length > 1 && (
-                  <button
-                    type="button"
-                    aria-label="항목 삭제"
-                    className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-[var(--app-radius-sm)] bg-transparent border-0 text-[var(--text-disabled)] hover:bg-[var(--surface-hovered)] hover:text-[var(--text-default)] cursor-pointer text-[16px] leading-none"
-                    onClick={() => removeItem(idx)}
-                  >
-                    ×
-                  </button>
-                )}
               </div>
             ))}
           </div>
