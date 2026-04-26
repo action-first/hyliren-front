@@ -27,6 +27,7 @@ function defaultMonthRange(): { from: string; to: string } {
 // ── 타입 ──
 interface ConcernRow {
   id: string;
+  userName: string;
   primaryArea: string;
   bodyAreaDetail: string;
   description: string;
@@ -55,8 +56,12 @@ const searchFields: SearchField[] = [
   { key: '_keyword', label: '키워드', placeholder: '고민 내용, 부위, 상세 통합 검색', row: 2 },
 ];
 
-// ── 컬럼 정의: 부위 / 상세 / 고민내용 / 예산 / 방문시기 / 상태 / 등록일 / 제안 / 발송일 ──
+// ── 컬럼 정의: 등록자 / 부위 / 상세 / 고민내용 / 예산 / 방문시기 / 상태 / 등록일 / 제안 / 발송일 ──
 const columnDefs: ColDef<ConcernRow>[] = [
+  {
+    field: 'userName', headerName: '등록자', flex: 0.6, minWidth: 80, filter: true,
+    cellStyle: { color: '#0f172a', fontWeight: 500 },
+  },
   {
     field: 'primaryArea', headerName: '부위', flex: 0.5, minWidth: 70, filter: true,
     cellRenderer: badgeCellRenderer(BODY_AREA_BADGE),
@@ -125,6 +130,7 @@ export default function ConcernListPage() {
   const rowData: ConcernRow[] = allConcerns
     .map(c => ({
       id: c.id,
+      userName: c.userName,
       primaryArea: c.primaryArea,
       bodyAreaDetail: c.bodyAreaDetail || '',
       description: c.description.length > 50 ? c.description.slice(0, 50) + '...' : c.description,

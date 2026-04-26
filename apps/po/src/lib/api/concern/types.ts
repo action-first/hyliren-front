@@ -9,6 +9,8 @@ export interface ConcernSummaryWire {
   status: string;
   source: string;
   description: string;
+  /** 접수자(고민 작성자) 이름. */
+  userName: string;
   primaryArea: string;
   bodyAreas: string[];
   bodyAreaDetail: string | null;
