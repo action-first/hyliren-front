@@ -137,13 +137,6 @@ export default function TreatmentsPage() {
     ? pickI18n(existingDraft.i18n, 'ko', existingDraft.sourceLocale)?.content.title || '(제목 없음)'
     : '';
 
-  // 비공개 전환 — Link 내부에 있어 nav 충돌 방지로 e.preventDefault + stopPropagation 필수.
-  function handleArchiveRequest(e: React.MouseEvent, p: Procedure) {
-    e.preventDefault();
-    e.stopPropagation();
-    setArchiveTarget(p);
-  }
-
   async function handleConfirmArchive() {
     if (!archiveTarget) return;
     setArchiving(true);
@@ -163,13 +156,6 @@ export default function TreatmentsPage() {
   const archiveTargetTitle = archiveTarget
     ? pickI18n(archiveTarget.i18n, 'ko', archiveTarget.sourceLocale)?.content.title || '(제목 없음)'
     : '';
-
-  // 공개 전환 — Link 내부 nav 충돌 방지로 e.preventDefault + stopPropagation 필수.
-  function handleUnarchiveRequest(e: React.MouseEvent, p: Procedure) {
-    e.preventDefault();
-    e.stopPropagation();
-    setUnarchiveTarget(p);
-  }
 
   async function handleConfirmUnarchive() {
     if (!unarchiveTarget) return;
@@ -191,13 +177,6 @@ export default function TreatmentsPage() {
   const unarchiveTargetTitle = unarchiveTarget
     ? pickI18n(unarchiveTarget.i18n, 'ko', unarchiveTarget.sourceLocale)?.content.title || '(제목 없음)'
     : '';
-
-  // 영구 삭제 — Link 내부 nav 충돌 방지로 e.preventDefault + stopPropagation 필수.
-  function handleDeleteRequest(e: React.MouseEvent, p: Procedure) {
-    e.preventDefault();
-    e.stopPropagation();
-    setDeleteTarget(p);
-  }
 
   async function handleConfirmDelete() {
     if (!deleteTarget) return;
@@ -310,19 +289,24 @@ export default function TreatmentsPage() {
           {procedures.map(p => {
             const pick = pickI18n(p.i18n, 'ko', p.sourceLocale);
             const title = pick?.content.title || '(제목 없음)';
+            // 카드 = [Link 영역 (이미지+컨텐츠)] + [Footer 영역 (액션)] 구조.
+            // Footer 가 Link 외부에 있어야 dropdown 클릭이 nav 으로 가로채지지 않음.
             return (
-              <Link key={p.id} href={`/treatments/${p.id}/edit`} className="no-underline">
-                <Card padding="none" hoverable>
-                  <div className="h-32 bg-[var(--surface-subdued)] flex items-center justify-center overflow-hidden rounded-t-[var(--app-radius)]">
+              <Card key={p.id} padding="none" className="flex flex-col">
+                <Link
+                  href={`/treatments/${p.id}/edit`}
+                  className="no-underline block group cursor-pointer"
+                >
+                  <div className="h-32 bg-[var(--surface-subdued)] flex items-center justify-center overflow-hidden rounded-t-[var(--app-radius)] transition-opacity group-hover:opacity-95">
                     {p.heroImageUrl
                       ? <img src={p.heroImageUrl} alt="" className="w-full h-full object-cover" />
                       : <ImageIcon size={28} className="text-[var(--text-disabled)]" />}
                   </div>
-                  <div className="p-3">
+                  <div className="px-3 pt-3 pb-2">
                     <p className="text-[var(--text-sm)] font-semibold text-[var(--text-default)] mb-1.5 line-clamp-1">
                       {title}
                     </p>
-                    <div className="flex items-center gap-2 mb-2.5 text-[var(--text-xs)] text-[var(--text-subdued)]">
+                    <div className="flex items-center gap-2 text-[var(--text-xs)] text-[var(--text-subdued)]">
                       <span>{p.primaryArea}</span>
                       <span>·</span>
                       <span className="font-semibold text-[var(--text-default)]">
@@ -331,48 +315,45 @@ export default function TreatmentsPage() {
                           : `${(p.priceMin / 10000).toFixed(0)}~${(p.priceMax / 10000).toFixed(0)}만`}
                       </span>
                     </div>
-                    {/* 카드 footer — 좌측: 상태 chip / 우측: 텍스트 액션 + ⋮ menu (archived).
-                        텍스트 라벨로 명확화 — 운영자 대상 도구는 아이콘 단독보다 문구가 안전.
-                        Link 내부에 있어 nav 충돌 방지로 onClick 마다 preventDefault + stopPropagation. */}
-                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-[var(--border-subdued)]">
-                      <StatusChip status={p.status} />
-                      <div className="flex items-center gap-1">
-                        {p.status === 'archived' ? (
-                          <button
-                            type="button"
-                            onClick={(e) => handleUnarchiveRequest(e, p)}
-                            className="px-2.5 h-7 rounded-[var(--app-radius-sm)] text-[var(--text-xs)] font-medium text-[var(--text-default)] hover:bg-[var(--surface-subdued)] transition-colors cursor-pointer"
-                          >
-                            다시 공개
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={(e) => handleArchiveRequest(e, p)}
-                            className="px-2.5 h-7 rounded-[var(--app-radius-sm)] text-[var(--text-xs)] font-medium text-[var(--text-default)] hover:bg-[var(--surface-subdued)] transition-colors cursor-pointer"
-                          >
-                            비공개로 전환
-                          </button>
-                        )}
-                        {p.status === 'archived' && (
-                          <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                            <DropdownMenu
-                              items={[
-                                {
-                                  label: '영구 삭제',
-                                  icon: <Trash2 size={14} />,
-                                  destructive: true,
-                                  onClick: () => setDeleteTarget(p),
-                                },
-                              ]}
-                            />
-                          </span>
-                        )}
-                      </div>
-                    </div>
                   </div>
-                </Card>
-              </Link>
+                </Link>
+
+                {/* footer — Link 외부. 자체 onClick 은 nav 우려 없이 자유롭게 동작. */}
+                <div className="flex items-center justify-between gap-2 px-3 pt-2 pb-3 border-t border-[var(--border-subdued)]">
+                  <StatusChip status={p.status} />
+                  <div className="flex items-center gap-1">
+                    {p.status === 'archived' ? (
+                      <button
+                        type="button"
+                        onClick={() => setUnarchiveTarget(p)}
+                        className="px-2.5 h-7 rounded-[var(--app-radius-sm)] text-[var(--text-xs)] font-medium text-[var(--text-default)] hover:bg-[var(--surface-subdued)] transition-colors cursor-pointer"
+                      >
+                        다시 공개
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setArchiveTarget(p)}
+                        className="px-2.5 h-7 rounded-[var(--app-radius-sm)] text-[var(--text-xs)] font-medium text-[var(--text-default)] hover:bg-[var(--surface-subdued)] transition-colors cursor-pointer"
+                      >
+                        비공개로 전환
+                      </button>
+                    )}
+                    {p.status === 'archived' && (
+                      <DropdownMenu
+                        items={[
+                          {
+                            label: '영구 삭제',
+                            icon: <Trash2 size={14} />,
+                            destructive: true,
+                            onClick: () => setDeleteTarget(p),
+                          },
+                        ]}
+                      />
+                    )}
+                  </div>
+                </div>
+              </Card>
             );
           })}
         </div>
