@@ -107,7 +107,6 @@ export default function NewProcedurePage() {
       // C1: title 없는 비소스 locale 블록 제거 (Step3 빈 block seed 로 인한 400 방지)
       const clean = sanitizeWizardForm(form);
       const res = await proceduresApi.create({
-        memberId: member.id,
         primaryArea: clean.primaryArea as typeof form.primaryArea & string,
         procedureType: clean.procedureType as typeof form.procedureType & string,
         heroImageUrl: clean.heroImageUrl,
