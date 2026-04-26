@@ -361,26 +361,23 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   const isLastStep = activeStep === STEPS.length - 1;
 
   /**
-   * primaryAction 분기 — status × step 컨텍스트.
-   * - draft × Step 1-3: '저장' = draft 저장 (loose 검증, 작성 중단 백업)
-   * - draft × Step 4:   '공개하기' = publish 전환 (strict 검증, 미리보기 직후 공개)
-   * - published × all:  '저장' = publish-strict 검증 통과 시 변경 반영, status 유지
-   * - archived × all:   '저장' = archived 유지하며 변경 반영 (loose 검증)
+   * primaryAction — status 컨텍스트별 분기 (step 무관).
+   *
+   * 사용자 멘탈모델: "저장"은 commit (status 한 단계 전진). draft 의 commit = 공개.
+   * - draft → primary='공개하기' (어느 step 이든 publish-strict)
+   *           미완성 draft 는 primary disabled, 별도 '임시저장' 으로 백업
+   * - published → primary='저장' (publish-strict, status 유지)
+   * - archived → primary='저장' (loose, status 유지)
+   *
+   * Step 4 = 미리보기 컨텍스트. "공개하기" 라벨은 모든 step 에 동일해 사용자가
+   * 'preview 단계까지 가야만 공개된다' 는 오해를 안 하게 한다 (1단계만 고치고 공개도 가능).
    */
   const primaryActionConfig = (() => {
-    if (form.status === 'draft' && isLastStep) {
+    if (form.status === 'draft') {
       return {
         label: '공개하기',
         onClick: () => submit('published'),
         disabled: saving || !allStepsValid(form),
-        loading: saving,
-      };
-    }
-    if (form.status === 'draft') {
-      return {
-        label: '저장',
-        onClick: () => submit('draft'),
-        disabled: saving || !stepsValidForDraft(form),
         loading: saving,
       };
     }
@@ -426,9 +423,9 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
                   <EyeOff size={13} /> 비공개로
                 </Button>
               )}
-              {/* draft × Step 4 에서 임시저장 백업 — primary 가 '공개하기' 라서 별도 draft 저장 경로 필요.
-                  Step 1-3 에선 primary 자체가 '저장'(=draft) 이므로 중복 회피. */}
-              {form.status === 'draft' && isLastStep && (
+              {/* draft 편집 중 — primary 가 '공개하기' (strict 검증) 라서 미완성이면 disabled.
+                  '임시저장' 은 loose 검증으로 항상 백업 가능 (어느 step 이든 노출). */}
+              {form.status === 'draft' && (
                 <Button
                   variant="secondary" size="sm"
                   onClick={() => submit('draft')}
