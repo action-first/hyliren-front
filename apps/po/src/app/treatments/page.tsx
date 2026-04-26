@@ -10,7 +10,7 @@ import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
 import { pickI18n } from '@hyliren/shared/src/domain/procedure';
 import type { Procedure, ProcedureStatus } from '@hyliren/shared';
-import { Plus, ImageIcon, Pencil, AlertTriangle, FileEdit, FilePlus2 } from 'lucide-react';
+import { Plus, ImageIcon, Pencil, AlertTriangle } from 'lucide-react';
 
 type StatusFilter = 'all' | ProcedureStatus;
 
@@ -238,40 +238,34 @@ export default function TreatmentsPage() {
       )}
     </AdminPage>
 
-    {/* 새 시술 등록 분기 모달 — draft 가 있을 때 */}
+    {/* 새 시술 등록 분기 모달 */}
     <Modal
       open={draftModalOpen}
       onClose={() => setDraftModalOpen(false)}
-      title={draftModalStep === 'choose' ? '작성 중인 임시저장이 있습니다' : '새로 작성하시겠어요?'}
+      title={draftModalStep === 'choose' ? '임시저장이 있습니다' : '이전 작성건을 삭제할까요?'}
     >
       {draftModalStep === 'choose' && existingDraft && (
-        <div className="flex flex-col gap-4">
-          <p className="text-[var(--text-base)] text-[var(--text-default)] leading-relaxed">
-            <strong className="font-semibold">{draftTitle}</strong> 으로 임시저장된 작성건이 있습니다.
-            이어서 작성하거나 새로 시작할 수 있습니다.
+        <div className="flex flex-col gap-5">
+          <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
+            <span className="font-semibold text-[var(--text-default)]">{draftTitle}</span> 으로 작성하던 시술이 있어요.
           </p>
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <Button variant="accent" onClick={handleResumeDraft}>
-              <FileEdit size={14} /> 이어서 작성하기
+              이어서 작성하기
             </Button>
             <Button variant="secondary" onClick={() => setDraftModalStep('confirm')}>
-              <FilePlus2 size={14} /> 새로 작성하기
+              새로 작성하기
             </Button>
           </div>
         </div>
       )}
 
       {draftModalStep === 'confirm' && (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-start gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--color-danger-soft)]">
-            <AlertTriangle size={18} className="text-[var(--color-danger)] flex-shrink-0 mt-0.5" />
-            <p className="text-[var(--text-base)] text-[var(--text-default)] leading-relaxed">
-              <strong className="font-semibold">{draftTitle}</strong> 임시저장이
-              <strong className="text-[var(--color-danger)]"> 영구 삭제</strong>됩니다.
-              새로 작성을 시작하면 이전 작성건은 복구할 수 없습니다.
-            </p>
-          </div>
-          <div className="flex justify-end gap-2">
+        <div className="flex flex-col gap-5">
+          <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
+            <span className="font-semibold text-[var(--text-default)]">{draftTitle}</span> 임시저장은 복구할 수 없습니다.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
             <Button variant="secondary" onClick={() => setDraftModalStep('choose')}>
               뒤로
             </Button>
