@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { POSidebar } from '@/components/POSidebar';
-import { Card, Button, Input, Textarea, SectionHeader, Badge, AdminPage } from '@hyliren/ui';
+import { Card, Button, Input, Textarea, SectionHeader, Badge, AdminPage, Spinner } from '@hyliren/ui';
 import { useToastStore } from '@/store/toast';
 import { toUserMessage } from '@/lib/api/error-messages';
 import { useMyPartnerProfile } from '@/hooks/queries/partner-profile';
 import { useUpdateMyPartnerProfile } from '@/hooks/mutations/partner-profile';
 import { BODY_AREAS } from '@hyliren/shared';
 import type { BodyArea } from '@hyliren/shared';
-import { ShieldCheck, ShieldAlert } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, AlertTriangle } from 'lucide-react';
 
 /**
  * 파트너 프로필 — real BE 연결 (BE PR #23).
@@ -92,6 +92,39 @@ export default function ProfilePage() {
   const fields = [hospitalName, hospitalNameZh, description, descriptionZh, address, phone, website];
   const filledCount = fields.filter(f => f.trim()).length + (specialties.length > 0 ? 1 : 0);
   const completeness = Math.round((filledCount / 8) * 100);
+
+  // 첫 진입 — query 도달 전엔 빈 폼이 보이므로 spinner 카드 노출.
+  // hydrate 전 입력 race (저장 시 빈 값 덮어쓰기) 도 함께 차단.
+  if (!hydrated && profileQ.isLoading) {
+    return (
+      <AdminPage sidebar={<POSidebar active="/profile" />} title="파트너 정보" prefix="po">
+        <Card padding="md">
+          <div className="flex items-center justify-center py-12"><Spinner /></div>
+        </Card>
+      </AdminPage>
+    );
+  }
+
+  if (!hydrated && profileQ.isError) {
+    return (
+      <AdminPage sidebar={<POSidebar active="/profile" />} title="파트너 정보" prefix="po">
+        <Card padding="md">
+          <div className="text-center py-10">
+            <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
+            <p className="text-[var(--text-sm)] font-medium text-[var(--text-default)] mb-1">
+              프로필을 불러오지 못했어요
+            </p>
+            <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
+              {toUserMessage(profileQ.error, '알 수 없는 오류')}
+            </p>
+            <Button variant="secondary" size="sm" onClick={() => profileQ.refetch()}>
+              다시 시도
+            </Button>
+          </div>
+        </Card>
+      </AdminPage>
+    );
+  }
 
   const statusBadge = profile?.verified ? (
     <span className="flex items-center gap-1" style={{ fontSize: "var(--text-sm)", fontWeight: "var(--font-medium)", color: 'var(--color-success)' }}>
