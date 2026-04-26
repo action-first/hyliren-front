@@ -15,7 +15,7 @@ import { useToastStore } from '@/store/toast';
 import { useCreateProposal } from '@/hooks/mutations/proposals';
 import { useProcedures } from '@/hooks/queries/procedures';
 import { useCreditBalance } from '@/hooks/queries/credits';
-import { ApiError } from '@/lib/api/errors';
+import { toUserMessage } from '@/lib/api/error-messages';
 
 interface FormItem {
   name: string;
@@ -178,11 +178,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
           onClose();
         },
         onError: (err) => {
-          if (err instanceof ApiError) {
-            showToast(err.message || '제안서 발송에 실패했습니다.', 'error');
-          } else {
-            showToast('네트워크 오류가 발생했습니다. 다시 시도해주세요.', 'error');
-          }
+          showToast(toUserMessage(err, '제안서 발송에 실패했습니다.'), 'error');
         },
       },
     );
