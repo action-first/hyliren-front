@@ -32,7 +32,7 @@ interface ActivityRow {
 
 // ── 타입 dot 색상 ──
 const TYPE_DOT: Record<string, string> = {
-  '제안서 발송': '#3b82f6', '크레딧 충전': '#10b981', '크레딧 차감': '#ef4444',
+  '제안서 발송': 'var(--interactive-default)', '크레딧 충전': 'var(--color-success)', '크레딧 차감': 'var(--color-danger)',
 };
 
 // ── 검색 ──
@@ -48,22 +48,22 @@ const searchFields: SearchField[] = [
 // ── 컬럼 ──
 const columnDefs: ColDef<ActivityRow>[] = [
   { field: 'date', headerName: '날짜', flex: 0.7, minWidth: 90, filter: false,
-    cellStyle: { color: '#94a3b8', fontVariantNumeric: 'tabular-nums' },
+    cellStyle: { color: 'var(--text-disabled)', fontVariantNumeric: 'tabular-nums' },
   },
   { field: 'typeLabel', headerName: '유형', flex: 0.6, minWidth: 90, filter: true,
     cellRenderer: dotTextRenderer(TYPE_DOT),
   },
   { field: 'description', headerName: '내용', flex: 1.5, minWidth: 180, filter: true,
-    cellStyle: { color: '#374151' },
+    cellStyle: { color: 'var(--text-default)' },
   },
   { field: 'credit', headerName: '크레딧', flex: 0.5, minWidth: 70, filter: false,
     cellRenderer: (p: { value: string }) => {
-      if (!p.value || p.value === '-') return <span style={{ color: '#d1d5db' }}>-</span>;
+      if (!p.value || p.value === '-') return <span style={{ color: 'var(--border-default)' }}>-</span>;
       const isPlus = p.value.startsWith('+');
       return (
         <span style={{
           fontSize: 13, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
-          color: isPlus ? '#2C6ECB' : '#ef4444',
+          color: isPlus ? 'var(--interactive-default)' : 'var(--color-danger)',
         }}>{p.value}</span>
       );
     },
@@ -124,9 +124,9 @@ export default function ActivityPage() {
       {/* 크레딧 잔액 요약 */}
       <Card padding="md" className="mb-5">
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span style={{ fontSize: 13, color: '#94a3b8' }}>크레딧 잔액</span>
-          <span style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>{balance}</span>
-          <span style={{ fontSize: 12, color: '#94a3b8' }}>
+          <span style={{ fontSize: 13, color: 'var(--text-disabled)' }}>크레딧 잔액</span>
+          <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-default)', fontVariantNumeric: 'tabular-nums' }}>{balance}</span>
+          <span style={{ fontSize: 12, color: 'var(--text-disabled)' }}>
             · {Math.floor(balance / 3)}건 발송 가능
           </span>
         </div>

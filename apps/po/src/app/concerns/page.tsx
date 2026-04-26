@@ -60,7 +60,7 @@ const searchFields: SearchField[] = [
 const columnDefs: ColDef<ConcernRow>[] = [
   {
     field: 'userName', headerName: '등록자', flex: 0.6, minWidth: 80, filter: true,
-    cellStyle: { color: '#0f172a', fontWeight: 500 },
+    cellStyle: { color: 'var(--text-default)', fontWeight: 500 },
   },
   {
     field: 'primaryArea', headerName: '부위', flex: 0.5, minWidth: 70, filter: true,
@@ -69,7 +69,7 @@ const columnDefs: ColDef<ConcernRow>[] = [
   { field: 'bodyAreaDetail', headerName: '상세', flex: 0.7, minWidth: 80, filter: true },
   {
     field: 'description', headerName: '고민내용', flex: 2, minWidth: 150, filter: true,
-    cellStyle: { color: '#6b7280' },
+    cellStyle: { color: 'var(--text-subdued)' },
   },
   { field: 'budget', headerName: '예산', flex: 0.7, minWidth: 80, filter: false },
   { field: 'visitDate', headerName: '방문시기', flex: 0.8, minWidth: 90, filter: false },
@@ -79,7 +79,7 @@ const columnDefs: ColDef<ConcernRow>[] = [
   },
   {
     field: 'createdAt', headerName: '등록일', flex: 0.7, minWidth: 80, filter: false,
-    cellStyle: { color: '#9ca3af', fontVariantNumeric: 'tabular-nums' },
+    cellStyle: { color: 'var(--text-disabled)', fontVariantNumeric: 'tabular-nums' },
   },
   {
     field: 'proposalCount', headerName: '제안', flex: 0.5, minWidth: 60, filter: false,
@@ -87,7 +87,7 @@ const columnDefs: ColDef<ConcernRow>[] = [
   },
   {
     field: 'mySentAt', headerName: '발송일', flex: 0.7, minWidth: 80, filter: false,
-    cellStyle: { color: '#9ca3af', fontVariantNumeric: 'tabular-nums' },
+    cellStyle: { color: 'var(--text-disabled)', fontVariantNumeric: 'tabular-nums' },
   },
 ];
 
@@ -150,7 +150,7 @@ export default function ConcernListPage() {
   if (error) {
     return (
       <AdminPage sidebar={<POSidebar active="/concerns" />} title="고민 리스트" prefix="po">
-        <div className="text-center py-20 text-[#9ca3af]">데이터를 불러오지 못했습니다. 새로고침해 주세요.</div>
+        <div className="text-center py-20 text-[var(--text-disabled)]">데이터를 불러오지 못했습니다. 새로고침해 주세요.</div>
       </AdminPage>
     );
   }
