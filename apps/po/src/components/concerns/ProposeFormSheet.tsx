@@ -11,10 +11,10 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ko } from 'date-fns/locale';
 
-import { useCreditsStore } from '@/store/credits';
 import { useToastStore } from '@/store/toast';
 import { useCreateProposal } from '@/hooks/mutations/proposals';
 import { useProcedures } from '@/hooks/queries/procedures';
+import { useCreditBalance } from '@/hooks/queries/credits';
 import { ApiError } from '@/lib/api/errors';
 
 interface FormItem {
@@ -38,7 +38,9 @@ const ANESTHESIA_OPTIONS = [
 ] as const;
 
 export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: ProposeFormSheetProps) {
-  const { balance, deduct } = useCreditsStore();
+  // 잔액 = real BE. 발송 후 mutation 이 invalidate → 자동 갱신.
+  const balanceQ = useCreditBalance();
+  const balance = balanceQ.data?.balance ?? 0;
   const { showToast } = useToastStore();
 
   // 카탈로그 = PO 가 등록한 real published procedure (BE PR #19+).
@@ -170,8 +172,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
       },
       {
         onSuccess: () => {
-          // backend 가 차감했으므로 store 동기화 (UI 즉시 반영 — 다음 fetch 시 backend 값으로 덮임)
-          deduct(CREDIT_COST, `제안서 발송 (${concernId})`);
+          // BE 가 차감 + 거래기록 작성. mutation onSuccess 가 credits cache invalidate → 잔액 자동 갱신.
           showToast(`제안서가 발송되었습니다. 크레딧 ${CREDIT_COST}개 차감.`, 'success');
           onSuccess?.();
           onClose();

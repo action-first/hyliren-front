@@ -26,4 +26,9 @@ export const queryKeys = {
     list: (status?: string) => ['procedures', 'list', status ?? 'all'] as const,
     detail: (id: string) => ['procedures', 'detail', id] as const,
   },
+  credits: {
+    all: ['credits'] as const,
+    balance: () => ['credits', 'balance'] as const,
+    transactions: () => ['credits', 'transactions'] as const,
+  },
 } as const;

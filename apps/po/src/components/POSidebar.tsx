@@ -14,7 +14,7 @@ import {
   Plus,
   LogOut,
 } from 'lucide-react';
-import { useCreditsStore } from '@/store/credits';
+import { useCreditBalance } from '@/hooks/queries/credits';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
 import { Button, Modal } from '@hyliren/ui';
@@ -36,8 +36,9 @@ const CHARGE_OPTIONS = [
 ];
 
 export function POSidebar({ active }: { active: string }) {
-  const balance = useCreditsStore(s => s.balance);
-  const charge = useCreditsStore(s => s.charge);
+  // 잔액 = real BE (BE PR #22). 미존재 회원도 0 반환이라 fallback 안전.
+  const balanceQ = useCreditBalance();
+  const balance = balanceQ.data?.balance ?? 0;
   const member = usePOAuthStore(s => s.member);
   const profile = usePOAuthStore(s => s.profile);
   const logout = usePOAuthStore(s => s.logout);
@@ -46,10 +47,14 @@ export function POSidebar({ active }: { active: string }) {
   const [showModal, setShowModal] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
 
+  /**
+   * 충전 — BE 결제 endpoint 부재로 mock 유지.
+   * 단, 잔액은 BE 가 source of truth — mock charge 는 admin 전용 demo 모드.
+   * 실제 결제 시스템 도입 시 이 함수가 BE charge endpoint 호출로 교체됨.
+   */
   function handleCharge() {
     if (!selected) return;
     const opt = CHARGE_OPTIONS.find(o => o.amount === selected);
-    charge(selected);
     fetch('/api/payments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -63,7 +68,7 @@ export function POSidebar({ active }: { active: string }) {
         status: 'paid',
       }),
     }).catch(() => {});
-    showToast(`${selected}크레딧이 충전되었습니다.`, 'success');
+    showToast(`${selected}크레딧 충전 (현재 데모 모드 — 실제 BE 잔액엔 미반영)`, 'info');
     setShowModal(false);
     setSelected(null);
   }
