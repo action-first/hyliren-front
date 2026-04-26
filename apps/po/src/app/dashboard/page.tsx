@@ -345,8 +345,8 @@ export default function DashboardPage() {
   const periodProposals = proposals.filter(p => isDateInWindow(p.sentAt ?? p.createdAt, dateWindow.from, dateWindow.to));
   const periodTransactions = transactions.filter(tx => isDateInWindow(tx.createdAt, dateWindow.from, dateWindow.to));
 
-  // KPI
-  const openConcerns = periodConcerns.filter(c => c.status === 'submitted' || c.status === 'proposal_received');
+  // KPI — BE ConcernStatus enum: draft|submitted|closed. partner 매칭 시장은 SUBMITTED 만 노출.
+  const openConcerns = periodConcerns.filter(c => c.status === 'submitted');
   const myProposals = periodProposals;
   const viewedCount = myProposals.filter(p => p.viewedAt !== null).length;
   const viewRate = myProposals.length > 0 ? Math.round((viewedCount / myProposals.length) * 100) : 0;

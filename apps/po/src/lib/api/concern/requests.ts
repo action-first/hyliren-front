@@ -10,8 +10,8 @@ export interface ConcernListQuery {
   /** YYYY-MM-DD (해당일 23:59:59.999 까지 포함) */
   createdAtTo?: string;
   primaryArea?: string;
-  /** 'submitted' / 'proposal_received' / 'comparing' 등 raw enum 값 (BE @IsEnum 검증) */
-  status?: string;
+  /** BE ConcernStatus enum: 'draft' | 'submitted' | 'closed' (BE @IsEnum 검증). 미지정 시 BE default = submitted */
+  status?: 'draft' | 'submitted' | 'closed';
   keyword?: string;
 }
 
