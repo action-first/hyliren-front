@@ -7,6 +7,11 @@ import { POSidebar } from '@/components/POSidebar';
 import { Card, Button, SectionHeader, AdminPage, Modal, Spinner, DropdownMenu, type DropdownMenuItem } from '@hyliren/ui';
 import { proceduresApi } from '@/lib/api/procedures';
 import { useProcedures } from '@/hooks/queries/procedures';
+import {
+  useArchiveProcedure,
+  useUnarchiveProcedure,
+  usePermanentDeleteProcedure,
+} from '@/hooks/mutations/procedures';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
 import { pickI18n } from '@hyliren/shared/src/domain/procedure';
@@ -62,20 +67,17 @@ export default function TreatmentsPage() {
   const [existingDraft, setExistingDraft] = useState<Procedure | null>(null);
   const [creatingNew, setCreatingNew] = useState(false);
 
-  // 비공개 전환 모달 — 공개 카드의 EyeOff 클릭 시 진입.
-  // published → archived. 데이터 유지, 고객 노출만 차단 (BE softDelete 활용).
+  // 비공개/공개/삭제 모달 — RQ mutation hook 으로 invalidate 자동.
   const [archiveTarget, setArchiveTarget] = useState<Procedure | null>(null);
-  const [archiving, setArchiving] = useState(false);
-
-
-  // 공개 전환 모달 — 비공개 카드의 '다시 공개' 클릭 시 진입.
-  // archived → published. BE 가 publish-strict 검증 자동 수행.
   const [unarchiveTarget, setUnarchiveTarget] = useState<Procedure | null>(null);
-  const [unarchiving, setUnarchiving] = useState(false);
-
-  // 영구 삭제 모달 — archived 한정. ⋮ menu 의 destructive 항목.
   const [deleteTarget, setDeleteTarget] = useState<Procedure | null>(null);
-  const [deleting, setDeleting] = useState(false);
+
+  const archiveMutation = useArchiveProcedure();
+  const unarchiveMutation = useUnarchiveProcedure();
+  const deleteMutation = usePermanentDeleteProcedure();
+  const archiving = archiveMutation.isPending;
+  const unarchiving = unarchiveMutation.isPending;
+  const deleting = deleteMutation.isPending;
 
   /* 에러 토스트 — RQ v5 onError 폐기 대응. */
   useEffect(() => {
@@ -128,61 +130,52 @@ export default function TreatmentsPage() {
     ? pickI18n(existingDraft.i18n, 'ko', existingDraft.sourceLocale)?.content.title || '(제목 없음)'
     : '';
 
-  async function handleConfirmArchive() {
+  function handleConfirmArchive() {
     if (!archiveTarget) return;
-    setArchiving(true);
-    try {
-      await proceduresApi.softDelete(archiveTarget.id);
-      setArchiveTarget(null);
-      showToast('비공개로 전환되었습니다.', 'success');
-      void refetch();
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : '전환에 실패했습니다';
-      showToast(msg, 'error');
-    } finally {
-      setArchiving(false);
-    }
+    archiveMutation.mutate(archiveTarget.id, {
+      onSuccess: () => {
+        setArchiveTarget(null);
+        showToast('비공개로 전환되었습니다.', 'success');
+      },
+      onError: (e) => {
+        showToast(e instanceof Error ? e.message : '전환에 실패했습니다', 'error');
+      },
+    });
   }
 
   const archiveTargetTitle = archiveTarget
     ? pickI18n(archiveTarget.i18n, 'ko', archiveTarget.sourceLocale)?.content.title || '(제목 없음)'
     : '';
 
-  async function handleConfirmUnarchive() {
+  function handleConfirmUnarchive() {
     if (!unarchiveTarget) return;
-    setUnarchiving(true);
-    try {
-      await proceduresApi.update(unarchiveTarget.id, { status: 'published' });
-      setUnarchiveTarget(null);
-      showToast('공개로 전환되었습니다.', 'success');
-      void refetch();
-    } catch (e: unknown) {
-      // BE publish-strict 검증 실패 시 — 사용자가 편집 후 재시도해야 함.
-      const msg = e instanceof Error ? e.message : '전환에 실패했습니다';
-      showToast(msg, 'error');
-    } finally {
-      setUnarchiving(false);
-    }
+    unarchiveMutation.mutate(unarchiveTarget.id, {
+      onSuccess: () => {
+        setUnarchiveTarget(null);
+        showToast('공개로 전환되었습니다.', 'success');
+      },
+      onError: (e) => {
+        // BE publish-strict 검증 실패 시 — 사용자가 편집 후 재시도해야 함.
+        showToast(e instanceof Error ? e.message : '전환에 실패했습니다', 'error');
+      },
+    });
   }
 
   const unarchiveTargetTitle = unarchiveTarget
     ? pickI18n(unarchiveTarget.i18n, 'ko', unarchiveTarget.sourceLocale)?.content.title || '(제목 없음)'
     : '';
 
-  async function handleConfirmDelete() {
+  function handleConfirmDelete() {
     if (!deleteTarget) return;
-    setDeleting(true);
-    try {
-      await proceduresApi.permanentDelete(deleteTarget.id);
-      setDeleteTarget(null);
-      showToast('영구 삭제되었습니다.', 'success');
-      void refetch();
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : '삭제에 실패했습니다';
-      showToast(msg, 'error');
-    } finally {
-      setDeleting(false);
-    }
+    deleteMutation.mutate(deleteTarget.id, {
+      onSuccess: () => {
+        setDeleteTarget(null);
+        showToast('영구 삭제되었습니다.', 'success');
+      },
+      onError: (e) => {
+        showToast(e instanceof Error ? e.message : '삭제에 실패했습니다', 'error');
+      },
+    });
   }
 
   const deleteTargetTitle = deleteTarget
