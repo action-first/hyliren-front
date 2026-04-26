@@ -12,7 +12,7 @@ import { ko } from 'date-fns/locale';
 import { useTreatmentsStore } from '@/store/treatments';
 import { useCreditsStore } from '@/store/credits';
 import { useToastStore } from '@/store/toast';
-import { createProposal } from '@/lib/api/proposal';
+import { useCreateProposal } from '@/hooks/mutations/proposals';
 import { ApiError } from '@/lib/api/errors';
 
 interface FormItem {
@@ -51,7 +51,9 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
   const [dateTo, setDateTo] = useState<Date | null>(null);
   const [note, setNote] = useState('');
   const [showCatalog, setShowCatalog] = useState(false);
-  const [sending, setSending] = useState(false);
+  // RQ mutation — 성공 시 proposals + concerns 캐시 자동 invalidate.
+  const createMutation = useCreateProposal();
+  const sending = createMutation.isPending;
 
   // Sheet 가 닫히면 폼 초기화 — 같은 concern 에 다시 열어도 깨끗한 상태
   useEffect(() => {
@@ -124,45 +126,50 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
     items.some(i => i.name.trim()) &&
     balance >= CREDIT_COST;
 
-  async function handleSend() {
+  function handleSend() {
     if (sending) return;
     if (balance < CREDIT_COST) {
       showToast(`크레딧이 부족합니다. 현재 잔액: ${balance}개`, 'error');
       return;
     }
-    setSending(true);
-    try {
-      await createProposal(concernId, {
-        items: items
-          .filter(i => i.name.trim())
-          .map((i, idx) => ({
-            treatmentName: i.name.trim(),
-            treatmentNameZh: i.nameZh?.trim() || null,
-            price: i.price,
-            sortOrder: idx,
-          })),
-        totalPrice,
-        recoveryDays,
-        anesthesiaType: anesthesia,
-        hospitalStayDays: stayDays,
-        availableDateFrom: dateFrom ? dateFrom.toISOString().slice(0, 10) : undefined,
-        availableDateTo: dateTo ? dateTo.toISOString().slice(0, 10) : undefined,
-        consultationNote: note.trim() || undefined,
-      });
-      // backend 가 차감했으므로 store 도 동기화 (UI 즉시 반영용 — 다음 fetch 시 backend 값으로 덮임)
-      deduct(CREDIT_COST, `제안서 발송 (${concernId})`);
-      showToast(`제안서가 발송되었습니다. 크레딧 ${CREDIT_COST}개 차감.`, 'success');
-      onSuccess?.();
-      onClose();
-    } catch (err) {
-      if (err instanceof ApiError) {
-        showToast(err.message || '제안서 발송에 실패했습니다.', 'error');
-      } else {
-        showToast('네트워크 오류가 발생했습니다. 다시 시도해주세요.', 'error');
-      }
-    } finally {
-      setSending(false);
-    }
+    createMutation.mutate(
+      {
+        concernId,
+        body: {
+          items: items
+            .filter(i => i.name.trim())
+            .map((i, idx) => ({
+              treatmentName: i.name.trim(),
+              treatmentNameZh: i.nameZh?.trim() || null,
+              price: i.price,
+              sortOrder: idx,
+            })),
+          totalPrice,
+          recoveryDays,
+          anesthesiaType: anesthesia,
+          hospitalStayDays: stayDays,
+          availableDateFrom: dateFrom ? dateFrom.toISOString().slice(0, 10) : undefined,
+          availableDateTo: dateTo ? dateTo.toISOString().slice(0, 10) : undefined,
+          consultationNote: note.trim() || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          // backend 가 차감했으므로 store 동기화 (UI 즉시 반영 — 다음 fetch 시 backend 값으로 덮임)
+          deduct(CREDIT_COST, `제안서 발송 (${concernId})`);
+          showToast(`제안서가 발송되었습니다. 크레딧 ${CREDIT_COST}개 차감.`, 'success');
+          onSuccess?.();
+          onClose();
+        },
+        onError: (err) => {
+          if (err instanceof ApiError) {
+            showToast(err.message || '제안서 발송에 실패했습니다.', 'error');
+          } else {
+            showToast('네트워크 오류가 발생했습니다. 다시 시도해주세요.', 'error');
+          }
+        },
+      },
+    );
   }
 
   return (
