@@ -73,7 +73,7 @@ const AREA_BADGE_STYLE: Record<string, { bg: string; text: string }> = {
 const TOOLTIP_STYLE: React.CSSProperties = {
   fontSize: 13, borderRadius: 10, border: 'none',
   boxShadow: '0 4px 20px rgba(0,0,0,0.1)', padding: '10px 14px',
-  background: '#fff',
+  background: 'var(--surface-default)',
 };
 
 function shortDate(iso: string) {
@@ -99,7 +99,7 @@ function KPICard({ icon, iconBg, label, value, sub, trend, trendUp }: {
 }) {
   return (
     <div style={{
-      background: '#fff', borderRadius: 14, padding: '16px 20px',
+      background: 'var(--surface-default)', borderRadius: 14, padding: '16px 20px',
       boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
       display: 'flex', alignItems: 'center', gap: 14,
       border: '1px solid #f1f5f9',
@@ -113,10 +113,10 @@ function KPICard({ icon, iconBg, label, value, sub, trend, trendUp }: {
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
       }}>{icon}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 11, fontWeight: 500, color: '#94a3b8', letterSpacing: '0.02em' }}>{label}</div>
+        <div style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-disabled)', letterSpacing: '0.02em' }}>{label}</div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 2 }}>
-          <span style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1 }}>{value}</span>
-          {sub && <span style={{ fontSize: 11, color: '#94a3b8' }}>{sub}</span>}
+          <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-default)', letterSpacing: '-0.02em', lineHeight: 1 }}>{value}</span>
+          {sub && <span style={{ fontSize: 11, color: 'var(--text-disabled)' }}>{sub}</span>}
         </div>
       </div>
       {trend && (
@@ -141,15 +141,15 @@ function ChartCard({ title, subtitle, children, action }: {
 }) {
   return (
     <div style={{
-      background: '#fff', borderRadius: 16, padding: 24,
+      background: 'var(--surface-default)', borderRadius: 16, padding: 24,
       boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
       border: '1px solid #f1f5f9',
       display: 'flex', flexDirection: 'column',
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
-          <div style={{ fontSize: 15, fontWeight: 650, color: '#0f172a' }}>{title}</div>
-          {subtitle && <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{subtitle}</div>}
+          <div style={{ fontSize: 15, fontWeight: 650, color: 'var(--text-default)' }}>{title}</div>
+          {subtitle && <div style={{ fontSize: 12, color: 'var(--text-disabled)', marginTop: 2 }}>{subtitle}</div>}
         </div>
         {action}
       </div>
@@ -164,8 +164,8 @@ function ChartCard({ title, subtitle, children, action }: {
 function DonutCenterLabel({ cx, cy, total, label }: { cx: number; cy: number; total: number; label: string }) {
   return (
     <g>
-      <text x={cx} y={cy - 6} textAnchor="middle" style={{ fontSize: 22, fontWeight: 700, fill: '#0f172a' }}>{total}</text>
-      <text x={cx} y={cy + 14} textAnchor="middle" style={{ fontSize: 11, fontWeight: 500, fill: '#94a3b8' }}>{label}</text>
+      <text x={cx} y={cy - 6} textAnchor="middle" style={{ fontSize: 22, fontWeight: 700, fill: 'var(--text-default)' }}>{total}</text>
+      <text x={cx} y={cy + 14} textAnchor="middle" style={{ fontSize: 11, fontWeight: 500, fill: 'var(--text-disabled)' }}>{label}</text>
     </g>
   );
 }
@@ -234,7 +234,7 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
       {payload.map((entry, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: entry.color, flexShrink: 0 }} />
-          <span style={{ fontSize: 12, color: '#64748b' }}>{entry.value}</span>
+          <span style={{ fontSize: 12, color: 'var(--text-subdued)' }}>{entry.value}</span>
           <span style={{ fontSize: 12, fontWeight: 600, color: '#334155' }}>{entry.payload?.value}</span>
         </div>
       ))}
@@ -307,10 +307,10 @@ export default function DashboardPage() {
       <AdminPage sidebar={<POSidebar active="/dashboard" />} title="대시보드" prefix="po">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
           {[1,2,3,4].map(i => (
-            <div key={i} style={{ background: '#fff', borderRadius: 16, padding: 24, border: '1px solid #f1f5f9' }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#f1f5f9', marginBottom: 16 }} />
-              <div style={{ width: 60, height: 10, background: '#f1f5f9', borderRadius: 6, marginBottom: 8 }} />
-              <div style={{ width: 80, height: 28, background: '#f1f5f9', borderRadius: 6 }} />
+            <div key={i} style={{ background: 'var(--surface-default)', borderRadius: 16, padding: 24, border: '1px solid #f1f5f9' }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--surface-hovered)', marginBottom: 16 }} />
+              <div style={{ width: 60, height: 10, background: 'var(--surface-hovered)', borderRadius: 6, marginBottom: 8 }} />
+              <div style={{ width: 80, height: 28, background: 'var(--surface-hovered)', borderRadius: 6 }} />
             </div>
           ))}
         </div>
@@ -325,8 +325,8 @@ export default function DashboardPage() {
         {/* ═══ 기간 필터 ═══ */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0 }}>운영 현황</h2>
-            <p style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-default)', margin: 0 }}>운영 현황</h2>
+            <p style={{ fontSize: 13, color: 'var(--text-disabled)', marginTop: 2 }}>
               {dateRange === 'today' ? '오늘' : dateRange === '7d' ? '최근 7일' : dateRange === '30d' ? '최근 30일' : '사용자 지정 기간'} 기준
             </p>
           </div>
@@ -380,12 +380,12 @@ export default function DashboardPage() {
                   </Pie>
                   <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value, name) => [`${Number(value)}건`, String(name)]} />
                   <Legend content={<CustomLegend />} />
-                  <text x="50%" y="42%" textAnchor="middle" style={{ fontSize: 24, fontWeight: 700, fill: '#0f172a' }}>{myProposals.length}</text>
-                  <text x="50%" y="50%" textAnchor="middle" style={{ fontSize: 11, fontWeight: 500, fill: '#94a3b8' }}>총 제안</text>
+                  <text x="50%" y="42%" textAnchor="middle" style={{ fontSize: 24, fontWeight: 700, fill: 'var(--text-default)' }}>{myProposals.length}</text>
+                  <text x="50%" y="50%" textAnchor="middle" style={{ fontSize: 11, fontWeight: 500, fill: 'var(--text-disabled)' }}>총 제안</text>
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 240, color: '#94a3b8', fontSize: 13 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 240, color: 'var(--text-disabled)', fontSize: 13 }}>
                 발송한 제안서가 없습니다.
               </div>
             )}
@@ -404,14 +404,14 @@ export default function DashboardPage() {
                     <stop offset="100%" stopColor={C.positive} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subdued)" vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
                 <Area type="monotone" dataKey="발송" stroke={C.main} strokeWidth={2} fill="url(#gradSent)" dot={{ r: 3, fill: C.main, strokeWidth: 0 }} activeDot={{ r: 5, fill: C.main, stroke: '#fff', strokeWidth: 2 }} />
                 <Area type="monotone" dataKey="열람" stroke={C.positive} strokeWidth={2} fill="url(#gradViewed)" dot={{ r: 3, fill: C.positive, strokeWidth: 0 }} activeDot={{ r: 5, fill: C.positive, stroke: '#fff', strokeWidth: 2 }} />
                 <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
-                  formatter={(value: string) => <span style={{ fontSize: 12, color: '#64748b', marginLeft: 2 }}>{value}</span>}
+                  formatter={(value: string) => <span style={{ fontSize: 12, color: 'var(--text-subdued)', marginLeft: 2 }}>{value}</span>}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -424,7 +424,7 @@ export default function DashboardPage() {
             {areaPieData.length > 0 ? (
               <AreaTreemap data={areaPieData} total={concerns.length} />
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 220, color: '#94a3b8', fontSize: 13 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 220, color: 'var(--text-disabled)', fontSize: 13 }}>
                 고민 데이터가 없습니다.
               </div>
             )}
@@ -434,9 +434,9 @@ export default function DashboardPage() {
             {barData.length > 0 ? (
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={barData} margin={{ top: 8, right: 4, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subdued)" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} />
                   <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(79,70,229,0.04)' }}
                     formatter={(value, _name, props) => {
                       const v = Number(value);
@@ -451,7 +451,7 @@ export default function DashboardPage() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 220, color: '#94a3b8', fontSize: 13 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 220, color: 'var(--text-disabled)', fontSize: 13 }}>
                 거래 내역이 없습니다.
               </div>
             )}
@@ -460,7 +460,7 @@ export default function DashboardPage() {
 
         {/* ═══ 최근 고민 테이블 ═══ */}
         <div style={{
-          background: '#fff', borderRadius: 16, overflow: 'hidden',
+          background: 'var(--surface-default)', borderRadius: 16, overflow: 'hidden',
           boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
           border: '1px solid #f1f5f9',
         }}>
@@ -470,8 +470,8 @@ export default function DashboardPage() {
             padding: '18px 24px',
           }}>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 650, color: '#0f172a' }}>최근 고민</div>
-              <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{openConcerns.length}건의 제안 가능한 고민</div>
+              <div style={{ fontSize: 15, fontWeight: 650, color: 'var(--text-default)' }}>최근 고민</div>
+              <div style={{ fontSize: 12, color: 'var(--text-disabled)', marginTop: 2 }}>{openConcerns.length}건의 제안 가능한 고민</div>
             </div>
             <Link href="/concerns" style={{
               display: 'inline-flex', alignItems: 'center', gap: 4,
@@ -488,10 +488,10 @@ export default function DashboardPage() {
           {/* 테이블 */}
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: '#f8fafc' }}>
+              <tr style={{ background: 'var(--surface-subdued)' }}>
                 {['부위', '예산', '방문 시기', '상태', ''].map((h, i) => (
                   <th key={i} style={{
-                    padding: '10px 24px', fontSize: 11, fontWeight: 600, color: '#94a3b8',
+                    padding: '10px 24px', fontSize: 11, fontWeight: 600, color: 'var(--text-disabled)',
                     textAlign: 'left', letterSpacing: '0.05em', textTransform: 'uppercase' as const,
                     borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9',
                   }}>{h}</th>
@@ -501,7 +501,7 @@ export default function DashboardPage() {
             <tbody>
               {openConcerns.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', color: '#94a3b8', padding: '40px 0', fontSize: 13 }}>
+                  <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-disabled)', padding: '40px 0', fontSize: 13 }}>
                     새로 들어온 고민이 없습니다.
                   </td>
                 </tr>
@@ -522,13 +522,13 @@ export default function DashboardPage() {
                           display: 'inline-block', padding: '3px 10px', borderRadius: 6,
                           fontSize: 12, fontWeight: 600, background: areaStyle.bg, color: areaStyle.text,
                         }}>{c.primaryArea}</span>
-                        {c.bodyAreaDetail && <span style={{ fontSize: 13, color: '#64748b' }}>{c.bodyAreaDetail}</span>}
+                        {c.bodyAreaDetail && <span style={{ fontSize: 13, color: 'var(--text-subdued)' }}>{c.bodyAreaDetail}</span>}
                       </div>
                     </td>
                     <td style={{ padding: '14px 24px', fontSize: 13, color: '#334155', fontVariantNumeric: 'tabular-nums' }}>
                       {formatBudget(c.budgetMin, c.budgetMax)}
                     </td>
-                    <td style={{ padding: '14px 24px', fontSize: 13, color: '#64748b' }}>
+                    <td style={{ padding: '14px 24px', fontSize: 13, color: 'var(--text-subdued)' }}>
                       {formatDateRange(c.visitDateFrom, c.visitDateTo)}
                     </td>
                     <td style={{ padding: '14px 24px' }}>
