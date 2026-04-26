@@ -77,6 +77,15 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
   function updateItem(idx: number, field: keyof FormItem, value: string | number) {
     setItems(prev => prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)));
   }
+
+  // 가격 input — 콤마 포맷 + non-digit 입력 제거
+  function formatPrice(n: number): string {
+    return n > 0 ? n.toLocaleString('ko-KR') : '';
+  }
+  function parsePrice(s: string): number {
+    const digits = s.replace(/[^\d]/g, '');
+    return digits ? parseInt(digits, 10) : 0;
+  }
   function addFromCatalog(t: { name: string; nameZh: string; priceMin: number; priceMax: number }) {
     const midPrice = Math.round((t.priceMin + t.priceMax) / 2);
     setItems(prev => {
@@ -196,47 +205,46 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
               </div>
             }
           />
-          {/* 컬럼 헤더 */}
-          <div
-            className="grid gap-3 px-1 pb-2 mt-4 border-b border-[var(--border-subdued)] text-[var(--text-xs)] font-semibold text-[var(--text-subdued)]"
-            style={{ gridTemplateColumns: '1fr 6rem 2.25rem' }}
-          >
-            <span>시술명</span>
-            <span>가격 (만원)</span>
-            <span aria-hidden />
-          </div>
-
-          {/* 각 행 — divider 로 분리, 카드 nesting 없음 */}
-          <div className="flex flex-col">
+          {/* 각 시술 항목 카드 — 시술명 헤더 + 가격 풀폭 */}
+          <div className="flex flex-col gap-3 mt-4">
             {items.map((item, idx) => (
               <div
                 key={idx}
-                className="grid gap-3 items-center py-3 border-b border-[var(--border-subdued)] last:border-b-0"
-                style={{ gridTemplateColumns: '1fr 6rem 2.25rem' }}
+                className="flex flex-col gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--surface-subdued)] border border-[var(--border-subdued)]"
               >
-                <Input
-                  placeholder="시술명 (한국어)"
-                  value={item.name}
-                  onChange={e => updateItem(idx, 'name', e.target.value)}
-                />
-                <Input
-                  type="number"
-                  placeholder="0"
-                  value={item.price || ''}
-                  onChange={e => updateItem(idx, 'price', Number(e.target.value))}
-                />
-                {items.length > 1 ? (
-                  <button
-                    type="button"
-                    aria-label="항목 삭제"
-                    className="w-9 h-[var(--input-height,32px)] flex items-center justify-center rounded-[var(--app-radius-sm)] bg-transparent border border-[var(--border-default)] text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] hover:border-[var(--color-danger)] cursor-pointer transition-colors"
-                    onClick={() => removeItem(idx)}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                ) : (
-                  <div className="w-9 h-[var(--input-height,32px)]" aria-hidden />
-                )}
+                {/* 카드 헤더: 시술명 input + 삭제 */}
+                <div className="flex gap-3 items-center">
+                  <input
+                    type="text"
+                    placeholder="시술명 (한국어)"
+                    value={item.name}
+                    onChange={e => updateItem(idx, 'name', e.target.value)}
+                    className="input-field flex-1 min-w-0"
+                  />
+                  {items.length > 1 && (
+                    <button
+                      type="button"
+                      aria-label="항목 삭제"
+                      className="w-9 h-[var(--input-height,32px)] flex-shrink-0 flex items-center justify-center rounded-[var(--app-radius-sm)] bg-transparent border border-[var(--border-default)] text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] hover:border-[var(--color-danger)] cursor-pointer transition-colors"
+                      onClick={() => removeItem(idx)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+
+                {/* 가격 풀폭 + 만원 단위 */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={formatPrice(item.price)}
+                    onChange={e => updateItem(idx, 'price', parsePrice(e.target.value))}
+                    className="input-field flex-1 text-right tabular-nums"
+                  />
+                  <span className="text-[var(--text-base)] text-[var(--text-subdued)] flex-shrink-0">만원</span>
+                </div>
               </div>
             ))}
           </div>
@@ -249,9 +257,10 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
             <span className="propose-total-label">총 예상 비용</span>
             <div className="flex items-baseline gap-2">
               <input
-                type="number"
-                value={totalPrice || ''}
-                onChange={e => setTotalPrice(Number(e.target.value))}
+                type="text"
+                inputMode="numeric"
+                value={formatPrice(totalPrice)}
+                onChange={e => setTotalPrice(parsePrice(e.target.value))}
                 placeholder="0"
                 className="propose-total-input"
               />
