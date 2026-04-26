@@ -42,15 +42,15 @@ const searchFields: SearchField[] = [
 
 const columnDefs: ColDef<ProposalRow>[] = [
   { field: 'sentAt', headerName: '발송일', flex: 0.7, minWidth: 90, filter: false,
-    cellStyle: { color: '#94a3b8', fontVariantNumeric: 'tabular-nums' },
+    cellStyle: { color: 'var(--text-disabled)', fontVariantNumeric: 'tabular-nums' },
   },
   { field: 'concern', headerName: '고민', flex: 1.2, minWidth: 150, filter: true },
   { field: 'itemNames', headerName: '시술 항목', flex: 1.3, minWidth: 180, filter: true,
-    cellStyle: { color: '#64748b' },
+    cellStyle: { color: 'var(--text-subdued)' },
   },
   { field: 'budget', headerName: '고객 예산', flex: 0.8, minWidth: 100, filter: false },
   { field: 'totalPrice', headerName: '제안 금액', flex: 0.7, minWidth: 100, filter: false,
-    cellStyle: { fontWeight: 700, color: '#0f172a', fontVariantNumeric: 'tabular-nums' },
+    cellStyle: { fontWeight: 700, color: 'var(--text-default)', fontVariantNumeric: 'tabular-nums' },
   },
   { field: 'statusLabel', headerName: '상태', flex: 0.6, minWidth: 80, filter: true,
     cellRenderer: badgeCellRenderer(PROPOSAL_STATUS_BADGE),
@@ -100,7 +100,7 @@ export default function ProposalsPage() {
   if (error) {
     return (
       <AdminPage sidebar={<POSidebar active="/activity" />} title="제안서 목록" prefix="po">
-        <div className="text-center py-20 text-[#9ca3af]">제안서 데이터를 불러오지 못했습니다. 새로고침해 주세요.</div>
+        <div className="text-center py-20 text-[var(--text-disabled)]">제안서 데이터를 불러오지 못했습니다. 새로고침해 주세요.</div>
       </AdminPage>
     );
   }
