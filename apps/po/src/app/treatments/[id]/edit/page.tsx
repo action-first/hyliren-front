@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Modal, Spinner } from '@hyliren/ui';
-import { Trash2 } from 'lucide-react';
+import { Trash2, RotateCcw } from 'lucide-react';
 import { POSidebar } from '@/components/POSidebar';
 import { WizardShell } from '@/components/procedure-wizard/WizardShell';
 import { Step1Basics } from '@/components/procedure-wizard/Step1Basics';
@@ -70,6 +70,9 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   // 삭제 확인 모달 — soft delete (status → archived). 목록의 '보관함' 탭에서 복구 가능.
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  // 복원 확인 모달 — archived → published. BE 가 publish-strict 검증 자동 수행.
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   // H3: setState race 로 인한 중복 제출 방지
   const savingRef = useRef(false);
 
@@ -315,6 +318,24 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     }
   }
 
+  async function handleConfirmRestore() {
+    if (!member) return;
+    setRestoring(true);
+    try {
+      await proceduresApi.update(id, { status: 'published' });
+      showToast('공개 상태로 복원되었습니다.', 'success');
+      // 폼 status 만 변경 — 다른 필드 변경 없음 — 즉시 reload 해서 최신 상태 반영.
+      const reload = await proceduresApi.get(id);
+      setForm(toWizardForm(reload.procedure, reload.variants));
+      setRestoreOpen(false);
+    } catch (e: unknown) {
+      // BE publish-strict 검증 실패 시 — 사용자가 누락 항목 보완 후 재시도해야 함.
+      showToast(e instanceof Error ? e.message : '복원에 실패했습니다', 'error');
+    } finally {
+      setRestoring(false);
+    }
+  }
+
   if (loadError) {
     return (
       <div className="flex h-screen">
@@ -354,14 +375,19 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
           savedAt={savedAt}
           actions={
             <>
-              {/* archived 는 이미 보관함 — 같은 액션 다시 노출하면 혼란. 향후 '복원' 별도 추가 가능. */}
-              {form.status !== 'archived' && (
+              {/* archived 는 '복원' / 그 외는 '삭제' — 양립 불가능한 액션 (현재 status 기준 분기). */}
+              {form.status === 'archived' ? (
+                <Button variant="secondary" size="sm" onClick={() => setRestoreOpen(true)} disabled={saving}>
+                  <RotateCcw size={13} /> 복원
+                </Button>
+              ) : (
                 <Button variant="secondary" size="sm" onClick={() => setDeleteOpen(true)} disabled={saving}>
                   <Trash2 size={13} /> 삭제
                 </Button>
               )}
-              {/* 마지막 step 에선 primaryAction (저장) 이 대체 — 임시저장 미노출 */}
-              {activeStep < STEPS.length - 1 && (
+              {/* 마지막 step 에선 primaryAction (저장) 이 대체 — 임시저장 미노출.
+                  archived 편집 중엔 status=draft 강등이 의도와 다르므로 숨김. */}
+              {activeStep < STEPS.length - 1 && form.status !== 'archived' && (
                 <Button
                   variant="secondary" size="sm"
                   onClick={() => submit('draft')}
@@ -412,6 +438,29 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
             </Button>
             <Button variant="danger" onClick={handleConfirmDelete} disabled={deleting}>
               {deleting ? '삭제 중...' : '삭제'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 복원 확인 모달 — archived → published. BE 가 publish-strict 검증 자동 수행. */}
+      <Modal
+        open={restoreOpen}
+        onClose={() => !restoring && setRestoreOpen(false)}
+        title="시술을 다시 공개할까요?"
+      >
+        <div className="flex flex-col gap-5">
+          <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
+            <span className="font-semibold text-[var(--text-default)]">{procedureTitle}</span> 을(를) 다시 공개합니다.
+            <br />
+            복원하면 고객에게 다시 노출됩니다.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" onClick={() => setRestoreOpen(false)} disabled={restoring}>
+              취소
+            </Button>
+            <Button variant="primary" onClick={handleConfirmRestore} disabled={restoring}>
+              {restoring ? '복원 중...' : '복원'}
             </Button>
           </div>
         </div>

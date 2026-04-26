@@ -10,14 +10,15 @@ import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
 import { pickI18n } from '@hyliren/shared/src/domain/procedure';
 import type { Procedure, ProcedureStatus } from '@hyliren/shared';
-import { Plus, ImageIcon, Pencil, AlertTriangle, Trash2 } from 'lucide-react';
+import { Plus, ImageIcon, Pencil, AlertTriangle, Trash2, RotateCcw } from 'lucide-react';
 
-type StatusFilter = 'all' | ProcedureStatus;
+// 임시저장은 계정당 1개로 제한 — '+ 새 시술 등록' 모달의 '이어서/새로' 분기로만 진입 가능.
+// 별도 탭/카드 노출 없음 (작성 중인 미완성 데이터를 목록에 섞지 않는다).
+type StatusFilter = 'all' | 'published' | 'archived';
 
 const STATUS_TABS: { key: StatusFilter; label: string }[] = [
   { key: 'all', label: '전체' },
   { key: 'published', label: '공개' },
-  { key: 'draft', label: '임시저장' },
   { key: 'archived', label: '보관함' },
 ];
 
@@ -55,6 +56,11 @@ export default function TreatmentsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Procedure | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // 복원 확인 모달 — 보관함 카드의 복원 클릭 시 진입.
+  // restore = PATCH { status: 'published' }. BE 가 publish-strict 검증 자동 수행.
+  const [restoreTarget, setRestoreTarget] = useState<Procedure | null>(null);
+  const [restoring, setRestoring] = useState(false);
+
   const load = useCallback(async () => {
     if (!member) return;
     setLoading(true);
@@ -63,7 +69,9 @@ export default function TreatmentsPage() {
       const res = await proceduresApi.list({
         status: filter === 'all' ? undefined : filter,
       });
-      setProcedures(res.procedures);
+      // 임시저장은 목록에서 가린다 — 사용자는 '+ 새 시술 등록' 모달로만 접근.
+      // 'all' 탭에서도 draft 는 노출하지 않아 진입 경로의 일관성을 유지한다.
+      setProcedures(res.procedures.filter(p => p.status !== 'draft'));
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '목록을 불러올 수 없습니다';
       setLoadError(msg);
@@ -143,6 +151,34 @@ export default function TreatmentsPage() {
 
   const deleteTargetTitle = deleteTarget
     ? pickI18n(deleteTarget.i18n, 'ko', deleteTarget.sourceLocale)?.content.title || '(제목 없음)'
+    : '';
+
+  // 복원 — Link 내부 nav 충돌 방지로 e.preventDefault + stopPropagation 필수.
+  function handleRestoreRequest(e: React.MouseEvent, p: Procedure) {
+    e.preventDefault();
+    e.stopPropagation();
+    setRestoreTarget(p);
+  }
+
+  async function handleConfirmRestore() {
+    if (!restoreTarget) return;
+    setRestoring(true);
+    try {
+      await proceduresApi.update(restoreTarget.id, { status: 'published' });
+      setRestoreTarget(null);
+      showToast('공개 상태로 복원되었습니다.', 'success');
+      void load();
+    } catch (e: unknown) {
+      // BE publish-strict 검증 실패 시 — 사용자가 편집 후 재시도해야 함.
+      const msg = e instanceof Error ? e.message : '복원에 실패했습니다';
+      showToast(msg, 'error');
+    } finally {
+      setRestoring(false);
+    }
+  }
+
+  const restoreTargetTitle = restoreTarget
+    ? pickI18n(restoreTarget.i18n, 'ko', restoreTarget.sourceLocale)?.content.title || '(제목 없음)'
     : '';
 
   return (
@@ -234,8 +270,17 @@ export default function TreatmentsPage() {
                     {p.heroImageUrl
                       ? <img src={p.heroImageUrl} alt="" className="w-full h-full object-cover" />
                       : <ImageIcon size={28} className="text-[var(--text-disabled)]" />}
-                    {/* 삭제 버튼 — archived 는 이미 보관함이라 노출 안함 (idempotent 호출 방지). hover 시에만 노출. */}
-                    {p.status !== 'archived' && (
+                    {/* 카드 액션 — status 별로 분기. published → 삭제 / archived → 복원. hover 시에만 노출. */}
+                    {p.status === 'archived' ? (
+                      <button
+                        type="button"
+                        onClick={(e) => handleRestoreRequest(e, p)}
+                        aria-label="복원"
+                        className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-[var(--app-radius-sm)] bg-white/90 backdrop-blur-sm text-[var(--text-subdued)] hover:bg-white hover:text-[var(--color-success)] shadow-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      >
+                        <RotateCcw size={14} />
+                      </button>
+                    ) : (
                       <button
                         type="button"
                         onClick={(e) => handleDeleteRequest(e, p)}
@@ -339,6 +384,31 @@ export default function TreatmentsPage() {
             </Button>
             <Button variant="danger" onClick={handleConfirmDelete} disabled={deleting}>
               {deleting ? '삭제 중...' : '삭제'}
+            </Button>
+          </div>
+        </div>
+      )}
+    </Modal>
+
+    {/* 복원 확인 모달 — archived → published. BE 가 publish-strict 검증 자동 수행. */}
+    <Modal
+      open={restoreTarget !== null}
+      onClose={() => !restoring && setRestoreTarget(null)}
+      title="시술을 다시 공개할까요?"
+    >
+      {restoreTarget && (
+        <div className="flex flex-col gap-5">
+          <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
+            <span className="font-semibold text-[var(--text-default)]">{restoreTargetTitle}</span> 을(를) 다시 공개합니다.
+            <br />
+            복원하면 고객에게 다시 노출됩니다.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" onClick={() => setRestoreTarget(null)} disabled={restoring}>
+              취소
+            </Button>
+            <Button variant="primary" onClick={handleConfirmRestore} disabled={restoring}>
+              {restoring ? '복원 중...' : '복원'}
             </Button>
           </div>
         </div>
