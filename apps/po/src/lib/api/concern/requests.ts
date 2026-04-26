@@ -10,6 +10,8 @@ export interface ConcernListQuery {
   /** YYYY-MM-DD (해당일 23:59:59.999 까지 포함) */
   createdAtTo?: string;
   primaryArea?: string;
+  /** 'submitted' / 'proposal_received' / 'comparing' 등 raw enum 값 (BE @IsEnum 검증) */
+  status?: string;
   keyword?: string;
 }
 
@@ -18,6 +20,7 @@ export function listConcerns(query?: ConcernListQuery): Promise<ConcernListWire>
   if (query?.createdAtFrom) params.set('createdAtFrom', query.createdAtFrom);
   if (query?.createdAtTo) params.set('createdAtTo', query.createdAtTo);
   if (query?.primaryArea) params.set('primaryArea', query.primaryArea);
+  if (query?.status) params.set('status', query.status);
   if (query?.keyword) params.set('keyword', query.keyword);
   const qs = params.toString();
   return request<ConcernListWire>(qs ? `${BASE}?${qs}` : BASE);
