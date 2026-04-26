@@ -68,7 +68,7 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
               </div>
             </div>
             <Button
-              variant="accent" size="sm"
+              variant="primary" size="sm"
               onClick={onPublish}
               disabled={publishDisabled || publishing}
             >

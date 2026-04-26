@@ -40,7 +40,7 @@ export function StickyConsultCTA({ phase, unreadCount = 0 }: StickyConsultCTAPro
 
         {/* CTA */}
         <Link href="/decision" className="no-underline block">
-          <Button variant="accent" size="xl" fullWidth>
+          <Button variant="primary" size="xl" fullWidth>
             {t('sticky.checkProposals')}
             <ArrowRight size={18} />
           </Button>
@@ -77,7 +77,7 @@ export function StickyConsultCTA({ phase, unreadCount = 0 }: StickyConsultCTAPro
   return (
     <div className="fixed bottom-[calc(var(--fo-bottom-bar-height)+var(--fo-safe-area-bottom))] inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-30 px-5 pb-2 pt-3 fo-gradient-fade-up">
       <Link href="/consult" className="no-underline block">
-        <Button variant="accent" size="xl" fullWidth>
+        <Button variant="primary" size="xl" fullWidth>
           {t('sticky.tellConcern')}
           <ArrowRight size={18} />
         </Button>

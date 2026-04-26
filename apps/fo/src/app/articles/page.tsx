@@ -117,7 +117,7 @@ export default function ArticlesPage() {
             <span className="text-[11px] text-[var(--color-text-dim)]">{t('articles.bottomDesc')}</span>
           </div>
           <Link href="/consult" className="no-underline">
-            <Button variant="accent" size="sm">{t('articles.bottomCta')}</Button>
+            <Button variant="primary" size="sm">{t('articles.bottomCta')}</Button>
           </Link>
         </div>
       </div>

@@ -116,11 +116,11 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
           {/* Sticky CTA */}
           <div className="sticky bottom-0 bg-[var(--color-bg)] border-t border-[var(--color-border-light)] px-5 py-4">
             {purchased ? (
-              <Button variant="primary" size="xl" fullWidth onClick={onAnalyze}>
+              <Button variant="neutral" size="xl" fullWidth onClick={onAnalyze}>
                 검증 리포트 보기
               </Button>
             ) : (
-              <Button variant="accent" size="xl" fullWidth onClick={onAnalyze}>
+              <Button variant="primary" size="xl" fullWidth onClick={onAnalyze}>
                 <Sparkles size={16} />
                 {t('detail.verifyCta')}
               </Button>

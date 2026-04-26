@@ -103,7 +103,7 @@ export function StepNarrative() {
 
       {/* CTA */}
       <div className="mt-auto pb-2">
-        <Button variant="accent" size="xl" fullWidth onClick={handleStart} disabled={!canProceed}>
+        <Button variant="primary" size="xl" fullWidth onClick={handleStart} disabled={!canProceed}>
           {t('consult.narrativeCta')}
           <ArrowRight size={18} />
         </Button>

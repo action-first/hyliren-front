@@ -21,7 +21,7 @@ export function StickyBottomBar({ onCompareClick, onAnalyzeClick }: Props) {
   return (
     <div className="fixed bottom-[calc(var(--fo-bottom-bar-height)+var(--fo-safe-area-bottom))] inset-x-0 mx-auto w-full max-w-[var(--fo-frame-max-width)] z-30 px-5 pb-2 pt-3 fo-gradient-fade-up">
       {count >= 2 ? (
-        <Button variant="accent" size="xl" fullWidth
+        <Button variant="primary" size="xl" fullWidth
           onClick={() => {
             track({ eventType: 'compare_intent_clicked', actorType: 'user', metadata: { source: 'fo', locale: 'ko', value: String(count) } });
             onCompareClick();
@@ -30,7 +30,7 @@ export function StickyBottomBar({ onCompareClick, onAnalyzeClick }: Props) {
           {t('decision.compareCount', { count })}
         </Button>
       ) : (
-        <Button variant="primary" size="xl" fullWidth
+        <Button variant="neutral" size="xl" fullWidth
           onClick={() => {
             const id = Array.from(selectedProposalIds)[0];
             if (id && onAnalyzeClick) {

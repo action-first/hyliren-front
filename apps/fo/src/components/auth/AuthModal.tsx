@@ -198,7 +198,7 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
             placeholder={t('auth.emailPlaceholder')}
             className="fo-input mb-3"
           />
-          <Button variant="accent" size="xl" fullWidth
+          <Button variant="primary" size="xl" fullWidth
             onClick={() => { setErrorMessage(null); setStep('password'); }}
             disabled={!emailValid}>
             {t('common.next')}
@@ -243,7 +243,7 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
             <p className="text-[11px] text-[var(--color-danger)] mb-3 px-1">{errorMessage}</p>
           )}
 
-          <Button variant="accent" size="xl" fullWidth
+          <Button variant="primary" size="xl" fullWidth
             onClick={handleLoginSubmit}
             disabled={password.length === 0 || submitting}>
             {submitting ? t('common.loading') : t('auth.continue')}
@@ -329,7 +329,7 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
             <p className="text-[11px] text-[var(--color-danger)] mb-3 px-1">{errorMessage}</p>
           )}
 
-          <Button variant="accent" size="xl" fullWidth
+          <Button variant="primary" size="xl" fullWidth
             onClick={handleRegisterSubmit}
             disabled={!name.trim() || !passwordValid || !passwordMatch || submitting}>
             {submitting ? t('common.loading') : t('auth.createAccount')}
@@ -350,7 +350,7 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
           <p className="text-[13px] text-[var(--color-text-dim)] mb-6">
             {t('auth.welcomeDesc')}
           </p>
-          <Button variant="accent" size="xl" fullWidth onClick={handleContinue}>
+          <Button variant="primary" size="xl" fullWidth onClick={handleContinue}>
             {t('auth.continueConsult')}
           </Button>
         </div>

@@ -201,7 +201,7 @@ function DashboardHero({ phase, state }: { phase: string; state: DashboardState 
         {config.subtitle}
       </p>
       <Link href={config.ctaHref} className="no-underline">
-        <Button variant="accent" size="xl" fullWidth>
+        <Button variant="primary" size="xl" fullWidth>
           {config.cta}
           <ArrowRight size={16} />
         </Button>

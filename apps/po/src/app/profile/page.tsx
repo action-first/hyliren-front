@@ -60,7 +60,7 @@ export default function ProfilePage() {
       actions={
         <div className="flex items-center gap-3">
           {statusBadge}
-          <Button variant="accent" size="sm" onClick={handleSave} disabled={!isDirty}>저장</Button>
+          <Button variant="primary" size="sm" onClick={handleSave} disabled={!isDirty}>저장</Button>
         </div>
       }
     >
@@ -131,7 +131,7 @@ export default function ProfilePage() {
         </Card>
 
         <div className="flex justify-end">
-          <Button variant="accent" onClick={handleSave} disabled={!isDirty}>저장</Button>
+          <Button variant="primary" onClick={handleSave} disabled={!isDirty}>저장</Button>
         </div>
       </div>
     </AdminPage>
