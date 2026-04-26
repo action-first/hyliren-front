@@ -101,7 +101,7 @@ export function MyProposalSheet({ concernId, open, onClose }: MyProposalSheetPro
     <SideSheet
       open={open}
       onClose={onClose}
-      width="md"
+      width="lg"
       title="내 제안서"
     >
       {loading && (
