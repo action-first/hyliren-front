@@ -199,14 +199,12 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
                 key={idx}
                 className="flex flex-col gap-2 p-3 rounded-[var(--app-radius)] bg-[var(--surface-subdued)] border border-[var(--border-subdued)]"
               >
+                <Input
+                  placeholder="시술명 (한국어)"
+                  value={item.name}
+                  onChange={e => updateItem(idx, 'name', e.target.value)}
+                />
                 <div className="flex gap-2 items-end">
-                  <div className="flex-1 min-w-0">
-                    <Input
-                      placeholder="시술명 (한국어)"
-                      value={item.name}
-                      onChange={e => updateItem(idx, 'name', e.target.value)}
-                    />
-                  </div>
                   {items.length > 1 && (
                     <button
                       type="button"
@@ -217,13 +215,15 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
                       <Trash2 size={14} />
                     </button>
                   )}
+                  <div className="flex-1 min-w-0">
+                    <Input
+                      type="number"
+                      placeholder="가격 (만원)"
+                      value={item.price || ''}
+                      onChange={e => updateItem(idx, 'price', Number(e.target.value))}
+                    />
+                  </div>
                 </div>
-                <Input
-                  type="number"
-                  placeholder="가격 (만원)"
-                  value={item.price || ''}
-                  onChange={e => updateItem(idx, 'price', Number(e.target.value))}
-                />
               </div>
             ))}
           </div>
