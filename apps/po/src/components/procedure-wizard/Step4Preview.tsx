@@ -61,8 +61,8 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
             <div className="flex items-center gap-2">
               <EyeOff size={16} className="text-[var(--color-warning)]" />
               <div>
-                <p className="text-[12px] font-semibold text-[var(--text-default)]">비공개 (임시저장)</p>
-                <p className="text-[11px] text-[var(--text-disabled)]">
+                <p className="text-[var(--text-xs)] font-semibold text-[var(--text-default)]">비공개 (임시저장)</p>
+                <p className="text-[var(--app-text-micro)] text-[var(--text-disabled)]">
                   고객에게 아직 노출되지 않습니다. 검토 후 공개하세요.
                 </p>
               </div>
@@ -78,7 +78,7 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
         ) : form.status === 'published' ? (
           <section className="flex items-center gap-2 p-3 rounded-md border border-[var(--color-success)] bg-[var(--color-success-soft)]">
             <Eye size={16} className="text-[var(--color-success)]" />
-            <p className="text-[12px] font-semibold text-[var(--text-default)]">
+            <p className="text-[var(--text-xs)] font-semibold text-[var(--text-default)]">
               공개 중 · 고객에게 노출되고 있습니다.
             </p>
           </section>
@@ -87,7 +87,7 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
 
       {/* 상단: locale 선택 */}
       <section className="flex items-center gap-3 p-3 rounded-md bg-[var(--surface-default)]">
-        <span className="text-[12px] font-medium text-[var(--text-disabled)]">미리보기 언어</span>
+        <span className="text-[var(--text-xs)] font-medium text-[var(--text-disabled)]">미리보기 언어</span>
         <div className="flex gap-1">
           {PO_WIZARD_LOCALES.map(loc => (
             <button
@@ -95,7 +95,7 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
               type="button"
               onClick={() => setPreviewLocale(loc)}
               className={`
-                px-2.5 py-1 rounded text-[11px] font-medium
+                px-2.5 py-1 rounded text-[var(--app-text-micro)] font-medium
                 ${previewLocale === loc
                   ? 'bg-[var(--interactive-default)] text-white'
                   : 'bg-white text-[var(--text-default)] border border-[var(--border-default)]'}
@@ -106,7 +106,7 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
           ))}
         </div>
         {fallback && (
-          <span className="text-[11px] text-[var(--text-disabled)]">
+          <span className="text-[var(--app-text-micro)] text-[var(--text-disabled)]">
             ⓘ {previewLocale} 번역 없음 → {form.sourceLocale} 원본 표시
           </span>
         )}
@@ -125,7 +125,7 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
             <Badge variant="info" size="sm">{form.primaryArea || '미분류'}</Badge>
           </div>
           <h1 className="text-[20px] font-bold text-[var(--text-default)] mb-1">{title}</h1>
-          <p className="text-[14px] text-[var(--text-subdued)] mb-4">
+          <p className="text-[var(--text-base)] text-[var(--text-subdued)] mb-4">
             {priceMin === priceMax
               ? `${priceMin.toLocaleString()}원`
               : `${priceMin.toLocaleString()}원 ~ ${priceMax.toLocaleString()}원`}
@@ -134,7 +134,7 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
           {indications.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-4">
               {indications.map((ind, i) => (
-                <span key={i} className="px-2 py-1 rounded-full bg-[var(--surface-subdued)] text-[11px]">
+                <span key={i} className="px-2 py-1 rounded-full bg-[var(--surface-subdued)] text-[var(--app-text-micro)]">
                   {ind}
                 </span>
               ))}
@@ -142,14 +142,14 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
           )}
 
           <section className="mb-5">
-            <h3 className="text-[13px] font-bold text-[var(--text-default)] mb-2">시술 개요</h3>
-            <p className="text-[13px] leading-relaxed text-[var(--text-subdued)] whitespace-pre-wrap">
+            <h3 className="text-[var(--text-sm)] font-bold text-[var(--text-default)] mb-2">시술 개요</h3>
+            <p className="text-[var(--text-sm)] leading-relaxed text-[var(--text-subdued)] whitespace-pre-wrap">
               {description || <span className="text-[var(--text-disabled)]">(미입력)</span>}
             </p>
           </section>
 
           <section className="mb-5">
-            <h3 className="text-[13px] font-bold text-[var(--text-default)] mb-2">옵션</h3>
+            <h3 className="text-[var(--text-sm)] font-bold text-[var(--text-default)] mb-2">옵션</h3>
             <div className="flex flex-col gap-2">
               {variantsWithEffective.map(v => (
                 <div
@@ -162,13 +162,13 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
                   `}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[13px] font-semibold">{v.name}</span>
-                    <span className="text-[13px] font-bold">{v.price.toLocaleString()}원</span>
+                    <span className="text-[var(--text-sm)] font-semibold">{v.name}</span>
+                    <span className="text-[var(--text-sm)] font-bold">{v.price.toLocaleString()}원</span>
                   </div>
                   {v.description && (
-                    <p className="text-[12px] text-[var(--text-subdued)] mb-1.5">{v.description}</p>
+                    <p className="text-[var(--text-xs)] text-[var(--text-subdued)] mb-1.5">{v.description}</p>
                   )}
-                  <div className="flex gap-3 text-[11px] text-[var(--text-disabled)]">
+                  <div className="flex gap-3 text-[var(--app-text-micro)] text-[var(--text-disabled)]">
                     <span>마취: {v.anesthesia}</span>
                     <span>시술 {v.durationMinutes}분</span>
                     <span>회복 {v.recoveryDays}일</span>
@@ -180,8 +180,8 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
           </section>
 
           <section>
-            <h3 className="text-[13px] font-bold text-[var(--text-default)] mb-2">⚠️ 필수 고지</h3>
-            <p className="text-[12px] leading-relaxed text-[var(--text-subdued)] whitespace-pre-wrap">
+            <h3 className="text-[var(--text-sm)] font-bold text-[var(--text-default)] mb-2">⚠️ 필수 고지</h3>
+            <p className="text-[var(--text-xs)] leading-relaxed text-[var(--text-subdued)] whitespace-pre-wrap">
               {precautions || <span className="text-[var(--text-disabled)]">(미입력)</span>}
             </p>
           </section>

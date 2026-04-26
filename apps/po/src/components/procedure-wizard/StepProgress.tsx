@@ -39,7 +39,7 @@ export function StepProgress({ steps, activeIndex, onStepClick }: StepProgressPr
             `}
           >
             <span className={`
-              flex items-center justify-center w-6 h-6 rounded-full text-[11px] font-semibold shrink-0
+              flex items-center justify-center w-6 h-6 rounded-full text-[var(--app-text-micro)] font-semibold shrink-0
               ${isActive
                 ? 'bg-[var(--interactive-default)] text-white'
                 : step.done
@@ -48,7 +48,7 @@ export function StepProgress({ steps, activeIndex, onStepClick }: StepProgressPr
             `}>
               {step.done && !isActive ? <Check size={13} /> : i + 1}
             </span>
-            <span className="text-[13px] font-medium">{step.label}</span>
+            <span className="text-[var(--text-sm)] font-medium">{step.label}</span>
           </button>
         );
       })}

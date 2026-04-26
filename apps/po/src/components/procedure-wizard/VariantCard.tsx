@@ -82,7 +82,7 @@ export function VariantCard({
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <label className="flex items-center gap-1.5 text-[12px] cursor-pointer">
+          <label className="flex items-center gap-1.5 text-[var(--text-xs)] cursor-pointer">
             <input
               type="radio"
               checked={variant.isDefault}
@@ -141,7 +141,7 @@ export function VariantCard({
         <button
           type="button"
           onClick={() => setOverride(!showOverride)}
-          className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--text-default)] hover:text-[var(--interactive-default)]"
+          className="flex items-center gap-1.5 text-[var(--text-xs)] font-medium text-[var(--text-default)] hover:text-[var(--interactive-default)]"
         >
           {showOverride ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           {showOverride ? '개별 값 사용' : '기본값 사용 (기본값과 다르면 펼치기)'}

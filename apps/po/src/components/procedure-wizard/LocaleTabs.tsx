@@ -42,14 +42,14 @@ export function LocaleTabs({
             type="button"
             onClick={() => onChange(loc)}
             className={`
-              flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium
+              flex items-center gap-1.5 px-3 py-2 text-[var(--text-xs)] font-medium
               border-b-2 transition-colors -mb-px
               ${isActive
                 ? 'border-[var(--interactive-default)] text-[var(--text-default)]'
                 : 'border-transparent text-[var(--text-disabled)] hover:text-[var(--text-default)]'}
             `}
           >
-            <span className="text-[14px]">{flag}</span>
+            <span className="text-[var(--text-base)]">{flag}</span>
             <span>{name}</span>
             {isSource && (
               <span className="text-[10px] font-bold text-[var(--interactive-default)]">*</span>

@@ -82,11 +82,11 @@ export function WizardShell({
               <div className="flex items-center gap-3 min-w-0">
                 <div className="min-w-0">
                   {title && (
-                    <p className="text-[11px] font-medium text-[var(--text-disabled)] mb-0.5">
+                    <p className="text-[var(--app-text-micro)] font-medium text-[var(--text-disabled)] mb-0.5">
                       {title}
                     </p>
                   )}
-                  <h1 className="text-[18px] font-bold text-[var(--text-default)] leading-tight">
+                  <h1 className="text-[var(--text-lg)] font-bold text-[var(--text-default)] leading-tight">
                     {currentStep?.label}
                   </h1>
                 </div>
@@ -137,7 +137,7 @@ function SaveIndicator({ status, savedAt }: { status?: 'idle' | 'saving' | 'save
   if (!status || status === 'idle') return null;
   if (status === 'saving') {
     return (
-      <span className="inline-flex items-center gap-1 text-[11px] text-[var(--text-disabled)]">
+      <span className="inline-flex items-center gap-1 text-[var(--app-text-micro)] text-[var(--text-disabled)]">
         <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-disabled)] animate-pulse" />
         저장 중…
       </span>
@@ -145,11 +145,11 @@ function SaveIndicator({ status, savedAt }: { status?: 'idle' | 'saving' | 'save
   }
   if (status === 'error') {
     return (
-      <span className="text-[11px] text-[var(--color-danger)]">저장 실패</span>
+      <span className="text-[var(--app-text-micro)] text-[var(--color-danger)]">저장 실패</span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-[11px] text-[var(--color-success)]">
+    <span className="inline-flex items-center gap-1 text-[var(--app-text-micro)] text-[var(--color-success)]">
       <Check size={11} />
       저장됨 {savedAt ? `· ${formatSavedAgo(savedAt)}` : ''}
     </span>

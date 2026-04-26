@@ -128,7 +128,7 @@ export function Step1Basics({ form, onChange }: Step1Props) {
           onChange={e => onChange({ heroImageUrl: e.target.value })}
           placeholder="https://…"
         />
-        <p className="text-[11px] text-[var(--text-disabled)] mt-1.5">
+        <p className="text-[var(--app-text-micro)] text-[var(--text-disabled)] mt-1.5">
           ⚠️ 시술 전/후 비교 이미지는 의료법상 등록 금지. 시술 과정·의료진·시설 이미지로 구성해주세요.
         </p>
         {form.heroImageUrl && (
@@ -152,7 +152,7 @@ export function Step1Basics({ form, onChange }: Step1Props) {
           placeholder={titlePlaceholder}
         />
         {activeLocale !== form.sourceLocale && !currentBlock.title && (
-          <p className="text-[11px] text-[var(--text-disabled)] mt-1.5">
+          <p className="text-[var(--app-text-micro)] text-[var(--text-disabled)] mt-1.5">
             비워두면 {form.sourceLocale} 원본으로 자동 fallback 됩니다.
           </p>
         )}
@@ -165,7 +165,7 @@ export function Step1Basics({ form, onChange }: Step1Props) {
           onChange={e => onChange({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
           placeholder="비워두면 자동 생성됩니다"
         />
-        <p className="text-[11px] text-[var(--text-disabled)] mt-1.5">
+        <p className="text-[var(--app-text-micro)] text-[var(--text-disabled)] mt-1.5">
           영문 소문자·숫자·하이픈만 사용. URL 에 노출됩니다: /procedures/<strong>{form.slug || '...'}</strong>
         </p>
       </div>

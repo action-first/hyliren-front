@@ -313,7 +313,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       <div className="flex h-screen">
         <POSidebar active="/treatments" />
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-[14px] text-[var(--color-danger)]">{loadError}</p>
+          <p className="text-[var(--text-base)] text-[var(--color-danger)]">{loadError}</p>
         </div>
       </div>
     );
