@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { AnesthesiaType } from '@hyliren/shared';
 import { CREDIT_COST } from '@hyliren/shared';
 import { Button, Card, Input, SectionHeader, Select, SideSheet, Textarea } from '@hyliren/ui';
@@ -42,6 +42,8 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
 
   const [items, setItems] = useState<FormItem[]>([{ name: '', nameZh: '', price: 0 }]);
   const [totalPrice, setTotalPrice] = useState(0);
+  // 사용자가 총 비용을 직접 수정하면 dirty=true → 더 이상 자동 합산 동기화 안 함
+  const [totalDirty, setTotalDirty] = useState(false);
   const [recoveryDays, setRecoveryDays] = useState(7);
   const [anesthesia, setAnesthesia] = useState<AnesthesiaType>('sedation');
   const [stayDays, setStayDays] = useState(0);
@@ -56,6 +58,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
     if (!open) {
       setItems([{ name: '', nameZh: '', price: 0 }]);
       setTotalPrice(0);
+      setTotalDirty(false);
       setRecoveryDays(7);
       setAnesthesia('sedation');
       setStayDays(0);
@@ -65,6 +68,19 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
       setShowCatalog(false);
     }
   }, [open]);
+
+  // 시술 항목 가격 합계
+  const itemsSum = useMemo(
+    () => items.reduce((sum, i) => sum + (Number(i.price) || 0), 0),
+    [items],
+  );
+
+  // 사용자가 직접 수정 안 한 동안은 합계 = 총비용 자동 동기화
+  useEffect(() => {
+    if (!totalDirty) {
+      setTotalPrice(itemsSum);
+    }
+  }, [itemsSum, totalDirty]);
 
   const activeTreatments = treatments.filter(t => t.isActive);
 
@@ -233,26 +249,47 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
                   )}
                 </div>
 
-                {/* 가격 풀폭 + 만원 단위 */}
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="0"
-                    value={formatPrice(item.price)}
-                    onChange={e => updateItem(idx, 'price', parsePrice(e.target.value))}
-                    className="input-field flex-1 text-right tabular-nums"
-                  />
-                  <span className="text-[var(--text-base)] text-[var(--text-subdued)] flex-shrink-0">만원</span>
+                {/* 가격 row — 총비용과 동일 UX (label 좌측 / 작은 input 우측 + 만원) */}
+                <div className="propose-total-row">
+                  <span className="propose-total-label">가격</span>
+                  <div className="flex items-baseline gap-2">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="0"
+                      value={formatPrice(item.price)}
+                      onChange={e => updateItem(idx, 'price', parsePrice(e.target.value))}
+                      className="propose-item-price-input"
+                    />
+                    <span className="text-[var(--text-sm)] text-[var(--text-subdued)]">만원</span>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </Card>
 
-        {/* 총 비용 */}
+        {/* 총 비용 — 시술 항목 합계 자동 동기화 / 사용자 입력 시 override */}
         <Card padding="md">
-          <SectionHeader title="총 비용" subtitle="총 비용은 직접 입력합니다 (항목 합계와 다를 수 있음)" />
+          <SectionHeader
+            title="총 비용"
+            subtitle={
+              totalDirty
+                ? `자동 합계와 다름 (합계 ${formatPrice(itemsSum)}만원)`
+                : '시술 항목 합계가 자동 반영됩니다 (직접 수정 가능)'
+            }
+            action={
+              totalDirty ? (
+                <button
+                  type="button"
+                  className="text-[var(--text-xs)] font-medium text-[var(--interactive-default)] hover:underline cursor-pointer bg-transparent border-0 p-0"
+                  onClick={() => setTotalDirty(false)}
+                >
+                  자동 합계로 되돌리기
+                </button>
+              ) : undefined
+            }
+          />
           <div className="propose-total-row mt-4">
             <span className="propose-total-label">총 예상 비용</span>
             <div className="flex items-baseline gap-2">
@@ -260,7 +297,10 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
                 type="text"
                 inputMode="numeric"
                 value={formatPrice(totalPrice)}
-                onChange={e => setTotalPrice(parsePrice(e.target.value))}
+                onChange={e => {
+                  setTotalPrice(parsePrice(e.target.value));
+                  setTotalDirty(true);
+                }}
                 placeholder="0"
                 className="propose-total-input"
               />
