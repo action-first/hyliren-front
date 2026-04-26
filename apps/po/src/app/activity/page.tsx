@@ -86,6 +86,8 @@ export default function ActivityPage() {
   const [concerns, setConcerns] = useState<ConcernSummaryWire[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  // 초기 1회 load 완료 여부 — DataGrid mount 유지로 검색 form state 보존.
+  const [hasInitialLoad, setHasInitialLoad] = useState(false);
   // 제안서 row 클릭 시 사이드 시트로 상세 노출. concernId 기반.
   const [selectedConcernId, setSelectedConcernId] = useState<string | null>(null);
 
@@ -102,7 +104,10 @@ export default function ActivityPage() {
         setLoadError(msg);
         showToast(msg, 'error');
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setHasInitialLoad(true);
+      });
   }, [showToast]);
 
   useEffect(() => { load(); }, [load]);
@@ -147,13 +152,14 @@ export default function ActivityPage() {
         </div>
       </Card>
 
-      {loading && (
+      {/* 초기 1회 load 전 spinner / error */}
+      {!hasInitialLoad && loading && (
         <Card padding="md">
           <div className="flex items-center justify-center py-12"><Spinner /></div>
         </Card>
       )}
 
-      {!loading && loadError && (
+      {!hasInitialLoad && !loading && loadError && (
         <Card padding="md">
           <div className="text-center py-10">
             <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
@@ -168,7 +174,8 @@ export default function ActivityPage() {
         </Card>
       )}
 
-      {!loading && !loadError && rowData.length === 0 && (
+      {/* 초기 load 후 — 데이터 0 건이면 빈 상태, 아니면 DataGrid (mount 유지) */}
+      {hasInitialLoad && rowData.length === 0 && (
         <Card padding="md">
           <div className="text-center py-12">
             <FileEdit size={28} className="mx-auto mb-2 text-[var(--text-disabled)]" />
@@ -182,7 +189,7 @@ export default function ActivityPage() {
         </Card>
       )}
 
-      {!loading && !loadError && rowData.length > 0 && (
+      {hasInitialLoad && rowData.length > 0 && (
         <DataGrid<ActivityRow>
           columnDefs={columnDefs}
           rowData={rowData}

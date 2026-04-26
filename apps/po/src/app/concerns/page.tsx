@@ -103,6 +103,9 @@ export default function ConcernListPage() {
   // 마지막 query 보존 — 재시도 / 에러 후 회복 시 사용 (treatments 패턴 일관)
   const [lastQuery, setLastQuery] = useState<ConcernListQuery>({});
   const [loadError, setLoadError] = useState<string | null>(null);
+  // 초기 1회 load 완료 여부 — 이후엔 DataGrid mount 유지하여 search form state 보존.
+  // 검색마다 DataGrid 가 unmount/mount 되면 사용자 입력값이 reset 되는 회귀 방지.
+  const [hasInitialLoad, setHasInitialLoad] = useState(false);
 
   // backend 호출 — 디폴트/검색 모두 같은 함수 경로
   const fetchConcerns = useCallback((query: ConcernListQuery) => {
@@ -118,7 +121,10 @@ export default function ConcernListPage() {
         setLoadError(msg);
         showToast(msg, 'error');
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setHasInitialLoad(true);
+      });
   }, [showToast]);
 
   useEffect(() => {
@@ -157,13 +163,14 @@ export default function ConcernListPage() {
 
   return (
     <AdminPage sidebar={<POSidebar active="/concerns" />} title="고민 리스트" prefix="po">
-      {loading && (
+      {/* 초기 1회 load 전: spinner / error 카드 */}
+      {!hasInitialLoad && loading && (
         <Card padding="md">
           <div className="flex items-center justify-center py-12"><Spinner /></div>
         </Card>
       )}
 
-      {!loading && loadError && (
+      {!hasInitialLoad && !loading && loadError && (
         <Card padding="md">
           <div className="text-center py-10">
             <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
@@ -178,7 +185,9 @@ export default function ConcernListPage() {
         </Card>
       )}
 
-      {!loading && !loadError && (
+      {/* 초기 load 후: DataGrid 항상 mount 유지 → search form state 보존.
+          재검색 중 fetch error 는 toast 로만 알림 (DataGrid 와 이전 데이터는 유지). */}
+      {hasInitialLoad && (
         <DataGrid<ConcernRow>
           columnDefs={columnDefs}
           rowData={rowData}

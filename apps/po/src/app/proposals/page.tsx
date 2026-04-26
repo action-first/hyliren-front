@@ -105,6 +105,8 @@ export default function ProposalsPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   // 마지막 query 보존 — 재시도 시 동일 query 재호출.
   const [lastQuery, setLastQuery] = useState<MyProposalsQuery>({});
+  // 초기 1회 load 완료 여부 — DataGrid mount 유지로 search form state 보존.
+  const [hasInitialLoad, setHasInitialLoad] = useState(false);
 
   const fetchProposals = useCallback((query: MyProposalsQuery) => {
     setLoading(true);
@@ -120,7 +122,10 @@ export default function ProposalsPage() {
         setLoadError(msg);
         showToast(msg, 'error');
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setHasInitialLoad(true);
+      });
   }, [showToast]);
 
   useEffect(() => {
@@ -140,13 +145,14 @@ export default function ProposalsPage() {
 
   return (
     <AdminPage sidebar={<POSidebar active="/activity" />} title="제안서 목록" prefix="po">
-      {loading && (
+      {/* 초기 1회 load 전 spinner / error */}
+      {!hasInitialLoad && loading && (
         <Card padding="md">
           <div className="flex items-center justify-center py-12"><Spinner /></div>
         </Card>
       )}
 
-      {!loading && loadError && (
+      {!hasInitialLoad && !loading && loadError && (
         <Card padding="md">
           <div className="text-center py-10">
             <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
@@ -161,7 +167,8 @@ export default function ProposalsPage() {
         </Card>
       )}
 
-      {!loading && !loadError && (
+      {/* 초기 load 후 DataGrid 유지 — 검색 form state 보존 */}
+      {hasInitialLoad && (
         <DataGrid<ProposalRow>
           columnDefs={columnDefs}
           rowData={proposals.map(p => toRow(p, concerns))}
