@@ -27,18 +27,18 @@ function Modal({ open, onClose, children, title }: ModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-[var(--spacing-4)]">
+    <div className="fixed inset-0 z-[var(--z-modal,60)] flex items-center justify-center p-[var(--spacing-4)]">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-[var(--color-surface)] rounded-[var(--app-radius)] shadow-[var(--shadow-xl)] w-full max-w-md max-h-[85vh] overflow-y-auto">
+      <div className="relative bg-[var(--color-surface,#fff)] rounded-[var(--app-radius,8px)] shadow-[var(--shadow-xl)] w-full max-w-[420px] max-h-[85vh] overflow-y-auto">
         {title && (
-          <div className="flex items-center justify-between p-[var(--spacing-4)] border-b border-[var(--color-border-light)]">
-            <h2 className="text-[var(--text-lg)] font-semibold text-[var(--color-text)]">{title}</h2>
-            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-dim)] cursor-pointer">
+          <div className="flex items-center justify-between px-[var(--spacing-5)] py-[var(--spacing-4)] border-b border-[var(--color-border-light)]">
+            <h2 className="text-[var(--text-md)] font-semibold text-[var(--color-text)]">{title}</h2>
+            <button onClick={onClose} aria-label="닫기" className="w-8 h-8 flex items-center justify-center rounded-[var(--app-radius-sm)] hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-dim)] cursor-pointer">
               ✕
             </button>
           </div>
         )}
-        <div className="p-[var(--spacing-4)]">{children}</div>
+        <div className="p-[var(--spacing-5)]">{children}</div>
       </div>
     </div>
   );

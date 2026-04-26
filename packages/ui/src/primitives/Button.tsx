@@ -40,10 +40,10 @@ const variantStyles: Record<Variant, string> = {
 };
 
 const sizeStyles: Record<Size, string> = {
-  sm: 'h-7 px-3 text-xs rounded-[var(--app-radius-sm,4px)]',
-  md: 'h-8 px-4 text-sm rounded-[var(--app-radius-sm,4px)]',
-  lg: 'h-9 px-5 text-sm rounded-[var(--app-radius-sm,4px)] font-medium',
-  xl: 'h-12 px-6 text-base rounded-xl font-semibold',
+  sm: 'h-8 px-3 text-xs rounded-[var(--input-radius,6px)]',
+  md: 'h-9 px-4 text-sm rounded-[var(--input-radius,6px)]',
+  lg: 'h-10 px-5 text-sm rounded-[var(--input-radius,6px)] font-medium',
+  xl: 'h-12 px-6 text-base rounded-[var(--app-radius,8px)] font-semibold',
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(

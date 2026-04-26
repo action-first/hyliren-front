@@ -77,11 +77,11 @@
   display: block !important; width: 100% !important;
 }
 .datepicker-icon {
-  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
   color: var(--text-disabled); pointer-events: none; z-index: 1;
 }
 .datepicker-input {
-  width: 100% !important; height: var(--input-height) !important; padding: 0 28px 0 8px !important;
+  width: 100% !important; height: var(--input-height) !important; padding: 0 32px 0 12px !important;
   font-size: var(--app-text-sm) !important; font-family: inherit !important;
   border: 1px solid var(--input-border) !important; border-radius: var(--input-radius) !important;
   background: var(--input-bg) !important; color: var(--text-default) !important; outline: none !important;
