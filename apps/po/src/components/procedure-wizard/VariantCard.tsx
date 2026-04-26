@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Input, Select, Button, Textarea } from '@hyliren/ui';
+import { Input, Select, Textarea } from '@hyliren/ui';
 import { Trash2, ChevronDown, ChevronUp } from 'lucide-react';
-import { ANESTHESIA_TYPES } from '@hyliren/shared';
+import { ANESTHESIA_TYPES, formatNumberWithComma, parseNumberFromInput } from '@hyliren/shared';
 import type { AnesthesiaType, Locale } from '@hyliren/shared';
 import { LocaleTabs } from './LocaleTabs';
 import type { WizardVariant, WizardForm } from '@/lib/wizard/types';
@@ -149,13 +149,24 @@ export function VariantCard({
 
         {showOverride && (
           <div className="grid grid-cols-2 gap-3 mt-3">
-            <Input
-              label="가격 (원)"
-              type="number"
-              value={variant.price ?? ''}
-              onChange={e => onChange({ price: e.target.value ? Number(e.target.value) : null })}
-              placeholder={`기본: ${base.basePrice.toLocaleString()}`}
-            />
+            {/* 가격 — 콤마 포맷 + '원' inline */}
+            <div className="input-wrapper">
+              <label className="input-label">가격</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={variant.price !== null ? formatNumberWithComma(variant.price) : ''}
+                  onChange={e => {
+                    const v = parseNumberFromInput(e.target.value);
+                    onChange({ price: e.target.value ? v : null });
+                  }}
+                  placeholder={`기본: ${base.basePrice.toLocaleString('ko-KR')}`}
+                  className="input-field flex-1 text-right tabular-nums"
+                />
+                <span className="text-[var(--text-sm)] text-[var(--text-subdued)] flex-shrink-0">원</span>
+              </div>
+            </div>
             <Select
               label="마취"
               value={variant.anesthesia ?? base.baseAnesthesia}

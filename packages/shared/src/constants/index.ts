@@ -62,6 +62,8 @@ export {
   manToKrw,
   krwToMan,
   formatKrwAsMan,
+  formatNumberWithComma,
+  parseNumberFromInput,
   CONCERN_STATUS_KR,
   CONCERN_STATUS_BADGE,
   PROPOSAL_STATUS_KR,

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Input, Textarea, Button } from '@hyliren/ui';
-import { X, Plus } from 'lucide-react';
+import { Input, Textarea, Button, SectionHeader } from '@hyliren/ui';
+import { X, Plus, AlertTriangle } from 'lucide-react';
 import type { Locale } from '@hyliren/shared';
 import { LocaleTabs } from './LocaleTabs';
 import type { WizardForm } from '@/lib/wizard/types';
@@ -61,9 +61,11 @@ export function Step3Content({ form, onChange }: Step3Props) {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-3">
-          시술 개요·필수 고지·적응증을 언어별로 입력하세요.
-        </p>
+        <SectionHeader
+          title="시술 콘텐츠"
+          subtitle="언어별로 시술 설명·고지 사항·적응증을 입력합니다. 한 언어 탭만 입력해도 나머지 언어는 자동 fallback 됩니다."
+        />
+        <div className="mt-3" />
         <LocaleTabs
           active={activeLocale}
           sourceLocale={form.sourceLocale}
@@ -124,13 +126,20 @@ export function Step3Content({ form, onChange }: Step3Props) {
       </div>
 
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-[var(--text-xs)] text-[var(--text-disabled)]">
-            갤러리 이미지 (최대 8장) — <strong>시술 전/후 비교 금지</strong>. 시설·과정·의료진 이미지만.
+        <SectionHeader
+          title="갤러리 이미지"
+          subtitle="시설·시술 과정·의료진 이미지로 구성합니다. 최대 8장까지 등록 가능합니다."
+          action={
+            <span className="text-[var(--app-text-micro)] text-[var(--text-subdued)]">
+              {form.galleryImageUrls.length}/8
+            </span>
+          }
+        />
+        <div className="mt-2 mb-3 flex items-start gap-2 p-2.5 rounded-[var(--app-radius-sm)] bg-[var(--color-warning-soft)]">
+          <AlertTriangle size={14} className="text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
+          <p className="text-[var(--text-xs)] text-[var(--text-default)] leading-relaxed">
+            <strong className="font-semibold">의료법상 시술 전/후 비교 이미지 등록 금지.</strong> 위반 시 행정 처분 대상이 될 수 있습니다.
           </p>
-          <span className="text-[var(--app-text-micro)] text-[var(--text-disabled)]">
-            {form.galleryImageUrls.length}/8
-          </span>
         </div>
 
         <div className="grid grid-cols-5 gap-2">
