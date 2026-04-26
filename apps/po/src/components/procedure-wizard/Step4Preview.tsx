@@ -2,14 +2,51 @@
 
 import { useState } from 'react';
 import { Badge } from '@hyliren/ui';
-import { Eye, EyeOff, FileEdit } from 'lucide-react';
+import { Check, Eye, EyeOff, FileEdit, AlertCircle } from 'lucide-react';
 import type { Locale } from '@hyliren/shared';
 import { pickI18n, getEffectiveVariant } from '@hyliren/shared/src/domain/procedure';
+import { stepIsValid } from '@/lib/wizard/validation';
 import type { WizardForm } from '@/lib/wizard/types';
 import { PO_WIZARD_LOCALES } from './config';
 
 interface Step4Props {
   form: WizardForm;
+}
+
+/** 공개 전 점검 — step 별 누락 항목 진단. */
+function diagnoseSteps(form: WizardForm): Array<{ label: string; ok: boolean; missing: string[] }> {
+  const sourceBlock = form.i18n[form.sourceLocale];
+  return [
+    {
+      label: '기본 정보',
+      ok: stepIsValid(form, 0),
+      missing: [
+        !form.primaryArea && '분류',
+        !form.procedureType && '시술 유형',
+        !form.heroImageUrl && '대표 이미지',
+        !sourceBlock?.title?.trim() && '시술명',
+      ].filter(Boolean) as string[],
+    },
+    {
+      label: '가격·옵션',
+      ok: stepIsValid(form, 1),
+      missing: [
+        form.basePrice <= 0 && '기본 가격',
+        form.baseDurationMinutes <= 0 && '시술 시간',
+        form.variants.length < 1 && '옵션 1개 이상',
+        form.variants.filter(v => v.isDefault).length !== 1 && '대표 옵션 1개',
+        form.variants.some(v => !(v.i18n[form.sourceLocale]?.name?.trim())) && '옵션 이름',
+      ].filter(Boolean) as string[],
+    },
+    {
+      label: '상세·이미지',
+      ok: stepIsValid(form, 2),
+      missing: [
+        !sourceBlock?.description?.trim() && '시술 설명',
+        !sourceBlock?.precautions?.trim() && '주의사항',
+      ].filter(Boolean) as string[],
+    },
+  ];
 }
 
 /**
@@ -79,6 +116,90 @@ export function Step4Preview({ form }: Step4Props) {
           </p>
         </section>
       )}
+
+      {/* 공개 전 점검 — draft 한정 (published/archived 는 이미 검증된 데이터). */}
+      {form.status === 'draft' && (() => {
+        const diagnostics = diagnoseSteps(form);
+        const allOk = diagnostics.every(d => d.ok);
+        const totalVariants = form.variants.length;
+        const itemNames = form.variants
+          .slice()
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .map(v => v.i18n[form.sourceLocale]?.name)
+          .filter(Boolean) as string[];
+        const prices = form.variants.map(v => getEffectiveVariant(v, form).price).filter(p => p > 0);
+        const priceMin = prices.length ? Math.min(...prices) : form.basePrice;
+        const priceMax = prices.length ? Math.max(...prices) : form.basePrice;
+
+        return (
+          <section className="rounded-lg border border-[var(--border-default)] bg-[var(--surface-default)] p-4 flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">공개 전 점검</h2>
+              {allOk ? (
+                <span className="text-[var(--app-text-micro)] text-[var(--color-success)] font-medium">공개 준비 완료</span>
+              ) : (
+                <span className="text-[var(--app-text-micro)] text-[var(--color-warning)] font-medium">누락된 항목이 있습니다</span>
+              )}
+            </div>
+
+            {/* step 별 체크리스트 */}
+            <ul className="flex flex-col gap-2">
+              {diagnostics.map((d, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  {d.ok ? (
+                    <Check size={16} className="text-[var(--color-success)] shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertCircle size={16} className="text-[var(--color-warning)] shrink-0 mt-0.5" />
+                  )}
+                  <div className="min-w-0">
+                    <p className={`text-[var(--text-sm)] font-medium ${d.ok ? 'text-[var(--text-default)]' : 'text-[var(--text-default)]'}`}>
+                      {i + 1}단계 · {d.label}
+                    </p>
+                    {!d.ok && d.missing.length > 0 && (
+                      <p className="text-[var(--app-text-micro)] text-[var(--text-subdued)] mt-0.5">
+                        누락: {d.missing.join(', ')}
+                      </p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {/* summary chips — 옵션 개수, 가격 범위, 시술명 태그 */}
+            {allOk && (
+              <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-[var(--border-subdued)]">
+                <span className="px-2 py-0.5 rounded-full bg-[var(--surface-subdued)] text-[var(--app-text-micro)] text-[var(--text-default)]">
+                  옵션 {totalVariants}개
+                </span>
+                {prices.length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-[var(--surface-subdued)] text-[var(--app-text-micro)] text-[var(--text-default)]">
+                    {priceMin === priceMax
+                      ? `${(priceMin / 10000).toFixed(0)}만원`
+                      : `${(priceMin / 10000).toFixed(0)}~${(priceMax / 10000).toFixed(0)}만원`}
+                  </span>
+                )}
+                {itemNames.slice(0, 3).map((name, i) => (
+                  <span key={i} className="px-2 py-0.5 rounded-full bg-[var(--color-info-soft)] text-[var(--app-text-micro)] text-[var(--text-default)]">
+                    {name}
+                  </span>
+                ))}
+                {itemNames.length > 3 && (
+                  <span className="text-[var(--app-text-micro)] text-[var(--text-disabled)]">
+                    +{itemNames.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {allOk && (
+              <p className="text-[var(--app-text-micro)] text-[var(--text-subdued)] leading-relaxed">
+                공개하면 위 시술명·가격 범위가 고객의 상담 신청 화면에 노출됩니다.
+                하단 <span className="font-semibold text-[var(--text-default)]">공개하기</span> 버튼을 누르면 즉시 반영됩니다.
+              </p>
+            )}
+          </section>
+        );
+      })()}
 
       {/* 상단: locale 선택 */}
       <section className="flex items-center gap-3 p-3 rounded-md bg-[var(--surface-default)]">
