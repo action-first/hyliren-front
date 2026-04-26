@@ -10,7 +10,7 @@ import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
 import { pickI18n } from '@hyliren/shared/src/domain/procedure';
 import type { Procedure, ProcedureStatus } from '@hyliren/shared';
-import { Plus, ImageIcon, Pencil, AlertTriangle, FileEdit, FilePlus2 } from 'lucide-react';
+import { Plus, ImageIcon, Pencil, AlertTriangle } from 'lucide-react';
 
 type StatusFilter = 'all' | ProcedureStatus;
 
@@ -135,17 +135,17 @@ export default function TreatmentsPage() {
       />
 
       {/* 상태 필터 탭 */}
-      <div className="flex gap-1 mt-3 mb-4 border-b border-[var(--color-border)]">
+      <div className="flex gap-1 mt-3 mb-4 border-b border-[var(--border-default)]">
         {STATUS_TABS.map(tab => (
           <button
             key={tab.key}
             type="button"
             onClick={() => setFilter(tab.key)}
             className={`
-              px-3 py-2 text-[12px] font-medium border-b-2 -mb-px transition-colors
+              px-3 py-2 text-[var(--text-xs)] font-medium border-b-2 -mb-px transition-colors
               ${filter === tab.key
-                ? 'border-[var(--color-primary)] text-[var(--color-text)]'
-                : 'border-transparent text-[var(--color-text-dim)] hover:text-[var(--color-text)]'}
+                ? 'border-[var(--interactive-default)] text-[var(--text-default)]'
+                : 'border-transparent text-[var(--text-disabled)] hover:text-[var(--text-default)]'}
             `}
           >
             {tab.label}
@@ -164,10 +164,10 @@ export default function TreatmentsPage() {
         <Card padding="md" className="mt-4">
           <div className="text-center py-10">
             <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
-            <p className="text-[13px] font-medium text-[var(--color-text)] mb-1">
+            <p className="text-[var(--text-sm)] font-medium text-[var(--text-default)] mb-1">
               목록을 불러오지 못했어요
             </p>
-            <p className="text-[12px] text-[var(--color-text-dim)] mb-4">{loadError}</p>
+            <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">{loadError}</p>
             <Button variant="secondary" size="sm" onClick={() => void load()}>
               다시 시도
             </Button>
@@ -178,7 +178,7 @@ export default function TreatmentsPage() {
       {!loading && !loadError && procedures?.length === 0 && (
         <Card padding="md" className="mt-4">
           <div className="text-center py-12">
-            <p className="text-[13px] text-[var(--color-text-dim)] mb-3">
+            <p className="text-[var(--text-sm)] text-[var(--text-disabled)] mb-3">
               {filter === 'all'
                 ? '등록된 시술이 없습니다.'
                 : `${STATUS_TABS.find(t => t.key === filter)?.label} 상태의 시술이 없습니다.`}
@@ -198,14 +198,14 @@ export default function TreatmentsPage() {
             return (
               <Link key={p.id} href={`/treatments/${p.id}/edit`} className="no-underline">
                 <Card padding="none" hoverable>
-                  <div className="h-32 bg-[var(--color-bg-tertiary)] flex items-center justify-center overflow-hidden rounded-t-[var(--app-radius)]">
+                  <div className="h-32 bg-[var(--surface-subdued)] flex items-center justify-center overflow-hidden rounded-t-[var(--app-radius)]">
                     {p.heroImageUrl
                       ? <img src={p.heroImageUrl} alt="" className="w-full h-full object-cover" />
-                      : <ImageIcon size={28} className="text-[var(--color-text-dim)]" />}
+                      : <ImageIcon size={28} className="text-[var(--text-disabled)]" />}
                   </div>
                   <div className="p-3">
                     <div className="flex items-start justify-between mb-1.5">
-                      <p className="text-[13px] font-semibold text-[var(--color-text)] mb-0.5 line-clamp-1">
+                      <p className="text-[var(--text-sm)] font-semibold text-[var(--text-default)] mb-0.5 line-clamp-1">
                         {title}
                       </p>
                       <Badge variant={STATUS_VARIANT[p.status]} size="sm">
@@ -214,13 +214,13 @@ export default function TreatmentsPage() {
                     </div>
                     <div className="flex items-center gap-2 mb-1.5">
                       <Badge variant="info" size="sm">{p.primaryArea}</Badge>
-                      <span className="text-[12px] font-semibold text-[var(--color-text)]">
+                      <span className="text-[var(--text-xs)] font-semibold text-[var(--text-default)]">
                         {p.priceMin === p.priceMax
                           ? `${(p.priceMin / 10000).toFixed(0)}만`
                           : `${(p.priceMin / 10000).toFixed(0)}~${(p.priceMax / 10000).toFixed(0)}만`}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border-light)] text-[11px] text-[var(--color-text-dim)]">
+                    <div className="flex items-center justify-between pt-2 border-t border-[var(--border-subdued)] text-[var(--app-text-micro)] text-[var(--text-disabled)]">
                       {/* D2: draft/archived 는 public 노출 전이라 조회·북마크 의미 없음 */}
                       <span>
                         {p.status === 'published'
@@ -238,40 +238,34 @@ export default function TreatmentsPage() {
       )}
     </AdminPage>
 
-    {/* 새 시술 등록 분기 모달 — draft 가 있을 때 */}
+    {/* 새 시술 등록 분기 모달 */}
     <Modal
       open={draftModalOpen}
       onClose={() => setDraftModalOpen(false)}
-      title={draftModalStep === 'choose' ? '작성 중인 임시저장이 있습니다' : '새로 작성하시겠어요?'}
+      title={draftModalStep === 'choose' ? '임시저장이 있습니다' : '이전 작성건을 삭제할까요?'}
     >
       {draftModalStep === 'choose' && existingDraft && (
-        <div className="flex flex-col gap-4">
-          <p className="text-[var(--text-base)] text-[var(--text-default)] leading-relaxed">
-            <strong className="font-semibold">{draftTitle}</strong> 으로 임시저장된 작성건이 있습니다.
-            이어서 작성하거나 새로 시작할 수 있습니다.
+        <div className="flex flex-col gap-5">
+          <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
+            <span className="font-semibold text-[var(--text-default)]">{draftTitle}</span> 으로 작성하던 시술이 있어요.
           </p>
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <Button variant="accent" onClick={handleResumeDraft}>
-              <FileEdit size={14} /> 이어서 작성하기
+              이어서 작성하기
             </Button>
             <Button variant="secondary" onClick={() => setDraftModalStep('confirm')}>
-              <FilePlus2 size={14} /> 새로 작성하기
+              새로 작성하기
             </Button>
           </div>
         </div>
       )}
 
       {draftModalStep === 'confirm' && (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-start gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--color-danger-soft)]">
-            <AlertTriangle size={18} className="text-[var(--color-danger)] flex-shrink-0 mt-0.5" />
-            <p className="text-[var(--text-base)] text-[var(--text-default)] leading-relaxed">
-              <strong className="font-semibold">{draftTitle}</strong> 임시저장이
-              <strong className="text-[var(--color-danger)]"> 영구 삭제</strong>됩니다.
-              새로 작성을 시작하면 이전 작성건은 복구할 수 없습니다.
-            </p>
-          </div>
-          <div className="flex justify-end gap-2">
+        <div className="flex flex-col gap-5">
+          <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
+            <span className="font-semibold text-[var(--text-default)]">{draftTitle}</span> 임시저장은 복구할 수 없습니다.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
             <Button variant="secondary" onClick={() => setDraftModalStep('choose')}>
               뒤로
             </Button>

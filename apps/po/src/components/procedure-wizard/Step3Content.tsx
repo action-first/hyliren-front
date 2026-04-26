@@ -61,7 +61,7 @@ export function Step3Content({ form, onChange }: Step3Props) {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="text-[12px] text-[var(--color-text-dim)] mb-3">
+        <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-3">
           시술 개요·필수 고지·적응증을 언어별로 입력하세요.
         </p>
         <LocaleTabs
@@ -88,17 +88,17 @@ export function Step3Content({ form, onChange }: Step3Props) {
           />
 
           <div>
-            <label className="block text-[12px] font-semibold text-[var(--color-text-dim)] mb-1">
+            <label className="block text-[var(--text-xs)] font-semibold text-[var(--text-disabled)] mb-1">
               적응증 (최대 5개)
             </label>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {block.indications.map((ind, i) => (
-                <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--color-bg-tertiary)] text-[11px]">
+                <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--surface-subdued)] text-[var(--app-text-micro)]">
                   {ind}
                   <button
                     type="button"
                     onClick={() => removeIndication(i)}
-                    className="text-[var(--color-text-dim)] hover:text-[var(--color-danger)]"
+                    className="text-[var(--text-disabled)] hover:text-[var(--color-danger)]"
                   >
                     <X size={11} />
                   </button>
@@ -125,10 +125,10 @@ export function Step3Content({ form, onChange }: Step3Props) {
 
       <div>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[12px] text-[var(--color-text-dim)]">
+          <p className="text-[var(--text-xs)] text-[var(--text-disabled)]">
             갤러리 이미지 (최대 8장) — <strong>시술 전/후 비교 금지</strong>. 시설·과정·의료진 이미지만.
           </p>
-          <span className="text-[11px] text-[var(--color-text-dim)]">
+          <span className="text-[var(--app-text-micro)] text-[var(--text-disabled)]">
             {form.galleryImageUrls.length}/8
           </span>
         </div>
@@ -139,7 +139,7 @@ export function Step3Content({ form, onChange }: Step3Props) {
               key={i}
               className="
                 relative group aspect-square rounded-md overflow-hidden
-                border border-[var(--color-border)] bg-[var(--color-bg-tertiary)]
+                border border-[var(--border-default)] bg-[var(--surface-subdued)]
               "
             >
               <img src={url} alt="" className="w-full h-full object-cover" />
@@ -160,7 +160,7 @@ export function Step3Content({ form, onChange }: Step3Props) {
 
           {form.galleryImageUrls.length < 8 && (
             adding ? (
-              <div className="aspect-square rounded-md border border-dashed border-[var(--color-primary)] bg-white flex flex-col items-center justify-center p-2 gap-1">
+              <div className="aspect-square rounded-md border border-dashed border-[var(--interactive-default)] bg-white flex flex-col items-center justify-center p-2 gap-1">
                 <Input
                   autoFocus
                   value={pendingUrl}
@@ -171,24 +171,24 @@ export function Step3Content({ form, onChange }: Step3Props) {
                   }}
                   onBlur={commitPendingUrl}
                   placeholder="https://…"
-                  className="w-full text-[11px]"
+                  className="w-full text-[var(--app-text-micro)]"
                 />
-                <span className="text-[10px] text-[var(--color-text-dim)]">Enter: 추가 · Esc: 취소</span>
+                <span className="text-[10px] text-[var(--text-disabled)]">Enter: 추가 · Esc: 취소</span>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={() => setAdding(true)}
                 className="
-                  aspect-square rounded-md border border-dashed border-[var(--color-border)]
+                  aspect-square rounded-md border border-dashed border-[var(--border-default)]
                   flex flex-col items-center justify-center gap-1
-                  text-[var(--color-text-dim)] hover:text-[var(--color-primary)]
-                  hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]
+                  text-[var(--text-disabled)] hover:text-[var(--interactive-default)]
+                  hover:border-[var(--interactive-default)] hover:bg-[var(--color-info-soft)]
                   transition-colors
                 "
               >
                 <Plus size={20} />
-                <span className="text-[11px]">이미지 추가</span>
+                <span className="text-[var(--app-text-micro)]">이미지 추가</span>
               </button>
             )
           )}

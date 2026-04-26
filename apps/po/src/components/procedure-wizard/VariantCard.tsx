@@ -76,13 +76,13 @@ export function VariantCard({
     <div className={`
       rounded-lg border p-4 bg-white
       ${variant.isDefault
-        ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary-soft)]'
-        : 'border-[var(--color-border)]'}
+        ? 'border-[var(--interactive-default)] ring-2 ring-[var(--color-info-soft)]'
+        : 'border-[var(--border-default)]'}
     `}>
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <label className="flex items-center gap-1.5 text-[12px] cursor-pointer">
+          <label className="flex items-center gap-1.5 text-[var(--text-xs)] cursor-pointer">
             <input
               type="radio"
               checked={variant.isDefault}
@@ -105,8 +105,8 @@ export function VariantCard({
           className={`
             p-1.5 rounded transition-colors
             ${canDelete
-              ? 'text-[var(--color-text-dim)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)]'
-              : 'text-[var(--color-text-dim)] opacity-40 cursor-not-allowed'}
+              ? 'text-[var(--text-disabled)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)]'
+              : 'text-[var(--text-disabled)] opacity-40 cursor-not-allowed'}
           `}
         >
           <Trash2 size={14} />
@@ -137,11 +137,11 @@ export function VariantCard({
       </div>
 
       {/* Override 토글 */}
-      <div className="mt-4 pt-4 border-t border-[var(--color-border-light)]">
+      <div className="mt-4 pt-4 border-t border-[var(--border-subdued)]">
         <button
           type="button"
           onClick={() => setOverride(!showOverride)}
-          className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--color-text)] hover:text-[var(--color-primary)]"
+          className="flex items-center gap-1.5 text-[var(--text-xs)] font-medium text-[var(--text-default)] hover:text-[var(--interactive-default)]"
         >
           {showOverride ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           {showOverride ? '개별 값 사용' : '기본값 사용 (기본값과 다르면 펼치기)'}
