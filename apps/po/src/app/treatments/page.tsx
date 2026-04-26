@@ -4,13 +4,14 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { POSidebar } from '@/components/POSidebar';
-import { Card, Button, Badge, SectionHeader, AdminPage, Modal, Spinner } from '@hyliren/ui';
+import { Card, Button, SectionHeader, AdminPage, Modal, Spinner, DropdownMenu, type DropdownMenuItem } from '@hyliren/ui';
 import { proceduresApi } from '@/lib/api/procedures';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
 import { pickI18n } from '@hyliren/shared/src/domain/procedure';
-import type { Procedure, ProcedureStatus } from '@hyliren/shared';
-import { Plus, ImageIcon, Pencil, AlertTriangle, Eye, EyeOff } from 'lucide-react';
+import { StatusChip } from '@/components/procedure-wizard/StatusChip';
+import type { Procedure } from '@hyliren/shared';
+import { Plus, ImageIcon, AlertTriangle, Trash2 } from 'lucide-react';
 
 /*
   시술 상태 멘탈 모델 (2026-04-26)
@@ -31,18 +32,6 @@ const STATUS_TABS: { key: StatusFilter; label: string }[] = [
   { key: 'published', label: '공개' },
   { key: 'archived', label: '비공개' },
 ];
-
-const STATUS_KR: Record<ProcedureStatus, string> = {
-  draft: '임시저장',
-  published: '공개',
-  archived: '비공개',
-};
-
-const STATUS_VARIANT: Record<ProcedureStatus, 'default' | 'success' | 'warning' | 'info'> = {
-  draft: 'warning',
-  published: 'success',
-  archived: 'default',
-};
 
 export default function TreatmentsPage() {
   const router = useRouter();
@@ -66,10 +55,15 @@ export default function TreatmentsPage() {
   const [archiveTarget, setArchiveTarget] = useState<Procedure | null>(null);
   const [archiving, setArchiving] = useState(false);
 
-  // 공개 전환 모달 — 비공개 카드의 Eye 클릭 시 진입.
+
+  // 공개 전환 모달 — 비공개 카드의 '다시 공개' 클릭 시 진입.
   // archived → published. BE 가 publish-strict 검증 자동 수행.
   const [unarchiveTarget, setUnarchiveTarget] = useState<Procedure | null>(null);
   const [unarchiving, setUnarchiving] = useState(false);
+
+  // 영구 삭제 모달 — archived 한정. ⋮ menu 의 destructive 항목.
+  const [deleteTarget, setDeleteTarget] = useState<Procedure | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     if (!member) return;
@@ -198,6 +192,33 @@ export default function TreatmentsPage() {
     ? pickI18n(unarchiveTarget.i18n, 'ko', unarchiveTarget.sourceLocale)?.content.title || '(제목 없음)'
     : '';
 
+  // 영구 삭제 — Link 내부 nav 충돌 방지로 e.preventDefault + stopPropagation 필수.
+  function handleDeleteRequest(e: React.MouseEvent, p: Procedure) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDeleteTarget(p);
+  }
+
+  async function handleConfirmDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await proceduresApi.permanentDelete(deleteTarget.id);
+      setDeleteTarget(null);
+      showToast('영구 삭제되었습니다.', 'success');
+      void load();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '삭제에 실패했습니다';
+      showToast(msg, 'error');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  const deleteTargetTitle = deleteTarget
+    ? pickI18n(deleteTarget.i18n, 'ko', deleteTarget.sourceLocale)?.content.title || '(제목 없음)'
+    : '';
+
   return (
     <>
     <AdminPage
@@ -263,14 +284,23 @@ export default function TreatmentsPage() {
       {!loading && !loadError && procedures?.length === 0 && (
         <Card padding="md" className="mt-4">
           <div className="text-center py-12">
-            <p className="text-[var(--text-sm)] text-[var(--text-disabled)] mb-3">
-              {filter === 'all'
-                ? '등록된 시술이 없습니다.'
-                : `${STATUS_TABS.find(t => t.key === filter)?.label} 상태의 시술이 없습니다.`}
-            </p>
-            <Button variant="primary" size="sm" onClick={handleNewClick} disabled={creatingNew}>
-              <Plus size={13} /> 첫 시술 등록하기
-            </Button>
+            {filter === 'all' ? (
+              <>
+                <p className="text-[var(--text-base)] font-medium text-[var(--text-default)] mb-1">
+                  아직 등록된 시술이 없어요
+                </p>
+                <p className="text-[var(--text-sm)] text-[var(--text-subdued)] mb-4">
+                  고객이 상담 신청할 수 있는 시술을 등록해 보세요.
+                </p>
+                <Button variant="primary" size="sm" onClick={handleNewClick} disabled={creatingNew}>
+                  <Plus size={13} /> 첫 시술 등록하기
+                </Button>
+              </>
+            ) : (
+              <p className="text-[var(--text-sm)] text-[var(--text-disabled)]">
+                {STATUS_TABS.find(t => t.key === filter)?.label} 상태의 시술이 없습니다.
+              </p>
+            )}
           </div>
         </Card>
       )}
@@ -289,50 +319,56 @@ export default function TreatmentsPage() {
                       : <ImageIcon size={28} className="text-[var(--text-disabled)]" />}
                   </div>
                   <div className="p-3">
-                    <div className="flex items-start justify-between mb-1.5">
-                      <p className="text-[var(--text-sm)] font-semibold text-[var(--text-default)] mb-0.5 line-clamp-1">
-                        {title}
-                      </p>
-                      <Badge variant={STATUS_VARIANT[p.status]} size="sm">
-                        {STATUS_KR[p.status]}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <Badge variant="info" size="sm">{p.primaryArea}</Badge>
-                      <span className="text-[var(--text-xs)] font-semibold text-[var(--text-default)]">
+                    <p className="text-[var(--text-sm)] font-semibold text-[var(--text-default)] mb-1.5 line-clamp-1">
+                      {title}
+                    </p>
+                    <div className="flex items-center gap-2 mb-2.5 text-[var(--text-xs)] text-[var(--text-subdued)]">
+                      <span>{p.primaryArea}</span>
+                      <span>·</span>
+                      <span className="font-semibold text-[var(--text-default)]">
                         {p.priceMin === p.priceMax
                           ? `${(p.priceMin / 10000).toFixed(0)}만`
                           : `${(p.priceMin / 10000).toFixed(0)}~${(p.priceMax / 10000).toFixed(0)}만`}
                       </span>
                     </div>
-                    {/* footer 액션바 — [수정] + [공개/비공개 토글]. 수정은 카드 전체 Link 와 동일 (시각 단서),
-                        토글은 future-state 시멘틱: 공개 카드 = EyeOff (비공개로) / 비공개 카드 = Eye (공개로). */}
-                    <div className="flex items-center justify-end gap-1 pt-2 border-t border-[var(--border-subdued)]">
-                      <span
-                        aria-hidden="true"
-                        className="w-7 h-7 flex items-center justify-center rounded-[var(--app-radius-sm)] text-[var(--text-subdued)] hover:bg-[var(--surface-subdued)] hover:text-[var(--text-default)] transition-colors"
-                      >
-                        <Pencil size={14} />
-                      </span>
-                      {p.status === 'archived' ? (
-                        <button
-                          type="button"
-                          onClick={(e) => handleUnarchiveRequest(e, p)}
-                          aria-label="공개로 전환"
-                          className="w-7 h-7 flex items-center justify-center rounded-[var(--app-radius-sm)] text-[var(--text-subdued)] hover:bg-[var(--surface-subdued)] hover:text-[var(--color-success)] transition-colors cursor-pointer"
-                        >
-                          <Eye size={14} />
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={(e) => handleArchiveRequest(e, p)}
-                          aria-label="비공개로 전환"
-                          className="w-7 h-7 flex items-center justify-center rounded-[var(--app-radius-sm)] text-[var(--text-subdued)] hover:bg-[var(--surface-subdued)] hover:text-[var(--color-warning)] transition-colors cursor-pointer"
-                        >
-                          <EyeOff size={14} />
-                        </button>
-                      )}
+                    {/* 카드 footer — 좌측: 상태 chip / 우측: 텍스트 액션 + ⋮ menu (archived).
+                        텍스트 라벨로 명확화 — 운영자 대상 도구는 아이콘 단독보다 문구가 안전.
+                        Link 내부에 있어 nav 충돌 방지로 onClick 마다 preventDefault + stopPropagation. */}
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-[var(--border-subdued)]">
+                      <StatusChip status={p.status} />
+                      <div className="flex items-center gap-1">
+                        {p.status === 'archived' ? (
+                          <button
+                            type="button"
+                            onClick={(e) => handleUnarchiveRequest(e, p)}
+                            className="px-2.5 h-7 rounded-[var(--app-radius-sm)] text-[var(--text-xs)] font-medium text-[var(--text-default)] hover:bg-[var(--surface-subdued)] transition-colors cursor-pointer"
+                          >
+                            다시 공개
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => handleArchiveRequest(e, p)}
+                            className="px-2.5 h-7 rounded-[var(--app-radius-sm)] text-[var(--text-xs)] font-medium text-[var(--text-default)] hover:bg-[var(--surface-subdued)] transition-colors cursor-pointer"
+                          >
+                            비공개로 전환
+                          </button>
+                        )}
+                        {p.status === 'archived' && (
+                          <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                            <DropdownMenu
+                              items={[
+                                {
+                                  label: '영구 삭제',
+                                  icon: <Trash2 size={14} />,
+                                  destructive: true,
+                                  onClick: () => setDeleteTarget(p),
+                                },
+                              ]}
+                            />
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </Card>
@@ -428,6 +464,33 @@ export default function TreatmentsPage() {
             </Button>
             <Button variant="primary" onClick={handleConfirmUnarchive} disabled={unarchiving}>
               {unarchiving ? '전환 중...' : '공개로'}
+            </Button>
+          </div>
+        </div>
+      )}
+    </Modal>
+
+    {/* 영구 삭제 모달 — archived 한정. deletedAt 세팅, 일반 사용자 복구 경로 없음 (admin 만). */}
+    <Modal
+      open={deleteTarget !== null}
+      onClose={() => !deleting && setDeleteTarget(null)}
+      title="시술을 영구 삭제할까요?"
+    >
+      {deleteTarget && (
+        <div className="flex flex-col gap-5">
+          <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
+            <span className="font-semibold text-[var(--text-default)]">{deleteTargetTitle}</span>
+            <br />
+            영구 삭제 후에는 <span className="font-semibold text-[var(--color-danger)]">복구할 수 없습니다.</span>
+            <br />
+            비공개 상태로만 두시려면 취소를 눌러 주세요.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+              취소
+            </Button>
+            <Button variant="danger" onClick={handleConfirmDelete} disabled={deleting}>
+              {deleting ? '삭제 중...' : '영구 삭제'}
             </Button>
           </div>
         </div>
