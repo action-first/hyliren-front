@@ -9,13 +9,14 @@ import {
   formatBudget,
 } from '@hyliren/shared';
 import {
-  AdminPage,
-  DataGrid,
+  AdminPage, Card, Spinner, Button, DataGrid,
   badgeCellRenderer,
 } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
+import { AlertTriangle } from 'lucide-react';
 import type { ColDef } from 'ag-grid-community';
 import { POSidebar } from '@/components/POSidebar';
+import { useToastStore } from '@/store/toast';
 import { listConcerns, type ConcernSummaryWire } from '@/lib/api/concern';
 import {
   formatKrwAsMan,
@@ -97,25 +98,30 @@ function toRow(proposal: ProposalDetailWire, concerns: ConcernSummaryWire[]): Pr
 
 export default function ProposalsPage() {
   const router = useRouter();
+  const showToast = useToastStore(s => s.showToast);
   const [proposals, setProposals] = useState<ProposalDetailWire[]>([]);
   const [concerns, setConcerns] = useState<ConcernSummaryWire[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  // 마지막 query 보존 — 재시도 시 동일 query 재호출.
+  const [lastQuery, setLastQuery] = useState<MyProposalsQuery>({});
 
   const fetchProposals = useCallback((query: MyProposalsQuery) => {
     setLoading(true);
-    setError(false);
+    setLoadError(null);
+    setLastQuery(query);
     Promise.all([listMyProposals(query), listConcerns()])
       .then(([proposalData, concernData]) => {
         setProposals(proposalData.proposals);
         setConcerns(concernData.concerns);
-        setLoading(false);
       })
-      .catch(() => {
-        setError(true);
-        setLoading(false);
-      });
-  }, []);
+      .catch((e: unknown) => {
+        const msg = e instanceof Error ? e.message : '제안서 데이터를 불러올 수 없습니다';
+        setLoadError(msg);
+        showToast(msg, 'error');
+      })
+      .finally(() => setLoading(false));
+  }, [showToast]);
 
   useEffect(() => {
     const { from, to } = defaultMonthRange();
@@ -132,27 +138,40 @@ export default function ProposalsPage() {
     fetchProposals(query);
   }
 
-  if (loading) return null;
-
-  if (error) {
-    return (
-      <AdminPage sidebar={<POSidebar active="/activity" />} title="제안서 목록" prefix="po">
-        <div className="text-center py-20 text-[var(--text-disabled)]">제안서 데이터를 불러오지 못했습니다. 새로고침해 주세요.</div>
-      </AdminPage>
-    );
-  }
-
   return (
     <AdminPage sidebar={<POSidebar active="/activity" />} title="제안서 목록" prefix="po">
-      <DataGrid<ProposalRow>
-        columnDefs={columnDefs}
-        rowData={proposals.map(p => toRow(p, concerns))}
-        searchFields={searchFields}
-        exportFileName="제안서목록"
-        title="내 제안서"
-        onRowClick={(data) => router.push(`/proposals/${data.id}`)}
-        onSearch={handleSearch}
-      />
+      {loading && (
+        <Card padding="md">
+          <div className="flex items-center justify-center py-12"><Spinner /></div>
+        </Card>
+      )}
+
+      {!loading && loadError && (
+        <Card padding="md">
+          <div className="text-center py-10">
+            <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
+            <p className="text-[var(--text-sm)] font-medium text-[var(--text-default)] mb-1">
+              제안서 목록을 불러오지 못했어요
+            </p>
+            <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">{loadError}</p>
+            <Button variant="secondary" size="sm" onClick={() => fetchProposals(lastQuery)}>
+              다시 시도
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {!loading && !loadError && (
+        <DataGrid<ProposalRow>
+          columnDefs={columnDefs}
+          rowData={proposals.map(p => toRow(p, concerns))}
+          searchFields={searchFields}
+          exportFileName="제안서목록"
+          title="내 제안서"
+          onRowClick={(data) => router.push(`/proposals/${data.id}`)}
+          onSearch={handleSearch}
+        />
+      )}
     </AdminPage>
   );
 }
