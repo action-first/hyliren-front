@@ -13,6 +13,7 @@ import {
 } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
+import { MyProposalSheet } from '@/components/concerns/MyProposalSheet';
 import { useCreditsStore } from '@/store/credits';
 import { listConcerns, type ConcernSummaryWire } from '@/lib/api/concern';
 import { formatKrwAsMan, listMyProposals, type ProposalDetailWire } from '@/lib/api/proposal';
@@ -28,6 +29,8 @@ interface ActivityRow {
   description: string;
   credit: string;
   statusLabel: string;
+  /** proposal row 한정 — 클릭 시 사이드 시트 진입에 사용. 다른 row 는 undefined. */
+  concernId?: string;
 }
 
 // ── 타입 dot 색상 ──
@@ -79,6 +82,9 @@ export default function ActivityPage() {
   const [proposals, setProposals] = useState<ProposalDetailWire[]>([]);
   const [concerns, setConcerns] = useState<ConcernSummaryWire[]>([]);
   const [loading, setLoading] = useState(true);
+  // 제안서 row 클릭 시 사이드 시트로 상세 노출. concernId 기반 (MyProposalSheet 가
+  // findMyProposalByConcern 으로 조회). null = sheet 닫힘.
+  const [selectedConcernId, setSelectedConcernId] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -103,6 +109,7 @@ export default function ActivityPage() {
         description: `${concern ? `${concern.primaryArea} ${concern.bodyAreaDetail || ''}` : '-'} · ${formatBudget(concern?.budgetMin ?? null, concern?.budgetMax ?? null)} · ${formatKrwAsMan(p.totalPrice)}`,
         credit: `-${CREDIT_COST}`,
         statusLabel: PROPOSAL_STATUS_KR[p.status] || p.status,
+        concernId: p.concernId,
       };
     }),
     ...transactions.filter(tx => tx.amount > 0).map(tx => ({
@@ -132,13 +139,26 @@ export default function ActivityPage() {
         </div>
       </Card>
 
-      {/* 통합 활동 DataGrid */}
+      {/* 통합 활동 DataGrid — 제안서 row 클릭 시 사이드 시트로 상세 노출. */}
       <DataGrid<ActivityRow>
         columnDefs={columnDefs}
         rowData={rowData}
         searchFields={searchFields}
         exportFileName="활동내역"
         title="발송 & 크레딧 내역"
+        onRowClick={(row) => {
+          // 제안서 row 만 클릭 가능 — 크레딧 충전/차감 row 는 detail 없음.
+          if (row.type === 'proposal' && row.concernId) {
+            setSelectedConcernId(row.concernId);
+          }
+        }}
+      />
+
+      {/* 제안서 상세 사이드 시트 — 같은 컴포넌트 (concern 상세 페이지와 일관). */}
+      <MyProposalSheet
+        concernId={selectedConcernId ?? ''}
+        open={selectedConcernId !== null}
+        onClose={() => setSelectedConcernId(null)}
       />
     </AdminPage>
   );
