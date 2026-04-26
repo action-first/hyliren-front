@@ -28,18 +28,17 @@ const STEPS = [
   { key: 'preview', label: '미리보기·공개' },
 ];
 
-/** 이탈 → 재진입 시 작성본 복구 키. 첫 create 성공 시 제거. */
-const DRAFT_STORAGE_KEY = 'po-wizard-new-draft-v1';
-
-function loadPersistedForm(): WizardForm | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = sessionStorage.getItem(DRAFT_STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as WizardForm;
-  } catch {
-    return null;
-  }
+/** 입력 데이터가 있는지 판단 — empty form 대비. */
+function isFormDirty(form: WizardForm): boolean {
+  return !!(
+    form.primaryArea ||
+    form.procedureType ||
+    form.heroImageUrl?.trim() ||
+    form.basePrice > 0 ||
+    form.galleryImageUrls.length > 0 ||
+    Object.values(form.i18n).some(b => b?.title?.trim() || b?.description?.trim() || b?.precautions?.trim()) ||
+    form.variants.some(v => v.i18n[form.sourceLocale]?.name?.trim() || v.price)
+  );
 }
 
 export default function NewProcedurePage() {
@@ -47,22 +46,71 @@ export default function NewProcedurePage() {
   const member = usePOAuthStore(s => s.member);
   const { showToast } = useToastStore();
 
-  const [form, setForm] = useState<WizardForm>(() => loadPersistedForm() ?? emptyWizardForm());
+  /* sessionStorage persist 제거 (2026-04-26):
+     이전엔 작성본을 자동으로 sessionStorage 에 저장 → 재진입 시 복원했으나,
+     "임시저장 안 누르고 떠난 데이터가 살아 있어 진입점이 꼬임" 사용자 보고.
+     데이터는 명시적 임시저장 (BE 저장) 만 인정. 그 외 이탈 시엔 휘발. */
+  const [form, setForm] = useState<WizardForm>(() => emptyWizardForm());
   const [activeStep, setActiveStep] = useState(0);
   const [saving, setSaving] = useState(false);
   // 등록 시 공개/비공개 선택 모달 — Step 4 primary '등록하기' 클릭 시 진입.
   const [publishOptionOpen, setPublishOptionOpen] = useState(false);
+  // 이탈 경고 모달 — dirty 상태에서 in-app nav 시도 시 노출.
+  const [discardModalOpen, setDiscardModalOpen] = useState(false);
+  const pendingNavRef = useRef<string | null>(null);
   // H3: setState race 로 인한 중복 제출 방지
   const savingRef = useRef(false);
 
-  // sessionStorage persist — 탭 닫고 다시 열어도 작성본 유지 (silent).
-  // 첫 서버 저장 성공 시 제거 (submit 성공 path).
+  /**
+   * 이탈 가드:
+   * - 브라우저 탭 닫기/뒤로 = beforeunload 네이티브 경고
+   * - 사이드바 등 in-app <a> 클릭 = capture phase 인터셉트 → 경고 모달
+   * 사용자가 명시적으로 임시저장/등록 안 한 데이터는 떠날 때 휘발.
+   */
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(form));
-    } catch { /* quota/sandbox issue — 무시 */ }
+    if (!isFormDirty(form)) return; // 빈 폼이면 가드 불필요
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    const handleClick = (e: MouseEvent) => {
+      if (e.defaultPrevented) return;
+      // form 영역 자체의 클릭은 통과 (input, button 등) — link 한정
+      const link = (e.target as HTMLElement | null)?.closest?.('a') as HTMLAnchorElement | null;
+      if (!link) return;
+      if (link.target === '_blank') return; // 새 탭은 그대로 두자
+      const href = link.getAttribute('href');
+      if (!href || href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('#')) return;
+      // 같은 페이지 자체 링크는 통과
+      if (href === '/treatments/new') return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      pendingNavRef.current = href;
+      setDiscardModalOpen(true);
+    };
+    document.addEventListener('click', handleClick, { capture: true });
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('click', handleClick, { capture: true });
+    };
   }, [form]);
+
+  function handleConfirmDiscard() {
+    setDiscardModalOpen(false);
+    const target = pendingNavRef.current;
+    pendingNavRef.current = null;
+    if (target) router.push(target);
+  }
+
+  function handleCancelDiscard() {
+    setDiscardModalOpen(false);
+    pendingNavRef.current = null;
+  }
 
   // Instrumentation: wizard 진입 (등록 완료율 = save_success ÷ start)
   useEffect(() => {
@@ -149,9 +197,8 @@ export default function NewProcedurePage() {
             : '임시저장되었습니다.',
         'success',
       );
-      // sessionStorage 작성본 제거 — 서버에 저장 완료됐으므로 더 보관할 필요 없음
-      try { sessionStorage.removeItem(DRAFT_STORAGE_KEY); } catch {}
-      // 저장 완료 → 목록 복귀 (draft/published 둘 다 동일 흐름)
+      // 저장 완료 → 목록 복귀. 서버 저장 완료 시점이라 nav guard 도 불필요.
+      // (form state 는 unmount 시 휘발 — 재진입 시 fresh form)
       router.push('/treatments');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '저장 실패';
@@ -256,6 +303,30 @@ export default function NewProcedurePage() {
           <Button variant="secondary" onClick={() => setPublishOptionOpen(false)} disabled={saving}>
             취소
           </Button>
+        </div>
+      </Modal>
+
+      {/* 이탈 경고 모달 — 사이드바 등 in-app <a> 클릭 시 dirty 상태면 노출.
+          확인 시 nav 진행 + form 휘발. 취소 시 같은 페이지 유지. */}
+      <Modal
+        open={discardModalOpen}
+        onClose={handleCancelDiscard}
+        title="작성 내용을 두고 나가시겠어요?"
+      >
+        <div className="flex flex-col gap-5">
+          <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
+            저장하지 않고 나가면 지금까지 입력한 내용이 <span className="font-semibold text-[var(--color-danger)]">사라집니다.</span>
+            <br />
+            계속 이어서 작성하려면 먼저 <span className="font-semibold text-[var(--text-default)]">임시저장</span> 을 눌러 주세요.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" onClick={handleCancelDiscard}>
+              계속 작성
+            </Button>
+            <Button variant="danger" onClick={handleConfirmDiscard}>
+              저장 안 하고 나가기
+            </Button>
+          </div>
         </div>
       </Modal>
     </div>
