@@ -295,7 +295,7 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
 export default function DashboardPage() {
   const { balance, transactions } = useCreditsStore();
 
-  const [dateRange, setDateRange] = useState<DateRange>('30d');
+  const [dateRange, setDateRange] = useState<DateRange>('7d');
   const [customFrom, setCustomFrom] = useState<Date | null>(null);
   const [customTo, setCustomTo] = useState<Date | null>(null);
   const [concerns, setConcerns] = useState<ConcernSummaryWire[]>([]);
