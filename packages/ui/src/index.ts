@@ -34,6 +34,9 @@ export type { ModalProps } from './primitives/Modal';
 export { BottomSheet } from './primitives/BottomSheet';
 export type { BottomSheetProps } from './primitives/BottomSheet';
 
+export { SideSheet } from './primitives/SideSheet';
+export type { SideSheetProps } from './primitives/SideSheet';
+
 export { ToastContainer } from './primitives/Toast';
 export type { ToastItem, ToastType, ToastContainerProps } from './primitives/Toast';
 
