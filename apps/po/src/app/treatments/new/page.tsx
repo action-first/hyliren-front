@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@hyliren/ui';
+import { Button, Modal } from '@hyliren/ui';
+import { Eye, EyeOff } from 'lucide-react';
 import { POSidebar } from '@/components/POSidebar';
 import { WizardShell } from '@/components/procedure-wizard/WizardShell';
 import { Step1Basics } from '@/components/procedure-wizard/Step1Basics';
@@ -49,6 +50,8 @@ export default function NewProcedurePage() {
   const [form, setForm] = useState<WizardForm>(() => loadPersistedForm() ?? emptyWizardForm());
   const [activeStep, setActiveStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  // 등록 시 공개/비공개 선택 모달 — Step 4 primary '등록하기' 클릭 시 진입.
+  const [publishOptionOpen, setPublishOptionOpen] = useState(false);
   // H3: setState race 로 인한 중복 제출 방지
   const savingRef = useRef(false);
 
@@ -139,7 +142,11 @@ export default function NewProcedurePage() {
         metadata: { source: 'po', locale: 'ko', mode: 'create', value: status },
       });
       showToast(
-        status === 'published' ? '시술이 공개되었습니다.' : '임시저장되었습니다.',
+        status === 'published'
+          ? '공개로 등록되었습니다.'
+          : status === 'archived'
+            ? '비공개로 등록되었습니다.'
+            : '임시저장되었습니다.',
         'success',
       );
       // sessionStorage 작성본 제거 — 서버에 저장 완료됐으므로 더 보관할 필요 없음
@@ -187,10 +194,10 @@ export default function NewProcedurePage() {
             </Button>
           }
           primaryAction={{
-            /* Step 4 (마지막) primary = '공개하기' — 마법사 끝 = 공개라는 자연스러운 진행.
-               미리보기에서 검증 후 공개 (allStepsValid 엄격 검증). */
-            label: '공개하기',
-            onClick: () => submit('published'),
+            /* Step 4 (마지막) primary = '등록하기' — 클릭 시 모달로 공개/비공개 선택.
+               데이터 완성 = 진열 결정의 갈림길. 모달이 의식 (ceremony) 역할. */
+            label: '등록하기',
+            onClick: () => setPublishOptionOpen(true),
             disabled: saving || !allStepsValid(form),
             loading: saving,
           }}
@@ -201,6 +208,56 @@ export default function NewProcedurePage() {
           {activeStep === 3 && <Step4Preview form={form} />}
         </WizardShell>
       </div>
+
+      {/* 등록 옵션 선택 모달 — '등록하기' 클릭 시 진입. 공개/비공개 분기.
+          데이터 완성 후 진열 결정의 명시적 의식 (ceremony) — 잘못된 선택 즉시 인지. */}
+      <Modal
+        open={publishOptionOpen}
+        onClose={() => !saving && setPublishOptionOpen(false)}
+        title="이 시술을 어떻게 등록할까요?"
+      >
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            disabled={saving}
+            onClick={() => {
+              setPublishOptionOpen(false);
+              void submit('published');
+            }}
+            className="text-left p-4 rounded-[var(--app-radius)] border border-[var(--color-success)] bg-[var(--color-success-soft)] hover:bg-[var(--color-success-soft)] hover:border-[var(--color-success)] transition-colors disabled:opacity-[var(--opacity-disabled)] disabled:cursor-not-allowed cursor-pointer"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <Eye size={16} className="text-[var(--color-success)]" />
+              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">공개로 등록</span>
+            </div>
+            <p className="text-[var(--app-text-micro)] text-[var(--text-subdued)] leading-relaxed">
+              즉시 고객에게 노출됩니다. 상담 신청 화면과 시술 상세에 표시돼요.
+            </p>
+          </button>
+
+          <button
+            type="button"
+            disabled={saving}
+            onClick={() => {
+              setPublishOptionOpen(false);
+              void submit('archived');
+            }}
+            className="text-left p-4 rounded-[var(--app-radius)] border border-[var(--border-default)] bg-[var(--surface-default)] hover:bg-[var(--surface-subdued)] transition-colors disabled:opacity-[var(--opacity-disabled)] disabled:cursor-not-allowed cursor-pointer"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <EyeOff size={16} className="text-[var(--text-subdued)]" />
+              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">비공개로 등록</span>
+            </div>
+            <p className="text-[var(--app-text-micro)] text-[var(--text-subdued)] leading-relaxed">
+              데이터만 저장하고 고객에게는 아직 노출하지 않습니다. 시술 관리 메뉴에서 언제든 공개로 전환할 수 있어요.
+            </p>
+          </button>
+
+          <Button variant="secondary" onClick={() => setPublishOptionOpen(false)} disabled={saving}>
+            취소
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }
