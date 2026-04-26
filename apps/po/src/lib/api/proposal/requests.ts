@@ -37,8 +37,25 @@ export function createProposal(concernId: string, body: CreateProposalBody): Pro
   });
 }
 
-export function listMyProposals(): Promise<ProposalListWire> {
-  return request<ProposalListWire>('/api/v1/proposals/me');
+export interface MyProposalsQuery {
+  /** YYYY-MM-DD */
+  sentAtFrom?: string;
+  /** YYYY-MM-DD (해당일 끝까지 포함) */
+  sentAtTo?: string;
+  /** raw status 값 (sent / accepted / rejected / expired) */
+  status?: string;
+  /** proposal_items.treatment_name ILIKE 통합 검색 */
+  keyword?: string;
+}
+
+export function listMyProposals(query?: MyProposalsQuery): Promise<ProposalListWire> {
+  const params = new URLSearchParams();
+  if (query?.sentAtFrom) params.set('sentAtFrom', query.sentAtFrom);
+  if (query?.sentAtTo) params.set('sentAtTo', query.sentAtTo);
+  if (query?.status) params.set('status', query.status);
+  if (query?.keyword) params.set('keyword', query.keyword);
+  const qs = params.toString();
+  return request<ProposalListWire>(qs ? `/api/v1/proposals/me?${qs}` : '/api/v1/proposals/me');
 }
 
 export function findMyProposalByConcern(concernId: string): Promise<ProposalDetailWire | null> {

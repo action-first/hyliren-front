@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   PROPOSAL_STATUS_BADGE,
@@ -17,7 +17,12 @@ import type { SearchField } from '@hyliren/ui';
 import type { ColDef } from 'ag-grid-community';
 import { POSidebar } from '@/components/POSidebar';
 import { listConcerns, type ConcernSummaryWire } from '@/lib/api/concern';
-import { formatKrwAsMan, listMyProposals, type ProposalDetailWire } from '@/lib/api/proposal';
+import {
+  formatKrwAsMan,
+  listMyProposals,
+  type MyProposalsQuery,
+  type ProposalDetailWire,
+} from '@/lib/api/proposal';
 
 interface ProposalRow {
   id: string;
@@ -29,15 +34,30 @@ interface ProposalRow {
   statusLabel: string;
 }
 
+// 한국어 라벨 → backend ProposalStatus 매핑 (역매핑은 lossy 한 항목 제외)
+const STATUS_LABEL_TO_RAW: Record<string, string> = {
+  '발송': 'sent',
+  '선택됨': 'accepted',
+  '거절': 'rejected',
+};
+
+// 디폴트 — 최근 한달
+function defaultMonthRange(): { from: string; to: string } {
+  const today = new Date();
+  const monthAgo = new Date();
+  monthAgo.setMonth(today.getMonth() - 1);
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  return { from: fmt(monthAgo), to: fmt(today) };
+}
+
 const searchFields: SearchField[] = [
   { key: 'sentAt', label: '기간', type: 'dateRange', row: 1 },
   { key: 'statusLabel', label: '상태', type: 'select', row: 1, options: [
     { value: '발송', label: '발송' },
-    { value: '열람', label: '열람' },
     { value: '선택됨', label: '선택됨' },
     { value: '거절', label: '거절' },
   ]},
-  { key: '_keyword', label: '키워드', placeholder: '고민, 시술명 통합 검색', row: 2 },
+  { key: '_keyword', label: '키워드', placeholder: '시술명 통합 검색', row: 2 },
 ];
 
 const columnDefs: ColDef<ProposalRow>[] = [
@@ -82,8 +102,10 @@ export default function ProposalsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    Promise.all([listMyProposals(), listConcerns()])
+  const fetchProposals = useCallback((query: MyProposalsQuery) => {
+    setLoading(true);
+    setError(false);
+    Promise.all([listMyProposals(query), listConcerns()])
       .then(([proposalData, concernData]) => {
         setProposals(proposalData.proposals);
         setConcerns(concernData.concerns);
@@ -94,6 +116,21 @@ export default function ProposalsPage() {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    const { from, to } = defaultMonthRange();
+    fetchProposals({ sentAtFrom: from, sentAtTo: to });
+  }, [fetchProposals]);
+
+  function handleSearch(filters: Record<string, string>) {
+    const query: MyProposalsQuery = {};
+    if (filters['sentAt_from']) query.sentAtFrom = filters['sentAt_from'];
+    if (filters['sentAt_to']) query.sentAtTo = filters['sentAt_to'];
+    const rawStatus = filters['statusLabel'] ? STATUS_LABEL_TO_RAW[filters['statusLabel']] : undefined;
+    if (rawStatus) query.status = rawStatus;
+    if (filters['_keyword']) query.keyword = filters['_keyword'];
+    fetchProposals(query);
+  }
 
   if (loading) return null;
 
@@ -114,6 +151,7 @@ export default function ProposalsPage() {
         exportFileName="제안서목록"
         title="내 제안서"
         onRowClick={(data) => router.push(`/proposals/${data.id}`)}
+        onSearch={handleSearch}
       />
     </AdminPage>
   );
