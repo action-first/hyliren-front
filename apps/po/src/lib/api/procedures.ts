@@ -64,6 +64,16 @@ export const proceduresApi = {
     });
   },
 
+  /**
+   * 영구 삭제 (논리 삭제) — deletedAt 세팅. archived 상태에서만 호출 허용 (BE 가드).
+   * 복구는 admin 도구로만 가능.
+   */
+  permanentDelete: async (id: string): Promise<void> => {
+    await request<void>(`${BASE}/${encodeURIComponent(id)}/permanent`, {
+      method: 'DELETE',
+    });
+  },
+
   addVariant: async (procedureId: string, body: VariantInput): Promise<VariantMutationResp> => {
     return request<VariantMutationResp>(`${BASE}/${encodeURIComponent(procedureId)}/variants`, {
       method: 'POST',
