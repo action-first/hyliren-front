@@ -144,7 +144,8 @@ export default function NewProcedurePage() {
       );
       // sessionStorage 작성본 제거 — 서버에 저장 완료됐으므로 더 보관할 필요 없음
       try { sessionStorage.removeItem(DRAFT_STORAGE_KEY); } catch {}
-      router.push(`/treatments/${res.procedure.id}/edit`);
+      // 저장 완료 → 목록 복귀 (draft/published 둘 다 동일 흐름)
+      router.push('/treatments');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '저장 실패';
       track({
