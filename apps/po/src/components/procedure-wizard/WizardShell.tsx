@@ -5,13 +5,12 @@ import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { StepProgress, type StepDef } from './StepProgress';
 
 interface WizardShellProps {
-  /** 페이지 상위 제목 — body header 의 작은 breadcrumb 로 노출 (제거하려면 '') */
+  /** 페이지 상위 제목 — body header 의 breadcrumb (예: '시술 등록' / '시술 수정') */
   title: string;
   /**
    * 모드 결정:
-   * - 'create' (기본): 마법사 — 1-3 step 은 '다음', 마지막 step 만 primaryAction.
-   * - 'edit': 자유 탐색 — 다음/이전 숨김, primaryAction 모든 단계 노출.
-   *           "1단계만 고치고 저장" 같은 부분 수정 동선이 자연스럽다.
+   * - 'create' (기본): sequential 마법사. 1-3 step 'primary=다음', 마지막 step 'primary=공개하기'.
+   * - 'edit': 자유 탐색. 다음/이전 비노출, primaryAction 모든 단계 노출.
    */
   mode?: 'create' | 'edit';
   steps: StepDef[];
@@ -20,13 +19,18 @@ interface WizardShellProps {
   children: React.ReactNode;
 
   /**
-   * 자주 쓰고 안전한 secondary 버튼 (예: 임시저장).
-   * Primary 좌측에 visible 노출. 우측 zone (제어 영역) 에 정렬.
+   * 헤더 정보 영역 (제어 아님). 상태 chip 등 맥락 정보용 ReactNode.
+   * SaveIndicator 좌측에 노출. 액션 버튼은 여기에 두지 말 것 — 하단 bar 가 담당.
+   */
+  headerInfo?: React.ReactNode;
+  /**
+   * 하단 sticky bar 의 secondary 버튼 (예: 임시저장, 다시 공개).
+   * Primary 좌측에 노출. 자주 쓰고 안전한 액션 한정.
    */
   actions?: React.ReactNode;
   /**
-   * 핵심 CTA (저장·공개 등). create 모드에선 마지막 step 만 노출.
-   * edit 모드에선 모든 step 에서 노출 — 부분 수정 후 즉시 저장 가능.
+   * 하단 sticky bar 의 핵심 CTA. create 의 1-3 step 에선 '다음', 마지막 step 에선 caller 가 지정.
+   * edit 모드는 모든 step 에서 caller 가 지정한 primary 노출.
    */
   primaryAction: {
     label: string;
@@ -35,17 +39,16 @@ interface WizardShellProps {
     loading?: boolean;
   };
   /**
-   * 가끔 쓰거나 destructive 한 액션 (예: 비공개로/공개로/삭제) 의 ⋮ 드롭다운.
-   * Primary 우측에 위치. items 가 비면 트리거 자체 미렌더.
+   * 하단 sticky bar 의 ⋮ 드롭다운 (가끔 쓰거나 destructive 액션). 비면 미렌더.
    */
   menu?: React.ReactNode;
   onPrev?: () => void;
   onNext?: () => void;
   nextDisabled?: boolean;
 
-  /** 자동 저장 상태 인디케이터. 없으면 숨김. */
+  /** 자동 저장 상태 인디케이터. */
   saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
-  /** 마지막 저장 시각 (상대 표기용, `getTime()` 기준 ms). */
+  /** 마지막 저장 시각 (상대 표기용, ms). */
   savedAt?: number | null;
 }
 
@@ -62,16 +65,19 @@ function formatSavedAgo(savedAt: number | null | undefined): string {
 }
 
 /**
- * Wizard 공통 레이아웃 — 2열 구조 + 통합 body header.
+ * Wizard 공통 레이아웃 — 헤더(정보) / 컨텐츠(스크롤) / 하단 sticky action bar 3-zone.
  *
- *   [Left Sidebar | Form column (단일 header: breadcrumb + step 제목 + 액션 + 저장상태)]
+ * 이전 디자인은 헤더 한 줄에 액션을 몰아 위계가 무너졌음.
+ * 새 디자인 원칙:
+ * - 헤더: 식별 정보 (title + step + 상태 chip + 자동저장 상태). 액션 없음.
+ * - 컨텐츠: 입력 폼. 자유 스크롤.
+ * - 하단 bar: 모든 액션 (이전 / 임시저장 / primary / ⋮). 컨텐츠 스크롤과 무관하게 항상 노출.
  *
- * 페이지 헤더 별도 없음 — breadcrumb 역할을 body header 좌상단 small text 가 담당.
- * Step 컨텐츠는 activeIndex 변경 시 fade-in 애니메이션으로 교체.
+ * "사용자는 화면 아래에서 다음 행동을 찾고, 헤더는 맥락을 읽는 공간으로 남는다"
  */
 export function WizardShell({
   title, mode = 'create', steps, activeIndex, onStepChange,
-  children, actions,
+  children, headerInfo, actions,
   primaryAction, menu, onPrev, onNext, nextDisabled,
   saveStatus, savedAt,
 }: WizardShellProps) {
@@ -87,43 +93,56 @@ export function WizardShell({
           <StepProgress steps={steps} activeIndex={activeIndex} onStepClick={onStepChange} />
         </aside>
 
-        {/* 우측 form 컬럼 */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-[760px] mx-auto px-6 py-5">
-            {/*
-              3-zone 헤더 (UX 가이드: 좌측=식별 / 우측=제어):
-              · 좌측: breadcrumb (title) + step 이름 (현 위치 표시)
-              · 우측: SaveIndicator → secondary actions (임시저장 등) → primary CTA → ⋮ menu
-                     visible 컨트롤은 자주 쓰고 안전. ⋮ 메뉴엔 가끔 쓰거나 destructive (비공개로/공개로/삭제).
-            */}
-            <div className="flex items-center justify-between gap-4 mb-5 pb-4 border-b border-[var(--border-default)]">
-              <div className="min-w-0">
-                {title && (
-                  <p className="text-[var(--app-text-micro)] font-medium text-[var(--text-disabled)] mb-0.5">
-                    {title}
-                  </p>
-                )}
-                <h1 className="text-[var(--text-lg)] font-bold text-[var(--text-default)] leading-tight">
-                  {currentStep?.label}
-                </h1>
+        {/* 우측 form 컬럼 — 헤더 + 스크롤 컨텐츠 + 하단 sticky bar */}
+        <main className="flex-1 flex flex-col overflow-hidden">
+          {/* 스크롤 가능한 본문 (헤더 + 컨텐츠) */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="max-w-[760px] mx-auto px-6 py-5">
+              {/* 헤더 — 정보 전용 (액션 없음) */}
+              <div className="flex items-center justify-between gap-4 mb-5 pb-4 border-b border-[var(--border-default)]">
+                <div className="min-w-0">
+                  {title && (
+                    <p className="text-[var(--app-text-micro)] font-medium text-[var(--text-disabled)] mb-0.5">
+                      {title}
+                    </p>
+                  )}
+                  <h1 className="text-[var(--text-lg)] font-bold text-[var(--text-default)] leading-tight">
+                    {currentStep?.label}
+                  </h1>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  {headerInfo}
+                  <SaveIndicator status={saveStatus} savedAt={savedAt} />
+                </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <SaveIndicator status={saveStatus} savedAt={savedAt} />
-                {/* edit 모드는 step indicator 가 자유 탐색 — 다음/이전 없이 저장 어디서나 가능.
-                    create 모드만 sequential 마법사 — 1-3 step 에 다음, 마지막 step 에 primaryAction. */}
+              {/* Step content — activeIndex 변경 시 fade-in */}
+              <div key={activeIndex} className="wizard-step-in">
+                {children}
+              </div>
+            </div>
+          </div>
+
+          {/* 하단 sticky action bar — 모든 행동 액션 단일화 */}
+          <div className="shrink-0 border-t border-[var(--border-default)] bg-[var(--surface-default)]">
+            <div className="max-w-[760px] mx-auto px-6 py-3 flex items-center justify-between gap-3">
+              {/* 좌측: 이전 (create 모드 + Step 2 이상) */}
+              <div className="flex items-center">
                 {!isEdit && activeIndex > 0 && (
                   <Button variant="secondary" size="sm" onClick={onPrev} disabled={!onPrev}>
                     <ArrowLeft size={13} /> 이전
                   </Button>
                 )}
-                {!isEdit && !isLast && (
+              </div>
+
+              {/* 우측: secondary actions → primary CTA → ⋮ menu */}
+              <div className="flex items-center gap-2">
+                {actions}
+                {!isEdit && !isLast ? (
                   <Button variant="primary" size="sm" onClick={onNext} disabled={nextDisabled}>
                     다음 <ArrowRight size={13} />
                   </Button>
-                )}
-                {actions}
-                {(isEdit || isLast) && (
+                ) : (
                   <Button
                     variant="primary"
                     size="sm"
@@ -136,11 +155,6 @@ export function WizardShell({
                 {menu}
               </div>
             </div>
-
-            {/* Step content — activeIndex 변경 시 fade-in */}
-            <div key={activeIndex} className="wizard-step-in">
-              {children}
-            </div>
           </div>
         </main>
       </div>
@@ -148,6 +162,12 @@ export function WizardShell({
   );
 }
 
+/**
+ * 자동저장 인디케이터.
+ *
+ * 정직성 원칙: 자동저장은 본문/i18n 만 커버 (variants 는 명시 저장 필요).
+ * 'saved' 라벨은 "기본 정보 저장됨" 으로 — 사용자가 옵션까지 저장됐다고 오인하지 않도록.
+ */
 function SaveIndicator({ status, savedAt }: { status?: 'idle' | 'saving' | 'saved' | 'error'; savedAt?: number | null }) {
   if (!status || status === 'idle') return null;
   if (status === 'saving') {
@@ -166,7 +186,7 @@ function SaveIndicator({ status, savedAt }: { status?: 'idle' | 'saving' | 'save
   return (
     <span className="inline-flex items-center gap-1 text-[var(--app-text-micro)] text-[var(--color-success)]">
       <Check size={11} />
-      저장됨 {savedAt ? `· ${formatSavedAgo(savedAt)}` : ''}
+      기본 정보 저장됨{savedAt ? ` · ${formatSavedAgo(savedAt)}` : ''}
     </span>
   );
 }
