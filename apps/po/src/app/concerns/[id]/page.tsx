@@ -1,90 +1,119 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { notFound, useParams } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+import { notFound, useParams, useRouter } from 'next/navigation';
 import {
-  CONCERN_STATUS_KR, CONCERN_STATUS_BADGE, BODY_AREA_BADGE,
-  formatBudget, formatDateRange, formatDateKR,
+  BODY_AREA_BADGE,
+  CONCERN_STATUS_BADGE,
+  CONCERN_STATUS_KR,
+  formatBudget,
+  formatDateKR,
+  formatDateRange,
 } from '@hyliren/shared';
-import { Card, Badge, Button, SectionHeader, AdminPage, Spinner } from '@hyliren/ui';
-import { POSidebar } from '@/components/POSidebar';
-import { getConcern, type ConcernDetailWire } from '@/lib/api/concern';
-import { findMyProposalByConcern, formatKrwAsMan, type ProposalDetailWire } from '@/lib/api/proposal';
-import { ApiError } from '@/lib/api/errors';
-import Link from 'next/link';
+import { AdminPage, Badge, Button, Card, SectionHeader, Spinner } from '@hyliren/ui';
 
-// ── 스타일 토큰 ──
-const S = {
-  label: { fontSize: 13, color: '#94a3b8', marginBottom: 2 } as const,
-  value: { fontSize: 14, color: '#0f172a', fontWeight: 500 } as const,
-  metaRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } as const,
-  divider: {
-    height: 1,
-    border: 0,
-    margin: 0,
-    background: 'color-mix(in srgb, var(--border-subdued) 88%, transparent)',
-  } as const,
+import { POSidebar } from '@/components/POSidebar';
+import { MyProposalSheet } from '@/components/concerns/MyProposalSheet';
+import { ProposeFormSheet } from '@/components/concerns/ProposeFormSheet';
+import { findMyProposalByConcern, formatKrwAsMan, type ProposalDetailWire } from '@/lib/api/proposal';
+import { getConcern, type ConcernDetailWire } from '@/lib/api/concern';
+import { ApiError } from '@/lib/api/errors';
+
+const SOURCE_KR: Record<string, string> = {
+  organic: '직접 유입',
+  referral: '추천',
+  article: '아티클',
+  ad: '광고',
+  direct: '다이렉트',
 };
 
-function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div style={S.metaRow}>
-      <span style={S.label}>{label}</span>
-      <span style={S.value}>{children}</span>
-    </div>
-  );
-}
-
+// ── 작은 표시 컴포넌트 ──
 function StatusBadge({ label, map }: { label: string; map: Record<string, { bg: string; text: string }> }) {
   const c = map[label];
   if (!c) return <Badge>{label}</Badge>;
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 500,
-      backgroundColor: c.bg, color: c.text,
-    }}>
-      <span style={{ width: 6, height: 6, borderRadius: '50%', background: c.text, opacity: 0.5 }} />
+    <span
+      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[var(--text-xs)] font-medium"
+      style={{ backgroundColor: c.bg, color: c.text }}
+    >
+      <span className="w-1.5 h-1.5 rounded-full opacity-50" style={{ background: c.text }} />
       {label}
     </span>
   );
 }
 
-// ── 소스 라벨 ──
-const SOURCE_KR: Record<string, string> = {
-  organic: '직접 유입', referral: '추천', article: '아티클', ad: '광고', direct: '다이렉트',
-};
+function AreaBadge({ name }: { name: string }) {
+  const c = BODY_AREA_BADGE[name];
+  if (!c) return <Badge>{name}</Badge>;
+  return (
+    <span
+      className="inline-flex items-center px-2 py-0.5 rounded-[var(--app-radius-sm)] text-[var(--text-xs)] font-medium"
+      style={{ backgroundColor: c.bg, color: c.text }}
+    >
+      {name}
+    </span>
+  );
+}
+
+function InfoBlock({ label, value, emphasis }: { label: string; value: React.ReactNode; emphasis?: boolean }) {
+  return (
+    <div>
+      <div className="text-[var(--text-sm)] text-[var(--text-subdued)] mb-1">{label}</div>
+      <div
+        className={
+          emphasis
+            ? 'text-[var(--text-lg)] font-bold text-[var(--text-default)] tabular-nums'
+            : 'text-[var(--text-base)] font-medium text-[var(--text-default)]'
+        }
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
 
 export default function ConcernDetailPage() {
+  const router = useRouter();
   const { id } = useParams<{ id: string }>();
   const [concern, setConcern] = useState<ConcernDetailWire | null>(null);
   const [myProposal, setMyProposal] = useState<ProposalDetailWire | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFoundError, setNotFoundError] = useState(false);
+  const [proposeOpen, setProposeOpen] = useState(false);
+  const [myProposalOpen, setMyProposalOpen] = useState(false);
 
-  useEffect(() => {
-    if (!id) return;
-    Promise.all([
-      getConcern(id),
-      findMyProposalByConcern(id).catch(() => null),
-    ])
+  const refresh = useCallback(() => {
+    if (!id) return Promise.resolve();
+    return Promise.all([getConcern(id), findMyProposalByConcern(id).catch(() => null)])
       .then(([data, proposal]) => {
         setConcern(data);
         setMyProposal(proposal);
-        setLoading(false);
-      })
-      .catch((err) => {
-        if (err instanceof ApiError && err.status === 404) {
-          setNotFoundError(true);
-        }
-        setLoading(false);
       });
   }, [id]);
 
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    refresh()
+      .catch(err => {
+        if (err instanceof ApiError && err.status === 404) {
+          setNotFoundError(true);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [id, refresh]);
+
   if (loading) {
     return (
-      <AdminPage sidebar={<POSidebar active="/concerns" />} title="고민 상세" prefix="po">
-        <div className="flex items-center justify-center py-20"><Spinner /></div>
+      <AdminPage
+        sidebar={<POSidebar active="/concerns" />}
+        title="고민 상세"
+        prefix="po"
+        onBack={() => router.back()}
+      >
+        <div className="flex items-center justify-center py-20">
+          <Spinner />
+        </div>
       </AdminPage>
     );
   }
@@ -96,137 +125,140 @@ export default function ConcernDetailPage() {
   const statusLabel = CONCERN_STATUS_KR[concern.status] ?? concern.status;
 
   return (
-    <AdminPage
-      sidebar={<POSidebar active="/concerns" />}
-      title="고민 상세"
-      prefix="po"
-      actions={
-        myProposal ? (
-          <Link href={`/proposals/${myProposal.id}`}>
-            <Button variant="secondary" size="sm">내 제안서 보기</Button>
-          </Link>
-        ) : (
-          <Link href={`/concerns/${concern.id}/propose`}>
-            <Button variant="accent" size="sm">제안서 작성</Button>
-          </Link>
-        )
-      }
-    >
-      {/* ══ 2열 레이아웃 ══ */}
-      <div className="detail-grid">
+    <>
+      <AdminPage
+        sidebar={<POSidebar active="/concerns" />}
+        title="고민 상세"
+        prefix="po"
+        onBack={() => router.back()}
+        actions={
+          myProposal ? (
+            <Button variant="secondary" size="sm" onClick={() => setMyProposalOpen(true)}>
+              내 제안서 보기
+            </Button>
+          ) : (
+            <Button variant="accent" size="sm" onClick={() => setProposeOpen(true)}>
+              제안서 작성
+            </Button>
+          )
+        }
+      >
+        <div className="flex flex-col gap-4 max-w-[920px] mx-auto">
 
-        {/* ══ 좌측: 메인 콘텐츠 ══ */}
-        <div className="detail-main">
-
-          {/* 고민 내용 */}
+          {/* 1. Hero — 등록자 / 부위 / 상태 */}
           <Card padding="md">
-            <SectionHeader title="고민 내용" />
-            <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, margin: '12px 0 0' }}>
-              {concern.description}
-            </p>
-          </Card>
-
-          {/* 고민 상세 정보 */}
-          <Card padding="md">
-            <SectionHeader title="상세 정보" />
-            <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px 24px' }}>
-              <div>
-                <div style={S.label}>부위</div>
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
-                  {concern.bodyAreas.map(area => {
-                    const c = BODY_AREA_BADGE[area];
-                    return c ? (
-                      <span key={area} style={{ padding: '2px 8px', borderRadius: 4, fontSize: 12, fontWeight: 500, background: c.bg, color: c.text }}>{area}</span>
-                    ) : <Badge key={area}>{area}</Badge>;
-                  })}
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="text-[var(--text-xl)] font-bold text-[var(--text-default)] leading-tight">
+                  {concern.userName}
+                </div>
+                <div className="flex items-center flex-wrap gap-1.5 mt-2">
+                  {concern.bodyAreas.map(area => (
+                    <AreaBadge key={area} name={area} />
+                  ))}
+                  {concern.bodyAreaDetail && (
+                    <span className="text-[var(--text-sm)] text-[var(--text-subdued)] ml-1">
+                      · {concern.bodyAreaDetail}
+                    </span>
+                  )}
+                </div>
+                <div className="text-[var(--text-sm)] text-[var(--text-subdued)] mt-2 tabular-nums">
+                  등록 {formatDateKR(concern.createdAt)}
                 </div>
               </div>
-              <div>
-                <div style={S.label}>상세</div>
-                <div style={S.value}>{concern.bodyAreaDetail || '-'}</div>
-              </div>
-              <div>
-                <div style={S.label}>예산</div>
-                <div style={{ ...S.value, fontVariantNumeric: 'tabular-nums' }}>{formatBudget(concern.budgetMin, concern.budgetMax)}</div>
-              </div>
-              <div>
-                <div style={S.label}>방문 시기</div>
-                <div style={S.value}>{formatDateRange(concern.visitDateFrom, concern.visitDateTo)}</div>
-              </div>
-              <div>
-                <div style={S.label}>유입 경로</div>
-                <div style={S.value}>{SOURCE_KR[concern.source] || concern.source}</div>
+              <div className="flex-shrink-0">
+                <StatusBadge label={statusLabel} map={CONCERN_STATUS_BADGE} />
               </div>
             </div>
           </Card>
 
-          {/* 사진 */}
+          {/* 2. 고민 내용 */}
+          <Card padding="md">
+            <SectionHeader title="고민 내용" />
+            <p className="text-[var(--text-base)] text-[var(--text-default)] leading-relaxed mt-3 whitespace-pre-wrap">
+              {concern.description}
+            </p>
+          </Card>
+
+          {/* 3. 핵심 정보 grid */}
+          <Card padding="md">
+            <SectionHeader title="요청 정보" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 mt-3">
+              <InfoBlock label="예산" value={formatBudget(concern.budgetMin, concern.budgetMax)} emphasis />
+              <InfoBlock label="방문 시기" value={formatDateRange(concern.visitDateFrom, concern.visitDateTo)} />
+              <InfoBlock label="유입 경로" value={SOURCE_KR[concern.source] || concern.source} />
+              <InfoBlock label="접수 제안서" value={`${concern.proposalCount}건`} />
+            </div>
+          </Card>
+
+          {/* 4. 첨부 사진 */}
           {concern.photos.length > 0 && (
             <Card padding="md">
               <SectionHeader title={`첨부 사진 (${concern.photos.length}장)`} />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 12 }}>
+              <div className="grid grid-cols-3 gap-2 mt-3">
                 {concern.photos.map(p => (
-                  <div key={p.id} style={{
-                    aspectRatio: '1', background: '#f8fafc', borderRadius: 8,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: '1px solid #f1f5f9', color: '#cbd5e1', fontSize: 13,
-                    overflow: 'hidden',
-                  }}>
-                    {p.url ? <img src={p.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '사진'}
+                  <div
+                    key={p.id}
+                    className="aspect-square rounded-[var(--app-radius)] bg-[var(--surface-subdued)] border border-[var(--border-subdued)] flex items-center justify-center text-[var(--text-disabled)] text-[var(--text-sm)] overflow-hidden"
+                  >
+                    {p.url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.url} alt="첨부 사진" className="w-full h-full object-cover" />
+                    ) : (
+                      '사진'
+                    )}
                   </div>
                 ))}
               </div>
             </Card>
           )}
 
+          {/* 5. 내 제안서 */}
           <Card padding="md">
             <SectionHeader title="내 제안서" />
             {myProposal ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginTop: 12 }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>
+              <div className="flex items-center justify-between gap-4 mt-3">
+                <div className="flex-1 min-w-0">
+                  <div className="text-[var(--text-md)] font-semibold text-[var(--text-default)] tabular-nums">
                     {formatKrwAsMan(myProposal.totalPrice)} · 회복 {myProposal.recoveryDays}일
                   </div>
-                  <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
-                    {myProposal.items.map(item => item.treatmentName).join(', ')}
+                  <div className="text-[var(--text-sm)] text-[var(--text-subdued)] mt-1 truncate">
+                    {myProposal.items.map(item => item.treatmentName).join(', ') || '항목 없음'}
                   </div>
                 </div>
-                <Link href={`/proposals/${myProposal.id}`}>
-                  <Button variant="secondary" size="sm">상세 보기</Button>
-                </Link>
+                <Button variant="secondary" size="sm" onClick={() => setMyProposalOpen(true)}>
+                  상세 보기
+                </Button>
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '32px 0' }}>
-                <p style={{ fontSize: 14, color: '#94a3b8', marginBottom: 12 }}>아직 제안서를 발송하지 않았습니다</p>
-                <Link href={`/concerns/${concern.id}/propose`}>
-                  <Button variant="accent" size="sm">제안서 작성하기</Button>
-                </Link>
+              <div className="text-center py-8">
+                <p className="text-[var(--text-base)] text-[var(--text-subdued)] mb-4">
+                  아직 제안서를 발송하지 않았습니다
+                </p>
+                <Button variant="accent" size="sm" onClick={() => setProposeOpen(true)}>
+                  제안서 작성하기
+                </Button>
               </div>
             )}
           </Card>
+
         </div>
+      </AdminPage>
 
-        {/* ══ 우측: 사이드바 ══ */}
-        <div className="detail-sticky-sidebar">
+      {/* SideSheet — 제안서 작성 */}
+      <ProposeFormSheet
+        concernId={concern.id}
+        open={proposeOpen}
+        onClose={() => setProposeOpen(false)}
+        onSuccess={() => { void refresh(); }}
+      />
 
-          {/* 상태 카드 */}
-          <Card padding="md">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <MetaRow label="상태">
-                <StatusBadge label={statusLabel} map={CONCERN_STATUS_BADGE} />
-              </MetaRow>
-              <hr style={S.divider} />
-              <MetaRow label="등록일">{formatDateKR(concern.createdAt)}</MetaRow>
-              <MetaRow label="수정일">{formatDateKR(concern.updatedAt)}</MetaRow>
-              <hr style={S.divider} />
-              <MetaRow label="접수 제안서">{concern.proposalCount}건</MetaRow>
-            </div>
-          </Card>
-
-          {/* 고객 정보 / 다른 고민은 partner 미노출 정책상 제거.
-              필요 시 backend 에 별도 마스킹된 endpoint 추가 후 복구 (백로그). */}
-        </div>
-      </div>
-    </AdminPage>
+      {/* SideSheet — 내 제안서 보기 */}
+      <MyProposalSheet
+        concernId={concern.id}
+        open={myProposalOpen}
+        onClose={() => setMyProposalOpen(false)}
+      />
+    </>
   );
 }
