@@ -180,7 +180,7 @@
   .input-wrapper { display: flex; flex-direction: column; gap: 4px; }
   .input-label { font-size: var(--app-text-xs, 12px); font-weight: 600; color: var(--text-subdued); }
   .input-field {
-    height: var(--input-height); padding: 0 8px; font-size: var(--app-text-sm, 14px);
+    height: var(--input-height); padding: 0 12px; font-size: var(--app-text-sm, 14px);
     border: 1px solid var(--input-border); border-radius: var(--input-radius);
     background: var(--input-bg); color: var(--text-default); outline: none;
     transition: border-color 120ms, box-shadow 120ms;
@@ -247,7 +247,7 @@
     font-variant-numeric: tabular-nums;
   }
   .propose-item-price-input {
-    width: 5rem; text-align: right; padding: 0 8px;
+    width: 6rem; text-align: right; padding: 0 12px;
     height: var(--input-height); border: 1px solid var(--input-border);
     border-radius: var(--input-radius); background: var(--input-bg);
     font-size: var(--app-text-sm); color: var(--text-default); outline: none;

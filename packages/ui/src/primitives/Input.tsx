@@ -22,13 +22,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={`
-            w-full h-[var(--input-height,32px)] px-2
-            text-[var(--app-text-body,13px)] text-[var(--text-default,#202223)]
-            bg-[var(--input-bg,#fff)] border rounded-[var(--input-radius,4px)]
+            w-full h-[var(--input-height,36px)] px-3
+            text-[var(--app-text-body,14px)] text-[var(--text-default,#202223)]
+            bg-[var(--input-bg,#fff)] border rounded-[var(--input-radius,6px)]
             outline-none transition-colors duration-[var(--duration-fast)]
-            placeholder:text-[var(--color-text-dim)]
+            placeholder:text-[var(--text-disabled)]
             disabled:bg-[var(--input-bg-disabled)] disabled:opacity-[var(--opacity-disabled)] disabled:cursor-not-allowed
-            ${error ? 'border-[var(--color-danger)]' : 'border-[var(--input-border)] hover:border-[var(--color-text-dim)] focus:border-[var(--input-border-focus)] focus:shadow-[0_0_0_3px_var(--input-focus-ring)]'}
+            ${error ? 'border-[var(--color-danger)]' : 'border-[var(--input-border)] hover:border-[var(--text-subdued)] focus:border-[var(--input-border-focus)] focus:shadow-[0_0_0_3px_var(--input-focus-ring)]'}
             ${className}
           `}
           {...props}
