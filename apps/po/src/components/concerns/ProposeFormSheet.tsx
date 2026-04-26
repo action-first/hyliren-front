@@ -228,30 +228,29 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
                 key={idx}
                 className="flex flex-col gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--surface-subdued)] border border-[var(--border-subdued)]"
               >
-                {/* 카드 헤더: 시술명 input + 삭제 */}
-                <div className="flex gap-3 items-center">
-                  <input
-                    type="text"
-                    placeholder="시술명 (한국어)"
-                    value={item.name}
-                    onChange={e => updateItem(idx, 'name', e.target.value)}
-                    className="input-field flex-1 min-w-0"
-                  />
-                  {items.length > 1 && (
+                {/* 카드 헤더: 시술명 input 풀폭 */}
+                <input
+                  type="text"
+                  placeholder="시술명 (한국어)"
+                  value={item.name}
+                  onChange={e => updateItem(idx, 'name', e.target.value)}
+                  className="input-field"
+                />
+
+                {/* 가격 row: 좌측 휴지통 ghost / 우측 가격 input + 만원 */}
+                <div className="flex items-center justify-between">
+                  {items.length > 1 ? (
                     <button
                       type="button"
                       aria-label="항목 삭제"
-                      className="w-9 h-[var(--input-height,32px)] flex-shrink-0 flex items-center justify-center rounded-[var(--app-radius-sm)] bg-transparent border border-[var(--border-default)] text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] hover:border-[var(--color-danger)] cursor-pointer transition-colors"
+                      className="w-8 h-8 flex items-center justify-center rounded-[var(--app-radius-sm)] bg-transparent border-0 text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] cursor-pointer transition-colors"
                       onClick={() => removeItem(idx)}
                     >
                       <Trash2 size={14} />
                     </button>
+                  ) : (
+                    <div className="w-8 h-8" aria-hidden />
                   )}
-                </div>
-
-                {/* 가격 row — 총비용과 동일 UX (label 좌측 / 작은 input 우측 + 만원) */}
-                <div className="propose-total-row">
-                  <span className="propose-total-label">가격</span>
                   <div className="flex items-baseline gap-2">
                     <input
                       type="text"
