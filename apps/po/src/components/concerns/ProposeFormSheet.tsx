@@ -141,7 +141,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
     <SideSheet
       open={open}
       onClose={onClose}
-      width="md"
+      width="lg"
       title="제안서 작성"
       footer={
         <div className="w-full flex flex-col gap-2">
