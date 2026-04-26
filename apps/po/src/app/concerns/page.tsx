@@ -3,12 +3,12 @@
 import { useCallback, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  BODY_AREAS, CONCERN_STATUS_KR, CONCERN_STATUS_BADGE, BODY_AREA_DOT,
+  BODY_AREAS, CONCERN_STATUS_KR, CONCERN_STATUS_BADGE, BODY_AREA_BADGE,
   formatDateKR, formatDateRange, formatBudget,
 } from '@hyliren/shared';
 import {
   AdminPage, DataGrid,
-  badgeCellRenderer, dotTextRenderer, countBadgeCellRenderer, actionCellRenderer,
+  badgeCellRenderer, countBadgeCellRenderer,
 } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
@@ -36,6 +36,8 @@ interface ConcernRow {
   statusLabel: string;
   createdAt: string;
   proposalCount: number;
+  /** 본인 제안서 발송일 (없으면 '-') */
+  mySentAt: string;
 }
 
 // ── 검색 필드 (2줄) ──
@@ -53,37 +55,34 @@ const searchFields: SearchField[] = [
   { key: '_keyword', label: '키워드', placeholder: '고민 내용, 부위, 상세 통합 검색', row: 2 },
 ];
 
-// ── 컬럼 정의 ──
+// ── 컬럼 정의: 부위 / 상세 / 고민내용 / 예산 / 방문시기 / 상태 / 등록일 / 제안 / 발송일 ──
 const columnDefs: ColDef<ConcernRow>[] = [
   {
     field: 'primaryArea', headerName: '부위', flex: 0.5, minWidth: 70, filter: true,
-    cellRenderer: dotTextRenderer(BODY_AREA_DOT),
+    cellRenderer: badgeCellRenderer(BODY_AREA_BADGE),
   },
   { field: 'bodyAreaDetail', headerName: '상세', flex: 0.7, minWidth: 80, filter: true },
   {
-    field: 'description', headerName: '고민 내용', flex: 2, minWidth: 150, filter: true,
+    field: 'description', headerName: '고민내용', flex: 2, minWidth: 150, filter: true,
     cellStyle: { color: '#6b7280' },
   },
   { field: 'budget', headerName: '예산', flex: 0.7, minWidth: 80, filter: false },
-  { field: 'visitDate', headerName: '방문 시기', flex: 0.8, minWidth: 90, filter: false },
+  { field: 'visitDate', headerName: '방문시기', flex: 0.8, minWidth: 90, filter: false },
   {
     field: 'statusLabel', headerName: '상태', flex: 0.7, minWidth: 80, filter: true,
     cellRenderer: badgeCellRenderer(CONCERN_STATUS_BADGE),
-  },
-  {
-    field: 'proposalCount', headerName: '제안', flex: 0.5, minWidth: 60, filter: false,
-    cellRenderer: countBadgeCellRenderer('건', '발송', '미발송'),
   },
   {
     field: 'createdAt', headerName: '등록일', flex: 0.7, minWidth: 80, filter: false,
     cellStyle: { color: '#9ca3af', fontVariantNumeric: 'tabular-nums' },
   },
   {
-    headerName: '액션', flex: 0.6, minWidth: 80, sortable: false, resizable: false, filter: false,
-    cellRenderer: actionCellRenderer<ConcernRow>([
-      { label: '제안', href: d => `/concerns/${d.id}/propose`, primary: true },
-      { label: '상세', href: d => `/concerns/${d.id}` },
-    ]),
+    field: 'proposalCount', headerName: '제안', flex: 0.5, minWidth: 60, filter: false,
+    cellRenderer: countBadgeCellRenderer('건', '발송', '미발송'),
+  },
+  {
+    field: 'mySentAt', headerName: '발송일', flex: 0.7, minWidth: 80, filter: false,
+    cellStyle: { color: '#9ca3af', fontVariantNumeric: 'tabular-nums' },
   },
 ];
 
@@ -135,6 +134,7 @@ export default function ConcernListPage() {
       statusLabel: CONCERN_STATUS_KR[c.status] || c.status,
       createdAt: formatDateKR(c.createdAt),
       proposalCount: c.proposalCount,
+      mySentAt: c.mySentAt ? formatDateKR(c.mySentAt) : '-',
     }))
     // status 필터 (선택 시) — backend 미지원 영역
     .filter(r => !statusFilter || r.statusLabel === statusFilter);

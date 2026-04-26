@@ -17,6 +17,8 @@ export interface ConcernSummaryWire {
   visitDateFrom: string | null;
   visitDateTo: string | null;
   proposalCount: number;
+  /** 본인(요청 partner) 활성 제안서 발송일. 미발송이면 null. */
+  mySentAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
