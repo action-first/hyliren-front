@@ -26,55 +26,66 @@ import {
   AreaChart, Area,
 } from 'recharts';
 
-// ── 색상 시스템 (BO와 동일한 팔레트) ──
-const C = {
-  main:         '#4F46E5', // 인디고 (PO 시그니처)
-  sub:          '#8B5CF6', // 바이올렛
+/*
+  대시보드 색상 시스템 — 카테고리별 단일 소스.
+
+  원칙:
+  - 차트 (recharts) 는 hex 리터럴 필요 → CHART 팔레트로 한곳에 모음
+  - 배지 (DOM) 는 CSS 토큰 사용 → admin.css 의 semantic tokens 직접 참조
+  - 한 색상이 차트·배지에 동시 등장하면 같은 카테고리 객체에서 함께 정의
+  - 이전엔 STATUS_COLORS / AREA_COLORS / CONCERN_STATUS_STYLE / AREA_BADGE_STYLE
+    4개 맵에 hex 가 분산 → 변경 시 4 군데 수정 필요했음. 이를 카테고리 단위로 통합.
+*/
+
+/** 차트 팔레트 — recharts Cell 등에 직접 전달. hex 리터럴 필요. */
+const CHART_PALETTE = {
+  primary:      '#4F46E5', // 인디고 (PO 시그니처)
+  secondary:    '#8B5CF6', // 바이올렛
   positive:     '#10B981', // 에메랄드
   negative:     '#F43F5E', // 로즈
   neutral:      '#94A3B8', // 슬레이트
-  neutralLight: '#CBD5E1', // 라이트 슬레이트
+  neutralLight: '#CBD5E1',
+} as const;
+
+/** 제안서 상태 팔레트 — 차트 색상 + 라벨. */
+const PROPOSAL_PALETTE: Record<string, { hex: string; label: string }> = {
+  selected:    { hex: CHART_PALETTE.primary,      label: '선택됨' },
+  shortlisted: { hex: CHART_PALETTE.secondary,    label: '후보' },
+  viewed:      { hex: CHART_PALETTE.neutralLight, label: '열람' },
+  sent:        { hex: CHART_PALETTE.neutral,      label: '발송' },
+  rejected:    { hex: CHART_PALETTE.negative,     label: '거절' },
+  draft:       { hex: '#E2E8F0',                  label: '임시저장' },
 };
 
-const STATUS_COLORS: Record<string, { hex: string; label: string }> = {
-  selected:    { hex: C.main,         label: '선택됨' },
-  shortlisted: { hex: C.sub,          label: '후보' },
-  viewed:      { hex: C.neutralLight, label: '열람' },
-  sent:        { hex: C.neutral,      label: '발송' },
-  rejected:    { hex: C.negative,     label: '거절' },
-  draft:       { hex: '#E2E8F0',      label: '임시저장' },
+/** 부위 팔레트 — 차트 색상 (배지는 공통 info 토큰 사용). */
+const AREA_CHART_HEX: Record<string, string> = {
+  '눈':       CHART_PALETTE.primary,
+  '코':       '#818CF8',
+  '리프팅':   CHART_PALETTE.secondary,
+  '피부':     '#A78BFA',
+  '다이어트': '#6366F1',
+  '기타':     CHART_PALETTE.neutral,
 };
 
-const AREA_COLORS: Record<string, string> = {
-  '눈':       C.main,
-  '코':       '#818CF8', // 인디고 300
-  '리프팅':   C.sub,
-  '피부':     '#A78BFA', // 바이올렛 300
-  '다이어트': '#6366F1', // 인디고 500
-  '기타':     C.neutral,
+/** 고민 상태 배지 — semantic 토큰 사용. */
+const CONCERN_STATUS_BADGE: Record<string, { bg: string; text: string; dot: string }> = {
+  '접수됨':    { bg: 'var(--surface-subdued)',     text: 'var(--text-subdued)', dot: CHART_PALETTE.neutral },
+  '제안 도착': { bg: 'var(--color-info-soft)',     text: 'var(--color-info)',   dot: CHART_PALETTE.primary },
+  '제안 수신': { bg: 'var(--color-info-soft)',     text: 'var(--color-info)',   dot: CHART_PALETTE.primary },
+  '비교 중':   { bg: 'var(--color-primary-soft)',  text: 'var(--color-primary)', dot: CHART_PALETTE.secondary },
+  '진행 중':   { bg: 'var(--color-primary-soft)',  text: 'var(--color-primary)', dot: CHART_PALETTE.secondary },
+  '완료':      { bg: 'var(--color-success-soft)',  text: 'var(--color-success)', dot: CHART_PALETTE.positive },
 };
 
-const CONCERN_STATUS_STYLE: Record<string, { bg: string; text: string; dot: string }> = {
-  '접수됨':     { bg: '#f1f5f9', text: '#475569', dot: C.neutral },
-  '제안 도착':  { bg: '#eef2ff', text: '#3730a3', dot: C.main },
-  '제안 수신':  { bg: '#eef2ff', text: '#3730a3', dot: C.main },
-  '비교 중':    { bg: '#f5f3ff', text: '#5b21b6', dot: C.sub },
-  '진행 중':    { bg: '#f5f3ff', text: '#5b21b6', dot: C.sub },
-  '완료':       { bg: '#ecfdf5', text: '#065f46', dot: C.positive },
-};
-
-const AREA_BADGE_STYLE: Record<string, { bg: string; text: string }> = {
-  '눈':       { bg: '#eef2ff', text: '#3730a3' },
-  '코':       { bg: '#eef2ff', text: '#4338ca' },
-  '리프팅':   { bg: '#f5f3ff', text: '#6d28d9' },
-  '피부':     { bg: '#f5f3ff', text: '#7c3aed' },
-  '다이어트': { bg: '#eef2ff', text: '#4f46e5' },
-  '기타':     { bg: '#f1f5f9', text: '#475569' },
+/** 부위 배지 — 모두 info 토큰으로 통일 (구분은 텍스트 자체로). */
+const AREA_BADGE: { bg: string; text: string } = {
+  bg: 'var(--color-info-soft)',
+  text: 'var(--color-info)',
 };
 
 const TOOLTIP_STYLE: React.CSSProperties = {
   fontSize: 13, borderRadius: 10, border: 'none',
-  boxShadow: '0 4px 20px rgba(0,0,0,0.1)', padding: '10px 14px',
+  boxShadow: 'var(--shadow-md, 0 4px 20px rgba(0,0,0,0.1))', padding: '10px 14px',
   background: 'var(--surface-default)',
 };
 
@@ -149,13 +160,13 @@ function KPICard({ icon, iconBg, label, value, sub, trend, trendUp }: {
   return (
     <div style={{
       background: 'var(--surface-default)', borderRadius: 14, padding: '16px 20px',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+      boxShadow: 'var(--app-shadow)',
       display: 'flex', alignItems: 'center', gap: 14,
-      border: '1px solid #f1f5f9',
+      border: '1px solid var(--border-subdued)',
       transition: 'box-shadow 200ms, transform 200ms',
     }}
-      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = 'var(--app-shadow-hover)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = 'var(--app-shadow)'; e.currentTarget.style.transform = 'translateY(0)'; }}
     >
       <div style={{
         width: 36, height: 36, borderRadius: 9, background: iconBg,
@@ -172,8 +183,8 @@ function KPICard({ icon, iconBg, label, value, sub, trend, trendUp }: {
         <div style={{
           display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0,
           fontSize: 11, fontWeight: 600,
-          color: trendUp ? '#10b981' : '#ef4444',
-          background: trendUp ? '#ecfdf5' : '#fef2f2',
+          color: trendUp ? 'var(--color-success)' : 'var(--color-danger)',
+          background: trendUp ? 'var(--color-success-soft)' : 'var(--color-danger-soft)',
           padding: '3px 8px', borderRadius: 20,
         }}>
           {trendUp ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
@@ -191,8 +202,8 @@ function ChartCard({ title, subtitle, children, action }: {
   return (
     <div style={{
       background: 'var(--surface-default)', borderRadius: 16, padding: 24,
-      boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
-      border: '1px solid #f1f5f9',
+      boxShadow: 'var(--app-shadow)',
+      border: '1px solid var(--border-subdued)',
       display: 'flex', flexDirection: 'column',
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -284,7 +295,7 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: entry.color, flexShrink: 0 }} />
           <span style={{ fontSize: 12, color: 'var(--text-subdued)' }}>{entry.value}</span>
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#334155' }}>{entry.payload?.value}</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-default)' }}>{entry.payload?.value}</span>
         </div>
       ))}
     </div>
@@ -342,9 +353,9 @@ export default function DashboardPage() {
     acc[p.status] = (acc[p.status] ?? 0) + 1; return acc;
   }, {});
   const pieData = Object.entries(statusGroups).map(([status, count]) => ({
-    name: STATUS_COLORS[status]?.label ?? status,
+    name: PROPOSAL_PALETTE[status]?.label ?? status,
     value: count,
-    color: STATUS_COLORS[status]?.hex ?? '#94a3b8',
+    color: PROPOSAL_PALETTE[status]?.hex ?? CHART_PALETTE.neutral,
   }));
 
   // 도넛 — 부위별 분포
@@ -352,7 +363,7 @@ export default function DashboardPage() {
     acc[c.primaryArea] = (acc[c.primaryArea] ?? 0) + 1; return acc;
   }, {});
   const areaPieData = Object.entries(areaGroups).map(([area, count]) => ({
-    name: area, value: count, color: AREA_COLORS[area] ?? '#94a3b8',
+    name: area, value: count, color: AREA_CHART_HEX[area] ?? CHART_PALETTE.neutral,
   }));
 
   // 기간별 제안 추이
@@ -436,24 +447,24 @@ export default function DashboardPage() {
         {/* ═══ KPI 카드 ═══ */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
           <KPICard
-            icon={<Sparkles size={20} color={C.main} />}
-            iconBg="#eef2ff"
+            icon={<Sparkles size={20} color={CHART_PALETTE.primary} />}
+            iconBg="var(--color-info-soft)"
             label="새 고민"
             value={openConcerns.length}
             sub="제안 가능한 고민"
             trend="+2건" trendUp
           />
           <KPICard
-            icon={<FileText size={20} color={C.sub} />}
-            iconBg="#f5f3ff"
+            icon={<FileText size={20} color={CHART_PALETTE.secondary} />}
+            iconBg="var(--color-primary-soft)"
             label="발송 제안서"
             value={myProposals.length}
             sub={`열람률 ${viewRate}%`}
             trend={`${viewRate}%`} trendUp={viewRate > 50}
           />
           <KPICard
-            icon={<CheckCircle2 size={20} color="#10b981" />}
-            iconBg="#ecfdf5"
+            icon={<CheckCircle2 size={20} color="var(--color-success)" />}
+            iconBg="var(--color-success-soft)"
             label="선택률"
             value={`${selectedRate}%`}
             sub={`${selectedCount}건 선택`}
@@ -461,8 +472,8 @@ export default function DashboardPage() {
             trendUp={selectedRate > 30}
           />
           <KPICard
-            icon={<Coins size={20} color="#f59e0b" />}
-            iconBg="#fffbeb"
+            icon={<Coins size={20} color="var(--color-warning)" />}
+            iconBg="var(--color-warning-soft)"
             label="크레딧 잔액"
             value={balance}
             sub={`${Math.floor(balance / 3)}건 발송 가능`}
@@ -496,20 +507,20 @@ export default function DashboardPage() {
               <AreaChart data={trendData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gradSent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={C.main} stopOpacity={0.12} />
-                    <stop offset="100%" stopColor={C.main} stopOpacity={0} />
+                    <stop offset="0%" stopColor={CHART_PALETTE.primary} stopOpacity={0.12} />
+                    <stop offset="100%" stopColor={CHART_PALETTE.primary} stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="gradViewed" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={C.positive} stopOpacity={0.12} />
-                    <stop offset="100%" stopColor={C.positive} stopOpacity={0} />
+                    <stop offset="0%" stopColor={CHART_PALETTE.positive} stopOpacity={0.12} />
+                    <stop offset="100%" stopColor={CHART_PALETTE.positive} stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subdued)" vertical={false} />
                 <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Area type="monotone" dataKey="발송" stroke={C.main} strokeWidth={2} fill="url(#gradSent)" dot={{ r: 3, fill: C.main, strokeWidth: 0 }} activeDot={{ r: 5, fill: C.main, stroke: '#fff', strokeWidth: 2 }} />
-                <Area type="monotone" dataKey="열람" stroke={C.positive} strokeWidth={2} fill="url(#gradViewed)" dot={{ r: 3, fill: C.positive, strokeWidth: 0 }} activeDot={{ r: 5, fill: C.positive, stroke: '#fff', strokeWidth: 2 }} />
+                <Area type="monotone" dataKey="발송" stroke={CHART_PALETTE.primary} strokeWidth={2} fill="url(#gradSent)" dot={{ r: 3, fill: CHART_PALETTE.primary, strokeWidth: 0 }} activeDot={{ r: 5, fill: CHART_PALETTE.primary, stroke: '#fff', strokeWidth: 2 }} />
+                <Area type="monotone" dataKey="열람" stroke={CHART_PALETTE.positive} strokeWidth={2} fill="url(#gradViewed)" dot={{ r: 3, fill: CHART_PALETTE.positive, strokeWidth: 0 }} activeDot={{ r: 5, fill: CHART_PALETTE.positive, stroke: '#fff', strokeWidth: 2 }} />
                 <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
                   formatter={(value: string) => <span style={{ fontSize: 12, color: 'var(--text-subdued)', marginLeft: 2 }}>{value}</span>}
                 />
@@ -543,8 +554,8 @@ export default function DashboardPage() {
                   <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
                     formatter={(value: string) => <span style={{ fontSize: 12, color: 'var(--text-subdued)', marginLeft: 2 }}>{value}</span>}
                   />
-                  <Bar dataKey="충전" fill={C.main} fillOpacity={0.85} radius={[6, 6, 0, 0]} maxBarSize={28} />
-                  <Bar dataKey="사용" fill={C.negative} fillOpacity={0.82} radius={[6, 6, 0, 0]} maxBarSize={28} />
+                  <Bar dataKey="충전" fill={CHART_PALETTE.primary} fillOpacity={0.85} radius={[6, 6, 0, 0]} maxBarSize={28} />
+                  <Bar dataKey="사용" fill={CHART_PALETTE.negative} fillOpacity={0.82} radius={[6, 6, 0, 0]} maxBarSize={28} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -572,7 +583,7 @@ export default function DashboardPage() {
             </div>
             <Link href="/concerns" style={{
               display: 'inline-flex', alignItems: 'center', gap: 4,
-              fontSize: 13, fontWeight: 500, color: C.main, textDecoration: 'none',
+              fontSize: 13, fontWeight: 500, color: CHART_PALETTE.primary, textDecoration: 'none',
               padding: '6px 12px', borderRadius: 8, transition: 'background 150ms',
             }}
               onMouseEnter={e => (e.currentTarget.style.background = '#eef2ff')}
@@ -605,8 +616,10 @@ export default function DashboardPage() {
               )}
               {openConcerns.slice(0, 5).map(c => {
                 const statusLabel = CONCERN_STATUS_KR[c.status] ?? c.status;
-                const statusStyle = CONCERN_STATUS_STYLE[statusLabel] ?? { bg: '#f1f5f9', text: '#475569', dot: '#94a3b8' };
-                const areaStyle = AREA_BADGE_STYLE[c.primaryArea] ?? { bg: '#f1f5f9', text: '#475569' };
+                const statusStyle = CONCERN_STATUS_BADGE[statusLabel] ?? {
+                  bg: 'var(--surface-subdued)', text: 'var(--text-subdued)', dot: CHART_PALETTE.neutral,
+                };
+                const areaStyle = AREA_BADGE;
 
                 return (
                   <tr key={c.id} style={{ borderBottom: '1px solid #f8fafc', transition: 'background 150ms', cursor: 'pointer' }}
@@ -640,7 +653,7 @@ export default function DashboardPage() {
                     </td>
                     <td style={{ padding: '14px 24px' }}>
                       <Link href={`/concerns/${c.id}`} style={{
-                        fontSize: 13, fontWeight: 500, color: C.main, textDecoration: 'none',
+                        fontSize: 13, fontWeight: 500, color: CHART_PALETTE.primary, textDecoration: 'none',
                       }}>보기</Link>
                     </td>
                   </tr>
