@@ -94,6 +94,15 @@ const columnDefs: ColDef<ConcernRow>[] = [
   },
 ];
 
+// 한국어 라벨 → backend ConcernStatus raw 매핑.
+// BE 가 status 필터 지원 (BE PR #19) → client-side filter 제거.
+const STATUS_LABEL_TO_RAW: Record<string, string> = {
+  '접수됨': 'submitted',
+  '제안 대기': 'submitted', // submitted 상태에서 제안서 미수신 (별도 status 없음, FE 표시 라벨)
+  '제안 도착': 'proposal_received',
+  '비교 중': 'comparing',
+};
+
 // ── 페이지 ──
 export default function ConcernListPage() {
   const router = useRouter();
@@ -103,10 +112,8 @@ export default function ConcernListPage() {
     const { from, to } = defaultMonthRange();
     return { createdAtFrom: from, createdAtTo: to };
   });
-  const [statusFilter, setStatusFilter] = useState<string>('');
 
   // React Query — 캐시 5분, keepPreviousData 로 검색 중 이전 데이터 유지.
-  // hasInitialLoad 등의 boilerplate 가 RQ 의 isLoading/data 상태로 대체됨.
   const { data, isLoading, isError, error, refetch } = useConcerns(query);
 
   // 에러 토스트 — RQ v5 가 onError 콜백 제거됨, useEffect 로 효과 처리.
@@ -125,27 +132,28 @@ export default function ConcernListPage() {
     if (filters['createdAt_to']) newQuery.createdAtTo = filters['createdAt_to'];
     if (filters['primaryArea']) newQuery.primaryArea = filters['primaryArea'];
     if (filters['_keyword']) newQuery.keyword = filters['_keyword'];
+    // status 필터는 BE 로 전달 (BE PR #19 활용 — client-side filter 제거).
+    if (filters['statusLabel']) {
+      const raw = STATUS_LABEL_TO_RAW[filters['statusLabel']];
+      if (raw) newQuery.status = raw;
+    }
     setQuery(newQuery);
-    setStatusFilter(filters['statusLabel'] || '');
   }
 
-  const rowData: ConcernRow[] = (data?.concerns ?? [])
-    .map(c => ({
-      id: c.id,
-      userName: c.userName,
-      primaryArea: c.primaryArea,
-      bodyAreaDetail: c.bodyAreaDetail || '',
-      description: c.description.length > 50 ? c.description.slice(0, 50) + '...' : c.description,
-      budget: formatBudget(c.budgetMin, c.budgetMax),
-      visitDate: formatDateRange(c.visitDateFrom, c.visitDateTo),
-      status: c.status,
-      statusLabel: CONCERN_STATUS_KR[c.status] || c.status,
-      createdAt: formatDateKR(c.createdAt),
-      proposalCount: c.proposalCount,
-      mySentAt: c.mySentAt ? formatDateKR(c.mySentAt) : '-',
-    }))
-    // status 필터 (선택 시) — backend 미지원 영역
-    .filter(r => !statusFilter || r.statusLabel === statusFilter);
+  const rowData: ConcernRow[] = (data?.concerns ?? []).map(c => ({
+    id: c.id,
+    userName: c.userName,
+    primaryArea: c.primaryArea,
+    bodyAreaDetail: c.bodyAreaDetail || '',
+    description: c.description.length > 50 ? c.description.slice(0, 50) + '...' : c.description,
+    budget: formatBudget(c.budgetMin, c.budgetMax),
+    visitDate: formatDateRange(c.visitDateFrom, c.visitDateTo),
+    status: c.status,
+    statusLabel: CONCERN_STATUS_KR[c.status] || c.status,
+    createdAt: formatDateKR(c.createdAt),
+    proposalCount: c.proposalCount,
+    mySentAt: c.mySentAt ? formatDateKR(c.mySentAt) : '-',
+  }));
 
   return (
     <AdminPage sidebar={<POSidebar active="/concerns" />} title="고민 리스트" prefix="po">

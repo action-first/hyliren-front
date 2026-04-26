@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { POSidebar } from '@/components/POSidebar';
 import { Card, Button, SectionHeader, AdminPage, Modal, Spinner, DropdownMenu, type DropdownMenuItem } from '@hyliren/ui';
 import { proceduresApi } from '@/lib/api/procedures';
+import { useProcedures } from '@/hooks/queries/procedures';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
 import { pickI18n } from '@hyliren/shared/src/domain/procedure';
@@ -38,11 +39,22 @@ export default function TreatmentsPage() {
   const showToast = useToastStore(s => s.showToast);
   const member = usePOAuthStore(s => s.member);
   const [filter, setFilter] = useState<StatusFilter>('all');
-  const [procedures, setProcedures] = useState<Procedure[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  // D3: 로드 실패 시 procedures=[] 로 덮어버리면 "0건" 이 보여져 공개 상품이
-  //     사라진 것처럼 오인됨. 에러 상태를 분리해 재시도 경로를 명시적으로 제공.
-  const [loadError, setLoadError] = useState<string | null>(null);
+
+  // React Query — status 별 분리 캐시. 탭 전환 시 keepPreviousData 로 부드럽게.
+  const { data, isLoading: loading, isError, error, refetch } = useProcedures(
+    filter === 'all' ? undefined : filter,
+  );
+  const loadError = isError ? (error instanceof Error ? error.message : '목록을 불러올 수 없습니다') : null;
+  // 목록에서 가리는 항목 (BE 가 향후 hard-delete 분리하면 제거 가능):
+  // (a) draft — 작성 중. '+ 새 시술 등록' 모달로만 접근.
+  // (b) 한 번도 공개된 적 없는 archived (publishedAt=null) — '새로 작성하기' 시 폐기된 draft.
+  const procedures: Procedure[] | null = data
+    ? data.procedures.filter(p => {
+        if (p.status === 'draft') return false;
+        if (p.status === 'archived' && !p.publishedAt) return false;
+        return true;
+      })
+    : null;
 
   // 새 시술 등록 분기 모달 — draft 가 있으면 '이어서/새로' 선택, '새로' 는 confirm 단계 추가
   const [draftModalOpen, setDraftModalOpen] = useState(false);
@@ -65,33 +77,12 @@ export default function TreatmentsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Procedure | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const load = useCallback(async () => {
-    if (!member) return;
-    setLoading(true);
-    setLoadError(null);
-    try {
-      const res = await proceduresApi.list({
-        status: filter === 'all' ? undefined : filter,
-      });
-      // 목록에서 가리는 항목:
-      // (a) draft — 작성 중. '+ 새 시술 등록' 모달로만 접근.
-      // (b) 한 번도 공개된 적 없는 archived (publishedAt=null) — '새로 작성하기' 시 폐기된 draft.
-      //     사용자는 '폐기' 했다고 인식하므로 비공개 탭에 띄우면 혼란.
-      //     (BE 가 향후 draft 폐기를 hard-delete 로 분리하면 이 필터 제거 가능)
-      setProcedures(res.procedures.filter(p => {
-        if (p.status === 'draft') return false;
-        if (p.status === 'archived' && !p.publishedAt) return false;
-        return true;
-      }));
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : '목록을 불러올 수 없습니다';
-      setLoadError(msg);
-    } finally {
-      setLoading(false);
+  /* 에러 토스트 — RQ v5 onError 폐기 대응. */
+  useEffect(() => {
+    if (isError && error) {
+      showToast(error instanceof Error ? error.message : '목록을 불러올 수 없습니다', 'error');
     }
-  }, [member, filter]);
-
-  useEffect(() => { void load(); }, [load]);
+  }, [isError, error, showToast]);
 
   // "+ 새 시술 등록" 클릭 — draft 있으면 분기 모달, 없으면 바로 new
   async function handleNewClick() {
@@ -144,7 +135,7 @@ export default function TreatmentsPage() {
       await proceduresApi.softDelete(archiveTarget.id);
       setArchiveTarget(null);
       showToast('비공개로 전환되었습니다.', 'success');
-      void load();
+      void refetch();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '전환에 실패했습니다';
       showToast(msg, 'error');
@@ -164,7 +155,7 @@ export default function TreatmentsPage() {
       await proceduresApi.update(unarchiveTarget.id, { status: 'published' });
       setUnarchiveTarget(null);
       showToast('공개로 전환되었습니다.', 'success');
-      void load();
+      void refetch();
     } catch (e: unknown) {
       // BE publish-strict 검증 실패 시 — 사용자가 편집 후 재시도해야 함.
       const msg = e instanceof Error ? e.message : '전환에 실패했습니다';
@@ -185,7 +176,7 @@ export default function TreatmentsPage() {
       await proceduresApi.permanentDelete(deleteTarget.id);
       setDeleteTarget(null);
       showToast('영구 삭제되었습니다.', 'success');
-      void load();
+      void refetch();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '삭제에 실패했습니다';
       showToast(msg, 'error');
@@ -253,7 +244,7 @@ export default function TreatmentsPage() {
               목록을 불러오지 못했어요
             </p>
             <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">{loadError}</p>
-            <Button variant="secondary" size="sm" onClick={() => void load()}>
+            <Button variant="secondary" size="sm" onClick={() => void refetch()}>
               다시 시도
             </Button>
           </div>
