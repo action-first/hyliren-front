@@ -174,23 +174,24 @@ export default function NewProcedurePage() {
           onNext={() => setActiveStep(Math.min(STEPS.length - 1, activeStep + 1))}
           nextDisabled={!stepIsValid(form, activeStep)}
           actions={
-            // 마지막 step 에서는 헤더 primaryAction (저장) 이 이미 있으므로
-            // 임시저장 버튼 미노출 — 중복 방지.
-            activeStep < STEPS.length - 1 ? (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => submit('draft')}
-                disabled={saving || !stepsValidForDraft(form)}
-              >
-                임시저장
-              </Button>
-            ) : null
+            /* 임시저장은 모든 step 에서 사용 가능 — '저장 후 나중에 마저 작성' 흐름 보장.
+               이전 코드는 step 4 에서 숨겼으나 step 4 primary 가 '공개하기' 로 바뀌면서
+               draft 백업 경로가 사라지므로 step 4 에도 노출 필요. */
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => submit('draft')}
+              disabled={saving || !stepsValidForDraft(form)}
+            >
+              임시저장
+            </Button>
           }
           primaryAction={{
-            label: '저장',
-            onClick: () => submit('draft'),
-            disabled: saving || !stepsValidForDraft(form),
+            /* Step 4 (마지막) primary = '공개하기' — 마법사 끝 = 공개라는 자연스러운 진행.
+               미리보기에서 검증 후 공개 (allStepsValid 엄격 검증). */
+            label: '공개하기',
+            onClick: () => submit('published'),
+            disabled: saving || !allStepsValid(form),
             loading: saving,
           }}
         >

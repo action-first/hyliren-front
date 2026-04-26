@@ -272,16 +272,16 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
         metadata: { source: 'po', locale: 'ko', mode: 'edit', value: status },
       });
       showToast(
-        status === 'published' ? '공개되었습니다.' : '저장되었습니다.',
+        status === 'published'
+          ? '공개되었습니다.'
+          : status === 'draft'
+            ? '임시저장되었습니다.'
+            : '저장되었습니다.',
         'success',
       );
-      // 성공 후 서버 상태로 리로드
-      const reload = await proceduresApi.get(id);
-      setForm(toWizardForm(reload.procedure, reload.variants));
-      // Auto-save baseline 동기화 — 이 시점 form = 방금 저장된 상태
-      lastSavedBodyRef.current = null; // effect 가 다음 render 에서 재설정
-      setSaveStatus('saved');
-      setSavedAt(Date.now());
+      // 명시적 save 후 목록 복귀 — "task done" 시그널 강화. 사용자가 변경 반영을 즉시 확인.
+      // (auto-save 는 별도 경로로 silent 동작 — 이 redirect 와 무관.)
+      router.push('/treatments');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '저장 실패';
       track({
@@ -358,6 +358,48 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   }
 
   const procedureTitle = pickI18n(form.i18n, 'ko', form.sourceLocale)?.content.title || '(제목 없음)';
+  const isLastStep = activeStep === STEPS.length - 1;
+
+  /**
+   * primaryAction 분기 — status × step 컨텍스트.
+   * - draft × Step 1-3: '저장' = draft 저장 (loose 검증, 작성 중단 백업)
+   * - draft × Step 4:   '공개하기' = publish 전환 (strict 검증, 미리보기 직후 공개)
+   * - published × all:  '저장' = publish-strict 검증 통과 시 변경 반영, status 유지
+   * - archived × all:   '저장' = archived 유지하며 변경 반영 (loose 검증)
+   */
+  const primaryActionConfig = (() => {
+    if (form.status === 'draft' && isLastStep) {
+      return {
+        label: '공개하기',
+        onClick: () => submit('published'),
+        disabled: saving || !allStepsValid(form),
+        loading: saving,
+      };
+    }
+    if (form.status === 'draft') {
+      return {
+        label: '저장',
+        onClick: () => submit('draft'),
+        disabled: saving || !stepsValidForDraft(form),
+        loading: saving,
+      };
+    }
+    if (form.status === 'published') {
+      return {
+        label: '저장',
+        onClick: () => submit('published'),
+        disabled: saving || !allStepsValid(form),
+        loading: saving,
+      };
+    }
+    // archived
+    return {
+      label: '저장',
+      onClick: () => submit('archived'),
+      disabled: saving || !stepsValidForDraft(form),
+      loading: saving,
+    };
+  })();
 
   return (
     <div className="flex h-screen">
@@ -365,30 +407,28 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       <div className="flex-1 flex flex-col bg-white">
         <WizardShell
           title="시술 수정"
+          mode="edit"
           steps={stepsWithDone}
           activeIndex={activeStep}
           onStepChange={setActiveStep}
-          onPrev={() => setActiveStep(Math.max(0, activeStep - 1))}
-          onNext={() => setActiveStep(Math.min(STEPS.length - 1, activeStep + 1))}
-          nextDisabled={!stepIsValid(form, activeStep)}
           saveStatus={saveStatus}
           savedAt={savedAt}
           actions={
             <>
-              {/* future-state 시멘틱: archived 카드는 '공개로' / published 카드는 '비공개로'. */}
-              {form.status === 'archived' ? (
+              {/* status 토글 — 진열/비진열 모델. draft 는 토글 없음 (공개 = primary, 폐기 = 별도 진입). */}
+              {form.status === 'archived' && (
                 <Button variant="secondary" size="sm" onClick={() => setUnarchiveOpen(true)} disabled={saving}>
                   <Eye size={13} /> 공개로
                 </Button>
-              ) : (
+              )}
+              {form.status === 'published' && (
                 <Button variant="secondary" size="sm" onClick={() => setArchiveOpen(true)} disabled={saving}>
                   <EyeOff size={13} /> 비공개로
                 </Button>
               )}
-              {/* 임시저장은 작성 중인 draft 한정 — auto-save 의 명시적 트리거 + variant 변경 즉시 반영용.
-                  published/archived 에 노출하면 status 강등 부작용 + 멘탈모델 어긋남.
-                  마지막 step 에선 primaryAction(저장)이 동등 역할이라 미노출. */}
-              {activeStep < STEPS.length - 1 && form.status === 'draft' && (
+              {/* draft × Step 4 에서 임시저장 백업 — primary 가 '공개하기' 라서 별도 draft 저장 경로 필요.
+                  Step 1-3 에선 primary 자체가 '저장'(=draft) 이므로 중복 회피. */}
+              {form.status === 'draft' && isLastStep && (
                 <Button
                   variant="secondary" size="sm"
                   onClick={() => submit('draft')}
@@ -399,25 +439,12 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
               )}
             </>
           }
-          primaryAction={{
-            // 저장 = 현재 status 유지. 공개 전환은 Step4 배너의 별도 액션.
-            label: '저장',
-            onClick: () => submit(form.status),
-            disabled: saving || !stepsValidForDraft(form),
-            loading: saving,
-          }}
+          primaryAction={primaryActionConfig}
         >
           {activeStep === 0 && <Step1Basics form={form} onChange={patch} />}
           {activeStep === 1 && <Step2Pricing form={form} onChange={patch} />}
           {activeStep === 2 && <Step3Content form={form} onChange={patch} />}
-          {activeStep === 3 && (
-            <Step4Preview
-              form={form}
-              onPublish={() => submit('published')}
-              publishDisabled={!allStepsValid(form)}
-              publishing={saving}
-            />
-          )}
+          {activeStep === 3 && <Step4Preview form={form} />}
         </WizardShell>
       </div>
 

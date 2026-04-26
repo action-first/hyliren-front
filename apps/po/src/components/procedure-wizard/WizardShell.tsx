@@ -7,14 +7,24 @@ import { StepProgress, type StepDef } from './StepProgress';
 interface WizardShellProps {
   /** 페이지 상위 제목 — body header 의 작은 breadcrumb 로 노출 (제거하려면 '') */
   title: string;
+  /**
+   * 모드 결정:
+   * - 'create' (기본): 마법사 — 1-3 step 은 '다음', 마지막 step 만 primaryAction.
+   * - 'edit': 자유 탐색 — 다음/이전 숨김, primaryAction 모든 단계 노출.
+   *           "1단계만 고치고 저장" 같은 부분 수정 동선이 자연스럽다.
+   */
+  mode?: 'create' | 'edit';
   steps: StepDef[];
   activeIndex: number;
   onStepChange?: (index: number) => void;
   children: React.ReactNode;
 
-  /** 임시저장·보관함 등 부가 액션. body header 우측 그룹에 포함. */
+  /** 임시저장·상태토글 등 부가 액션. body header 좌측 그룹에 포함. */
   actions?: React.ReactNode;
-  /** 마지막 step 특수 CTA (공개). */
+  /**
+   * 핵심 CTA (저장·공개 등). create 모드에선 마지막 step 만 노출.
+   * edit 모드에선 모든 step 에서 노출 — 부분 수정 후 즉시 저장 가능.
+   */
   primaryAction: {
     label: string;
     onClick: () => void;
@@ -52,13 +62,14 @@ function formatSavedAgo(savedAt: number | null | undefined): string {
  * Step 컨텐츠는 activeIndex 변경 시 fade-in 애니메이션으로 교체.
  */
 export function WizardShell({
-  title, steps, activeIndex, onStepChange,
+  title, mode = 'create', steps, activeIndex, onStepChange,
   children, actions,
   primaryAction, onPrev, onNext, nextDisabled,
   saveStatus, savedAt,
 }: WizardShellProps) {
   const isLast = activeIndex === steps.length - 1;
   const currentStep = steps[activeIndex];
+  const isEdit = mode === 'edit';
 
   return (
     <div className="flex flex-col h-full">
@@ -99,17 +110,19 @@ export function WizardShell({
 
               <div className="flex items-center gap-2 shrink-0">
                 <SaveIndicator status={saveStatus} savedAt={savedAt} />
-                {activeIndex > 0 && (
+                {/* edit 모드는 step indicator 가 자유 탐색 — 다음/이전 없이 저장 어디서나 가능.
+                    create 모드만 sequential 마법사 — 1-3 step 에 다음, 마지막 step 에 primaryAction. */}
+                {!isEdit && activeIndex > 0 && (
                   <Button variant="secondary" size="sm" onClick={onPrev} disabled={!onPrev}>
                     <ArrowLeft size={13} /> 이전
                   </Button>
                 )}
-                {!isLast && (
+                {!isEdit && !isLast && (
                   <Button variant="primary" size="sm" onClick={onNext} disabled={nextDisabled}>
                     다음 <ArrowRight size={13} />
                   </Button>
                 )}
-                {isLast && (
+                {(isEdit || isLast) && (
                   <Button
                     variant="primary"
                     size="sm"
