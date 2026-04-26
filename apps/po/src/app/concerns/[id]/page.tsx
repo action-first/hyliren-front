@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { notFound, useParams, useRouter } from 'next/navigation';
+import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
   BODY_AREA_BADGE,
   CONCERN_STATUS_BADGE,
@@ -74,6 +74,7 @@ function InfoBlock({ label, value, emphasis }: { label: string; value: React.Rea
 
 export default function ConcernDetailPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { id } = useParams<{ id: string }>();
   const [concern, setConcern] = useState<ConcernDetailWire | null>(null);
   const [myProposal, setMyProposal] = useState<ProposalDetailWire | null>(null);
@@ -81,6 +82,14 @@ export default function ConcernDetailPage() {
   const [notFoundError, setNotFoundError] = useState(false);
   const [proposeOpen, setProposeOpen] = useState(false);
   const [myProposalOpen, setMyProposalOpen] = useState(false);
+
+  // deep link `?propose=1` (옛 propose 페이지 redirect) 자동 sheet 오픈 + URL 정리
+  useEffect(() => {
+    if (searchParams.get('propose') === '1') {
+      setProposeOpen(true);
+      router.replace(`/concerns/${id}`);
+    }
+  }, [searchParams, id, router]);
 
   const refresh = useCallback(() => {
     if (!id) return Promise.resolve();
