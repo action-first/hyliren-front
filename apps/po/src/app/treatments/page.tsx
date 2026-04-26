@@ -343,7 +343,7 @@ export default function TreatmentsPage() {
                       <DropdownMenu
                         items={[
                           {
-                            label: '영구 삭제',
+                            label: '삭제하기',
                             icon: <Trash2 size={14} />,
                             destructive: true,
                             onClick: () => setDeleteTarget(p),
@@ -419,7 +419,7 @@ export default function TreatmentsPage() {
               취소
             </Button>
             <Button variant="primary" onClick={handleConfirmArchive} disabled={archiving}>
-              {archiving ? '전환 중...' : '비공개로'}
+              {archiving ? '전환 중...' : '비공개로 전환'}
             </Button>
           </div>
         </div>
@@ -444,34 +444,35 @@ export default function TreatmentsPage() {
               취소
             </Button>
             <Button variant="primary" onClick={handleConfirmUnarchive} disabled={unarchiving}>
-              {unarchiving ? '전환 중...' : '공개로'}
+              {unarchiving ? '전환 중...' : '다시 공개'}
             </Button>
           </div>
         </div>
       )}
     </Modal>
 
-    {/* 영구 삭제 모달 — archived 한정. deletedAt 세팅, 일반 사용자 복구 경로 없음 (admin 만). */}
+    {/* 삭제 모달 — archived 한정. deletedAt 세팅, 일반 사용자 복구 경로 없음 (admin 만).
+        '영구 삭제' 워딩은 강해서 '삭제'로 부드럽게 — 단, body 에 '복구할 수 없습니다' 로 위험은 명시. */}
     <Modal
       open={deleteTarget !== null}
       onClose={() => !deleting && setDeleteTarget(null)}
-      title="시술을 영구 삭제할까요?"
+      title="시술을 삭제할까요?"
     >
       {deleteTarget && (
         <div className="flex flex-col gap-5">
           <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
             <span className="font-semibold text-[var(--text-default)]">{deleteTargetTitle}</span>
             <br />
-            영구 삭제 후에는 <span className="font-semibold text-[var(--color-danger)]">복구할 수 없습니다.</span>
+            삭제하면 <span className="font-semibold text-[var(--color-danger)]">복구할 수 없습니다.</span>
             <br />
-            비공개 상태로만 두시려면 취소를 눌러 주세요.
+            잠시 숨기는 거라면 비공개 상태로 두시는 걸 권장해요.
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Button variant="secondary" onClick={() => setDeleteTarget(null)} disabled={deleting}>
               취소
             </Button>
             <Button variant="danger" onClick={handleConfirmDelete} disabled={deleting}>
-              {deleting ? '삭제 중...' : '영구 삭제'}
+              {deleting ? '삭제 중...' : '삭제'}
             </Button>
           </div>
         </div>
