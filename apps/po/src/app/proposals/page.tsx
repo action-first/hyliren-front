@@ -17,6 +17,7 @@ import { AlertTriangle } from 'lucide-react';
 import type { ColDef } from 'ag-grid-community';
 import { POSidebar } from '@/components/POSidebar';
 import { useToastStore } from '@/store/toast';
+import { toUserMessage } from '@/lib/api/error-messages';
 import { useConcerns } from '@/hooks/queries/concerns';
 import { useMyProposals } from '@/hooks/queries/proposals';
 import type { ConcernSummaryWire } from '@/lib/api/concern';
@@ -112,7 +113,7 @@ export default function ProposalsPage() {
   // 에러 토스트 (proposals 우선, concerns 는 silent fallback)
   useEffect(() => {
     if (proposalsQ.isError && proposalsQ.error) {
-      const msg = proposalsQ.error instanceof Error ? proposalsQ.error.message : '제안서 목록을 불러올 수 없습니다';
+      const msg = toUserMessage(proposalsQ.error, '제안서 목록을 불러올 수 없습니다');
       showToast(msg, 'error');
     }
   }, [proposalsQ.isError, proposalsQ.error, showToast]);
@@ -149,7 +150,7 @@ export default function ProposalsPage() {
               제안서 목록을 불러오지 못했어요
             </p>
             <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
-              {proposalsQ.error instanceof Error ? proposalsQ.error.message : '알 수 없는 오류'}
+              {toUserMessage(proposalsQ.error, '알 수 없는 오류')}
             </p>
             <Button variant="secondary" size="sm" onClick={() => proposalsQ.refetch()}>
               다시 시도

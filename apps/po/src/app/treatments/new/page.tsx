@@ -12,6 +12,7 @@ import { Step3Content } from '@/components/procedure-wizard/Step3Content';
 import { Step4Preview } from '@/components/procedure-wizard/Step4Preview';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
+import { toUserMessage } from '@/lib/api/error-messages';
 import { proceduresApi } from '@/lib/api/procedures';
 import { emptyWizardForm } from '@/lib/wizard/defaults';
 import {
@@ -201,7 +202,7 @@ export default function NewProcedurePage() {
       // (form state 는 unmount 시 휘발 — 재진입 시 fresh form)
       router.push('/treatments');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : '저장 실패';
+      const msg = toUserMessage(e, '저장에 실패했습니다');
       track({
         eventType: 'treatment_wizard_save_fail',
         actorType: 'member',

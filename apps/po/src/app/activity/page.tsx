@@ -17,6 +17,7 @@ import { POSidebar } from '@/components/POSidebar';
 import { MyProposalSheet } from '@/components/concerns/MyProposalSheet';
 import { useCreditsStore } from '@/store/credits';
 import { useToastStore } from '@/store/toast';
+import { toUserMessage } from '@/lib/api/error-messages';
 import { useConcerns } from '@/hooks/queries/concerns';
 import { useMyProposals } from '@/hooks/queries/proposals';
 import { formatKrwAsMan } from '@/lib/api/proposal';
@@ -93,7 +94,7 @@ export default function ActivityPage() {
   // 에러 토스트
   useEffect(() => {
     if (isError && errorObj) {
-      const msg = errorObj instanceof Error ? errorObj.message : '활동 내역을 불러올 수 없습니다';
+      const msg = toUserMessage(errorObj, '활동 내역을 불러올 수 없습니다');
       showToast(msg, 'error');
     }
   }, [isError, errorObj, showToast]);
@@ -165,7 +166,7 @@ export default function ActivityPage() {
               활동 내역을 불러오지 못했어요
             </p>
             <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
-              {errorObj instanceof Error ? errorObj.message : '알 수 없는 오류'}
+              {toUserMessage(errorObj, '알 수 없는 오류')}
             </p>
             <Button variant="secondary" size="sm" onClick={refetchAll}>
               다시 시도

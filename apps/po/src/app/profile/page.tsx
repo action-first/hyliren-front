@@ -5,6 +5,7 @@ import { POSidebar } from '@/components/POSidebar';
 import { Card, Button, Input, Textarea, SectionHeader, Badge, AdminPage } from '@hyliren/ui';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
+import { toUserMessage } from '@/lib/api/error-messages';
 import { BODY_AREAS } from '@hyliren/shared';
 import type { BodyArea } from '@hyliren/shared';
 import { ShieldCheck, ShieldAlert } from 'lucide-react';
@@ -49,7 +50,7 @@ export default function ProfilePage() {
       setIsDirty(false);
       showToast('파트너 정보가 저장되었습니다.', 'success');
     } catch (e: unknown) {
-      showToast(e instanceof Error ? e.message : '저장에 실패했습니다', 'error');
+      showToast(toUserMessage(e, '저장에 실패했습니다'), 'error');
     } finally {
       savingRef.current = false;
       setSaving(false);

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { POSidebar } from '@/components/POSidebar';
 import { Card, Button, SectionHeader, AdminPage, Modal, Spinner, DropdownMenu, type DropdownMenuItem } from '@hyliren/ui';
 import { proceduresApi } from '@/lib/api/procedures';
+import { toUserMessage } from '@/lib/api/error-messages';
 import { useProcedures } from '@/hooks/queries/procedures';
 import {
   useArchiveProcedure,
@@ -49,7 +50,7 @@ export default function TreatmentsPage() {
   const { data, isLoading: loading, isError, error, refetch } = useProcedures(
     filter === 'all' ? undefined : filter,
   );
-  const loadError = isError ? (error instanceof Error ? error.message : '목록을 불러올 수 없습니다') : null;
+  const loadError = isError ? (toUserMessage(error, '목록을 불러올 수 없습니다')) : null;
   // 목록에서 가리는 항목 (BE 가 향후 hard-delete 분리하면 제거 가능):
   // (a) draft — 작성 중. '+ 새 시술 등록' 모달로만 접근.
   // (b) 한 번도 공개된 적 없는 archived (publishedAt=null) — '새로 작성하기' 시 폐기된 draft.
@@ -82,7 +83,7 @@ export default function TreatmentsPage() {
   /* 에러 토스트 — RQ v5 onError 폐기 대응. */
   useEffect(() => {
     if (isError && error) {
-      showToast(error instanceof Error ? error.message : '목록을 불러올 수 없습니다', 'error');
+      showToast(toUserMessage(error, '목록을 불러올 수 없습니다'), 'error');
     }
   }, [isError, error, showToast]);
 
@@ -121,7 +122,7 @@ export default function TreatmentsPage() {
       setDraftModalOpen(false);
       router.push('/treatments/new');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : '임시저장 삭제에 실패했습니다';
+      const msg = toUserMessage(e, '임시저장 삭제에 실패했습니다');
       showToast(msg, 'error');
     }
   }
@@ -138,7 +139,7 @@ export default function TreatmentsPage() {
         showToast('비공개로 전환되었습니다.', 'success');
       },
       onError: (e) => {
-        showToast(e instanceof Error ? e.message : '전환에 실패했습니다', 'error');
+        showToast(toUserMessage(e, '전환에 실패했습니다'), 'error');
       },
     });
   }
@@ -156,7 +157,7 @@ export default function TreatmentsPage() {
       },
       onError: (e) => {
         // BE publish-strict 검증 실패 시 — 사용자가 편집 후 재시도해야 함.
-        showToast(e instanceof Error ? e.message : '전환에 실패했습니다', 'error');
+        showToast(toUserMessage(e, '전환에 실패했습니다'), 'error');
       },
     });
   }
@@ -173,7 +174,7 @@ export default function TreatmentsPage() {
         showToast('영구 삭제되었습니다.', 'success');
       },
       onError: (e) => {
-        showToast(e instanceof Error ? e.message : '삭제에 실패했습니다', 'error');
+        showToast(toUserMessage(e, '삭제에 실패했습니다'), 'error');
       },
     });
   }

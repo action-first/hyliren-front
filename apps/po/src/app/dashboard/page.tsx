@@ -13,6 +13,7 @@ import type { DateRange } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
 import { useCreditsStore } from '@/store/credits';
 import { useToastStore } from '@/store/toast';
+import { toUserMessage } from '@/lib/api/error-messages';
 import { useConcerns } from '@/hooks/queries/concerns';
 import { useMyProposals } from '@/hooks/queries/proposals';
 import {
@@ -322,7 +323,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (isError && errorObj) {
-      const msg = errorObj instanceof Error ? errorObj.message : '대시보드 데이터를 불러올 수 없습니다';
+      const msg = toUserMessage(errorObj, '대시보드 데이터를 불러올 수 없습니다');
       showToast(msg, 'error');
     }
   }, [isError, errorObj, showToast]);
@@ -411,7 +412,7 @@ export default function DashboardPage() {
               대시보드를 불러오지 못했어요
             </p>
             <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
-              {errorObj instanceof Error ? errorObj.message : '알 수 없는 오류'}
+              {toUserMessage(errorObj, '알 수 없는 오류')}
             </p>
             <Button variant="secondary" size="sm" onClick={refetchAll}>
               다시 시도
