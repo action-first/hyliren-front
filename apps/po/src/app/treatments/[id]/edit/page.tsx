@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Modal, Spinner, DropdownMenu, type DropdownMenuItem } from '@hyliren/ui';
-import { EyeOff, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, Trash2 } from 'lucide-react';
 import { POSidebar } from '@/components/POSidebar';
 import { WizardShell } from '@/components/procedure-wizard/WizardShell';
 import { StatusChip } from '@/components/procedure-wizard/StatusChip';
@@ -77,6 +77,8 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   // 영구 삭제 모달 — archived 한정. deletedAt 세팅, 복구 불가 안내.
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  // 등록 옵션 모달 (draft 한정) — '완료하기' 클릭 시 공개/비공개 선택.
+  const [publishOptionOpen, setPublishOptionOpen] = useState(false);
   // H3: setState race 로 인한 중복 제출 방지
   const savingRef = useRef(false);
 
@@ -396,8 +398,10 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   const primaryActionConfig = (() => {
     if (form.status === 'draft') {
       return {
-        label: '공개하기',
-        onClick: () => submit('published'),
+        // 클릭 시 모달로 공개/비공개 선택. 마법사 마지막 = 진열 결정의 의식.
+        // (mode='create' 라 Step 1-3 에선 WizardShell 이 '다음' 으로 자동 대체)
+        label: '완료하기',
+        onClick: () => setPublishOptionOpen(true),
         disabled: saving || !allStepsValid(form),
         loading: saving,
       };
@@ -579,6 +583,56 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
               {deleting ? '삭제 중...' : '영구 삭제'}
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* 등록 옵션 선택 모달 (draft 한정) — '완료하기' 클릭 시 진입. 공개/비공개 분기.
+          데이터 완성 후 진열 결정의 명시적 의식 — 새 등록 페이지와 동일 패턴. */}
+      <Modal
+        open={publishOptionOpen}
+        onClose={() => !saving && setPublishOptionOpen(false)}
+        title="이 시술을 어떻게 저장할까요?"
+      >
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            disabled={saving}
+            onClick={() => {
+              setPublishOptionOpen(false);
+              void submit('published');
+            }}
+            className="text-left p-4 rounded-[var(--app-radius)] border border-[var(--color-success)] bg-[var(--color-success-soft)] hover:bg-[var(--color-success-soft)] hover:border-[var(--color-success)] transition-colors disabled:opacity-[var(--opacity-disabled)] disabled:cursor-not-allowed cursor-pointer"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <Eye size={16} className="text-[var(--color-success)]" />
+              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">공개로 저장</span>
+            </div>
+            <p className="text-[var(--app-text-micro)] text-[var(--text-subdued)] leading-relaxed">
+              즉시 고객에게 노출됩니다. 상담 신청 화면과 시술 상세에 표시돼요.
+            </p>
+          </button>
+
+          <button
+            type="button"
+            disabled={saving}
+            onClick={() => {
+              setPublishOptionOpen(false);
+              void submit('archived');
+            }}
+            className="text-left p-4 rounded-[var(--app-radius)] border border-[var(--border-default)] bg-[var(--surface-default)] hover:bg-[var(--surface-subdued)] transition-colors disabled:opacity-[var(--opacity-disabled)] disabled:cursor-not-allowed cursor-pointer"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <EyeOff size={16} className="text-[var(--text-subdued)]" />
+              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">비공개로 저장</span>
+            </div>
+            <p className="text-[var(--app-text-micro)] text-[var(--text-subdued)] leading-relaxed">
+              데이터만 저장하고 고객에게는 아직 노출하지 않습니다. 시술 관리에서 언제든 공개로 전환할 수 있어요.
+            </p>
+          </button>
+
+          <Button variant="secondary" onClick={() => setPublishOptionOpen(false)} disabled={saving}>
+            취소
+          </Button>
         </div>
       </Modal>
     </div>
