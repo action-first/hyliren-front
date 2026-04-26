@@ -14,6 +14,7 @@ import type { SearchField } from '@hyliren/ui';
 import { AlertTriangle } from 'lucide-react';
 import { POSidebar } from '@/components/POSidebar';
 import { useToastStore } from '@/store/toast';
+import { toUserMessage } from '@/lib/api/error-messages';
 import { useConcerns } from '@/hooks/queries/concerns';
 import type { ConcernListQuery } from '@/lib/api/concern';
 import type { ColDef } from 'ag-grid-community';
@@ -129,7 +130,7 @@ export default function ConcernListPage() {
   // 에러 토스트 — RQ v5 가 onError 콜백 제거됨, useEffect 로 효과 처리.
   useEffect(() => {
     if (isError && error) {
-      showToast(error instanceof Error ? error.message : '목록을 불러올 수 없습니다', 'error');
+      showToast(toUserMessage(error, '목록을 불러올 수 없습니다'), 'error');
     }
   }, [isError, error, showToast]);
 
@@ -188,7 +189,7 @@ export default function ConcernListPage() {
               목록을 불러오지 못했어요
             </p>
             <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
-              {error instanceof Error ? error.message : '알 수 없는 오류'}
+              {toUserMessage(error, '알 수 없는 오류')}
             </p>
             <Button variant="secondary" size="sm" onClick={() => refetch()}>
               다시 시도
