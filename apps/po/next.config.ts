@@ -12,6 +12,7 @@ import path from 'path';
 const STATIC_IMAGE_BASE = process.env.NEXT_PUBLIC_STATIC_IMAGE_BASE || 'http://localhost:9000';
 
 const config: NextConfig = {
+  output: 'standalone',
   transpilePackages: ['@hyliren/shared', '@hyliren/ui', '@hyliren/i18n', 'lucide-react', 'ag-grid-community', 'ag-grid-react'],
   outputFileTracingRoot: path.join(__dirname, '../../'),
   webpack: (config, { dev }) => {

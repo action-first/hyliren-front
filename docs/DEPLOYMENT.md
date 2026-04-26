@@ -94,8 +94,33 @@
 
 - FO 는 모바일 전용 → `m.hyliren.com` 또는 `app.hyliren.com` 권장.
 - PO 는 데스크톱 → `partner.hyliren.com`.
-- BO 는 내부용 → `admin.hyliren.com`. 외부 노출 시 IP allowlist 또는 Vercel Password Protection 적용 권장.
+- BO 는 내부용 → `admin.hyliren.com`. 외부 노출 시 Cloudflare Access(권장) 또는 IP allowlist 적용. §10 참조.
 - 단일 루트 도메인(`hyliren.com`) 에서 path 분기를 원할 경우 Routing Middleware 또는 Vercel Rewrites 가 필요하지만, **현재 권장하지 않음** — 세 앱이 각자 빌드되고 배포 단위가 다르므로 도메인 분리가 단순하다.
+
+### 5.1 Cloudflare DNS 연결 절차
+
+`hyliren.com` 의 DNS 를 Cloudflare 로 위임하고, 세 앱을 Vercel 에 CNAME 으로 연결한다.
+
+1. **Cloudflare Site 추가**
+   - Cloudflare 대시보드 → Add a Site → `hyliren.com` → Free plan
+   - 도메인 등록업체(가비아 등) 의 네임서버를 Cloudflare 가 알려주는 2개로 변경
+   - 전파 확인 후 대시보드에 "Active" 표시
+2. **DNS 레코드 추가**
+
+   | Type  | Name      | Content                  | Proxy 모드             |
+   |-------|-----------|--------------------------|----------------------|
+   | CNAME | `m`       | `cname.vercel-dns.com`   | ⚪ DNS-only (회색)     |
+   | CNAME | `partner` | `cname.vercel-dns.com`   | ⚪ DNS-only           |
+   | CNAME | `admin`   | `cname.vercel-dns.com`   | 🟠 Proxy (Access 위해) |
+   | CNAME | `api`     | (백엔드 호스트)            | 백엔드 사정에 따름        |
+
+   **중요:** FO/PO 는 반드시 **DNS-only** 로 둔다. Vercel 자체 CDN 과 Cloudflare 프록시를 이중으로 태우면 캐시·헤더 충돌이 발생한다 (Vercel 공식 권장사항).
+3. **Vercel 쪽 도메인 연결**
+   - 각 프로젝트 → Settings → Domains → Add → 위 서브도메인 입력
+   - Vercel 이 DNS 확인 후 SSL 자동 발급 (수 분)
+4. **(선택) apex 정리**
+   - `hyliren.com` 마케팅 페이지가 없으면 `m.hyliren.com` 으로 301 리다이렉트
+   - Cloudflare → Rules → Redirect Rules 에서 설정
 
 ---
 
@@ -141,6 +166,80 @@ pnpm turbo run build --filter=@hyliren/bo...
 
 - [ ] `.env.local` 류 파일이 git 에 포함되지 않았는지 (`git ls-files | grep env`)
 - [ ] `NEXT_PUBLIC_*` 변수에 시크릿 없음
-- [ ] BO 도메인 접근 제한(인증/IP allowlist) 검토
+- [ ] BO 도메인 접근 제한 적용 (Cloudflare Access 권장, §10 참조)
 - [ ] 백엔드 CORS allowlist 갱신
 - [ ] AccessToken/RefreshToken 저장 위치 정책 확인 (현재 Phase 1: localStorage. `CLAUDE.md` §10.3 참조)
+
+---
+
+## 10. BO 접근 제어 — Cloudflare Access (권장 구성)
+
+BO 는 **운영자 전용** 이므로 공개 인터넷에 노출되어선 안 된다. 가장 단순하고 무료인 방식은 **Cloudflare Zero Trust → Access Application** 으로 `admin.hyliren.com` 앞단에 SSO 게이트를 두는 것.
+
+### 전제
+
+- 위 §5.1 의 DNS 레코드에서 `admin` 이 **🟠 Proxy 모드** 로 설정되어 있어야 한다 (Cloudflare 가 트래픽 종단을 잡아야 Access 가 동작).
+
+### 절차
+
+1. **Zero Trust 활성화** — Cloudflare 대시보드 → Zero Trust → 팀 이름 지정 (예: `hyliren`). Free 플랜은 50 사용자까지 무료.
+2. **Identity provider 등록** — Settings → Authentication → Login methods. Google Workspace / GitHub / One-time PIN(이메일) 중 택. 회사 도메인이 있으면 Google Workspace 가 가장 실용적.
+3. **Access Application 생성** — Access → Applications → Add an application → **Self-hosted**.
+   - Application name: `hyliren-bo`
+   - Application domain: `admin.hyliren.com`
+   - Session duration: 24h (조직 정책에 맞게)
+4. **Policy 설정** — Allow 정책 1개.
+   - Policy name: `hyliren-admins`
+   - Action: Allow
+   - Include: `Emails ending in @hyliren.com` (회사 도메인 보유 시) 또는 `Emails: ...` 로 개별 등록
+   - Identity provider: 위에서 등록한 IdP 중 허용할 것 선택
+5. **Vercel 쪽 보호 정리** — Cloudflare 가 앞단에서 막으므로 Vercel Project Settings → Deployment Protection 은 "Only Preview" 로 둬서 Production 은 정상 통과시킨다.
+6. **검증**
+   - `https://admin.hyliren.com` 접속 시 Cloudflare Access 로그인 화면이 먼저 떠야 한다
+   - 허용된 이메일만 SSO 통과 후 BO 진입 가능
+
+### 다른 옵션과의 비교
+
+| 옵션                           | 비용   | 보안 강도 | 복잡도 | 비고                                  |
+|--------------------------------|--------|----------|--------|--------------------------------------|
+| Cloudflare Access (본 권장)    | 무료   | 강       | 낮음   | SSO + 로그/감사 자동                  |
+| Vercel Password Protection     | $150/월~ | 중       | 가장 낮음 | Pro 플랜 필수                       |
+| IP allowlist (Cloudflare WAF)  | 무료   | 중       | 중간   | 재택근무자 IP 변동 대응 어려움       |
+| 자체 인증 미들웨어             | 무료   | 변동     | 높음   | 구현·유지보수 비용 큼, 비권장         |
+
+---
+
+## 11. PO `app/api/*` mock route 한계 (운영 시 주의)
+
+현재 PO 의 다음 라우트는 **`@hyliren/shared/src/server/data-store`** 를 통해 `/tmp/hyliren-store.json` 파일에 mock 데이터를 읽고 쓴다.
+
+- `apps/po/src/app/api/dashboard/route.ts`
+- `apps/po/src/app/api/payments/route.ts`
+- `apps/po/src/app/api/proposals/route.ts`
+
+### Vercel 운영 환경에서의 동작
+
+Vercel 의 Serverless Function 인스턴스는 **인스턴스마다 `/tmp` 가 분리** 되어 있고, 인스턴스가 휘발(스케일 인/콜드 스타트) 될 때 데이터가 사라진다. 그 결과:
+
+- 같은 사용자의 두 요청이 다른 인스턴스로 라우팅되면 **앞서 쓴 데이터가 안 보일 수 있음**
+- 일정 시간 후 자동으로 mock 이 초기 seed 로 되돌아감
+- 멀티 사용자 데모에서 시나리오가 일관되지 않게 보일 수 있음
+
+### 운영 정책 (현 단계)
+
+- **그대로 유지** (코드 변경 없음). 시연·내부 검증·QA 용도로는 충분.
+- 다만 **외부 사용자 시연 / 베타 사용자 받는 시점부터는 부적합** — `hyliren-api` 의 partner 엔드포인트로 이관해야 한다 (`CLAUDE.md` §9 우선순위에 따름).
+- 이관 완료 시 위 3개 route.ts 와 `@hyliren/shared/src/server/data-store.ts` 의존을 함께 제거한다.
+
+### FO 측 mock route
+
+`apps/fo/src/app/api/concern-analysis/route.ts` 는 파일 시스템 의존이 없고 **AI 파이프라인 진입점** 으로 의도적으로 FO 서버에 둔다. 이관 대상이 아니다 (`apps/fo/src/server/` 의 extract → rule → generation 3-layer 가 그대로 호출됨).
+
+---
+
+## 12. 향후 이중화 (중국 운영) 메모
+
+세 `next.config.ts` 모두 `output: 'standalone'` 이 설정되어 있다. Vercel 운영에는 영향이 없지만, 다음 시나리오에서 그대로 활용 가능하다.
+
+- 중국 본토 사용자를 위한 **별도 호스팅** (알리클라우드 / 텐센트클라우드) 시 `apps/<app>/.next/standalone` 산출물을 Docker 이미지로 묶어 배포
+- ICP 비안 발급 + 중국 법인 확보가 선결 조건. 자세한 단계는 별도 문서로 분리 예정 (`docs/CHINA_DEPLOYMENT.md`).
