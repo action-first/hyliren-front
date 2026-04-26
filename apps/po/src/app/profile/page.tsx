@@ -1,33 +1,60 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { POSidebar } from '@/components/POSidebar';
 import { Card, Button, Input, Textarea, SectionHeader, Badge, AdminPage } from '@hyliren/ui';
-import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
 import { toUserMessage } from '@/lib/api/error-messages';
+import { useMyPartnerProfile } from '@/hooks/queries/partner-profile';
+import { useUpdateMyPartnerProfile } from '@/hooks/mutations/partner-profile';
 import { BODY_AREAS } from '@hyliren/shared';
 import type { BodyArea } from '@hyliren/shared';
 import { ShieldCheck, ShieldAlert } from 'lucide-react';
 
+/**
+ * 파트너 프로필 — real BE 연결 (BE PR #23).
+ *
+ * 흐름:
+ * 1. useMyPartnerProfile() — 첫 진입 시 BE 조회 (미존재 회원도 빈 기본값 응답)
+ * 2. data 도달 시 form state 1회 hydrate (이후 refetch 가 폼 덮지 않게 hydrated 가드)
+ * 3. 저장 → useUpdateMyPartnerProfile() mutation — 성공 시 cache 직접 set
+ *
+ * 전엔 usePOAuthStore.profile (mock + sync update). 새로고침 시 휘발했음.
+ */
 export default function ProfilePage() {
-  const { member, profile, updateProfile } = usePOAuthStore();
   const { showToast } = useToastStore();
+  const profileQ = useMyPartnerProfile();
+  const updateMutation = useUpdateMyPartnerProfile();
+  const profile = profileQ.data;
 
-  const [hospitalName, setHospitalName] = useState(profile?.hospitalName ?? '');
-  const [hospitalNameZh, setHospitalNameZh] = useState(profile?.hospitalNameZh ?? '');
-  const [description, setDescription] = useState(profile?.description ?? '');
-  const [descriptionZh, setDescriptionZh] = useState(profile?.descriptionZh ?? '');
-  const [address, setAddress] = useState(profile?.address ?? '');
-  const [phone, setPhone] = useState(profile?.phone ?? '');
-  const [website, setWebsite] = useState(profile?.website ?? '');
-  const [specialties, setSpecialties] = useState<BodyArea[]>(profile?.specialties ?? []);
+  // form state — query 도달 후 1회 hydrate.
+  const [hospitalName, setHospitalName] = useState('');
+  const [hospitalNameZh, setHospitalNameZh] = useState('');
+  const [description, setDescription] = useState('');
+  const [descriptionZh, setDescriptionZh] = useState('');
+  const [address, setAddress] = useState('');
+  const [phone, setPhone] = useState('');
+  const [website, setWebsite] = useState('');
+  const [specialties, setSpecialties] = useState<BodyArea[]>([]);
   const [isDirty, setIsDirty] = useState(false);
-  /* 저장 동시성 보호 — 다중 클릭 / 다중 탭 race 방지.
-     현재 updateProfile 은 store 동기 호출이지만, '프로필 real API화' 후속 작업
-     대비해 mutation 패턴으로 구조화. 이 구조면 API 도입 시 바디 한 줄만 교체. */
-  const [saving, setSaving] = useState(false);
-  const savingRef = useRef(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  // 첫 데이터 도달 시 1회 form 채움. 이후엔 사용자 입력 보호 (refetch 도 무시).
+  useEffect(() => {
+    if (profile && !hydrated) {
+      setHospitalName(profile.hospitalName ?? '');
+      setHospitalNameZh(profile.hospitalNameZh ?? '');
+      setDescription(profile.description ?? '');
+      setDescriptionZh(profile.descriptionZh ?? '');
+      setAddress(profile.address ?? '');
+      setPhone(profile.phone ?? '');
+      setWebsite(profile.website ?? '');
+      setSpecialties((profile.specialties ?? []) as BodyArea[]);
+      setHydrated(true);
+    }
+  }, [profile, hydrated]);
+
+  const saving = updateMutation.isPending;
 
   function markDirty() { setIsDirty(true); }
 
@@ -38,23 +65,28 @@ export default function ProfilePage() {
     markDirty();
   }
 
-  async function handleSave() {
-    // 다중 클릭/탭 race 방지 — setState race 까지 차단하려고 ref 동시 사용.
-    if (savingRef.current) return;
-    savingRef.current = true;
-    setSaving(true);
-    try {
-      // TODO(profile-api-migration): 여기를 실제 BE PATCH 호출로 교체
-      // (예: await partnerProfileApi.update({ hospitalName, ... }))
-      updateProfile({ hospitalName, hospitalNameZh, description, descriptionZh, address, phone, website, specialties });
-      setIsDirty(false);
-      showToast('파트너 정보가 저장되었습니다.', 'success');
-    } catch (e: unknown) {
-      showToast(toUserMessage(e, '저장에 실패했습니다'), 'error');
-    } finally {
-      savingRef.current = false;
-      setSaving(false);
-    }
+  function handleSave() {
+    updateMutation.mutate(
+      {
+        hospitalName,
+        hospitalNameZh: hospitalNameZh || undefined,
+        description: description || undefined,
+        descriptionZh: descriptionZh || undefined,
+        address: address || undefined,
+        phone: phone || undefined,
+        website: website || undefined,
+        specialties,
+      },
+      {
+        onSuccess: () => {
+          setIsDirty(false);
+          showToast('파트너 정보가 저장되었습니다.', 'success');
+        },
+        onError: (e) => {
+          showToast(toUserMessage(e, '저장에 실패했습니다'), 'error');
+        },
+      },
+    );
   }
 
   const fields = [hospitalName, hospitalNameZh, description, descriptionZh, address, phone, website];

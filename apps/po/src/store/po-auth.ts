@@ -1,16 +1,22 @@
 'use client';
 
 import { create } from 'zustand';
-import type { Member, PartnerProfile } from '@hyliren/shared';
-import { MOCK_PARTNER_PROFILES } from '@hyliren/shared';
+import type { Member } from '@hyliren/shared';
 import * as partnerAuthApi from '@/lib/api/partner-auth';
 import { partnerTokenStore } from '@/lib/auth/token-store';
 
 export type POAuthStatus = 'idle' | 'authenticating' | 'authenticated' | 'guest';
 
+/**
+ * Partner 인증 상태 store.
+ *
+ * profile 필드 제거 (2026-04-26):
+ * - 이전: usePOAuthStore.profile (mock MOCK_PARTNER_PROFILES 조회 + sync update)
+ * - 현재: useMyPartnerProfile() RQ 훅 — BE PR #23 의 /profile/me 활용
+ * - 사용처가 query/mutation hook 으로 직접 진입 → store 가 source of truth 아님
+ */
 interface POAuthState {
   member: Member | null;
-  profile: PartnerProfile | null;
   status: POAuthStatus;
   isGuest: boolean;
   error: string | null;
@@ -18,24 +24,17 @@ interface POAuthState {
   loginWithPassword: (input: partnerAuthApi.PartnerLoginInput) => Promise<void>;
   refreshSession: () => Promise<void>;
   logout: () => Promise<void>;
-  updateProfile: (updates: Partial<Omit<PartnerProfile, 'memberId' | 'createdAt'>>) => void;
-}
-
-function profileFor(memberId: string): PartnerProfile | null {
-  return MOCK_PARTNER_PROFILES.find(p => p.memberId === memberId) ?? null;
 }
 
 export const usePOAuthStore = create<POAuthState>()(
   (set) => ({
     member: null,
-    profile: null,
     status: 'idle',
     isGuest: false,
     error: null,
 
     setMember: (member) => set({
       member,
-      profile: member ? profileFor(member.id) : null,
       status: member ? 'authenticated' : 'guest',
       isGuest: !member,
       error: null,
@@ -45,17 +44,11 @@ export const usePOAuthStore = create<POAuthState>()(
       set({ status: 'authenticating', error: null });
       try {
         const member = await partnerAuthApi.login(input);
-        set({
-          member,
-          profile: profileFor(member.id),
-          status: 'authenticated',
-          isGuest: false,
-          error: null,
-        });
+        set({ member, status: 'authenticated', isGuest: false, error: null });
       } catch (e) {
         const message = e instanceof Error ? e.message : '로그인에 실패했습니다';
         partnerTokenStore.clearTokens();
-        set({ status: 'guest', member: null, profile: null, isGuest: true, error: message });
+        set({ status: 'guest', member: null, isGuest: true, error: message });
         throw e;
       }
     },
@@ -63,7 +56,7 @@ export const usePOAuthStore = create<POAuthState>()(
     refreshSession: async () => {
       const token = partnerTokenStore.getAccessToken();
       if (!token) {
-        set({ member: null, profile: null, status: 'guest', isGuest: true, error: null });
+        set({ member: null, status: 'guest', isGuest: true, error: null });
         return;
       }
 
@@ -72,16 +65,10 @@ export const usePOAuthStore = create<POAuthState>()(
       set({ status: 'authenticating', error: null });
       try {
         const member = await partnerAuthApi.fetchMe();
-        set({
-          member,
-          profile: profileFor(member.id),
-          status: 'authenticated',
-          isGuest: false,
-          error: null,
-        });
+        set({ member, status: 'authenticated', isGuest: false, error: null });
       } catch {
         partnerTokenStore.clearTokens();
-        set({ member: null, profile: null, status: 'guest', isGuest: true });
+        set({ member: null, status: 'guest', isGuest: true });
       }
     },
 
@@ -93,16 +80,11 @@ export const usePOAuthStore = create<POAuthState>()(
         serverFailed = true;
       } finally {
         partnerTokenStore.clearTokens();
-        set({ member: null, profile: null, status: 'guest', isGuest: true, error: null });
+        set({ member: null, status: 'guest', isGuest: true, error: null });
       }
       if (serverFailed) {
         throw new Error('로그아웃 정리에 실패했습니다');
       }
     },
-
-    updateProfile: (updates) =>
-      set(s => ({
-        profile: s.profile ? { ...s.profile, ...updates } : null,
-      })),
   }),
 );

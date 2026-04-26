@@ -31,4 +31,8 @@ export const queryKeys = {
     balance: () => ['credits', 'balance'] as const,
     transactions: () => ['credits', 'transactions'] as const,
   },
+  partnerProfile: {
+    all: ['partner-profile'] as const,
+    me: () => ['partner-profile', 'me'] as const,
+  },
 } as const;
