@@ -15,10 +15,10 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useCreditBalance } from '@/hooks/queries/credits';
+import { useMyPartnerProfile } from '@/hooks/queries/partner-profile';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
 import { Button, Modal } from '@hyliren/ui';
-import { MOCK_PARTNER_PROFILES } from '@hyliren/shared';
 
 const NAV = [
   { href: '/dashboard', icon: LayoutDashboard, label: '대시보드' },
@@ -40,7 +40,9 @@ export function POSidebar({ active }: { active: string }) {
   const balanceQ = useCreditBalance();
   const balance = balanceQ.data?.balance ?? 0;
   const member = usePOAuthStore(s => s.member);
-  const profile = usePOAuthStore(s => s.profile);
+  // 프로필 = real BE (BE PR #23). 미존재 회원도 빈 기본값 응답.
+  const profileQ = useMyPartnerProfile();
+  const profile = profileQ.data;
   const logout = usePOAuthStore(s => s.logout);
   const { showToast } = useToastStore();
 
@@ -64,7 +66,7 @@ export function POSidebar({ active }: { active: string }) {
         currency: 'KRW',
         actorType: 'partner',
         actorId: member?.id ?? 'm-001',
-        actorName: MOCK_PARTNER_PROFILES.find(p => p.memberId === (member?.id ?? 'm-001'))?.hospitalName || '',
+        actorName: profile?.hospitalName || '',
         status: 'paid',
       }),
     }).catch(() => {});
