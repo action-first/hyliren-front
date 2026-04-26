@@ -1,18 +1,20 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { AnesthesiaType } from '@hyliren/shared';
+import Link from 'next/link';
+import type { AnesthesiaType, Procedure } from '@hyliren/shared';
 import { CREDIT_COST } from '@hyliren/shared';
+import { pickI18n } from '@hyliren/shared/src/domain/procedure';
 import { Button, Card, Input, SectionHeader, Select, SideSheet, Textarea } from '@hyliren/ui';
 import { Calendar, ChevronDown, Trash2 } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ko } from 'date-fns/locale';
 
-import { useTreatmentsStore } from '@/store/treatments';
 import { useCreditsStore } from '@/store/credits';
 import { useToastStore } from '@/store/toast';
 import { useCreateProposal } from '@/hooks/mutations/proposals';
+import { useProcedures } from '@/hooks/queries/procedures';
 import { ApiError } from '@/lib/api/errors';
 
 interface FormItem {
@@ -36,9 +38,14 @@ const ANESTHESIA_OPTIONS = [
 ] as const;
 
 export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: ProposeFormSheetProps) {
-  const { treatments } = useTreatmentsStore();
   const { balance, deduct } = useCreditsStore();
   const { showToast } = useToastStore();
+
+  // 카탈로그 = PO 가 등록한 real published procedure (BE PR #19+).
+  // 이전엔 useTreatmentsStore mock — 시술관리 페이지의 등록 흐름과 분리되어 있어 정합성 버그.
+  // 지금은 useProcedures('published') 로 5분 cache 공유.
+  const proceduresQ = useProcedures('published');
+  const publishedProcedures: Procedure[] = proceduresQ.data?.procedures ?? [];
 
   const [items, setItems] = useState<FormItem[]>([{ name: '', nameZh: '', price: 0 }]);
   const [totalPrice, setTotalPrice] = useState(0);
@@ -84,8 +91,6 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
     }
   }, [itemsSum, totalDirty]);
 
-  const activeTreatments = treatments.filter(t => t.isActive);
-
   function addItem() {
     setItems(prev => [...prev, { name: '', nameZh: '', price: 0 }]);
   }
@@ -104,18 +109,28 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
     const digits = s.replace(/[^\d]/g, '');
     return digits ? parseInt(digits, 10) : 0;
   }
-  function addFromCatalog(t: { name: string; nameZh: string; priceMin: number; priceMax: number }) {
-    const midPrice = Math.round((t.priceMin + t.priceMax) / 2);
+
+  /**
+   * Procedure (real BE) 를 form item 으로 매핑.
+   * - 가격: priceMin/priceMax 가 KRW (raw) → 만원 단위로 변환 (form 은 만원 입력 기준).
+   * - 이름: i18n.ko.title (sourceLocale fallback) / zh-CN 동일.
+   * - 비어있는 row 가 있으면 거기를 채움, 없으면 신규 row 추가.
+   */
+  function addFromCatalog(p: Procedure) {
+    const ko = pickI18n(p.i18n, 'ko', p.sourceLocale)?.content.title ?? '';
+    const zh = pickI18n(p.i18n, 'zh-CN', p.sourceLocale)?.content.title ?? '';
+    const midKrw = Math.round((p.priceMin + p.priceMax) / 2);
+    const midMan = Math.round(midKrw / 10000);
     setItems(prev => {
       const hasEmpty = prev.some(i => !i.name.trim());
       if (hasEmpty) {
         return prev.map((item, idx) =>
           idx === prev.findIndex(i => !i.name.trim())
-            ? { name: t.name, nameZh: t.nameZh, price: midPrice }
+            ? { name: ko, nameZh: zh, price: midMan }
             : item
         );
       }
-      return [...prev, { name: t.name, nameZh: t.nameZh, price: midPrice }];
+      return [...prev, { name: ko, nameZh: zh, price: midMan }];
     });
     setShowCatalog(false);
   }
@@ -206,20 +221,36 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
                   </Button>
                   {showCatalog && (
                     <div className="catalog-dropdown">
-                      {activeTreatments.length === 0 ? (
-                        <p className="catalog-empty">등록된 시술이 없습니다.</p>
-                      ) : (
-                        activeTreatments.map(t => (
-                          <button
-                            key={t.id}
-                            type="button"
-                            className="catalog-item"
-                            onClick={() => addFromCatalog(t)}
+                      {proceduresQ.isLoading ? (
+                        <p className="catalog-empty">시술 목록을 불러오는 중...</p>
+                      ) : publishedProcedures.length === 0 ? (
+                        <div className="catalog-empty">
+                          <p className="mb-1">공개된 시술이 없습니다.</p>
+                          <Link
+                            href="/treatments"
+                            className="text-[var(--text-xs)] text-[var(--color-primary)] hover:underline"
                           >
-                            <span className="font-medium">{t.name}</span>
-                            <span className="text-[var(--text-disabled)] ml-2 text-xs">{t.priceMin}~{t.priceMax}만</span>
-                          </button>
-                        ))
+                            시술 관리에서 등록하기 →
+                          </Link>
+                        </div>
+                      ) : (
+                        publishedProcedures.map(p => {
+                          const koTitle = pickI18n(p.i18n, 'ko', p.sourceLocale)?.content.title || '(제목 없음)';
+                          const minMan = Math.round(p.priceMin / 10000);
+                          const maxMan = Math.round(p.priceMax / 10000);
+                          const priceLabel = minMan === maxMan ? `${minMan}만` : `${minMan}~${maxMan}만`;
+                          return (
+                            <button
+                              key={p.id}
+                              type="button"
+                              className="catalog-item"
+                              onClick={() => addFromCatalog(p)}
+                            >
+                              <span className="font-medium">{koTitle}</span>
+                              <span className="text-[var(--text-disabled)] ml-2 text-xs">{priceLabel}</span>
+                            </button>
+                          );
+                        })
                       )}
                     </div>
                   )}
