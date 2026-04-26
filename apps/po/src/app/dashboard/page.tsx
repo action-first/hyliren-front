@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import type { ProposalStatus } from '@hyliren/shared';
 import {
@@ -13,8 +13,8 @@ import type { DateRange } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
 import { useCreditsStore } from '@/store/credits';
 import { useToastStore } from '@/store/toast';
-import { listConcerns, type ConcernSummaryWire } from '@/lib/api/concern';
-import { listMyProposals, type ProposalDetailWire } from '@/lib/api/proposal';
+import { useConcerns } from '@/hooks/queries/concerns';
+import { useMyProposals } from '@/hooks/queries/proposals';
 import {
   FileText, Eye, CheckCircle2, Coins,
   TrendingUp, TrendingDown, ArrowRight, Sparkles,
@@ -301,28 +301,28 @@ export default function DashboardPage() {
   const [dateRange, setDateRange] = useState<DateRange>('7d');
   const [customFrom, setCustomFrom] = useState<Date | null>(null);
   const [customTo, setCustomTo] = useState<Date | null>(null);
-  const [concerns, setConcerns] = useState<ConcernSummaryWire[]>([]);
-  const [proposals, setProposals] = useState<ProposalDetailWire[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const load = useCallback(() => {
-    setLoading(true);
-    setLoadError(null);
-    Promise.all([listConcerns(), listMyProposals()])
-      .then(([concernData, proposalData]) => {
-        setConcerns(concernData.concerns ?? []);
-        setProposals(proposalData.proposals ?? []);
-      })
-      .catch((e: unknown) => {
-        const msg = e instanceof Error ? e.message : '대시보드 데이터를 불러올 수 없습니다';
-        setLoadError(msg);
-        showToast(msg, 'error');
-      })
-      .finally(() => setLoading(false));
-  }, [showToast]);
+  // React Query — /concerns, /proposals, /activity 와 cache 공유.
+  const concernsQ = useConcerns();
+  const proposalsQ = useMyProposals();
+  const loading = concernsQ.isLoading || proposalsQ.isLoading;
+  const isError = concernsQ.isError || proposalsQ.isError;
+  const errorObj = concernsQ.error || proposalsQ.error;
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (isError && errorObj) {
+      const msg = errorObj instanceof Error ? errorObj.message : '대시보드 데이터를 불러올 수 없습니다';
+      showToast(msg, 'error');
+    }
+  }, [isError, errorObj, showToast]);
+
+  const concerns = concernsQ.data?.concerns ?? [];
+  const proposals = proposalsQ.data?.proposals ?? [];
+
+  const refetchAll = () => {
+    void concernsQ.refetch();
+    void proposalsQ.refetch();
+  };
 
   const dateWindow = resolveDateWindow(dateRange, customFrom, customTo);
   const periodConcerns = concerns.filter(c => isDateInWindow(c.createdAt, dateWindow.from, dateWindow.to));
@@ -390,7 +390,7 @@ export default function DashboardPage() {
   }
 
   // ── 에러 ── (treatments 패턴 일관: AlertTriangle + msg + 다시 시도)
-  if (loadError) {
+  if (isError && !concernsQ.data && !proposalsQ.data) {
     return (
       <AdminPage sidebar={<POSidebar active="/dashboard" />} title="대시보드" prefix="po">
         <Card padding="md">
@@ -399,8 +399,10 @@ export default function DashboardPage() {
             <p className="text-[var(--text-sm)] font-medium text-[var(--text-default)] mb-1">
               대시보드를 불러오지 못했어요
             </p>
-            <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">{loadError}</p>
-            <Button variant="secondary" size="sm" onClick={load}>
+            <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
+              {errorObj instanceof Error ? errorObj.message : '알 수 없는 오류'}
+            </p>
+            <Button variant="secondary" size="sm" onClick={refetchAll}>
               다시 시도
             </Button>
           </div>

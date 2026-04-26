@@ -12,6 +12,7 @@
     "@hyliren/i18n": "workspace:*",
     "@hyliren/shared": "workspace:*",
     "@hyliren/ui": "workspace:*",
+    "@tanstack/react-query": "^5.100.5",
     "ag-grid-community": "^35.2.1",
     "ag-grid-react": "^35.2.1",
     "date-fns": "^4.1.0",

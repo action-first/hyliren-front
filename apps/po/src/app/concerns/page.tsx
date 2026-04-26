@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   BODY_AREAS, CONCERN_STATUS_KR, CONCERN_STATUS_BADGE, BODY_AREA_BADGE,
@@ -14,7 +14,8 @@ import type { SearchField } from '@hyliren/ui';
 import { AlertTriangle } from 'lucide-react';
 import { POSidebar } from '@/components/POSidebar';
 import { useToastStore } from '@/store/toast';
-import { listConcerns, type ConcernListQuery, type ConcernSummaryWire } from '@/lib/api/concern';
+import { useConcerns } from '@/hooks/queries/concerns';
+import type { ConcernListQuery } from '@/lib/api/concern';
 import type { ColDef } from 'ag-grid-community';
 
 // 디폴트 검색 — 최근 한달 (DataGrid 의 디폴트와 동일하게 mount 시 backend 호출도 한달 기준)
@@ -97,53 +98,38 @@ const columnDefs: ColDef<ConcernRow>[] = [
 export default function ConcernListPage() {
   const router = useRouter();
   const showToast = useToastStore(s => s.showToast);
-  const [allConcerns, setAllConcerns] = useState<ConcernSummaryWire[]>([]);
-  const [statusFilter, setStatusFilter] = useState<string>('');
-  const [loading, setLoading] = useState(true);
-  // 마지막 query 보존 — 재시도 / 에러 후 회복 시 사용 (treatments 패턴 일관)
-  const [lastQuery, setLastQuery] = useState<ConcernListQuery>({});
-  const [loadError, setLoadError] = useState<string | null>(null);
-  // 초기 1회 load 완료 여부 — 이후엔 DataGrid mount 유지하여 search form state 보존.
-  // 검색마다 DataGrid 가 unmount/mount 되면 사용자 입력값이 reset 되는 회귀 방지.
-  const [hasInitialLoad, setHasInitialLoad] = useState(false);
-
-  // backend 호출 — 디폴트/검색 모두 같은 함수 경로
-  const fetchConcerns = useCallback((query: ConcernListQuery) => {
-    setLoading(true);
-    setLoadError(null);
-    setLastQuery(query);
-    listConcerns(query)
-      .then((data) => {
-        setAllConcerns(data.concerns);
-      })
-      .catch((e: unknown) => {
-        const msg = e instanceof Error ? e.message : '목록을 불러올 수 없습니다';
-        setLoadError(msg);
-        showToast(msg, 'error');
-      })
-      .finally(() => {
-        setLoading(false);
-        setHasInitialLoad(true);
-      });
-  }, [showToast]);
-
-  useEffect(() => {
+  // query state — useConcerns 가 query 변경 시 자동 refetch.
+  const [query, setQuery] = useState<ConcernListQuery>(() => {
     const { from, to } = defaultMonthRange();
-    fetchConcerns({ createdAtFrom: from, createdAtTo: to });
-  }, [fetchConcerns]);
+    return { createdAtFrom: from, createdAtTo: to };
+  });
+  const [statusFilter, setStatusFilter] = useState<string>('');
 
-  // DataGrid 검색 → backend 재호출. status 는 backend 가 SUBMITTED 고정이라 client 후처리.
+  // React Query — 캐시 5분, keepPreviousData 로 검색 중 이전 데이터 유지.
+  // hasInitialLoad 등의 boilerplate 가 RQ 의 isLoading/data 상태로 대체됨.
+  const { data, isLoading, isError, error, refetch } = useConcerns(query);
+
+  // 에러 토스트 — RQ v5 가 onError 콜백 제거됨, useEffect 로 효과 처리.
+  useEffect(() => {
+    if (isError && error) {
+      showToast(error instanceof Error ? error.message : '목록을 불러올 수 없습니다', 'error');
+    }
+  }, [isError, error, showToast]);
+
+  // 초기 1회 load 후 = data 가 한 번이라도 채워진 시점. RQ 가 추적.
+  const hasInitialLoad = data !== undefined;
+
   function handleSearch(filters: Record<string, string>) {
-    const query: ConcernListQuery = {};
-    if (filters['createdAt_from']) query.createdAtFrom = filters['createdAt_from'];
-    if (filters['createdAt_to']) query.createdAtTo = filters['createdAt_to'];
-    if (filters['primaryArea']) query.primaryArea = filters['primaryArea'];
-    if (filters['_keyword']) query.keyword = filters['_keyword'];
-    fetchConcerns(query);
+    const newQuery: ConcernListQuery = {};
+    if (filters['createdAt_from']) newQuery.createdAtFrom = filters['createdAt_from'];
+    if (filters['createdAt_to']) newQuery.createdAtTo = filters['createdAt_to'];
+    if (filters['primaryArea']) newQuery.primaryArea = filters['primaryArea'];
+    if (filters['_keyword']) newQuery.keyword = filters['_keyword'];
+    setQuery(newQuery);
     setStatusFilter(filters['statusLabel'] || '');
   }
 
-  const rowData: ConcernRow[] = allConcerns
+  const rowData: ConcernRow[] = (data?.concerns ?? [])
     .map(c => ({
       id: c.id,
       userName: c.userName,
@@ -164,29 +150,31 @@ export default function ConcernListPage() {
   return (
     <AdminPage sidebar={<POSidebar active="/concerns" />} title="고민 리스트" prefix="po">
       {/* 초기 1회 load 전: spinner / error 카드 */}
-      {!hasInitialLoad && loading && (
+      {!hasInitialLoad && isLoading && (
         <Card padding="md">
           <div className="flex items-center justify-center py-12"><Spinner /></div>
         </Card>
       )}
 
-      {!hasInitialLoad && !loading && loadError && (
+      {!hasInitialLoad && isError && (
         <Card padding="md">
           <div className="text-center py-10">
             <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
             <p className="text-[var(--text-sm)] font-medium text-[var(--text-default)] mb-1">
               목록을 불러오지 못했어요
             </p>
-            <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">{loadError}</p>
-            <Button variant="secondary" size="sm" onClick={() => fetchConcerns(lastQuery)}>
+            <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
+              {error instanceof Error ? error.message : '알 수 없는 오류'}
+            </p>
+            <Button variant="secondary" size="sm" onClick={() => refetch()}>
               다시 시도
             </Button>
           </div>
         </Card>
       )}
 
-      {/* 초기 load 후: DataGrid 항상 mount 유지 → search form state 보존.
-          재검색 중 fetch error 는 toast 로만 알림 (DataGrid 와 이전 데이터는 유지). */}
+      {/* 초기 load 후: DataGrid mount 유지 → search form state 보존.
+          재검색 실패는 toast 로만 알림 (이전 데이터는 keepPreviousData 로 유지). */}
       {hasInitialLoad && (
         <DataGrid<ConcernRow>
           columnDefs={columnDefs}
