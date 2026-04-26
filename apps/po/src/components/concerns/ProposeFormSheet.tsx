@@ -204,12 +204,12 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
                   value={item.name}
                   onChange={e => updateItem(idx, 'name', e.target.value)}
                 />
-                <div className="flex gap-2 items-end">
+                <div className="flex gap-3 items-end">
                   {items.length > 1 && (
                     <button
                       type="button"
                       aria-label="항목 삭제"
-                      className="w-9 h-[var(--input-height,32px)] flex-shrink-0 flex items-center justify-center rounded-[var(--app-radius-sm)] bg-transparent border-0 text-[var(--text-subdued)] hover:bg-[var(--color-danger-soft)] hover:text-[var(--color-danger)] cursor-pointer transition-colors"
+                      className="w-9 h-[var(--input-height,32px)] flex-shrink-0 flex items-center justify-center rounded-[var(--app-radius-sm)] bg-transparent border border-[var(--border-default)] text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] hover:border-[var(--color-danger)] cursor-pointer transition-colors"
                       onClick={() => removeItem(idx)}
                     >
                       <Trash2 size={14} />
