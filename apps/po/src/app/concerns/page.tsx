@@ -103,6 +103,16 @@ const STATUS_LABEL_TO_RAW: Record<string, string> = {
   '비교 중': 'comparing',
 };
 
+function isSameQuery(a: ConcernListQuery, b: ConcernListQuery): boolean {
+  return (
+    (a.createdAtFrom ?? '') === (b.createdAtFrom ?? '') &&
+    (a.createdAtTo ?? '') === (b.createdAtTo ?? '') &&
+    (a.primaryArea ?? '') === (b.primaryArea ?? '') &&
+    (a.status ?? '') === (b.status ?? '') &&
+    (a.keyword ?? '') === (b.keyword ?? '')
+  );
+}
+
 // ── 페이지 ──
 export default function ConcernListPage() {
   const router = useRouter();
@@ -136,6 +146,12 @@ export default function ConcernListPage() {
     if (filters['statusLabel']) {
       const raw = STATUS_LABEL_TO_RAW[filters['statusLabel']];
       if (raw) newQuery.status = raw;
+    }
+    // 같은 검색 조건을 다시 누르는 경우 React Query 는 staleTime 동안 cache hit 한다.
+    // FO 에서 새 고민 작성 직후 PO 에서 검색 버튼을 눌렀을 때 최신 목록을 보장한다.
+    if (isSameQuery(query, newQuery)) {
+      void refetch();
+      return;
     }
     setQuery(newQuery);
   }
