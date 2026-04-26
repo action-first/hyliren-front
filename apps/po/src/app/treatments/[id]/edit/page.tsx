@@ -2,7 +2,8 @@
 
 import { useMemo, useRef, useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Spinner } from '@hyliren/ui';
+import { Button, Modal, Spinner } from '@hyliren/ui';
+import { Trash2 } from 'lucide-react';
 import { POSidebar } from '@/components/POSidebar';
 import { WizardShell } from '@/components/procedure-wizard/WizardShell';
 import { Step1Basics } from '@/components/procedure-wizard/Step1Basics';
@@ -16,6 +17,7 @@ import {
   stepIsValid, allStepsValid, stepsValidForDraft, sanitizeWizardForm,
 } from '@/lib/wizard/validation';
 import { track } from '@hyliren/shared/src/events';
+import { pickI18n } from '@hyliren/shared/src/domain/procedure';
 import type { WizardForm, WizardVariant } from '@/lib/wizard/types';
 import type { ProcedureStatus, Procedure, ProcedureVariant } from '@hyliren/shared';
 
@@ -65,6 +67,9 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   const [activeStep, setActiveStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  // 삭제 확인 모달 — soft delete (status → archived). 목록의 '보관함' 탭에서 복구 가능.
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   // H3: setState race 로 인한 중복 제출 방지
   const savingRef = useRef(false);
 
@@ -296,15 +301,17 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     }
   }
 
-  async function archive() {
+  async function handleConfirmDelete() {
     if (!member) return;
-    if (!confirm('이 시술을 보관함으로 이동합니다. 계속할까요?')) return;
+    setDeleting(true);
     try {
       await proceduresApi.softDelete(id);
-      showToast('보관함으로 이동되었습니다.', 'info');
+      showToast('삭제되었습니다.', 'success');
       router.push('/treatments');
     } catch (e: unknown) {
-      showToast(e instanceof Error ? e.message : '실패', 'error');
+      showToast(e instanceof Error ? e.message : '삭제에 실패했습니다', 'error');
+      setDeleting(false);
+      setDeleteOpen(false);
     }
   }
 
@@ -329,6 +336,8 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     );
   }
 
+  const procedureTitle = pickI18n(form.i18n, 'ko', form.sourceLocale)?.content.title || '(제목 없음)';
+
   return (
     <div className="flex h-screen">
       <POSidebar active="/treatments" />
@@ -345,9 +354,12 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
           savedAt={savedAt}
           actions={
             <>
-              <Button variant="secondary" size="sm" onClick={archive} disabled={saving}>
-                보관함
-              </Button>
+              {/* archived 는 이미 보관함 — 같은 액션 다시 노출하면 혼란. 향후 '복원' 별도 추가 가능. */}
+              {form.status !== 'archived' && (
+                <Button variant="secondary" size="sm" onClick={() => setDeleteOpen(true)} disabled={saving}>
+                  <Trash2 size={13} /> 삭제
+                </Button>
+              )}
               {/* 마지막 step 에선 primaryAction (저장) 이 대체 — 임시저장 미노출 */}
               {activeStep < STEPS.length - 1 && (
                 <Button
@@ -381,6 +393,29 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
           )}
         </WizardShell>
       </div>
+
+      {/* 삭제 확인 모달 — soft delete (status → archived). 목록 '보관함' 탭에서 복구 가능. */}
+      <Modal
+        open={deleteOpen}
+        onClose={() => !deleting && setDeleteOpen(false)}
+        title="시술을 삭제할까요?"
+      >
+        <div className="flex flex-col gap-5">
+          <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
+            <span className="font-semibold text-[var(--text-default)]">{procedureTitle}</span> 을(를) 삭제합니다.
+            <br />
+            삭제된 시술은 <span className="font-semibold text-[var(--text-default)]">보관함</span> 탭에서 다시 확인할 수 있습니다.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" onClick={() => setDeleteOpen(false)} disabled={deleting}>
+              취소
+            </Button>
+            <Button variant="danger" onClick={handleConfirmDelete} disabled={deleting}>
+              {deleting ? '삭제 중...' : '삭제'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
