@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
   PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE,
   formatDateKR,
@@ -17,8 +17,9 @@ import { POSidebar } from '@/components/POSidebar';
 import { MyProposalSheet } from '@/components/concerns/MyProposalSheet';
 import { useCreditsStore } from '@/store/credits';
 import { useToastStore } from '@/store/toast';
-import { listConcerns, type ConcernSummaryWire } from '@/lib/api/concern';
-import { formatKrwAsMan, listMyProposals, type ProposalDetailWire } from '@/lib/api/proposal';
+import { useConcerns } from '@/hooks/queries/concerns';
+import { useMyProposals } from '@/hooks/queries/proposals';
+import { formatKrwAsMan } from '@/lib/api/proposal';
 import type { ColDef } from 'ag-grid-community';
 import React from 'react';
 
@@ -82,35 +83,32 @@ export default function ActivityPage() {
   const { balance, transactions } = useCreditsStore();
   const showToast = useToastStore(s => s.showToast);
 
-  const [proposals, setProposals] = useState<ProposalDetailWire[]>([]);
-  const [concerns, setConcerns] = useState<ConcernSummaryWire[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  // 초기 1회 load 완료 여부 — DataGrid mount 유지로 검색 form state 보존.
-  const [hasInitialLoad, setHasInitialLoad] = useState(false);
+  // React Query — /proposals, /dashboard 와 cache 공유 (5분 staleTime).
+  const proposalsQ = useMyProposals();
+  const concernsQ = useConcerns();
+  const isLoading = proposalsQ.isLoading || concernsQ.isLoading;
+  const isError = proposalsQ.isError || concernsQ.isError;
+  const errorObj = proposalsQ.error || concernsQ.error;
+
+  // 에러 토스트
+  useEffect(() => {
+    if (isError && errorObj) {
+      const msg = errorObj instanceof Error ? errorObj.message : '활동 내역을 불러올 수 없습니다';
+      showToast(msg, 'error');
+    }
+  }, [isError, errorObj, showToast]);
+
+  const proposals = proposalsQ.data?.proposals ?? [];
+  const concerns = concernsQ.data?.concerns ?? [];
+  const hasInitialLoad = proposalsQ.data !== undefined && concernsQ.data !== undefined;
+
+  const refetchAll = () => {
+    void proposalsQ.refetch();
+    void concernsQ.refetch();
+  };
+
   // 제안서 row 클릭 시 사이드 시트로 상세 노출. concernId 기반.
   const [selectedConcernId, setSelectedConcernId] = useState<string | null>(null);
-
-  const load = useCallback(() => {
-    setLoading(true);
-    setLoadError(null);
-    Promise.all([listMyProposals(), listConcerns()])
-      .then(([pData, cData]) => {
-        setProposals(pData.proposals ?? []);
-        setConcerns(cData.concerns ?? []);
-      })
-      .catch((e: unknown) => {
-        const msg = e instanceof Error ? e.message : '활동 내역을 불러올 수 없습니다';
-        setLoadError(msg);
-        showToast(msg, 'error');
-      })
-      .finally(() => {
-        setLoading(false);
-        setHasInitialLoad(true);
-      });
-  }, [showToast]);
-
-  useEffect(() => { load(); }, [load]);
 
   // ── 통합 타임라인 데이터 ──
   const rowData: ActivityRow[] = [
@@ -153,21 +151,23 @@ export default function ActivityPage() {
       </Card>
 
       {/* 초기 1회 load 전 spinner / error */}
-      {!hasInitialLoad && loading && (
+      {!hasInitialLoad && isLoading && (
         <Card padding="md">
           <div className="flex items-center justify-center py-12"><Spinner /></div>
         </Card>
       )}
 
-      {!hasInitialLoad && !loading && loadError && (
+      {!hasInitialLoad && isError && (
         <Card padding="md">
           <div className="text-center py-10">
             <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
             <p className="text-[var(--text-sm)] font-medium text-[var(--text-default)] mb-1">
               활동 내역을 불러오지 못했어요
             </p>
-            <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">{loadError}</p>
-            <Button variant="secondary" size="sm" onClick={load}>
+            <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
+              {errorObj instanceof Error ? errorObj.message : '알 수 없는 오류'}
+            </p>
+            <Button variant="secondary" size="sm" onClick={refetchAll}>
               다시 시도
             </Button>
           </div>

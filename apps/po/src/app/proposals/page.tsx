@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   PROPOSAL_STATUS_BADGE,
@@ -17,10 +17,11 @@ import { AlertTriangle } from 'lucide-react';
 import type { ColDef } from 'ag-grid-community';
 import { POSidebar } from '@/components/POSidebar';
 import { useToastStore } from '@/store/toast';
-import { listConcerns, type ConcernSummaryWire } from '@/lib/api/concern';
+import { useConcerns } from '@/hooks/queries/concerns';
+import { useMyProposals } from '@/hooks/queries/proposals';
+import type { ConcernSummaryWire } from '@/lib/api/concern';
 import {
   formatKrwAsMan,
-  listMyProposals,
   type MyProposalsQuery,
   type ProposalDetailWire,
 } from '@/lib/api/proposal';
@@ -99,68 +100,58 @@ function toRow(proposal: ProposalDetailWire, concerns: ConcernSummaryWire[]): Pr
 export default function ProposalsPage() {
   const router = useRouter();
   const showToast = useToastStore(s => s.showToast);
-  const [proposals, setProposals] = useState<ProposalDetailWire[]>([]);
-  const [concerns, setConcerns] = useState<ConcernSummaryWire[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  // 마지막 query 보존 — 재시도 시 동일 query 재호출.
-  const [lastQuery, setLastQuery] = useState<MyProposalsQuery>({});
-  // 초기 1회 load 완료 여부 — DataGrid mount 유지로 search form state 보존.
-  const [hasInitialLoad, setHasInitialLoad] = useState(false);
-
-  const fetchProposals = useCallback((query: MyProposalsQuery) => {
-    setLoading(true);
-    setLoadError(null);
-    setLastQuery(query);
-    Promise.all([listMyProposals(query), listConcerns()])
-      .then(([proposalData, concernData]) => {
-        setProposals(proposalData.proposals);
-        setConcerns(concernData.concerns);
-      })
-      .catch((e: unknown) => {
-        const msg = e instanceof Error ? e.message : '제안서 데이터를 불러올 수 없습니다';
-        setLoadError(msg);
-        showToast(msg, 'error');
-      })
-      .finally(() => {
-        setLoading(false);
-        setHasInitialLoad(true);
-      });
-  }, [showToast]);
-
-  useEffect(() => {
+  const [query, setQuery] = useState<MyProposalsQuery>(() => {
     const { from, to } = defaultMonthRange();
-    fetchProposals({ sentAtFrom: from, sentAtTo: to });
-  }, [fetchProposals]);
+    return { sentAtFrom: from, sentAtTo: to };
+  });
+
+  // React Query — 캐시 5분 + keepPreviousData. /activity, /dashboard 와 cache 공유.
+  const proposalsQ = useMyProposals(query);
+  const concernsQ = useConcerns(); // 제안서 row 의 concern 정보 매핑용
+
+  // 에러 토스트 (proposals 우선, concerns 는 silent fallback)
+  useEffect(() => {
+    if (proposalsQ.isError && proposalsQ.error) {
+      const msg = proposalsQ.error instanceof Error ? proposalsQ.error.message : '제안서 목록을 불러올 수 없습니다';
+      showToast(msg, 'error');
+    }
+  }, [proposalsQ.isError, proposalsQ.error, showToast]);
+
+  // 초기 load 완료 = proposals 데이터 한 번이라도 채워졌을 때.
+  const hasInitialLoad = proposalsQ.data !== undefined;
+  const proposals: ProposalDetailWire[] = proposalsQ.data?.proposals ?? [];
+  const concerns: ConcernSummaryWire[] = concernsQ.data?.concerns ?? [];
 
   function handleSearch(filters: Record<string, string>) {
-    const query: MyProposalsQuery = {};
-    if (filters['sentAt_from']) query.sentAtFrom = filters['sentAt_from'];
-    if (filters['sentAt_to']) query.sentAtTo = filters['sentAt_to'];
+    const newQuery: MyProposalsQuery = {};
+    if (filters['sentAt_from']) newQuery.sentAtFrom = filters['sentAt_from'];
+    if (filters['sentAt_to']) newQuery.sentAtTo = filters['sentAt_to'];
     const rawStatus = filters['statusLabel'] ? STATUS_LABEL_TO_RAW[filters['statusLabel']] : undefined;
-    if (rawStatus) query.status = rawStatus;
-    if (filters['_keyword']) query.keyword = filters['_keyword'];
-    fetchProposals(query);
+    if (rawStatus) newQuery.status = rawStatus;
+    if (filters['_keyword']) newQuery.keyword = filters['_keyword'];
+    setQuery(newQuery);
   }
 
   return (
     <AdminPage sidebar={<POSidebar active="/activity" />} title="제안서 목록" prefix="po">
       {/* 초기 1회 load 전 spinner / error */}
-      {!hasInitialLoad && loading && (
+      {!hasInitialLoad && proposalsQ.isLoading && (
         <Card padding="md">
           <div className="flex items-center justify-center py-12"><Spinner /></div>
         </Card>
       )}
 
-      {!hasInitialLoad && !loading && loadError && (
+      {!hasInitialLoad && proposalsQ.isError && (
         <Card padding="md">
           <div className="text-center py-10">
             <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
             <p className="text-[var(--text-sm)] font-medium text-[var(--text-default)] mb-1">
               제안서 목록을 불러오지 못했어요
             </p>
-            <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">{loadError}</p>
-            <Button variant="secondary" size="sm" onClick={() => fetchProposals(lastQuery)}>
+            <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
+              {proposalsQ.error instanceof Error ? proposalsQ.error.message : '알 수 없는 오류'}
+            </p>
+            <Button variant="secondary" size="sm" onClick={() => proposalsQ.refetch()}>
               다시 시도
             </Button>
           </div>
