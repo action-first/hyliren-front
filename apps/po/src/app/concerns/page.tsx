@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   BODY_AREAS, CONCERN_STATUS_KR, CONCERN_STATUS_BADGE, BODY_AREA_DOT,
@@ -12,8 +12,17 @@ import {
 } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
-import { listConcerns, type ConcernSummaryWire } from '@/lib/api/concern';
+import { listConcerns, type ConcernListQuery, type ConcernSummaryWire } from '@/lib/api/concern';
 import type { ColDef } from 'ag-grid-community';
+
+// 디폴트 검색 — 최근 한달 (DataGrid 의 디폴트와 동일하게 mount 시 backend 호출도 한달 기준)
+function defaultMonthRange(): { from: string; to: string } {
+  const today = new Date();
+  const monthAgo = new Date();
+  monthAgo.setMonth(today.getMonth() - 1);
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  return { from: fmt(monthAgo), to: fmt(today) };
+}
 
 // ── 타입 ──
 interface ConcernRow {
@@ -82,11 +91,15 @@ const columnDefs: ColDef<ConcernRow>[] = [
 export default function ConcernListPage() {
   const router = useRouter();
   const [allConcerns, setAllConcerns] = useState<ConcernSummaryWire[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    listConcerns()
+  // backend 호출 — 디폴트/검색 모두 같은 함수 경로
+  const fetchConcerns = useCallback((query: ConcernListQuery) => {
+    setLoading(true);
+    setError(false);
+    listConcerns(query)
       .then((data) => {
         setAllConcerns(data.concerns);
         setLoading(false);
@@ -94,18 +107,37 @@ export default function ConcernListPage() {
       .catch(() => { setError(true); setLoading(false); });
   }, []);
 
-  const rowData: ConcernRow[] = allConcerns.map(c => ({
-    id: c.id,
-    primaryArea: c.primaryArea,
-    bodyAreaDetail: c.bodyAreaDetail || '',
-    description: c.description.length > 50 ? c.description.slice(0, 50) + '...' : c.description,
-    budget: formatBudget(c.budgetMin, c.budgetMax),
-    visitDate: formatDateRange(c.visitDateFrom, c.visitDateTo),
-    status: c.status,
-    statusLabel: CONCERN_STATUS_KR[c.status] || c.status,
-    createdAt: formatDateKR(c.createdAt),
-    proposalCount: c.proposalCount,
-  }));
+  useEffect(() => {
+    const { from, to } = defaultMonthRange();
+    fetchConcerns({ createdAtFrom: from, createdAtTo: to });
+  }, [fetchConcerns]);
+
+  // DataGrid 검색 → backend 재호출. status 는 backend 가 SUBMITTED 고정이라 client 후처리.
+  function handleSearch(filters: Record<string, string>) {
+    const query: ConcernListQuery = {};
+    if (filters['createdAt_from']) query.createdAtFrom = filters['createdAt_from'];
+    if (filters['createdAt_to']) query.createdAtTo = filters['createdAt_to'];
+    if (filters['primaryArea']) query.primaryArea = filters['primaryArea'];
+    if (filters['_keyword']) query.keyword = filters['_keyword'];
+    fetchConcerns(query);
+    setStatusFilter(filters['statusLabel'] || '');
+  }
+
+  const rowData: ConcernRow[] = allConcerns
+    .map(c => ({
+      id: c.id,
+      primaryArea: c.primaryArea,
+      bodyAreaDetail: c.bodyAreaDetail || '',
+      description: c.description.length > 50 ? c.description.slice(0, 50) + '...' : c.description,
+      budget: formatBudget(c.budgetMin, c.budgetMax),
+      visitDate: formatDateRange(c.visitDateFrom, c.visitDateTo),
+      status: c.status,
+      statusLabel: CONCERN_STATUS_KR[c.status] || c.status,
+      createdAt: formatDateKR(c.createdAt),
+      proposalCount: c.proposalCount,
+    }))
+    // status 필터 (선택 시) — backend 미지원 영역
+    .filter(r => !statusFilter || r.statusLabel === statusFilter);
 
   if (loading) return null;
 
@@ -126,6 +158,7 @@ export default function ConcernListPage() {
         exportFileName="고민목록"
         title="고민 목록"
         onRowClick={(data) => router.push(`/concerns/${data.id}`)}
+        onSearch={handleSearch}
       />
     </AdminPage>
   );
