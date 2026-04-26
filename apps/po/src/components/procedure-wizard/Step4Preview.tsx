@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Badge, Button } from '@hyliren/ui';
-import { Eye, EyeOff } from 'lucide-react';
+import { Badge } from '@hyliren/ui';
+import { Eye, EyeOff, FileEdit } from 'lucide-react';
 import type { Locale } from '@hyliren/shared';
 import { pickI18n, getEffectiveVariant } from '@hyliren/shared/src/domain/procedure';
 import type { WizardForm } from '@/lib/wizard/types';
@@ -10,19 +10,16 @@ import { PO_WIZARD_LOCALES } from './config';
 
 interface Step4Props {
   form: WizardForm;
-  /** 공개 전환 액션 (edit mode 에서 전달). 없으면 banner 미노출. */
-  onPublish?: () => void;
-  /** 공개 요건 미충족 시 버튼 disabled. */
-  publishDisabled?: boolean;
-  /** 공개 API 진행 중 */
-  publishing?: boolean;
 }
 
 /**
  * 전체 FO 상세페이지를 시뮬레이션하는 preview.
  * pickI18n + getEffectiveVariant 를 그대로 써서 실제 FO 렌더와 동일한 fallback 적용.
+ *
+ * 배너는 status 정보 전용 (액션 버튼 없음) — 공개/저장 트리거는 wizard footer 의
+ * primaryAction 으로 단일화 (1 화면 1 primary CTA 원칙).
  */
-export function Step4Preview({ form, onPublish, publishDisabled, publishing }: Step4Props) {
+export function Step4Preview({ form }: Step4Props) {
   const [previewLocale, setPreviewLocale] = useState<Locale>(form.sourceLocale);
 
   const i18n = pickI18n(form.i18n, previewLocale, form.sourceLocale);
@@ -54,35 +51,33 @@ export function Step4Preview({ form, onPublish, publishDisabled, publishing }: S
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 공개 상태 배너 — edit mode 에서만 (onPublish 전달 시) */}
-      {onPublish && (
-        form.status === 'draft' ? (
-          <section className="flex items-center justify-between gap-3 p-3 rounded-md border border-[var(--color-warning)] bg-[var(--color-warning-soft)]">
-            <div className="flex items-center gap-2">
-              <EyeOff size={16} className="text-[var(--color-warning)]" />
-              <div>
-                <p className="text-[var(--text-xs)] font-semibold text-[var(--text-default)]">비공개 (임시저장)</p>
-                <p className="text-[var(--app-text-micro)] text-[var(--text-disabled)]">
-                  고객에게 아직 노출되지 않습니다. 검토 후 공개하세요.
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="primary" size="sm"
-              onClick={onPublish}
-              disabled={publishDisabled || publishing}
-            >
-              {publishing ? '공개 중...' : '공개하기'}
-            </Button>
-          </section>
-        ) : form.status === 'published' ? (
-          <section className="flex items-center gap-2 p-3 rounded-md border border-[var(--color-success)] bg-[var(--color-success-soft)]">
-            <Eye size={16} className="text-[var(--color-success)]" />
-            <p className="text-[var(--text-xs)] font-semibold text-[var(--text-default)]">
-              공개 중 · 고객에게 노출되고 있습니다.
+      {/* 상태 정보 배너 (액션 없음) — 공개/저장은 wizard footer primary 로. */}
+      {form.status === 'draft' && (
+        <section className="flex items-center gap-2 p-3 rounded-md border border-[var(--color-warning)] bg-[var(--color-warning-soft)]">
+          <FileEdit size={16} className="text-[var(--color-warning)]" />
+          <div>
+            <p className="text-[var(--text-xs)] font-semibold text-[var(--text-default)]">임시저장 상태</p>
+            <p className="text-[var(--app-text-micro)] text-[var(--text-disabled)]">
+              고객에게 아직 노출되지 않습니다. 검토 후 우측 상단 '공개하기' 버튼으로 공개하세요.
             </p>
-          </section>
-        ) : null
+          </div>
+        </section>
+      )}
+      {form.status === 'published' && (
+        <section className="flex items-center gap-2 p-3 rounded-md border border-[var(--color-success)] bg-[var(--color-success-soft)]">
+          <Eye size={16} className="text-[var(--color-success)]" />
+          <p className="text-[var(--text-xs)] font-semibold text-[var(--text-default)]">
+            공개 중 · 고객에게 노출되고 있습니다.
+          </p>
+        </section>
+      )}
+      {form.status === 'archived' && (
+        <section className="flex items-center gap-2 p-3 rounded-md border border-[var(--border-default)] bg-[var(--surface-subdued)]">
+          <EyeOff size={16} className="text-[var(--text-subdued)]" />
+          <p className="text-[var(--text-xs)] font-semibold text-[var(--text-default)]">
+            비공개 상태 · 고객에게 노출되지 않습니다.
+          </p>
+        </section>
       )}
 
       {/* 상단: locale 선택 */}

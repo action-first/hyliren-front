@@ -310,7 +310,7 @@ export default function TreatmentsPage() {
                     <div className="flex items-center justify-end gap-1 pt-2 border-t border-[var(--border-subdued)]">
                       <span
                         aria-hidden="true"
-                        className="w-7 h-7 flex items-center justify-center text-[var(--text-subdued)]"
+                        className="w-7 h-7 flex items-center justify-center rounded-[var(--app-radius-sm)] text-[var(--text-subdued)] hover:bg-[var(--surface-subdued)] hover:text-[var(--text-default)] transition-colors"
                       >
                         <Pencil size={14} />
                       </span>
