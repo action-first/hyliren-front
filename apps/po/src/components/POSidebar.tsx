@@ -118,10 +118,14 @@ export function POSidebar({ active }: { active: string }) {
                   type="button"
                   onClick={() => setShowModal(true)}
                   style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 4,
-                    padding: '5px 12px', borderRadius: 6,
-                    fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
-                    background: 'var(--interactive-default, #2C6ECB)', color: '#fff',
+                    display: 'inline-flex', alignItems: 'center',
+                    gap: 'var(--spacing-1)',
+                    padding: '5px var(--spacing-3)',
+                    borderRadius: 'var(--input-radius, 6px)',
+                    fontSize: 'var(--text-sm)',
+                    fontWeight: 'var(--font-semibold)',
+                    fontFamily: 'inherit',
+                    background: 'var(--interactive-default)', color: '#fff',
                     border: 'none', cursor: 'pointer',
                     transition: 'opacity 150ms',
                   }}
@@ -176,19 +180,19 @@ export function POSidebar({ active }: { active: string }) {
 
       {/* 충전 모달 — 사이드바 외부에 렌더링 (z-index 보장) */}
       <Modal open={showModal} onClose={() => { setShowModal(false); setSelected(null); }} title="크레딧 충전">
-        <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>충전할 크레딧을 선택하세요</p>
+        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-subdued)', marginBottom: 'var(--spacing-4)' }}>충전할 크레딧을 선택하세요</p>
         <div className="charge-options">
           {CHARGE_OPTIONS.map(opt => (
             <button key={opt.amount} type="button" onClick={() => setSelected(opt.amount)}
               className={`charge-option ${selected === opt.amount ? 'charge-option--active' : ''}`}
             >
-              <span style={{ fontSize: 18, fontWeight: 700 }}>{opt.amount}</span>
-              <span style={{ fontSize: 12, color: '#6b7280' }}>크레딧</span>
-              <span style={{ fontSize: 12, color: '#9ca3af' }}>{opt.price}원</span>
+              <span style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-bold)' }}>{opt.amount}</span>
+              <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-subdued)' }}>크레딧</span>
+              <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-disabled)' }}>{opt.price}원</span>
             </button>
           ))}
         </div>
-        <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 12, textAlign: 'center' }}>결제는 데모 모드입니다</p>
+        <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-disabled)', marginTop: 'var(--spacing-3)', textAlign: 'center' }}>결제는 데모 모드입니다</p>
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="secondary" size="sm" onClick={() => { setShowModal(false); setSelected(null); }}>취소</Button>
           <Button variant="primary" size="sm" onClick={handleCharge} disabled={!selected}>

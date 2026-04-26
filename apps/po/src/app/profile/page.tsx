@@ -94,11 +94,11 @@ export default function ProfilePage() {
   const completeness = Math.round((filledCount / 8) * 100);
 
   const statusBadge = profile?.verified ? (
-    <span className="flex items-center gap-1" style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-success)' }}>
+    <span className="flex items-center gap-1" style={{ fontSize: "var(--text-sm)", fontWeight: "var(--font-medium)", color: 'var(--color-success)' }}>
       <ShieldCheck size={15} /> 인증 완료
     </span>
   ) : (
-    <span className="flex items-center gap-1" style={{ fontSize: 13, color: 'var(--text-disabled)' }}>
+    <span className="flex items-center gap-1" style={{ fontSize: "var(--text-sm)", color: 'var(--text-disabled)' }}>
       <ShieldAlert size={15} /> 미인증
     </span>
   );
@@ -117,7 +117,7 @@ export default function ProfilePage() {
         </div>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: "var(--spacing-4)" }}>
 
         {/* 프로필 완성도 */}
         <Card padding="md">
@@ -130,7 +130,7 @@ export default function ProfilePage() {
                   ? '거의 완성! 나머지 항목을 채워주세요'
                   : '프로필을 채워주세요. 완성도가 높을수록 고객 노출이 증가합니다'}
             />
-            <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-primary)' }}>{completeness}%</span>
+            <span style={{ fontSize: "var(--text-lg)", fontWeight: "var(--font-bold)", color: 'var(--color-primary)' }}>{completeness}%</span>
           </div>
           <div className="completeness-bar">
             <div className="completeness-fill" style={{ width: `${completeness}%` }} />
