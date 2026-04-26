@@ -31,6 +31,9 @@ export { ListPageSkeleton, DashboardSkeleton, DetailPageSkeleton, MobileCardList
 export { Modal } from './primitives/Modal';
 export type { ModalProps } from './primitives/Modal';
 
+export { DropdownMenu } from './primitives/DropdownMenu';
+export type { DropdownMenuItem } from './primitives/DropdownMenu';
+
 export { BottomSheet } from './primitives/BottomSheet';
 export type { BottomSheetProps } from './primitives/BottomSheet';
 

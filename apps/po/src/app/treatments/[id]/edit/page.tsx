@@ -2,8 +2,8 @@
 
 import { useMemo, useRef, useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Modal, Spinner } from '@hyliren/ui';
-import { Eye, EyeOff } from 'lucide-react';
+import { Button, Modal, Spinner, DropdownMenu, type DropdownMenuItem } from '@hyliren/ui';
+import { Eye, EyeOff, Trash2 } from 'lucide-react';
 import { POSidebar } from '@/components/POSidebar';
 import { WizardShell } from '@/components/procedure-wizard/WizardShell';
 import { Step1Basics } from '@/components/procedure-wizard/Step1Basics';
@@ -73,6 +73,9 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   // 공개 전환 모달 — archived → published. BE 가 publish-strict 검증 자동 수행.
   const [unarchiveOpen, setUnarchiveOpen] = useState(false);
   const [unarchiving, setUnarchiving] = useState(false);
+  // 영구 삭제 모달 — archived 한정. deletedAt 세팅, 복구 불가 안내.
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   // H3: setState race 로 인한 중복 제출 방지
   const savingRef = useRef(false);
 
@@ -336,6 +339,21 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     }
   }
 
+  async function handleConfirmPermanentDelete() {
+    if (!member) return;
+    setDeleting(true);
+    try {
+      await proceduresApi.permanentDelete(id);
+      showToast('영구 삭제되었습니다.', 'success');
+      router.push('/treatments');
+    } catch (e: unknown) {
+      // BE 가드 (archived 상태 아님) 위반 등 에러를 사용자에게 그대로 노출.
+      showToast(e instanceof Error ? e.message : '삭제에 실패했습니다', 'error');
+      setDeleting(false);
+      setDeleteOpen(false);
+    }
+  }
+
   if (loadError) {
     return (
       <div className="flex h-screen">
@@ -361,17 +379,18 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   const isLastStep = activeStep === STEPS.length - 1;
 
   /**
-   * primaryAction — status × step 컨텍스트.
+   * primaryAction — status × step 컨텍스트. per-step strict 검증으로 미완성 데이터 commit 차단.
    *
    * 사용자 멘탈모델 (확정):
    * - Step 1-3 = 데이터 입력. 완료 시 = '데이터 저장'. status 유지 (draft 는 draft).
    * - Step 4 = 미리보기·공개 결정. 별도 ceremony.
    *
-   * 분기:
-   * - draft × Step 1-3: '저장' = submit('draft') loose. 데이터만 저장.
-   * - draft × Step 4:   '공개하기' = submit('published') strict. 미리보기 직후 공개.
-   * - published × all:  '저장' = submit('published') strict. 변경 반영, status 유지.
-   * - archived × all:   '저장' = submit('archived') loose. 변경 반영, status 유지.
+   * - draft × Step 1-3: '저장' = submit('draft'), per-step strict 검증
+   *                      현재 step 의 필수값이 다 채워졌을 때만 enable.
+   *                      미완성이면 '임시저장' (loose) 으로 백업 가능.
+   * - draft × Step 4:   '공개하기' = submit('published') allStepsValid strict.
+   * - published × all:  '저장' = submit('published') strict (publish 유지 조건).
+   * - archived × all:   '저장' = submit('archived') loose (비공개니 공개 조건 불필요).
    */
   const primaryActionConfig = (() => {
     if (form.status === 'draft' && isLastStep) {
@@ -386,7 +405,9 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       return {
         label: '저장',
         onClick: () => submit('draft'),
-        disabled: saving || !stepsValidForDraft(form),
+        // per-step strict — 현재 step 의 필수값 완료 시만 'commit' 허용.
+        // 미완성 백업은 '임시저장' (secondary) 가 담당.
+        disabled: saving || !stepIsValid(form, activeStep),
         loading: saving,
       };
     }
@@ -407,6 +428,26 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     };
   })();
 
+  /**
+   * ⋮ 메뉴 — status 별 destructive/transition. 자주 안 쓰는 액션은 메뉴로 분리해
+   * 헤더의 자주 쓰고 안전한 액션 (저장/임시저장) 과 시각·인지 분리.
+   */
+  const menuItems: DropdownMenuItem[] = (() => {
+    if (form.status === 'archived') {
+      return [
+        { label: '공개로 전환', icon: <Eye size={14} />, onClick: () => setUnarchiveOpen(true) },
+        { label: '영구 삭제', icon: <Trash2 size={14} />, destructive: true, onClick: () => setDeleteOpen(true) },
+      ];
+    }
+    if (form.status === 'published') {
+      return [
+        { label: '비공개로 전환', icon: <EyeOff size={14} />, onClick: () => setArchiveOpen(true) },
+      ];
+    }
+    // draft — 폐기는 list 의 '+ 새 시술 등록 → 새로 작성' 흐름. menu 비움.
+    return [];
+  })();
+
   return (
     <div className="flex h-screen">
       <POSidebar active="/treatments" />
@@ -420,32 +461,21 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
           saveStatus={saveStatus}
           savedAt={savedAt}
           actions={
-            <>
-              {/* status 토글 — 진열/비진열 모델. draft 는 토글 없음 (공개 = primary, 폐기 = 별도 진입). */}
-              {form.status === 'archived' && (
-                <Button variant="secondary" size="sm" onClick={() => setUnarchiveOpen(true)} disabled={saving}>
-                  <Eye size={13} /> 공개로
-                </Button>
-              )}
-              {form.status === 'published' && (
-                <Button variant="secondary" size="sm" onClick={() => setArchiveOpen(true)} disabled={saving}>
-                  <EyeOff size={13} /> 비공개로
-                </Button>
-              )}
-              {/* draft × Step 4 만 임시저장 backup 노출 — primary 가 '공개하기' 라서 별도 draft 저장 경로 필요.
-                  Step 1-3 에선 primary 자체가 '저장' (= submit('draft')) 이라 중복. */}
-              {form.status === 'draft' && isLastStep && (
-                <Button
-                  variant="secondary" size="sm"
-                  onClick={() => submit('draft')}
-                  disabled={saving || !stepsValidForDraft(form)}
-                >
-                  임시저장
-                </Button>
-              )}
-            </>
+            /* draft 의 visible secondary — 임시저장 (loose 검증, 미완성 백업).
+               per-step strict primary '저장' 이 disabled 일 때도 임시저장은 항상 노출.
+               published/archived 는 별도 secondary 없음 (primary 만). */
+            form.status === 'draft' ? (
+              <Button
+                variant="secondary" size="sm"
+                onClick={() => submit('draft')}
+                disabled={saving || !stepsValidForDraft(form)}
+              >
+                임시저장
+              </Button>
+            ) : null
           }
           primaryAction={primaryActionConfig}
+          menu={menuItems.length > 0 ? <DropdownMenu items={menuItems} /> : null}
         >
           {activeStep === 0 && <Step1Basics form={form} onChange={patch} />}
           {activeStep === 1 && <Step2Pricing form={form} onChange={patch} />}
@@ -497,6 +527,31 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
             </Button>
             <Button variant="primary" onClick={handleConfirmUnarchive} disabled={unarchiving}>
               {unarchiving ? '전환 중...' : '공개로'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 영구 삭제 모달 — archived 한정. deletedAt 세팅, 일반 사용자에게 복구 경로 없음 (admin 만). */}
+      <Modal
+        open={deleteOpen}
+        onClose={() => !deleting && setDeleteOpen(false)}
+        title="시술을 영구 삭제할까요?"
+      >
+        <div className="flex flex-col gap-5">
+          <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
+            <span className="font-semibold text-[var(--text-default)]">{procedureTitle}</span>
+            <br />
+            영구 삭제 후에는 <span className="font-semibold text-[var(--color-danger)]">복구할 수 없습니다.</span>
+            <br />
+            보관함 (비공개) 으로만 두시려면 취소를 눌러주세요.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" onClick={() => setDeleteOpen(false)} disabled={deleting}>
+              취소
+            </Button>
+            <Button variant="danger" onClick={handleConfirmPermanentDelete} disabled={deleting}>
+              {deleting ? '삭제 중...' : '영구 삭제'}
             </Button>
           </div>
         </div>

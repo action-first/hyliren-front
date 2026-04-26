@@ -19,7 +19,10 @@ interface WizardShellProps {
   onStepChange?: (index: number) => void;
   children: React.ReactNode;
 
-  /** 임시저장·상태토글 등 부가 액션. body header 좌측 그룹에 포함. */
+  /**
+   * 자주 쓰고 안전한 secondary 버튼 (예: 임시저장).
+   * Primary 좌측에 visible 노출. 우측 zone (제어 영역) 에 정렬.
+   */
   actions?: React.ReactNode;
   /**
    * 핵심 CTA (저장·공개 등). create 모드에선 마지막 step 만 노출.
@@ -31,6 +34,11 @@ interface WizardShellProps {
     disabled?: boolean;
     loading?: boolean;
   };
+  /**
+   * 가끔 쓰거나 destructive 한 액션 (예: 비공개로/공개로/삭제) 의 ⋮ 드롭다운.
+   * Primary 우측에 위치. items 가 비면 트리거 자체 미렌더.
+   */
+  menu?: React.ReactNode;
   onPrev?: () => void;
   onNext?: () => void;
   nextDisabled?: boolean;
@@ -64,7 +72,7 @@ function formatSavedAgo(savedAt: number | null | undefined): string {
 export function WizardShell({
   title, mode = 'create', steps, activeIndex, onStepChange,
   children, actions,
-  primaryAction, onPrev, onNext, nextDisabled,
+  primaryAction, menu, onPrev, onNext, nextDisabled,
   saveStatus, savedAt,
 }: WizardShellProps) {
   const isLast = activeIndex === steps.length - 1;
@@ -83,29 +91,21 @@ export function WizardShell({
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-[760px] mx-auto px-6 py-5">
             {/*
-              통합 body header — 두 그룹으로 분리:
-              · 좌측: breadcrumb + step 제목 + 제목 우측 보조 액션 (임시저장·보관함)
-              · 우측: 저장상태 + step navigation (이전·다음·공개)
-              의도: 파괴/이탈 관련 액션(임시저장)을 네비게이션(이전/다음)과
-                   시각적으로 떨어뜨려 혼동·오클릭 감소.
+              3-zone 헤더 (UX 가이드: 좌측=식별 / 우측=제어):
+              · 좌측: breadcrumb (title) + step 이름 (현 위치 표시)
+              · 우측: SaveIndicator → secondary actions (임시저장 등) → primary CTA → ⋮ menu
+                     visible 컨트롤은 자주 쓰고 안전. ⋮ 메뉴엔 가끔 쓰거나 destructive (비공개로/공개로/삭제).
             */}
             <div className="flex items-center justify-between gap-4 mb-5 pb-4 border-b border-[var(--border-default)]">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="min-w-0">
-                  {title && (
-                    <p className="text-[var(--app-text-micro)] font-medium text-[var(--text-disabled)] mb-0.5">
-                      {title}
-                    </p>
-                  )}
-                  <h1 className="text-[var(--text-lg)] font-bold text-[var(--text-default)] leading-tight">
-                    {currentStep?.label}
-                  </h1>
-                </div>
-                {actions && (
-                  <div className="flex items-center gap-2">
-                    {actions}
-                  </div>
+              <div className="min-w-0">
+                {title && (
+                  <p className="text-[var(--app-text-micro)] font-medium text-[var(--text-disabled)] mb-0.5">
+                    {title}
+                  </p>
                 )}
+                <h1 className="text-[var(--text-lg)] font-bold text-[var(--text-default)] leading-tight">
+                  {currentStep?.label}
+                </h1>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
@@ -122,6 +122,7 @@ export function WizardShell({
                     다음 <ArrowRight size={13} />
                   </Button>
                 )}
+                {actions}
                 {(isEdit || isLast) && (
                   <Button
                     variant="primary"
@@ -132,6 +133,7 @@ export function WizardShell({
                     {primaryAction.loading ? '저장 중...' : primaryAction.label}
                   </Button>
                 )}
+                {menu}
               </div>
             </div>
 
