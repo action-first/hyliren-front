@@ -229,7 +229,7 @@ export function MyProposalSheet({ concernId, open, onClose }: MyProposalSheetPro
 
           {/* 메타 — 발송 정보 */}
           <Card padding="md">
-            <div className="flex flex-col gap-3.5">
+            <div className="flex flex-col gap-3">
               <MetaRow label="발송일">{formatDateKR(proposal.sentAt)}</MetaRow>
               <MetaRow label="열람일">
                 {proposal.viewedAt ? formatDateKR(proposal.viewedAt) : '미열람'}

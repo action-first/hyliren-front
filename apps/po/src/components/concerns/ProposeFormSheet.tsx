@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react';
 import type { AnesthesiaType } from '@hyliren/shared';
 import { CREDIT_COST } from '@hyliren/shared';
 import { Button, Card, Input, SectionHeader, Select, SideSheet, Textarea } from '@hyliren/ui';
-import { ChevronDown, Trash2 } from 'lucide-react';
+import { Calendar, ChevronDown, Trash2 } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { ko } from 'date-fns/locale';
 
 import { useTreatmentsStore } from '@/store/treatments';
 import { useCreditsStore } from '@/store/credits';
@@ -42,8 +45,8 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
   const [recoveryDays, setRecoveryDays] = useState(7);
   const [anesthesia, setAnesthesia] = useState<AnesthesiaType>('sedation');
   const [stayDays, setStayDays] = useState(0);
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateFrom, setDateFrom] = useState<Date | null>(null);
+  const [dateTo, setDateTo] = useState<Date | null>(null);
   const [note, setNote] = useState('');
   const [showCatalog, setShowCatalog] = useState(false);
   const [sending, setSending] = useState(false);
@@ -56,8 +59,8 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
       setRecoveryDays(7);
       setAnesthesia('sedation');
       setStayDays(0);
-      setDateFrom('');
-      setDateTo('');
+      setDateFrom(null);
+      setDateTo(null);
       setNote('');
       setShowCatalog(false);
     }
@@ -117,8 +120,8 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
         recoveryDays,
         anesthesiaType: anesthesia,
         hospitalStayDays: stayDays,
-        availableDateFrom: dateFrom || undefined,
-        availableDateTo: dateTo || undefined,
+        availableDateFrom: dateFrom ? dateFrom.toISOString().slice(0, 10) : undefined,
+        availableDateTo: dateTo ? dateTo.toISOString().slice(0, 10) : undefined,
         consultationNote: note.trim() || undefined,
       });
       // backend 가 차감했으므로 store 도 동기화 (UI 즉시 반영용 — 다음 fetch 시 backend 값으로 덮임)
@@ -273,8 +276,35 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
             />
           </div>
           <div className="propose-form-row mt-3">
-            <Input label="시작일" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
-            <Input label="종료일" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+            <div className="input-wrapper">
+              <label className="input-label">시작일</label>
+              <div className="datepicker-wrapper">
+                <Calendar size={14} className="datepicker-icon" />
+                <DatePicker
+                  selected={dateFrom}
+                  onChange={(d: Date | null) => setDateFrom(d)}
+                  dateFormat="yyyy.MM.dd"
+                  placeholderText="선택"
+                  locale={ko}
+                  className="datepicker-input"
+                />
+              </div>
+            </div>
+            <div className="input-wrapper">
+              <label className="input-label">종료일</label>
+              <div className="datepicker-wrapper">
+                <Calendar size={14} className="datepicker-icon" />
+                <DatePicker
+                  selected={dateTo}
+                  onChange={(d: Date | null) => setDateTo(d)}
+                  dateFormat="yyyy.MM.dd"
+                  placeholderText="선택"
+                  locale={ko}
+                  className="datepicker-input"
+                  minDate={dateFrom || undefined}
+                />
+              </div>
+            </div>
           </div>
         </Card>
 

@@ -243,7 +243,7 @@
   .propose-item-remove:hover { background: var(--surface-hovered); color: var(--text-default); }
   .propose-total-input {
     width: 5rem; text-align: right; border: none; background: transparent;
-    font-size: 20px; font-weight: 700; color: var(--interactive-default); outline: none;
+    font-size: var(--text-xl); font-weight: 700; color: var(--interactive-default); outline: none;
   }
   .propose-total-row { display: flex; align-items: baseline; justify-content: space-between; }
   .propose-total-label { font-size: var(--app-text-sm, 14px); color: var(--text-subdued); }
