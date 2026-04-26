@@ -385,9 +385,10 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
                   <EyeOff size={13} /> 비공개로
                 </Button>
               )}
-              {/* 마지막 step 에선 primaryAction (저장) 이 대체 — 임시저장 미노출.
-                  archived 편집 중엔 status=draft 강등이 의도와 다르므로 숨김. */}
-              {activeStep < STEPS.length - 1 && form.status !== 'archived' && (
+              {/* 임시저장은 작성 중인 draft 한정 — auto-save 의 명시적 트리거 + variant 변경 즉시 반영용.
+                  published/archived 에 노출하면 status 강등 부작용 + 멘탈모델 어긋남.
+                  마지막 step 에선 primaryAction(저장)이 동등 역할이라 미노출. */}
+              {activeStep < STEPS.length - 1 && form.status === 'draft' && (
                 <Button
                   variant="secondary" size="sm"
                   onClick={() => submit('draft')}
