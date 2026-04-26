@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Modal, Spinner } from '@hyliren/ui';
-import { Trash2, RotateCcw } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { POSidebar } from '@/components/POSidebar';
 import { WizardShell } from '@/components/procedure-wizard/WizardShell';
 import { Step1Basics } from '@/components/procedure-wizard/Step1Basics';
@@ -67,12 +67,12 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   const [activeStep, setActiveStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  // 삭제 확인 모달 — soft delete (status → archived). 목록의 '보관함' 탭에서 복구 가능.
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  // 복원 확인 모달 — archived → published. BE 가 publish-strict 검증 자동 수행.
-  const [restoreOpen, setRestoreOpen] = useState(false);
-  const [restoring, setRestoring] = useState(false);
+  // 비공개 전환 모달 — published → archived. 데이터 유지, 고객 노출만 차단.
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+  // 공개 전환 모달 — archived → published. BE 가 publish-strict 검증 자동 수행.
+  const [unarchiveOpen, setUnarchiveOpen] = useState(false);
+  const [unarchiving, setUnarchiving] = useState(false);
   // H3: setState race 로 인한 중복 제출 방지
   const savingRef = useRef(false);
 
@@ -304,35 +304,35 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     }
   }
 
-  async function handleConfirmDelete() {
+  async function handleConfirmArchive() {
     if (!member) return;
-    setDeleting(true);
+    setArchiving(true);
     try {
       await proceduresApi.softDelete(id);
-      showToast('삭제되었습니다.', 'success');
+      showToast('비공개로 전환되었습니다.', 'success');
       router.push('/treatments');
     } catch (e: unknown) {
-      showToast(e instanceof Error ? e.message : '삭제에 실패했습니다', 'error');
-      setDeleting(false);
-      setDeleteOpen(false);
+      showToast(e instanceof Error ? e.message : '전환에 실패했습니다', 'error');
+      setArchiving(false);
+      setArchiveOpen(false);
     }
   }
 
-  async function handleConfirmRestore() {
+  async function handleConfirmUnarchive() {
     if (!member) return;
-    setRestoring(true);
+    setUnarchiving(true);
     try {
       await proceduresApi.update(id, { status: 'published' });
-      showToast('공개 상태로 복원되었습니다.', 'success');
+      showToast('공개로 전환되었습니다.', 'success');
       // 폼 status 만 변경 — 다른 필드 변경 없음 — 즉시 reload 해서 최신 상태 반영.
       const reload = await proceduresApi.get(id);
       setForm(toWizardForm(reload.procedure, reload.variants));
-      setRestoreOpen(false);
+      setUnarchiveOpen(false);
     } catch (e: unknown) {
       // BE publish-strict 검증 실패 시 — 사용자가 누락 항목 보완 후 재시도해야 함.
-      showToast(e instanceof Error ? e.message : '복원에 실패했습니다', 'error');
+      showToast(e instanceof Error ? e.message : '전환에 실패했습니다', 'error');
     } finally {
-      setRestoring(false);
+      setUnarchiving(false);
     }
   }
 
@@ -375,14 +375,14 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
           savedAt={savedAt}
           actions={
             <>
-              {/* archived 는 '복원' / 그 외는 '삭제' — 양립 불가능한 액션 (현재 status 기준 분기). */}
+              {/* future-state 시멘틱: archived 카드는 '공개로' / published 카드는 '비공개로'. */}
               {form.status === 'archived' ? (
-                <Button variant="secondary" size="sm" onClick={() => setRestoreOpen(true)} disabled={saving}>
-                  <RotateCcw size={13} /> 복원
+                <Button variant="secondary" size="sm" onClick={() => setUnarchiveOpen(true)} disabled={saving}>
+                  <Eye size={13} /> 공개로
                 </Button>
               ) : (
-                <Button variant="secondary" size="sm" onClick={() => setDeleteOpen(true)} disabled={saving}>
-                  <Trash2 size={13} /> 삭제
+                <Button variant="secondary" size="sm" onClick={() => setArchiveOpen(true)} disabled={saving}>
+                  <EyeOff size={13} /> 비공개로
                 </Button>
               )}
               {/* 마지막 step 에선 primaryAction (저장) 이 대체 — 임시저장 미노출.
@@ -420,47 +420,49 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
         </WizardShell>
       </div>
 
-      {/* 삭제 확인 모달 — soft delete (status → archived). 목록 '보관함' 탭에서 복구 가능. */}
+      {/* 비공개 전환 모달 — published → archived. 데이터 유지, 고객 노출만 차단. */}
       <Modal
-        open={deleteOpen}
-        onClose={() => !deleting && setDeleteOpen(false)}
-        title="시술을 삭제할까요?"
+        open={archiveOpen}
+        onClose={() => !archiving && setArchiveOpen(false)}
+        title="이 시술을 비공개로 전환할까요?"
       >
         <div className="flex flex-col gap-5">
           <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
-            <span className="font-semibold text-[var(--text-default)]">{procedureTitle}</span> 을(를) 삭제합니다.
+            <span className="font-semibold text-[var(--text-default)]">{procedureTitle}</span>
             <br />
-            삭제된 시술은 <span className="font-semibold text-[var(--text-default)]">보관함</span> 탭에서 다시 확인할 수 있습니다.
+            비공개 상태에서는 고객에게 노출되지 않습니다.
+            <br />
+            언제든 다시 공개할 수 있어요.
           </p>
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="secondary" onClick={() => setDeleteOpen(false)} disabled={deleting}>
+            <Button variant="secondary" onClick={() => setArchiveOpen(false)} disabled={archiving}>
               취소
             </Button>
-            <Button variant="danger" onClick={handleConfirmDelete} disabled={deleting}>
-              {deleting ? '삭제 중...' : '삭제'}
+            <Button variant="primary" onClick={handleConfirmArchive} disabled={archiving}>
+              {archiving ? '전환 중...' : '비공개로'}
             </Button>
           </div>
         </div>
       </Modal>
 
-      {/* 복원 확인 모달 — archived → published. BE 가 publish-strict 검증 자동 수행. */}
+      {/* 공개 전환 모달 — archived → published. BE 가 publish-strict 검증 자동 수행. */}
       <Modal
-        open={restoreOpen}
-        onClose={() => !restoring && setRestoreOpen(false)}
-        title="시술을 다시 공개할까요?"
+        open={unarchiveOpen}
+        onClose={() => !unarchiving && setUnarchiveOpen(false)}
+        title="이 시술을 다시 공개할까요?"
       >
         <div className="flex flex-col gap-5">
           <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
-            <span className="font-semibold text-[var(--text-default)]">{procedureTitle}</span> 을(를) 다시 공개합니다.
+            <span className="font-semibold text-[var(--text-default)]">{procedureTitle}</span>
             <br />
-            복원하면 고객에게 다시 노출됩니다.
+            공개 상태로 전환하면 고객에게 다시 노출됩니다.
           </p>
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="secondary" onClick={() => setRestoreOpen(false)} disabled={restoring}>
+            <Button variant="secondary" onClick={() => setUnarchiveOpen(false)} disabled={unarchiving}>
               취소
             </Button>
-            <Button variant="primary" onClick={handleConfirmRestore} disabled={restoring}>
-              {restoring ? '복원 중...' : '복원'}
+            <Button variant="primary" onClick={handleConfirmUnarchive} disabled={unarchiving}>
+              {unarchiving ? '전환 중...' : '공개로'}
             </Button>
           </div>
         </div>
