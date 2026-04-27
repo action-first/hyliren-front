@@ -8,12 +8,7 @@ import { partnerTokenStore } from '@/lib/auth/token-store';
 export type POAuthStatus = 'idle' | 'authenticating' | 'authenticated' | 'guest';
 
 /**
- * Partner 인증 상태 store.
- *
- * profile 필드 제거 (2026-04-26):
- * - 이전: usePOAuthStore.profile (mock MOCK_PARTNER_PROFILES 조회 + sync update)
- * - 현재: useMyPartnerProfile() RQ 훅 — BE PR #23 의 /profile/me 활용
- * - 사용처가 query/mutation hook 으로 직접 진입 → store 가 source of truth 아님
+ * Partner 인증 상태 store. 프로필은 useMyPartnerProfile() RQ 훅이 BE 직접 조회.
  */
 interface POAuthState {
   member: Member | null;

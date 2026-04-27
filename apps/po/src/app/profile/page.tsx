@@ -12,14 +12,12 @@ import type { BodyArea } from '@hyliren/shared';
 import { ShieldCheck, ShieldAlert, AlertTriangle } from 'lucide-react';
 
 /**
- * 파트너 프로필 — real BE 연결 (BE PR #23).
+ * 파트너 프로필.
  *
  * 흐름:
  * 1. useMyPartnerProfile() — 첫 진입 시 BE 조회 (미존재 회원도 빈 기본값 응답)
  * 2. data 도달 시 form state 1회 hydrate (이후 refetch 가 폼 덮지 않게 hydrated 가드)
  * 3. 저장 → useUpdateMyPartnerProfile() mutation — 성공 시 cache 직접 set
- *
- * 전엔 usePOAuthStore.profile (mock + sync update). 새로고침 시 휘발했음.
  */
 export default function ProfilePage() {
   const { showToast } = useToastStore();
