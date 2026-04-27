@@ -7,6 +7,35 @@
 /** 제안서 1건 발송 시 차감 크레딧 */
 export const CREDIT_COST = 3;
 
+/** @unit KRW 원. 화면 입력/표시는 만원 단위를 쓰며 API/DB wire 값은 원 단위다. */
+export const PRICE_MAN_UNIT = 10000;
+
+export function manToKrw(value: number): number {
+  return Math.round(value * PRICE_MAN_UNIT);
+}
+
+export function krwToMan(value: number): number {
+  return Math.round(value / PRICE_MAN_UNIT);
+}
+
+export function formatKrwAsMan(value: number): string {
+  return `${krwToMan(value).toLocaleString('ko-KR')}만원`;
+}
+
+/**
+ * 입력 콤마 포맷 — input 표시용.
+ * 0 또는 음수면 빈 문자열 (placeholder 노출).
+ */
+export function formatNumberWithComma(value: number): string {
+  return value > 0 ? value.toLocaleString('ko-KR') : '';
+}
+
+/** 콤마/non-digit 제거 후 number. 빈 입력은 0. */
+export function parseNumberFromInput(s: string): number {
+  const digits = s.replace(/[^\d]/g, '');
+  return digits ? parseInt(digits, 10) : 0;
+}
+
 // ── 뱃지 색상 타입 ──
 export interface BadgeColor {
   bg: string;

@@ -6,6 +6,7 @@ import { Building2, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { Button } from '@hyliren/ui';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
+import { toUserMessage } from '@/lib/api/error-messages';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -45,7 +46,7 @@ function PartnerLoginForm() {
       showToast('로그인되었습니다.', 'success');
       router.replace(next);
     } catch (err) {
-      const message = err instanceof Error ? err.message : '로그인에 실패했습니다';
+      const message = toUserMessage(err, '로그인에 실패했습니다');
       showToast(message, 'error');
     } finally {
       setSubmitting(false);
@@ -124,7 +125,7 @@ function PartnerLoginForm() {
           </label>
 
           <Button
-            variant="accent"
+            variant="primary"
             size="md"
             type="submit"
             disabled={submitting || !email || !password || !!emailError}

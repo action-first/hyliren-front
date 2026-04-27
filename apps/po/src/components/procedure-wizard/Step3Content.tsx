@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Input, Textarea, Button } from '@hyliren/ui';
-import { X, Plus } from 'lucide-react';
+import { Input, Textarea, Button, SectionHeader } from '@hyliren/ui';
+import { X, Plus, AlertTriangle } from 'lucide-react';
 import type { Locale } from '@hyliren/shared';
 import { LocaleTabs } from './LocaleTabs';
 import type { WizardForm } from '@/lib/wizard/types';
@@ -42,25 +42,30 @@ export function Step3Content({ form, onChange }: Step3Props) {
     updateBlock({ indications: block.indications.filter((_, i) => i !== idx) });
   }
 
-  function setGalleryUrl(idx: number, url: string) {
-    const next = [...form.galleryImageUrls];
-    if (url) next[idx] = url;
-    else next.splice(idx, 1);
-    onChange({ galleryImageUrls: next });
+  const [pendingUrl, setPendingUrl] = useState('');
+  const [adding, setAdding] = useState(false);
+
+  function removeGalleryAt(i: number) {
+    onChange({ galleryImageUrls: form.galleryImageUrls.filter((_, idx) => idx !== i) });
   }
 
-  function addGalleryUrl() {
+  function commitPendingUrl() {
+    const u = pendingUrl.trim();
+    setPendingUrl('');
+    setAdding(false);
+    if (!u) return;
     if (form.galleryImageUrls.length >= 8) return;
-    onChange({ galleryImageUrls: [...form.galleryImageUrls, ''] });
+    onChange({ galleryImageUrls: [...form.galleryImageUrls, u] });
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <section>
-        <h2 className="text-[14px] font-bold text-[var(--color-text)] mb-1">상세 콘텐츠</h2>
-        <p className="text-[12px] text-[var(--color-text-dim)] mb-3">
-          시술 개요, 필수 고지, 적응증을 각 언어별로 입력합니다.
-        </p>
+    <div className="flex flex-col gap-6">
+      <div>
+        <SectionHeader
+          title="시술 콘텐츠"
+          subtitle="언어별로 시술 설명·고지 사항·적응증을 입력합니다. 한 언어 탭만 입력해도 나머지 언어는 자동 fallback 됩니다."
+        />
+        <div className="mt-3" />
         <LocaleTabs
           active={activeLocale}
           sourceLocale={form.sourceLocale}
@@ -85,17 +90,17 @@ export function Step3Content({ form, onChange }: Step3Props) {
           />
 
           <div>
-            <label className="block text-[12px] font-semibold text-[var(--color-text-dim)] mb-1">
+            <label className="block text-[var(--text-xs)] font-semibold text-[var(--text-disabled)] mb-1">
               적응증 (최대 5개)
             </label>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {block.indications.map((ind, i) => (
-                <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--color-bg-tertiary,#f3f4f6)] text-[11px]">
+                <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--surface-subdued)] text-[var(--app-text-micro)]">
                   {ind}
                   <button
                     type="button"
                     onClick={() => removeIndication(i)}
-                    className="text-[var(--color-text-dim)] hover:text-[var(--color-danger)]"
+                    className="text-[var(--text-disabled)] hover:text-[var(--color-danger)]"
                   >
                     <X size={11} />
                   </button>
@@ -118,38 +123,86 @@ export function Step3Content({ form, onChange }: Step3Props) {
             )}
           </div>
         </div>
-      </section>
+      </div>
 
-      <section>
-        <h2 className="text-[14px] font-bold text-[var(--color-text)] mb-1">갤러리 이미지</h2>
-        <p className="text-[12px] text-[var(--color-text-dim)] mb-3">
-          최대 8장. <strong>시술 전/후 비교 이미지 등록 금지</strong> — 시설·과정·의료진 이미지만.
-        </p>
-        <div className="flex flex-col gap-2">
+      <div>
+        <SectionHeader
+          title="갤러리 이미지"
+          subtitle="시설·시술 과정·의료진 이미지로 구성합니다. 최대 8장까지 등록 가능합니다."
+          action={
+            <span className="text-[var(--app-text-micro)] text-[var(--text-subdued)]">
+              {form.galleryImageUrls.length}/8
+            </span>
+          }
+        />
+        <div className="mt-2 mb-3 flex items-start gap-2 p-2.5 rounded-[var(--app-radius-sm)] bg-[var(--color-warning-soft)]">
+          <AlertTriangle size={14} className="text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
+          <p className="text-[var(--text-xs)] text-[var(--text-default)] leading-relaxed">
+            <strong className="font-semibold">의료법상 시술 전/후 비교 이미지 등록 금지.</strong> 위반 시 행정 처분 대상이 될 수 있습니다.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-5 gap-2">
           {form.galleryImageUrls.map((url, i) => (
-            <div key={i} className="flex gap-2 items-start">
-              <Input
-                value={url}
-                onChange={e => setGalleryUrl(i, e.target.value)}
-                placeholder="https://…"
-                className="flex-1"
-              />
+            <div
+              key={i}
+              className="
+                relative group aspect-square rounded-md overflow-hidden
+                border border-[var(--border-default)] bg-[var(--surface-subdued)]
+              "
+            >
+              <img src={url} alt="" className="w-full h-full object-cover" />
               <button
                 type="button"
-                onClick={() => setGalleryUrl(i, '')}
-                className="p-2 text-[var(--color-text-dim)] hover:text-[var(--color-danger)]"
+                onClick={() => removeGalleryAt(i)}
+                title="삭제"
+                className="
+                  absolute top-1 right-1 p-1 rounded-full
+                  bg-black/55 text-white opacity-0 group-hover:opacity-100
+                  transition-opacity
+                "
               >
-                <X size={14} />
+                <X size={11} />
               </button>
             </div>
           ))}
+
           {form.galleryImageUrls.length < 8 && (
-            <Button variant="secondary" size="sm" onClick={addGalleryUrl}>
-              <Plus size={13} /> 이미지 URL 추가
-            </Button>
+            adding ? (
+              <div className="aspect-square rounded-md border border-dashed border-[var(--interactive-default)] bg-white flex flex-col items-center justify-center p-2 gap-1">
+                <Input
+                  autoFocus
+                  value={pendingUrl}
+                  onChange={e => setPendingUrl(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') { e.preventDefault(); commitPendingUrl(); }
+                    if (e.key === 'Escape') { setPendingUrl(''); setAdding(false); }
+                  }}
+                  onBlur={commitPendingUrl}
+                  placeholder="https://…"
+                  className="w-full text-[var(--app-text-micro)]"
+                />
+                <span className="text-[10px] text-[var(--text-disabled)]">Enter: 추가 · Esc: 취소</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setAdding(true)}
+                className="
+                  aspect-square rounded-md border border-dashed border-[var(--border-default)]
+                  flex flex-col items-center justify-center gap-1
+                  text-[var(--text-disabled)] hover:text-[var(--interactive-default)]
+                  hover:border-[var(--interactive-default)] hover:bg-[var(--color-info-soft)]
+                  transition-colors
+                "
+              >
+                <Plus size={20} />
+                <span className="text-[var(--app-text-micro)]">이미지 추가</span>
+              </button>
+            )
           )}
         </div>
-      </section>
+      </div>
     </div>
   );
 }

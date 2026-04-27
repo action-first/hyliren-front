@@ -26,14 +26,10 @@ import { AuthModal } from '@/components/auth/AuthModal';
 
 export default function DashboardPage() {
   const t = useLocaleStore(s => s.t);
-  const userId = useAuthStore(s => s.user?.id) ?? 'u-001';
+  const userId = useAuthStore(s => s.user?.id);
   const [showAuth, setShowAuth] = useState(false);
   useRequireAuth(useCallback(() => setShowAuth(true), []));
 
-  // yj.jung 의 useMyConcerns 훅이 /api/v1/concerns 를 호출해 서버 공유 data-store
-  // (MOCK seed + 사용자가 새로 등록한 concern 포함) 를 단일 소스로 반환한다.
-  // 기존에 MOCK_CONCERNS + localStorage (useUserConcernsStore) 를 합치던 구조는
-  // "새 고민이 대시보드에 안 보임" 버그의 원인 — 제거.
   const { concerns: apiConcerns, loading: concernsLoading } = useMyConcerns();
   const userConcerns = apiConcerns.filter(c => !c.deletedAt);
 
@@ -59,7 +55,7 @@ export default function DashboardPage() {
     : null;
 
   useEffect(() => {
-    if (!dashboardPhase) return;
+    if (!dashboardPhase || !userId) return;
     // targetType 'user' 는 DB event_target_type enum (concern/proposal/order/member) 에 없음 → userId 는 metadata 로 이관.
     track({ eventType: 'dashboard_viewed', actorType: 'user', metadata: { source: 'fo', locale: 'ko', value: dashboardPhase, userId } });
   }, [dashboardPhase, userId]);
@@ -201,7 +197,7 @@ function DashboardHero({ phase, state }: { phase: string; state: DashboardState 
         {config.subtitle}
       </p>
       <Link href={config.ctaHref} className="no-underline">
-        <Button variant="accent" size="xl" fullWidth>
+        <Button variant="primary" size="xl" fullWidth>
           {config.cta}
           <ArrowRight size={16} />
         </Button>
@@ -301,10 +297,11 @@ function ConcernStatusCard({
 
 function WaitingStatePanel({ bodyArea }: { bodyArea: string }) {
   const t = useLocaleStore(s => s.t);
-  const waitUserId = useAuthStore(s => s.user?.id) ?? 'u-001';
+  const waitUserId = useAuthStore(s => s.user?.id);
   useEffect(() => {
+    if (!waitUserId) return;
     track({ eventType: 'waiting_panel_viewed', actorType: 'user', metadata: { source: 'fo', locale: 'ko', userId: waitUserId } });
-  }, []);
+  }, [waitUserId]);
 
   return (
     <section className="mt-7">

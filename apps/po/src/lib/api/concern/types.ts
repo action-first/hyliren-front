@@ -9,6 +9,8 @@ export interface ConcernSummaryWire {
   status: string;
   source: string;
   description: string;
+  /** 접수자(고민 작성자) 이름. */
+  userName: string;
   primaryArea: string;
   bodyAreas: string[];
   bodyAreaDetail: string | null;
@@ -17,6 +19,8 @@ export interface ConcernSummaryWire {
   visitDateFrom: string | null;
   visitDateTo: string | null;
   proposalCount: number;
+  /** 본인(요청 partner) 활성 제안서 발송일. 미발송이면 null. */
+  mySentAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

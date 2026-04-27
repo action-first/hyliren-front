@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import './globals.css';
 import Toast from '@/components/common/Toast';
+import { QueryProvider } from '@/components/common/QueryProvider';
 import { PartnerSessionBootstrap } from '@/components/auth/PartnerSessionBootstrap';
 import { PartnerAuthGate } from '@/components/auth/PartnerAuthGate';
 
@@ -17,11 +18,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="stylesheet" as="style" crossOrigin="anonymous" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
       </head>
       <body>
-        <PartnerSessionBootstrap />
-        <Suspense fallback={null}>
-          <PartnerAuthGate>{children}</PartnerAuthGate>
-        </Suspense>
-        <Toast />
+        <QueryProvider>
+          <PartnerSessionBootstrap />
+          <Suspense fallback={null}>
+            <PartnerAuthGate>{children}</PartnerAuthGate>
+          </Suspense>
+          <Toast />
+        </QueryProvider>
       </body>
     </html>
   );

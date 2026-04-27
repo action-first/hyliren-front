@@ -67,7 +67,8 @@ export type VariantInput = z.infer<typeof variantSchema>;
  * 가격·이미지·variant name 등 나머지 필수 조건은 status='published' 로 공개할 때만 강제.
  */
 export const createProcedureSchema = z.object({
-  memberId: z.string().min(1),
+  // memberId 제거됨 — backend 가 JWT 의 req.user.memberId 를 자동 주입.
+  // body 에 보내면 partner CreateProcedureRequestDto whitelist 위반 (400).
 
   /* Base 식별·분류·미디어 */
   slug: z.string().min(3).max(120).regex(/^[a-z0-9-]+$/).optional(),

@@ -31,24 +31,24 @@ export function StepProgress({ steps, activeIndex, onStepClick }: StepProgressPr
             className={`
               flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-colors
               ${isActive
-                ? 'bg-[var(--color-primary-soft,#fde7e4)] text-[var(--color-text)]'
+                ? 'bg-[var(--color-info-soft)] text-[var(--text-default)]'
                 : reachable
-                  ? 'text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]'
-                  : 'text-[var(--color-text-dim)]'}
+                  ? 'text-[var(--text-default)] hover:bg-[var(--surface-default)]'
+                  : 'text-[var(--text-disabled)]'}
               ${onStepClick ? 'cursor-pointer' : 'cursor-default'}
             `}
           >
             <span className={`
-              flex items-center justify-center w-6 h-6 rounded-full text-[11px] font-semibold shrink-0
+              flex items-center justify-center w-6 h-6 rounded-full text-[var(--app-text-micro)] font-semibold shrink-0
               ${isActive
-                ? 'bg-[var(--color-primary)] text-white'
+                ? 'bg-[var(--interactive-default)] text-white'
                 : step.done
-                  ? 'bg-[var(--color-success,#16a34a)] text-white'
-                  : 'bg-[var(--color-bg-tertiary,#f3f4f6)] text-[var(--color-text-dim)]'}
+                  ? 'bg-[var(--color-success)] text-white'
+                  : 'bg-[var(--surface-subdued)] text-[var(--text-disabled)]'}
             `}>
               {step.done && !isActive ? <Check size={13} /> : i + 1}
             </span>
-            <span className="text-[13px] font-medium">{step.label}</span>
+            <span className="text-[var(--text-sm)] font-medium">{step.label}</span>
           </button>
         );
       })}

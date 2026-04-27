@@ -31,18 +31,66 @@ export interface DataGridProps<T> {
   defaultColDef?: ColDef<T>;
   title?: string;
   actions?: React.ReactNode;
+  /**
+   * 검색 버튼 클릭 또는 Enter / 초기화 시 호출. 지정하면 server-side fetch 트리거 의도.
+   * 미지정 시 클라이언트 필터링(rowData on appliedFilters)만 동작.
+   */
+  onSearch?: (filters: Record<string, string>) => void;
+}
+
+// ── dateRange 디폴트: 최근 30일 ──
+function getDefaultDateRange() {
+  const today = new Date();
+  const monthAgo = new Date();
+  monthAgo.setMonth(today.getMonth() - 1);
+  return { from: monthAgo, to: today };
+}
+
+function fmtISO(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+// row cell 의 다양한 날짜 포맷(ISO / "2026. 4. 26." / "2026.04.26" 등)을 Date 로 정규화
+function parseDate(s: string): Date | null {
+  if (!s) return null;
+  const m = s.match(/(\d{4})[.\-/]\s*(\d{1,2})[.\-/]\s*(\d{1,2})/);
+  if (m) {
+    const [, y, mo, d] = m;
+    return new Date(+y, +mo - 1, +d);
+  }
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
 }
 
 export function DataGrid<T>({
   columnDefs, rowData, searchFields, height,
   exportFileName = 'export', onRowClick, defaultColDef: userDefaultColDef,
-  title, actions,
+  title, actions, onSearch,
 }: DataGridProps<T>) {
   const gridRef = useRef<AgGridReact<T>>(null);
   const [gridApi, setGridApi] = useState<GridApi<T> | null>(null);
-  const [searchValues, setSearchValues] = useState<Record<string, string>>({});
-  const [dateFrom, setDateFrom] = useState<Date | null>(null);
-  const [dateTo, setDateTo] = useState<Date | null>(null);
+
+  const dateRangeField = useMemo(
+    () => searchFields?.find(f => f.type === 'dateRange'),
+    [searchFields],
+  );
+
+  // 디폴트 필터값(최근 한달) — 페이지 진입 즉시 적용된 상태
+  const buildDefaultFilters = useCallback((): Record<string, string> => {
+    if (!dateRangeField) return {};
+    const { from, to } = getDefaultDateRange();
+    return {
+      [`${dateRangeField.key}_from`]: fmtISO(from),
+      [`${dateRangeField.key}_to`]: fmtISO(to),
+    };
+  }, [dateRangeField]);
+
+  // formValues = 폼 입력 중 (검색 버튼 누르기 전)
+  // appliedFilters = 실제 필터링에 사용되는 적용된 값
+  const [formValues, setFormValues] = useState<Record<string, string>>(buildDefaultFilters);
+  const [appliedFilters, setAppliedFilters] = useState<Record<string, string>>(buildDefaultFilters);
+  const [dateFrom, setDateFrom] = useState<Date | null>(() => dateRangeField ? getDefaultDateRange().from : null);
+  const [dateTo, setDateTo] = useState<Date | null>(() => dateRangeField ? getDefaultDateRange().to : null);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportMode, setExportMode] = useState<'all' | 'filtered' | 'selected'>('all');
 
@@ -74,20 +122,25 @@ export function DataGrid<T>({
   }, [gridApi]);
 
   const filteredData = useMemo(() => {
-    const hasSearch = Object.values(searchValues).some(v => v.trim());
-    if (!hasSearch) return rowData;
+    const hasFilter = Object.values(appliedFilters).some(v => v.trim());
+    if (!hasFilter) return rowData;
     return rowData.filter(row => {
       const rec = row as Record<string, unknown>;
-      return Object.entries(searchValues).every(([key, value]) => {
+      return Object.entries(appliedFilters).every(([key, value]) => {
         if (!value.trim()) return true;
-        // 기간 필터 (dateFrom / dateTo)
+        // 기간 필터 (dateFrom / dateTo) — Date 정규화 비교
         if (key.endsWith('_from') || key.endsWith('_to')) {
           const baseKey = key.replace(/_from$|_to$/, '');
-          const cellValue = String(rec[baseKey] ?? '');
-          if (!cellValue) return true;
-          if (key.endsWith('_from') && value) return cellValue >= value;
-          if (key.endsWith('_to') && value) return cellValue <= value;
-          return true;
+          const raw = rec[baseKey];
+          if (raw == null || raw === '') return true;
+          const cellDate = parseDate(String(raw));
+          const filterDate = parseDate(value);
+          if (!cellDate || !filterDate) return true;
+          if (key.endsWith('_from')) return cellDate.getTime() >= filterDate.getTime();
+          // _to 는 해당 일 23:59:59.999 까지 포함
+          const endOfDay = new Date(filterDate);
+          endOfDay.setHours(23, 59, 59, 999);
+          return cellDate.getTime() <= endOfDay.getTime();
         }
         // 키워드 통합 검색
         if (key === '_keyword') {
@@ -97,12 +150,42 @@ export function DataGrid<T>({
         return String(rec[key] ?? '').toLowerCase().includes(value.toLowerCase());
       });
     });
-  }, [rowData, searchValues]);
+  }, [rowData, appliedFilters]);
 
-  function handleSearch(key: string, value: string) {
-    setSearchValues(prev => ({ ...prev, [key]: value }));
+  function handleFieldChange(key: string, value: string) {
+    setFormValues(prev => ({ ...prev, [key]: value }));
   }
-  function handleReset() { setSearchValues({}); setDateFrom(null); setDateTo(null); }
+
+  function handleSearchClick() {
+    const next = { ...formValues };
+    setAppliedFilters(next);
+    // 시각적 새로고침 — 그리드 셀 다시 그리기
+    if (gridApi) {
+      gridApi.refreshCells({ force: true });
+    }
+    // server-side fetch 트리거 (onSearch 지정된 페이지)
+    if (onSearch) {
+      onSearch(next);
+    }
+  }
+
+  function handleReset() {
+    const defaults = buildDefaultFilters();
+    setFormValues(defaults);
+    setAppliedFilters(defaults);
+    if (dateRangeField) {
+      const { from, to } = getDefaultDateRange();
+      setDateFrom(from);
+      setDateTo(to);
+    } else {
+      setDateFrom(null);
+      setDateTo(null);
+    }
+    if (onSearch) {
+      onSearch(defaults);
+    }
+  }
+
   function handleExportClick() {
     setShowExportModal(true);
   }
@@ -113,7 +196,6 @@ export function DataGrid<T>({
     } else if (exportMode === 'filtered') {
       gridApi.exportDataAsCsv({ fileName: exportFileName, processCellCallback: p => p.value ?? '' });
     } else {
-      // all — 필터 무시, 전체 데이터
       gridApi.exportDataAsCsv({ fileName: exportFileName, allColumns: true, processCellCallback: p => p.value ?? '' });
     }
     setShowExportModal(false);
@@ -129,7 +211,7 @@ export function DataGrid<T>({
   function handleDateChange(key: string, type: 'from' | 'to', date: Date | null) {
     if (type === 'from') setDateFrom(date);
     else setDateTo(date);
-    handleSearch(`${key}_${type}`, date ? date.toISOString().slice(0, 10) : '');
+    handleFieldChange(`${key}_${type}`, date ? fmtISO(date) : '');
   }
 
   function renderField(field: SearchField) {
@@ -170,7 +252,7 @@ export function DataGrid<T>({
       return (
         <div key={field.key} className="datagrid-search-group datagrid-search-group--fixed">
           <label>{field.label}</label>
-          <select value={searchValues[field.key] || ''} onChange={e => handleSearch(field.key, e.target.value)}>
+          <select value={formValues[field.key] || ''} onChange={e => handleFieldChange(field.key, e.target.value)}>
             <option value="">전체</option>
             {field.options?.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
           </select>
@@ -182,7 +264,13 @@ export function DataGrid<T>({
         <label>{field.label}</label>
         <div className="search-input-with-icon">
           <Search size={14} />
-          <input type="text" placeholder={field.placeholder || '검색'} value={searchValues[field.key] || ''} onChange={e => handleSearch(field.key, e.target.value)} />
+          <input
+            type="text"
+            placeholder={field.placeholder || '검색'}
+            value={formValues[field.key] || ''}
+            onChange={e => handleFieldChange(field.key, e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearchClick(); } }}
+          />
         </div>
       </div>
     );
@@ -208,7 +296,7 @@ export function DataGrid<T>({
             </div>
             {/* 버튼 영역 — 우측 하단 정렬 */}
             <div className="datagrid-search-actions">
-              <button type="button" className="datagrid-btn datagrid-btn--primary" onClick={() => {}}>
+              <button type="button" className="datagrid-btn datagrid-btn--primary" onClick={handleSearchClick}>
                 <Search size={14} /> 검색
               </button>
               <button type="button" className="datagrid-btn" onClick={handleReset}>

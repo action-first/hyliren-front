@@ -78,7 +78,7 @@ export function ReportNudgeSheet({ concernId, proposalId, delay = 5000 }: Props)
           </div>
 
           {/* CTA */}
-          <Button variant="accent" size="xl" fullWidth onClick={handleClick}>
+          <Button variant="primary" size="xl" fullWidth onClick={handleClick}>
             {t('nudge.cta')}
           </Button>
           <p className="text-center text-[10px] text-[var(--color-text-dim)] mt-2">

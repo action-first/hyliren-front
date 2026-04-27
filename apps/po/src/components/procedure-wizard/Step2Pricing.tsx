@@ -1,8 +1,9 @@
 'use client';
 
-import { Input, Select, Button } from '@hyliren/ui';
+import { Input, Select, Button, SectionHeader } from '@hyliren/ui';
 import { Plus } from 'lucide-react';
 import type { AnesthesiaType } from '@hyliren/shared';
+import { formatNumberWithComma, parseNumberFromInput } from '@hyliren/shared';
 import { VariantCard } from './VariantCard';
 import { emptyVariant } from '@/lib/wizard/defaults';
 import type { WizardForm, WizardVariant } from '@/lib/wizard/types';
@@ -53,19 +54,27 @@ export function Step2Pricing({ form, onChange }: Step2Props) {
   return (
     <div className="flex flex-col gap-6">
       {/* 기본값 */}
-      <section>
-        <h2 className="text-[14px] font-bold text-[var(--color-text)] mb-1">기본값</h2>
-        <p className="text-[12px] text-[var(--color-text-dim)] mb-3">
-          옵션마다 다른 값이 필요하면 각 옵션 카드에서 개별 설정할 수 있습니다.
-        </p>
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="기본 가격 (원) *"
-            type="number"
-            value={form.basePrice || ''}
-            onChange={e => onChange({ basePrice: Number(e.target.value) || 0 })}
-            placeholder="예: 1500000"
-          />
+      <div>
+        <SectionHeader
+          title="기본값"
+          subtitle="모든 옵션이 공통으로 갖는 시술 정보입니다. 옵션별로 다른 값이 필요하면 아래 옵션 카드에서 개별 설정할 수 있습니다."
+        />
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          {/* 기본 가격 — 콤마 포맷 + '원' 단위 inline */}
+          <div className="input-wrapper">
+            <label className="input-label">기본 가격 *</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={formatNumberWithComma(form.basePrice)}
+                onChange={e => onChange({ basePrice: parseNumberFromInput(e.target.value) })}
+                placeholder="0"
+                className="input-field flex-1 text-right tabular-nums"
+              />
+              <span className="text-[var(--text-sm)] text-[var(--text-subdued)] flex-shrink-0">원</span>
+            </div>
+          </div>
           <Select
             label="기본 마취 *"
             value={form.baseAnesthesia}
@@ -91,23 +100,20 @@ export function Step2Pricing({ form, onChange }: Step2Props) {
             onChange={e => onChange({ baseHospitalStayDays: Number(e.target.value) || 0 })}
           />
         </div>
-      </section>
+      </div>
 
       {/* Variants */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h2 className="text-[14px] font-bold text-[var(--color-text)]">시술 옵션</h2>
-            <p className="text-[12px] text-[var(--color-text-dim)] mt-0.5">
-              예: 쌍꺼풀 → 매몰/부분절개/절개. 최소 1개, 대표 옵션 1개 선택.
-            </p>
-          </div>
-          <Button variant="secondary" size="sm" onClick={addVariant}>
-            <Plus size={13} /> 옵션 추가
-          </Button>
-        </div>
-
-        <div className="flex flex-col gap-3">
+      <div>
+        <SectionHeader
+          title="시술 옵션"
+          subtitle="같은 시술의 여러 변형을 등록합니다. 예: 쌍꺼풀 → 매몰 / 부분절개 / 절개. 최소 1개 등록, 대표 옵션 1개를 지정해주세요."
+          action={
+            <Button variant="secondary" size="sm" onClick={addVariant}>
+              <Plus size={13} /> 옵션 추가
+            </Button>
+          }
+        />
+        <div className="flex flex-col gap-3 mt-3">
           {form.variants
             .slice()
             .sort((a, b) => a.sortOrder - b.sortOrder)
@@ -124,7 +130,7 @@ export function Step2Pricing({ form, onChange }: Step2Props) {
               />
             ))}
         </div>
-      </section>
+      </div>
     </div>
   );
 }

@@ -252,7 +252,7 @@ export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {
       )}
 
       <div className="mt-auto flex flex-col gap-2 pb-2">
-        <Button variant="accent" size="xl" fullWidth onClick={handleConfirm}>
+        <Button variant="primary" size="xl" fullWidth onClick={handleConfirm}>
           {t('consult.confirmCta')}
           <ArrowRight size={18} />
         </Button>

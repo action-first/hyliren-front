@@ -85,13 +85,13 @@
   --app-text-micro: 11px;
 
   /* ── Input ── */
-  --input-height: 32px;
+  --input-height: 36px;          /* 32 → 36 (납작 인상 해소, vertical breathing 확보) */
   --input-bg: var(--surface-default);
   --input-bg-disabled: var(--surface-subdued);
   --input-border: var(--border-default);
   --input-border-focus: var(--interactive-default);
   --input-focus-ring: rgba(44, 110, 203, 0.15);
-  --input-radius: 4px;
+  --input-radius: 6px;            /* 4 → 6 (각진 인상 완화) */
 
   /* ── Typography hierarchy ── */
   --app-text-page-title: var(--app-text-xl);       /* 20px — 페이지 헤더 */

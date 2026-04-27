@@ -71,7 +71,7 @@ export function CompareIntentModal({ prices, hospitalNames, onClose, onProceedTo
           </div>
 
           {/* CTA */}
-          <Button variant="accent" size="xl" fullWidth onClick={handleProceed}>
+          <Button variant="primary" size="xl" fullWidth onClick={handleProceed}>
             {t('compare.cta')}
           </Button>
           <p className="text-center text-[10px] text-[var(--color-text-dim)] mt-2">

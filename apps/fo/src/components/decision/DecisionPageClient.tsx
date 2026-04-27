@@ -114,7 +114,7 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
           {t('decision.emptyDesc')}
         </p>
         <Link href="/consult" className="no-underline">
-          <Button variant="accent" size="lg">
+          <Button variant="primary" size="lg">
             {t('decision.emptyCta')}
             <ArrowRight size={18} />
           </Button>

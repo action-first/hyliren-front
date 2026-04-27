@@ -4,13 +4,17 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "lint": "turbo lint"
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck"
   },
   "devDependencies": {
     "@types/react-datepicker": "^7.0.0",
     "turbo": "^2"
   },
   "packageManager": "pnpm@10.32.1",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
     "ag-grid-community": "^35.2.1",
     "ag-grid-react": "^35.2.1",

@@ -283,12 +283,12 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
           {/* Sticky CTA */}
           <div className="sticky bottom-0 bg-[var(--color-bg)] border-t border-[var(--color-border-light)] px-5 py-4">
             {purchased ? (
-              <Button variant="primary" size="xl" fullWidth onClick={() => { onClose(); router.push(`/mypage/reports/${proposal.id}`); }}>
+              <Button variant="neutral" size="xl" fullWidth onClick={() => { onClose(); router.push(`/mypage/reports/${proposal.id}`); }}>
                 리포트 상세 보기
               </Button>
             ) : (
               <>
-                <Button variant="accent" size="xl" fullWidth onClick={handlePurchase}>
+                <Button variant="primary" size="xl" fullWidth onClick={handlePurchase}>
                   {t('report.singleCta')}
                 </Button>
                 <p className="text-center text-[10px] text-[var(--color-text-dim)] mt-1.5">

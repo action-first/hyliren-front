@@ -7,7 +7,6 @@ import { ArrowRight, Camera, MessageCircle, FileText, ChevronRight, ShieldCheck,
 import { ARTICLES } from '@/lib/articles-data';
 import { getAreaBar } from '@/lib/area-styles';
 import { useLocaleStore } from '@/store/locale';
-import { useUserConcernsStore } from '@/store/user-concerns';
 import { useMyConcerns } from '@/lib/hooks/concern';
 import { listProcedures } from '@/lib/api/procedure';
 import type { ProcedureListItemWire } from '@/lib/api/procedure';
@@ -26,11 +25,7 @@ const CONCERN_DEFS = [
 export default function HomePage() {
   const t = useLocaleStore(s => s.t);
   const { concerns: apiConcerns } = useMyConcerns();
-  const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
-  const userConcerns = [
-    ...apiConcerns.filter(c => !c.deletedAt && c.status !== 'draft'),
-    ...userCreatedConcerns,
-  ];
+  const userConcerns = apiConcerns.filter(c => !c.deletedAt && c.status !== 'draft');
 
   const [popularProcedures, setPopularProcedures] = useState<ProcedureListItemWire[]>([]);
   const [proceduresLoading, setProceduresLoading] = useState(true);
@@ -83,7 +78,7 @@ export default function HomePage() {
         {/* CTA — 히어로 하단 상시 노출 */}
         <div className="px-5 pt-4 pb-8">
           <Link href="/consult" className="w-full no-underline block">
-            <Button variant="accent" size="xl" fullWidth>
+            <Button variant="primary" size="xl" fullWidth>
               {t('landing.cta')}
               <ArrowRight size={18} />
             </Button>
@@ -308,7 +303,7 @@ function ProposalArrivedSheet({ count }: { count: number }) {
       </div>
 
       <Link href="/decision" className="no-underline block">
-        <Button variant="accent" size="xl" fullWidth>
+        <Button variant="primary" size="xl" fullWidth>
           제안 확인하기
           <ArrowRight size={18} />
         </Button>

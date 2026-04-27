@@ -23,6 +23,8 @@ export {
   LOCALES,
   DEFAULT_SOURCE_LOCALE,
   PROCEDURE_TYPES,
+  PROCEDURE_TYPE_AREAS,
+  proceduresByArea,
   PROCEDURE_STATUSES,
 } from './enums';
 
@@ -56,6 +58,12 @@ export type {
 // Display — 한글 라벨, 뱃지 색상, 포맷 유틸
 export {
   CREDIT_COST,
+  PRICE_MAN_UNIT,
+  manToKrw,
+  krwToMan,
+  formatKrwAsMan,
+  formatNumberWithComma,
+  parseNumberFromInput,
   CONCERN_STATUS_KR,
   CONCERN_STATUS_BADGE,
   PROPOSAL_STATUS_KR,

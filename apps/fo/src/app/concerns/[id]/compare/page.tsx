@@ -13,7 +13,6 @@ import { ReportNudgeSheet } from '@/components/decision/ReportNudgeSheet';
 import { CompareReport } from '@/components/decision/CompareReport';
 import { useDecisionStore } from '@/store/decision';
 import { useLocaleStore } from '@/store/locale';
-import { useUserConcernsStore } from '@/store/user-concerns';
 import { useConcern } from '@/lib/hooks/concern';
 import { useProposalsForConcern, type ProposalWithHospital } from '@/lib/hooks/proposal';
 import { use } from 'react';
@@ -26,13 +25,10 @@ export default function ComparePage({ params }: Props) {
   const { id } = use(params);
 
   // ── Hooks 는 early return 이전에 모두 호출한다 (React 규칙). ──
-  const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
-  const { concern: apiConcern } = useConcern(id);
+  const { concern } = useConcern(id);
   const { proposals: apiProposals, items: apiItems, loading } = useProposalsForConcern(id);
   const { selectedProposalIds, toggleSelect } = useDecisionStore();
   const [showCompareReport, setShowCompareReport] = useState(false);
-
-  const concern = apiConcern || userCreatedConcerns.find(c => c.id === id);
 
   const proposals: ProposalWithHospital[] = apiProposals
     .filter(p => p.isActive && p.status !== 'draft')
@@ -255,7 +251,7 @@ export default function ComparePage({ params }: Props) {
             <p className="text-[11px] text-[var(--color-text-dim)] leading-relaxed mb-3">
               {t('proposal.compare.analysisDesc')}
             </p>
-            <Button variant="accent" size="md" fullWidth
+            <Button variant="primary" size="md" fullWidth
               onClick={() => {
                 track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: 'compare_page' } });
                 setShowCompareReport(true);
@@ -272,7 +268,7 @@ export default function ComparePage({ params }: Props) {
       {/* ── Sticky CTA ── */}
       <MobileBottomCTA>
         {selectedId ? (
-          <Button variant="primary" fullWidth size="xl"
+          <Button variant="neutral" fullWidth size="xl"
             onClick={async () => {
               track({ eventType: 'hospital_selected', actorType: 'user', targetType: 'proposal', targetId: selectedId, metadata: { source: 'fo', locale: 'ko', label: concern.primaryArea } });
               await useDecisionStore.getState().selectHospital(concern.id, selectedId);

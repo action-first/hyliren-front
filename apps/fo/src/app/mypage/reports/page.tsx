@@ -80,7 +80,7 @@ export default function PurchasedReportsPage() {
             상담함에서 제안을 선택하고 검증 리포트를 구매해보세요
           </p>
           <Link href="/decision" className="no-underline">
-            <Button variant="accent" size="md">
+            <Button variant="primary" size="md">
               상담함 가기 <ArrowRight size={14} />
             </Button>
           </Link>

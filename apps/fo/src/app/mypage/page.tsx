@@ -21,9 +21,6 @@ export default function MyPage() {
   const { locale, setLocale, t } = useLocaleStore();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  // dashboard 와 동일한 서버 공유 data-store 소스를 사용해
-  // /consult 직후 제출한 새 고민이 /mypage 에도 반영되도록 한다.
-  // MOCK_CONCERNS 직접 import 시 사용자 신규 등록이 누락되어 지난 dashboard 건과 동일한 버그 재발.
   const { concerns: apiConcerns, loading: concernsLoading } = useMyConcerns();
   const [proposals, setProposals] = useState<Proposal[] | null>(null);
   useEffect(() => {
@@ -47,7 +44,7 @@ export default function MyPage() {
           <p className="text-[12px] text-[var(--color-text-dim)] text-center mb-2">
             상담 등록 후 자동으로 로그인 화면이 안내됩니다
           </p>
-          <Button variant="accent" size="xl" onClick={() => setShowAuthModal(true)}>
+          <Button variant="primary" size="xl" onClick={() => setShowAuthModal(true)}>
             로그인 / 회원가입
           </Button>
         </div>
@@ -120,7 +117,7 @@ export default function MyPage() {
           <div className="text-center py-8">
             <p className="text-[13px] text-[var(--color-text-dim)] mb-3">{t('mypage.noConcerns')}</p>
             <Link href="/consult" className="no-underline">
-              <Button variant="accent" size="md">{t('mypage.registerConcern')}</Button>
+              <Button variant="primary" size="md">{t('mypage.registerConcern')}</Button>
             </Link>
           </div>
         ) : (

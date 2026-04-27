@@ -6,7 +6,6 @@ import { Badge } from '@hyliren/ui';
 import { ChevronDown, ChevronUp, Banknote, Calendar } from 'lucide-react';
 import { SelectableProposalCard } from './SelectableProposalCard';
 import { useDecisionStore } from '@/store/decision';
-import { VALUE_PROPS } from '@/lib/constants';
 import { STATUS_LABELS, STATUS_COLORS } from '@/domain/lifecycle';
 
 import { AREA_ACCENT } from '@/lib/area-styles';
@@ -39,7 +38,7 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
         key={p.id}
         hospitalName={profile?.hospitalName || ''}
         verified={profile?.verified || false}
-        valueProp={VALUE_PROPS[p.memberId] || profile?.description || ''}
+        valueProp={profile?.description || ''}
         price={p.totalPrice}
         meta={meta}
         coverTags={proposalItems.slice(0, 2).map(i => i.treatmentName)}

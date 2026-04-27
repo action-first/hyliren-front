@@ -77,20 +77,23 @@
   display: block !important; width: 100% !important;
 }
 .datepicker-icon {
-  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-  color: #9ca3af; pointer-events: none; z-index: 1;
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--text-disabled); pointer-events: none; z-index: 1;
 }
 .datepicker-input {
-  width: 100% !important; height: 34px !important; padding: 0 28px 0 10px !important;
-  font-size: 13px !important; font-family: inherit !important;
-  border: 1px solid #e5e7eb !important; border-radius: 6px !important;
-  background: #fff !important; color: #374151 !important; outline: none !important;
+  width: 100% !important; height: var(--input-height) !important; padding: 0 32px 0 12px !important;
+  font-size: var(--app-text-sm) !important; font-family: inherit !important;
+  border: 1px solid var(--input-border) !important; border-radius: var(--input-radius) !important;
+  background: var(--input-bg) !important; color: var(--text-default) !important; outline: none !important;
   cursor: pointer !important; box-sizing: border-box !important;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
+.datepicker-input:hover { border-color: var(--border-strong) !important; }
 .datepicker-input:focus {
-  border-color: var(--interactive-default, #2C6ECB) !important; box-shadow: 0 0 0 2px rgba(44,110,203,0.08) !important;
+  border-color: var(--input-border-focus) !important;
+  box-shadow: 0 0 0 2px var(--input-focus-ring) !important;
 }
-.datepicker-input::placeholder { color: #c0c5cc !important; }
+.datepicker-input::placeholder { color: var(--text-disabled) !important; }
 
 /* react-datepicker 팝업 커스텀 */
 .react-datepicker {
@@ -174,9 +177,11 @@
 }
 .datagrid-btn:hover { background: #f9fafb; color: #374151; border-color: #9ca3af; }
 .datagrid-btn--primary {
-  background: var(--interactive-default, #2C6ECB); color: #fff; border-color: var(--interactive-default, #2C6ECB);
+  background: var(--interactive-default); color: #fff; border-color: var(--interactive-default);
 }
-.datagrid-btn--primary:hover { background: #1F5199; border-color: #1F5199; }
+.datagrid-btn--primary:hover {
+  background: var(--interactive-hovered); border-color: var(--interactive-hovered); color: #fff;
+}
 /* 검색 카드 안 버튼 — 인풋과 동일 높이 */
 .datagrid-search-actions .datagrid-btn {
   height: 34px; padding: 0 16px; font-size: 13px; font-weight: 600;
