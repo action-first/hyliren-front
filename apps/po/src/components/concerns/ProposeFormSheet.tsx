@@ -43,9 +43,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
   const balance = balanceQ.data?.balance ?? 0;
   const { showToast } = useToastStore();
 
-  // 카탈로그 = PO 가 등록한 real published procedure (BE PR #19+).
-  // 이전엔 useTreatmentsStore mock — 시술관리 페이지의 등록 흐름과 분리되어 있어 정합성 버그.
-  // 지금은 useProcedures('published') 로 5분 cache 공유.
+  // 카탈로그 = published procedure. 시술관리 페이지와 동일 캐시 (5분) 공유.
   const proceduresQ = useProcedures('published');
   const publishedProcedures: Procedure[] = proceduresQ.data?.procedures ?? [];
 
