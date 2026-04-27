@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import {
   LayoutDashboard,
@@ -18,7 +17,6 @@ import { useCreditBalance } from '@/hooks/queries/credits';
 import { useMyPartnerProfile } from '@/hooks/queries/partner-profile';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
-import { Button, Modal } from '@hyliren/ui';
 
 const NAV = [
   { href: '/dashboard', icon: LayoutDashboard, label: '대시보드' },
@@ -27,13 +25,6 @@ const NAV = [
   { href: '/treatments', icon: Stethoscope, label: '시술 관리' },
   { href: '/profile', icon: Building2, label: '파트너 정보' },
 ] as const;
-
-const CHARGE_OPTIONS = [
-  { amount: 10, price: '30,000' },
-  { amount: 30, price: '80,000' },
-  { amount: 50, price: '120,000' },
-  { amount: 100, price: '200,000' },
-];
 
 export function POSidebar({ active }: { active: string }) {
   // 잔액 = real BE (BE PR #22). 미존재 회원도 0 반환이라 fallback 안전.
@@ -46,33 +37,9 @@ export function POSidebar({ active }: { active: string }) {
   const logout = usePOAuthStore(s => s.logout);
   const { showToast } = useToastStore();
 
-  const [showModal, setShowModal] = useState(false);
-  const [selected, setSelected] = useState<number | null>(null);
-
-  /**
-   * 충전 — BE 결제 endpoint 부재로 mock 유지.
-   * 단, 잔액은 BE 가 source of truth — mock charge 는 admin 전용 demo 모드.
-   * 실제 결제 시스템 도입 시 이 함수가 BE charge endpoint 호출로 교체됨.
-   */
-  function handleCharge() {
-    if (!selected) return;
-    const opt = CHARGE_OPTIONS.find(o => o.amount === selected);
-    fetch('/api/payments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'credit_charge',
-        amount: parseInt((opt?.price || '0').replace(/,/g, '')),
-        currency: 'KRW',
-        actorType: 'partner',
-        actorId: member?.id ?? 'm-001',
-        actorName: profile?.hospitalName || '',
-        status: 'paid',
-      }),
-    }).catch(() => {});
-    showToast(`${selected}크레딧 충전 (현재 데모 모드 — 실제 BE 잔액엔 미반영)`, 'info');
-    setShowModal(false);
-    setSelected(null);
+  // 결제 PG 미연결 — 별도 프로젝트로 진행 예정. 충전은 운영 채널로 유도.
+  function handleChargeRequest() {
+    showToast('크레딧 충전은 관리자에게 문의해주세요.', 'info');
   }
 
   async function handleLogout() {
@@ -116,7 +83,7 @@ export function POSidebar({ active }: { active: string }) {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setShowModal(true)}
+                  onClick={handleChargeRequest}
                   style={{
                     display: 'inline-flex', alignItems: 'center',
                     gap: 'var(--spacing-1)',
@@ -177,29 +144,6 @@ export function POSidebar({ active }: { active: string }) {
           </div>
         </nav>
       </aside>
-
-      {/* 충전 모달 — 사이드바 외부에 렌더링 (z-index 보장) */}
-      <Modal open={showModal} onClose={() => { setShowModal(false); setSelected(null); }} title="크레딧 충전">
-        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-subdued)', marginBottom: 'var(--spacing-4)' }}>충전할 크레딧을 선택하세요</p>
-        <div className="charge-options">
-          {CHARGE_OPTIONS.map(opt => (
-            <button key={opt.amount} type="button" onClick={() => setSelected(opt.amount)}
-              className={`charge-option ${selected === opt.amount ? 'charge-option--active' : ''}`}
-            >
-              <span style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-bold)' }}>{opt.amount}</span>
-              <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-subdued)' }}>크레딧</span>
-              <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-disabled)' }}>{opt.price}원</span>
-            </button>
-          ))}
-        </div>
-        <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-disabled)', marginTop: 'var(--spacing-3)', textAlign: 'center' }}>결제는 데모 모드입니다</p>
-        <div className="flex justify-end gap-2 mt-4">
-          <Button variant="secondary" size="sm" onClick={() => { setShowModal(false); setSelected(null); }}>취소</Button>
-          <Button variant="primary" size="sm" onClick={handleCharge} disabled={!selected}>
-            {selected ? `${selected}크레딧 충전` : '충전'}
-          </Button>
-        </div>
-      </Modal>
     </>
   );
 }

@@ -21,9 +21,6 @@ export default function MyPage() {
   const { locale, setLocale, t } = useLocaleStore();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  // dashboard 와 동일한 서버 공유 data-store 소스를 사용해
-  // /consult 직후 제출한 새 고민이 /mypage 에도 반영되도록 한다.
-  // MOCK_CONCERNS 직접 import 시 사용자 신규 등록이 누락되어 지난 dashboard 건과 동일한 버그 재발.
   const { concerns: apiConcerns, loading: concernsLoading } = useMyConcerns();
   const [proposals, setProposals] = useState<Proposal[] | null>(null);
   useEffect(() => {

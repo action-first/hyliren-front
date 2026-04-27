@@ -6,10 +6,9 @@ import { track } from '@hyliren/shared';
 import { Button, Badge, MobileBottomCTA, Spinner } from '@hyliren/ui';
 import { ArrowRight, Sparkles, Inbox } from 'lucide-react';
 import { ExperienceCard } from '@/components/common/ExperienceCard';
-import { VALUE_PROPS, CARD_GRADIENTS as GRADIENTS } from '@/lib/constants';
+import { CARD_GRADIENTS as GRADIENTS } from '@/lib/constants';
 import { useDecisionStore } from '@/store/decision';
 import { useLocaleStore } from '@/store/locale';
-import { useUserConcernsStore } from '@/store/user-concerns';
 import { useConcern } from '@/lib/hooks/concern';
 import { useProposalsForConcern } from '@/lib/hooks/proposal';
 
@@ -17,9 +16,7 @@ interface Props { params: Promise<{ id: string }>; }
 
 export default function ProposalListPage({ params }: Props) {
   const { id } = use(params);
-  const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
-  const { concern: apiConcern } = useConcern(id);
-  const concern = apiConcern || userCreatedConcerns.find(c => c.id === id);
+  const { concern } = useConcern(id);
   const t = useLocaleStore(s => s.t);
   const { selectedProposalIds: selected, toggleSelect } = useDecisionStore();
 
@@ -69,7 +66,7 @@ export default function ProposalListPage({ params }: Props) {
             const items = allItems.filter(i => i.proposalId === proposal.id);
             const isSelected = selected.has(proposal.id);
             const hospitalName = proposal.hospitalName;
-            const valueProp = VALUE_PROPS[proposal.memberId] ?? '';
+            const valueProp = '';
             const meta = [
               `회복 ${proposal.recoveryDays}일`,
               `${proposal.anesthesiaType === 'local' ? '부분' : proposal.anesthesiaType === 'sedation' ? '수면' : '전신'}마취`,

@@ -5,7 +5,6 @@ import type { Proposal, PartnerProfile, ProposalItem } from '@hyliren/shared';
 import { track } from '@hyliren/shared';
 import { Button, Badge, BottomSheet } from '@hyliren/ui';
 import { X, ShieldCheck, Star, Sparkles, Clock, Syringe } from 'lucide-react';
-import { VALUE_PROPS } from '@/lib/constants';
 import { useLocaleStore } from '@/store/locale';
 import { useReportStore } from '@/store/report';
 
@@ -26,7 +25,7 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
       metadata: { source: 'fo', locale: 'ko', label: profile?.hospitalName || '' } });
   }, [proposal.id, profile?.hospitalName]);
 
-  const valueProp = VALUE_PROPS[proposal.memberId] || profile?.description || '';
+  const valueProp = profile?.description || '';
   const anesthesiaLabel = proposal.anesthesiaType === 'local' ? t('common.anesthesiaLocal') : proposal.anesthesiaType === 'sedation' ? t('common.anesthesiaSedation') : t('common.anesthesiaGeneral');
 
   return (
