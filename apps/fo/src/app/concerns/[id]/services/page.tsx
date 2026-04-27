@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import { useLocaleStore } from '@/store/locale';
 import { useDecisionStore } from '@/store/decision';
-import { useUserConcernsStore } from '@/store/user-concerns';
 import { useConcern } from '@/lib/hooks/concern';
 import { useProposalsForConcern } from '@/lib/hooks/proposal';
 import { STATUS_LABELS, STATUS_COLORS } from '@/domain/lifecycle';
@@ -29,11 +28,9 @@ interface ServiceItem {
 export default function ServicesPage({ params }: Props) {
   const t = useLocaleStore(s => s.t);
   const { id } = use(params);
-  const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
-  const { concern: apiConcern } = useConcern(id);
+  const { concern } = useConcern(id);
   const { proposals: realProposals } = useProposalsForConcern(id);
   const { selectedHospitalId } = useDecisionStore();
-  const concern = apiConcern || userCreatedConcerns.find(c => c.id === id);
   if (!concern) {
     return <div className="p-8 text-center text-[var(--color-text-secondary)]">{t('concern.notFound')}</div>;
   }

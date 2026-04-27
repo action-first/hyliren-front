@@ -7,7 +7,6 @@ import { ArrowRight, Camera, MessageCircle, FileText, ChevronRight, ShieldCheck,
 import { ARTICLES } from '@/lib/articles-data';
 import { getAreaBar } from '@/lib/area-styles';
 import { useLocaleStore } from '@/store/locale';
-import { useUserConcernsStore } from '@/store/user-concerns';
 import { useMyConcerns } from '@/lib/hooks/concern';
 import { listProcedures } from '@/lib/api/procedure';
 import type { ProcedureListItemWire } from '@/lib/api/procedure';
@@ -26,11 +25,7 @@ const CONCERN_DEFS = [
 export default function HomePage() {
   const t = useLocaleStore(s => s.t);
   const { concerns: apiConcerns } = useMyConcerns();
-  const userCreatedConcerns = useUserConcernsStore(s => s.concerns);
-  const userConcerns = [
-    ...apiConcerns.filter(c => !c.deletedAt && c.status !== 'draft'),
-    ...userCreatedConcerns,
-  ];
+  const userConcerns = apiConcerns.filter(c => !c.deletedAt && c.status !== 'draft');
 
   const [popularProcedures, setPopularProcedures] = useState<ProcedureListItemWire[]>([]);
   const [proceduresLoading, setProceduresLoading] = useState(true);
