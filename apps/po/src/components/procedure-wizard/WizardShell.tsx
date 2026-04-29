@@ -3,6 +3,7 @@
 import { Button } from '@hyliren/ui';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { StepProgress, type StepDef } from './StepProgress';
+import { useLocaleStore } from '@/store/locale';
 
 interface WizardShellProps {
   /** 페이지 상위 제목 — body header 의 breadcrumb (예: '시술 등록' / '시술 수정') */
@@ -52,16 +53,16 @@ interface WizardShellProps {
   savedAt?: number | null;
 }
 
-function formatSavedAgo(savedAt: number | null | undefined): string {
+function formatSavedAgo(savedAt: number | null | undefined, t: (key: string, params?: Record<string, string | number>) => string): string {
   if (!savedAt) return '';
   const diffSec = Math.floor((Date.now() - savedAt) / 1000);
-  if (diffSec < 5) return '방금';
-  if (diffSec < 60) return `${diffSec}초 전`;
+  if (diffSec < 5) return t('po.wizardJustNow');
+  if (diffSec < 60) return t('po.wizardSecondsAgo', { n: diffSec });
   const mins = Math.floor(diffSec / 60);
-  if (mins < 60) return `${mins}분 전`;
+  if (mins < 60) return t('po.wizardMinutesAgo', { n: mins });
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}시간 전`;
-  return '오래 전';
+  if (hrs < 24) return t('po.wizardHoursAgo', { n: hrs });
+  return t('po.wizardLongAgo');
 }
 
 /**
@@ -81,6 +82,7 @@ export function WizardShell({
   primaryAction, menu, onPrev, onNext, nextDisabled,
   saveStatus, savedAt,
 }: WizardShellProps) {
+  const t = useLocaleStore(s => s.t);
   const isLast = activeIndex === steps.length - 1;
   const currentStep = steps[activeIndex];
   const isEdit = mode === 'edit';
@@ -130,7 +132,7 @@ export function WizardShell({
               <div className="flex items-center">
                 {!isEdit && activeIndex > 0 && (
                   <Button variant="secondary" size="sm" onClick={onPrev} disabled={!onPrev}>
-                    <ArrowLeft size={13} /> 이전
+                    <ArrowLeft size={13} /> {t('po.wizardPrev')}
                   </Button>
                 )}
               </div>
@@ -140,7 +142,7 @@ export function WizardShell({
                 {actions}
                 {!isEdit && !isLast ? (
                   <Button variant="primary" size="sm" onClick={onNext} disabled={nextDisabled}>
-                    다음 <ArrowRight size={13} />
+                    {t('po.wizardNext')} <ArrowRight size={13} />
                   </Button>
                 ) : (
                   <Button
@@ -149,7 +151,7 @@ export function WizardShell({
                     onClick={primaryAction.onClick}
                     disabled={primaryAction.disabled || primaryAction.loading}
                   >
-                    {primaryAction.loading ? '저장 중...' : primaryAction.label}
+                    {primaryAction.loading ? t('po.wizardSaving') : primaryAction.label}
                   </Button>
                 )}
                 {menu}
@@ -169,24 +171,25 @@ export function WizardShell({
  * 'saved' 라벨은 "기본 정보 저장됨" 으로 — 사용자가 옵션까지 저장됐다고 오인하지 않도록.
  */
 function SaveIndicator({ status, savedAt }: { status?: 'idle' | 'saving' | 'saved' | 'error'; savedAt?: number | null }) {
+  const t = useLocaleStore(s => s.t);
   if (!status || status === 'idle') return null;
   if (status === 'saving') {
     return (
       <span className="inline-flex items-center gap-1 text-[var(--app-text-micro)] text-[var(--text-disabled)]">
         <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-disabled)] animate-pulse" />
-        저장 중…
+        {t('po.wizardSavingIndicator')}
       </span>
     );
   }
   if (status === 'error') {
     return (
-      <span className="text-[var(--app-text-micro)] text-[var(--color-danger)]">저장 실패</span>
+      <span className="text-[var(--app-text-micro)] text-[var(--color-danger)]">{t('po.wizardSaveError')}</span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 text-[var(--app-text-micro)] text-[var(--color-success)]">
       <Check size={11} />
-      기본 정보 저장됨{savedAt ? ` · ${formatSavedAgo(savedAt)}` : ''}
+      {t('po.wizardBaseInfoSaved')}{savedAt ? ` · ${formatSavedAgo(savedAt, t)}` : ''}
     </span>
   );
 }
