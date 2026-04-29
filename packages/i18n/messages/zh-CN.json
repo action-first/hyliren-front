@@ -275,7 +275,13 @@
     "recoveryLabel": "恢复:",
     "marketAvgRange": "市场平均 {avg}{unit} ({min}~{max}{unit})",
     "daysShort": "{days}天",
-    "scoreUnit": "{score}分"
+    "scoreUnit": "{score}分",
+    "purchasedTitle": "已购报告",
+    "purchasedSubtitle": "可以重新查看和比较验证报告",
+    "emptyTitle": "还没有购买的报告",
+    "emptyDesc": "请在咨询箱中选择提案并购买验证报告",
+    "goToInbox": "前往咨询箱",
+    "verifiedComplete": "验证完成 — 查看详情"
   },
   "nudge": {
     "title": "这个选择，没问题吗？",
@@ -420,6 +426,31 @@
       "anesthesiaGeneral": "全身麻醉",
       "hospitalStay": "住院"
     }
+  },
+  "procedures": {
+    "loadError": "无法加载手术信息",
+    "notFound": "找不到该手术",
+    "notFoundDesc": "该手术已删除或未公开。",
+    "goHome": "返回首页",
+    "back": "返回",
+    "summaryRecovery": "恢复",
+    "summaryDuration": "时长",
+    "minutesShort": "{min}分钟",
+    "hoursShort": "{hours}小时",
+    "hoursMinutes": "{hours}小时 {min}分钟",
+    "galleryTitle": "手术图片",
+    "variantsTitle": "关注标签",
+    "variantsHint": "申请咨询时会作为参考一并发送",
+    "variantDefault": "基本关注标签",
+    "variantSelected": "已选择",
+    "recoveryDays": "恢复 {days}天",
+    "indicationsTitle": "经常因这些烦恼被选择",
+    "precautionsTitle": "手术前请务必确认",
+    "precautionsDefault": "根据个人状态和医疗团队判断,恢复期和合适的方法可能不同。",
+    "consultBoxTitleVariant": "通过 {variant} 申请咨询",
+    "consultBoxTitleDefault": "通过关注标签申请咨询",
+    "consultBoxDesc": "发送照片和烦恼,医院会提供定制提案",
+    "consultCta": "用关注标签开始咨询"
   },
   "auth": {
     "modalTitle": "继续查看你的咨询",
