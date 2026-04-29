@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import type { Proposal } from '@hyliren/shared';
+import type { Locale, Proposal } from '@hyliren/shared';
 import { useAuthStore } from '@/store/auth';
-import { Badge, Button, Spinner } from '@hyliren/ui';
-import { ChevronRight, FileText, Globe, Bell, HelpCircle, LogOut, ShieldCheck } from 'lucide-react';
+import { Badge, BottomSheet, Button, Spinner } from '@hyliren/ui';
+import { Check, ChevronRight, FileText, Globe, Bell, HelpCircle, LogOut, ShieldCheck } from 'lucide-react';
 import { STATUS_LABELS, STATUS_COLORS } from '@/domain/lifecycle';
 
 import { AREA_ACCENT } from '@/lib/area-styles';
@@ -15,11 +15,24 @@ import { useMyConcerns } from '@/lib/hooks/concern';
 import { listProposals, mapProposal } from '@/lib/api/proposal';
 import { AuthModal } from '@/components/auth/AuthModal';
 
+const LOCALE_OPTIONS: { value: Locale; labelKey: string }[] = [
+  { value: 'ko', labelKey: 'common.langKo' },
+  { value: 'zh-CN', labelKey: 'common.langZh' },
+  { value: 'ja', labelKey: 'common.langJa' },
+  { value: 'en', labelKey: 'common.langEn' },
+];
+
+function localeToLabelKey(locale: Locale): string {
+  const found = LOCALE_OPTIONS.find(o => o.value === locale);
+  return found?.labelKey ?? 'common.langKo';
+}
+
 export default function MyPage() {
   const { user, isGuest, logout } = useAuthStore();
   const { purchasedIds } = useReportStore();
   const { locale, setLocale, t } = useLocaleStore();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showLocaleSheet, setShowLocaleSheet] = useState(false);
 
   const { concerns: apiConcerns, loading: concernsLoading } = useMyConcerns();
   const [proposals, setProposals] = useState<Proposal[] | null>(null);
@@ -164,7 +177,7 @@ export default function MyPage() {
           style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
           {[
             { icon: FileText, label: t('mypage.purchasedReportsMenu'), value: `${purchasedIds.size}${t('common.items')}`, href: '/mypage/reports', iconColor: 'text-[var(--color-primary)]' },
-            { icon: Globe, label: t('mypage.language'), value: locale === 'ko' ? t('common.langKo') : t('common.langZh'), action: () => setLocale(locale === 'ko' ? 'zh-CN' : 'ko'), iconColor: 'text-[var(--color-primary)]' },
+            { icon: Globe, label: t('mypage.language'), value: t(localeToLabelKey(locale)), action: () => setShowLocaleSheet(true), iconColor: 'text-[var(--color-primary)]' },
             { icon: Bell, label: t('mypage.notifications'), value: '', iconColor: 'text-[var(--color-text-dim)]' },
             { icon: ShieldCheck, label: t('mypage.privacy'), value: '', iconColor: 'text-[var(--color-text-dim)]' },
             { icon: HelpCircle, label: t('mypage.support'), value: '', iconColor: 'text-[var(--color-text-dim)]' },
@@ -193,6 +206,37 @@ export default function MyPage() {
           <span className="text-[13px] text-[var(--color-text-dim)]">{t('mypage.logout')}</span>
         </button>
       </section>
+
+      {/* Locale 선택 BottomSheet */}
+      <BottomSheet
+        open={showLocaleSheet}
+        onClose={() => setShowLocaleSheet(false)}
+        showHandle
+        showClose
+      >
+        <h3 className="text-[15px] font-bold text-[var(--color-text)] mb-3">{t('mypage.language')}</h3>
+        <div className="flex flex-col">
+          {LOCALE_OPTIONS.map((opt) => {
+            const isActive = locale === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  setLocale(opt.value);
+                  setShowLocaleSheet(false);
+                }}
+                className="flex items-center justify-between px-1 py-3.5 border-0 bg-transparent cursor-pointer text-left border-b border-[var(--color-border-light)] last:border-b-0"
+              >
+                <span className={`text-[14px] ${isActive ? 'font-semibold text-[var(--color-text)]' : 'text-[var(--color-text)]'}`}>
+                  {t(opt.labelKey)}
+                </span>
+                {isActive && <Check size={16} className="text-[var(--color-primary)]" />}
+              </button>
+            );
+          })}
+        </div>
+      </BottomSheet>
     </div>
   );
 }
