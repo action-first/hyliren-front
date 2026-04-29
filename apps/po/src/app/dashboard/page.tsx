@@ -13,6 +13,7 @@ import type { DateRange } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
 import { useCreditBalance, useCreditTransactions } from '@/hooks/queries/credits';
 import { useToastStore } from '@/store/toast';
+import { useLocaleStore } from '@/store/locale';
 import { toUserMessage } from '@/lib/api/error-messages';
 import { useConcerns } from '@/hooks/queries/concerns';
 import { useMyProposals } from '@/hooks/queries/proposals';
@@ -127,23 +128,28 @@ function daysBetween(from: Date, to: Date): string[] {
   return dates;
 }
 
-function resolveDateWindow(range: DateRange, customFrom?: Date | null, customTo?: Date | null): { from: string; to: string; days: string[]; label: string } {
+function resolveDateWindow(
+  range: DateRange,
+  t: (k: string) => string,
+  customFrom?: Date | null,
+  customTo?: Date | null,
+): { from: string; to: string; days: string[]; label: string } {
   const today = new Date();
   if (range === 'today') {
     const day = formatLocalDate(today);
-    return { from: day, to: day, days: [day], label: '오늘' };
+    return { from: day, to: day, days: [day], label: t('po.dateLabelToday') };
   }
   if (range === '7d') {
     const days = recentDays(7, today);
-    return { from: days[0], to: days[days.length - 1], days, label: '최근 7일' };
+    return { from: days[0], to: days[days.length - 1], days, label: t('po.dateLabelLast7Days') };
   }
   if (range === 'custom' && customFrom) {
     const to = customTo ?? customFrom;
     const days = daysBetween(customFrom, to);
-    return { from: days[0], to: days[days.length - 1], days, label: '사용자 지정 기간' };
+    return { from: days[0], to: days[days.length - 1], days, label: t('po.dateLabelCustom') };
   }
   const days = recentDays(30, today);
-  return { from: days[0], to: days[days.length - 1], days, label: '최근 30일' };
+  return { from: days[0], to: days[days.length - 1], days, label: t('po.dateLabelLast30Days') };
 }
 
 function isDateInWindow(value: string | null | undefined, from: string, to: string): boolean {
@@ -313,6 +319,7 @@ export default function DashboardPage() {
   const balance = balanceQ.data?.balance ?? 0;
   const transactions = transactionsQ.data?.transactions ?? [];
   const showToast = useToastStore(s => s.showToast);
+  const t = useLocaleStore(s => s.t);
 
   const [dateRange, setDateRange] = useState<DateRange>('7d');
   const [customFrom, setCustomFrom] = useState<Date | null>(null);
@@ -327,7 +334,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (isError && errorObj) {
-      const msg = toUserMessage(errorObj, '대시보드 데이터를 불러올 수 없습니다');
+      const msg = toUserMessage(errorObj, t('po.dashboardLoadError'));
       showToast(msg, 'error');
     }
   }, [isError, errorObj, showToast]);
@@ -340,7 +347,7 @@ export default function DashboardPage() {
     void proposalsQ.refetch();
   };
 
-  const dateWindow = resolveDateWindow(dateRange, customFrom, customTo);
+  const dateWindow = resolveDateWindow(dateRange, t, customFrom, customTo);
   const periodConcerns = concerns.filter(c => isDateInWindow(c.createdAt, dateWindow.from, dateWindow.to));
   const periodProposals = proposals.filter(p => isDateInWindow(p.sentAt ?? p.createdAt, dateWindow.from, dateWindow.to));
   const periodTransactions = transactions.filter(tx => isDateInWindow(tx.createdAt, dateWindow.from, dateWindow.to));
@@ -391,7 +398,7 @@ export default function DashboardPage() {
   // ── 로딩 ──
   if (loading) {
     return (
-      <AdminPage sidebar={<POSidebar active="/dashboard" />} title="대시보드" prefix="po">
+      <AdminPage sidebar={<POSidebar active="/dashboard" />} title={t('po.dashboardTitle')} prefix="po">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
           {[1,2,3,4].map(i => (
             <div key={i} style={{ background: 'var(--surface-default)', borderRadius: 16, padding: 24, border: '1px solid var(--border-subdued)' }}>
@@ -408,18 +415,18 @@ export default function DashboardPage() {
   // ── 에러 ── (treatments 패턴 일관: AlertTriangle + msg + 다시 시도)
   if (isError && !concernsQ.data && !proposalsQ.data) {
     return (
-      <AdminPage sidebar={<POSidebar active="/dashboard" />} title="대시보드" prefix="po">
+      <AdminPage sidebar={<POSidebar active="/dashboard" />} title={t('po.dashboardTitle')} prefix="po">
         <Card padding="md">
           <div className="text-center py-10">
             <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
             <p className="text-[var(--text-sm)] font-medium text-[var(--text-default)] mb-1">
-              대시보드를 불러오지 못했어요
+              {t('po.dashboardLoadError')}
             </p>
             <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
-              {toUserMessage(errorObj, '알 수 없는 오류')}
+              {toUserMessage(errorObj, t('po.unknownError'))}
             </p>
             <Button variant="secondary" size="sm" onClick={refetchAll}>
-              다시 시도
+              {t('common.retry')}
             </Button>
           </div>
         </Card>
@@ -434,9 +441,9 @@ export default function DashboardPage() {
         {/* ═══ 기간 필터 ═══ */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h2 style={{ fontSize: "var(--text-lg)", fontWeight: "var(--font-bold)", color: 'var(--text-default)', margin: 0 }}>운영 현황</h2>
+            <h2 style={{ fontSize: "var(--text-lg)", fontWeight: "var(--font-bold)", color: 'var(--text-default)', margin: 0 }}>{t('po.operationStatus')}</h2>
             <p style={{ fontSize: "var(--text-sm)", color: 'var(--text-disabled)', marginTop: 2 }}>
-              {dateWindow.label} 기준
+              {t('po.basedOn', { label: dateWindow.label })}
             </p>
           </div>
           <DateFilter
@@ -454,32 +461,32 @@ export default function DashboardPage() {
           <KPICard
             icon={<Sparkles size={20} color={CHART_PALETTE.primary} />}
             iconBg="var(--color-info-soft)"
-            label="새 고민"
+            label={t('po.kpiNewConcerns')}
             value={openConcerns.length}
-            sub="제안 가능한 고민"
-            trend="+2건" trendUp
+            sub={t('po.kpiNewConcernsSub')}
+            trend="+2" trendUp
           />
           <KPICard
             icon={<FileText size={20} color={CHART_PALETTE.secondary} />}
             iconBg="var(--color-primary-soft)"
-            label="발송 제안서"
+            label={t('po.kpiSentProposals')}
             value={myProposals.length}
-            sub={`열람률 ${viewRate}%`}
+            sub={`${viewRate}%`}
             trend={`${viewRate}%`} trendUp={viewRate > 50}
           />
           <KPICard
             icon={<CheckCircle2 size={20} color="var(--color-success)" />}
             iconBg="var(--color-success-soft)"
-            label="선택률"
+            label={t('po.kpiSelectionRate')}
             value={`${selectedRate}%`}
-            sub={`${selectedCount}건 선택`}
+            sub={`${selectedCount}`}
             trend={selectedRate > 0 ? `${selectedRate}%` : undefined}
             trendUp={selectedRate > 30}
           />
           <KPICard
             icon={<Coins size={20} color="var(--color-warning)" />}
             iconBg="var(--color-warning-soft)"
-            label="크레딧 잔액"
+            label={t('po.kpiCreditBalance')}
             value={balance}
             sub={`${Math.floor(balance / 3)}건 발송 가능`}
           />
@@ -487,7 +494,7 @@ export default function DashboardPage() {
 
         {/* ═══ 차트 1행: 제안서 현황(도넛) + 주간 제안 추이(에어리어) ═══ */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <ChartCard title="제안서 현황" subtitle={`총 ${myProposals.length}건`}>
+          <ChartCard title={t('po.chartProposalStatus')} subtitle={t('po.totalCount', { count: myProposals.length })}>
             {pieData.length > 0 ? (
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
@@ -507,7 +514,7 @@ export default function DashboardPage() {
             )}
           </ChartCard>
 
-          <ChartCard title="제안 추이" subtitle={dateWindow.label}>
+          <ChartCard title={t('po.chartProposalTrend')} subtitle={dateWindow.label}>
             <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={trendData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
                 <defs>
@@ -536,7 +543,7 @@ export default function DashboardPage() {
 
         {/* ═══ 차트 2행: 부위별 고민 분포(바) + 크레딧 내역(바) ═══ */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <ChartCard title="부위별 고민 분포" subtitle={`총 ${periodConcerns.length}건`}>
+          <ChartCard title={t('po.chartConcernByArea')} subtitle={t('po.totalCount', { count: periodConcerns.length })}>
             {areaPieData.length > 0 ? (
               <AreaTreemap data={areaPieData} total={periodConcerns.length} />
             ) : (
@@ -546,7 +553,7 @@ export default function DashboardPage() {
             )}
           </ChartCard>
 
-          <ChartCard title="크레딧 내역" subtitle={`${dateWindow.label} 일별 집계`}>
+          <ChartCard title={t('po.chartCredits')} subtitle={t('po.dailyAggregation', { label: dateWindow.label })}>
             {hasCreditDailyData ? (
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={creditDailyData} margin={{ top: 8, right: 4, left: -20, bottom: 0 }}>
@@ -602,7 +609,13 @@ export default function DashboardPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--surface-subdued)' }}>
-                {['부위', '예산', '방문 시기', '상태', ''].map((h, i) => (
+                {[
+                  t('po.tableHeaderArea'),
+                  t('po.tableHeaderBudget'),
+                  t('po.tableHeaderVisit'),
+                  t('po.tableHeaderStatus'),
+                  '',
+                ].map((h, i) => (
                   <th key={i} style={{
                     padding: '10px 24px', fontSize: "var(--text-xs)", fontWeight: "var(--font-semibold)", color: 'var(--text-disabled)',
                     textAlign: 'left', letterSpacing: '0.05em', textTransform: 'uppercase' as const,
@@ -615,7 +628,7 @@ export default function DashboardPage() {
               {openConcerns.length === 0 && (
                 <tr>
                   <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-disabled)', padding: '40px 0', fontSize: "var(--text-sm)" }}>
-                    새로 들어온 고민이 없습니다.
+                    {t('po.tableEmpty')}
                   </td>
                 </tr>
               )}
@@ -659,7 +672,7 @@ export default function DashboardPage() {
                     <td style={{ padding: '14px 24px' }}>
                       <Link href={`/concerns/${c.id}`} style={{
                         fontSize: "var(--text-sm)", fontWeight: "var(--font-medium)", color: CHART_PALETTE.primary, textDecoration: 'none',
-                      }}>보기</Link>
+                      }}>{t('po.tableView')}</Link>
                     </td>
                   </tr>
                 );
