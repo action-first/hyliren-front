@@ -76,7 +76,7 @@ export default function ComparePage({ params }: Props) {
            ══════════════════════════════════════ */}
         <div className="flex gap-3 px-5 pb-5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           {proposals.map((p, idx) => {
-            const hospitalName = p.hospitalName || '병원';
+            const hospitalName = p.hospitalName || t('services.fallbackHospitalName');
             const items = allItems.filter(i => i.proposalId === p.id);
             const isActive = selectedId === p.id;
             const gradient = CARD_GRADIENTS[idx % CARD_GRADIENTS.length];
@@ -164,7 +164,7 @@ export default function ComparePage({ params }: Props) {
             </div>
             <div className="px-4 py-3">
               {proposals.map(p => {
-                const pHospitalName = p.hospitalName || '병원';
+                const pHospitalName = p.hospitalName || t('services.fallbackHospitalName');
                 const maxPrice = Math.max(...proposals.map(pp => pp.totalPrice));
                 const barWidth = Math.max((p.totalPrice / maxPrice) * 100, 20);
                 return (
@@ -195,7 +195,7 @@ export default function ComparePage({ params }: Props) {
             </div>
             <div className="px-4 py-3">
               {proposals.map(p => {
-                const pHospitalName2 = p.hospitalName || '병원';
+                const pHospitalName2 = p.hospitalName || t('services.fallbackHospitalName');
                 const maxDays = Math.max(...proposals.map(pp => pp.recoveryDays));
                 const barWidth = Math.max((p.recoveryDays / maxDays) * 100, 20);
                 return (
@@ -226,7 +226,7 @@ export default function ComparePage({ params }: Props) {
             </div>
             <div className="px-4 py-3 flex flex-col gap-2">
               {proposals.map(p => {
-                const riskScore = p.anesthesiaType === 'general' ? '보통' : p.anesthesiaType === 'sedation' ? '낮음' : '매우 낮음';
+                const riskScore = p.anesthesiaType === 'general' ? t('services.riskGeneralLevel') : p.anesthesiaType === 'sedation' ? t('services.riskSedationLevel') : t('services.riskLocalLevel');
                 const riskColor = p.anesthesiaType === 'general' ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]';
                 return (
                   <div key={p.id} className="flex items-center gap-3 py-1.5">

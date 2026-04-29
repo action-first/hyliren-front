@@ -12,33 +12,28 @@ import { Badge, Button, Spinner } from '@hyliren/ui';
 import { ANESTHESIA_KR } from '@hyliren/shared/src/constants';
 import { getProcedure, consultClickProcedure } from '@/lib/api/procedure';
 import type { ProcedureDetailResponseWire } from '@/lib/api/procedure';
+import { useLocaleStore } from '@/store/locale';
 
-function formatPrice(min: number, max: number): string {
-  const toMan = (value: number) => `${Math.round(value / 10000).toLocaleString('ko-KR')}만`;
+type T = (key: string, params?: Record<string, string | number>) => string;
+
+function formatPrice(min: number, max: number, manLabel: string): string {
+  const toMan = (value: number) => `${Math.round(value / 10000).toLocaleString()}${manLabel}`;
   return min === max ? toMan(min) : `${toMan(min)}~${toMan(max)}`;
 }
 
-function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes}분`;
+function formatDuration(minutes: number, t: T): string {
+  if (minutes < 60) return t('procedures.minutesShort', { min: minutes });
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
-  return rest ? `${hours}시간 ${rest}분` : `${hours}시간`;
-}
-
-function procedureTypeLabel(type: string): string {
-  return type
-    .replace(/^eye_/, '눈 ')
-    .replace(/^nose_/, '코 ')
-    .replace(/^lift_/, '리프팅 ')
-    .replace(/^skin_/, '피부 ')
-    .replace(/^diet_/, '다이어트 ')
-    .replace(/^contour_/, '윤곽 ')
-    .replace(/_/g, ' ');
+  return rest
+    ? t('procedures.hoursMinutes', { hours, min: rest })
+    : t('procedures.hoursShort', { hours });
 }
 
 export default function ProcedureDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
+  const t = useLocaleStore(s => s.t);
   const [data, setData] = useState<ProcedureDetailResponseWire | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,13 +51,13 @@ export default function ProcedureDetailPage() {
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : '시술 정보를 불러올 수 없습니다');
+        setError(err instanceof Error ? err.message : t('procedures.loadError'));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [slug]);
+  }, [slug, t]);
 
   const defaultVariant = useMemo(
     () => data?.variants.find(v => v.isDefault) ?? data?.variants[0] ?? null,
@@ -96,10 +91,10 @@ export default function ProcedureDetailPage() {
   if (error || !data) {
     return (
       <div className="px-5 py-16 text-center">
-        <p className="text-[15px] font-semibold text-[var(--color-text)] mb-2">시술을 찾을 수 없습니다</p>
-        <p className="text-[13px] text-[var(--color-text-dim)] mb-5">{error ?? '삭제되었거나 공개되지 않은 시술입니다.'}</p>
+        <p className="text-[15px] font-semibold text-[var(--color-text)] mb-2">{t('procedures.notFound')}</p>
+        <p className="text-[13px] text-[var(--color-text-dim)] mb-5">{error ?? t('procedures.notFoundDesc')}</p>
         <Link href="/" className="no-underline">
-          <Button variant="secondary" size="md">홈으로 돌아가기</Button>
+          <Button variant="secondary" size="md">{t('procedures.goHome')}</Button>
         </Link>
       </div>
     );
@@ -124,7 +119,7 @@ export default function ProcedureDetailPage() {
             onClick={() => router.back()}
             className="absolute left-4 top-4 w-9 h-9 rounded-full bg-[var(--color-bg)] border-0 flex items-center justify-center"
             style={{ boxShadow: 'var(--app-shadow-card-sm)' }}
-            aria-label="뒤로가기"
+            aria-label={t('procedures.back')}
           >
             <ArrowLeft size={18} />
           </button>
@@ -133,7 +128,7 @@ export default function ProcedureDetailPage() {
         <div className="px-5 pt-5 pb-6">
           <div className="flex items-center gap-2 mb-3">
             <Badge variant="primary" size="sm">{procedure.primaryArea}</Badge>
-            <span className="text-[11px] text-[var(--color-text-dim)]">{procedureTypeLabel(procedure.procedureType)}</span>
+            <span className="text-[11px] text-[var(--color-text-dim)]">{procedure.procedureType}</span>
           </div>
           <h1 className="text-[1.55rem] leading-tight font-bold text-[var(--color-text)] tracking-normal mb-3">
             {procedure.title}
@@ -145,14 +140,14 @@ export default function ProcedureDetailPage() {
       </section>
 
       <section className="grid grid-cols-3 gap-2 px-5 py-4 bg-[var(--color-bg)] border-t border-[var(--color-border-light)]">
-        <SummaryTile label="참고가" value={formatPrice(procedure.priceMin, procedure.priceMax)} />
-        <SummaryTile label="회복" value={defaultVariant ? `${defaultVariant.recoveryDays}일` : '-'} />
-        <SummaryTile label="소요" value={defaultVariant ? formatDuration(defaultVariant.durationMinutes) : '-'} />
+        <SummaryTile label={t('landing.referencePrice')} value={formatPrice(procedure.priceMin, procedure.priceMax, t('common.man'))} />
+        <SummaryTile label={t('procedures.summaryRecovery')} value={defaultVariant ? t('report.daysShort', { days: defaultVariant.recoveryDays }) : '-'} />
+        <SummaryTile label={t('procedures.summaryDuration')} value={defaultVariant ? formatDuration(defaultVariant.durationMinutes, t) : '-'} />
       </section>
 
       {procedure.galleryImageUrls.length > 0 && (
         <section className="px-5 py-5">
-          <h2 className="text-[15px] font-bold text-[var(--color-text)] mb-3">시술 이미지</h2>
+          <h2 className="text-[15px] font-bold text-[var(--color-text)] mb-3">{t('procedures.galleryTitle')}</h2>
           <div className="flex gap-2 overflow-x-auto hide-scrollbar">
             {procedure.galleryImageUrls.map((url, index) => (
               <img
@@ -169,8 +164,8 @@ export default function ProcedureDetailPage() {
       <section className="px-5 py-5">
         <div className="flex items-end justify-between gap-3 mb-3">
           <div>
-            <h2 className="text-[15px] font-bold text-[var(--color-text)]">관심 태그</h2>
-            <p className="text-[11px] text-[var(--color-text-dim)] mt-1">상담 신청 때 참고용으로 함께 전달돼요</p>
+            <h2 className="text-[15px] font-bold text-[var(--color-text)]">{t('procedures.variantsTitle')}</h2>
+            <p className="text-[11px] text-[var(--color-text-dim)] mt-1">{t('procedures.variantsHint')}</p>
           </div>
           <Tag size={16} className="text-[var(--color-primary)] shrink-0" />
         </div>
@@ -187,20 +182,20 @@ export default function ProcedureDetailPage() {
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div>
                   <div className="flex items-center gap-1.5 mb-1">
-                    <h3 className="text-[14px] font-bold text-[var(--color-text)]">{variant.name || '기본 관심 태그'}</h3>
-                    {variant.isDefault ? <Badge variant="primary" size="sm">추천</Badge> : null}
-                    {selectedVariant?.id === variant.id ? <Badge variant="success" size="sm">선택됨</Badge> : null}
+                    <h3 className="text-[14px] font-bold text-[var(--color-text)]">{variant.name || t('procedures.variantDefault')}</h3>
+                    {variant.isDefault ? <Badge variant="primary" size="sm">{t('common.recommended')}</Badge> : null}
+                    {selectedVariant?.id === variant.id ? <Badge variant="success" size="sm">{t('procedures.variantSelected')}</Badge> : null}
                   </div>
                   {variant.description ? (
                     <p className="text-[12px] leading-5 text-[var(--color-text-secondary)]">{variant.description}</p>
                   ) : null}
                 </div>
-                <strong className="text-[13px] whitespace-nowrap text-[var(--color-text)]">{formatPrice(variant.price, variant.price)}</strong>
+                <strong className="text-[13px] whitespace-nowrap text-[var(--color-text)]">{formatPrice(variant.price, variant.price, t('common.man'))}</strong>
               </div>
               <div className="grid grid-cols-3 gap-2 pt-3 border-t border-[var(--color-border-light)]">
                 <MiniMeta icon={ShieldCheck} label={ANESTHESIA_KR[variant.anesthesia] ?? variant.anesthesia} />
-                <MiniMeta icon={Clock3} label={formatDuration(variant.durationMinutes)} />
-                <MiniMeta icon={CalendarDays} label={`회복 ${variant.recoveryDays}일`} />
+                <MiniMeta icon={Clock3} label={formatDuration(variant.durationMinutes, t)} />
+                <MiniMeta icon={CalendarDays} label={t('procedures.recoveryDays', { days: variant.recoveryDays })} />
               </div>
             </button>
           ))}
@@ -209,7 +204,7 @@ export default function ProcedureDetailPage() {
 
       {procedure.indications.length > 0 && (
         <section className="px-5 py-5 bg-[var(--color-bg)]">
-          <h2 className="text-[15px] font-bold text-[var(--color-text)] mb-3">이런 고민에 자주 선택돼요</h2>
+          <h2 className="text-[15px] font-bold text-[var(--color-text)] mb-3">{t('procedures.indicationsTitle')}</h2>
           <div className="grid gap-2">
             {procedure.indications.map((item) => (
               <div key={item} className="flex items-center gap-2 text-[13px] text-[var(--color-text-secondary)]">
@@ -223,9 +218,9 @@ export default function ProcedureDetailPage() {
 
       <section className="px-5 py-5">
         <div className="fo-card p-4">
-          <h2 className="text-[15px] font-bold text-[var(--color-text)] mb-2">시술 전 꼭 확인하세요</h2>
+          <h2 className="text-[15px] font-bold text-[var(--color-text)] mb-2">{t('procedures.precautionsTitle')}</h2>
           <p className="text-[12.5px] leading-6 text-[var(--color-text-secondary)] whitespace-pre-wrap">
-            {procedure.precautions || '개인 상태와 의료진 판단에 따라 회복 기간과 적합한 방법이 달라질 수 있습니다.'}
+            {procedure.precautions || t('procedures.precautionsDefault')}
           </p>
         </div>
       </section>
@@ -238,10 +233,12 @@ export default function ProcedureDetailPage() {
           </div>
           <div className="min-w-0">
             <p className="text-[13px] font-bold text-[var(--color-text)] truncate">
-              {selectedVariant?.name ? `${selectedVariant.name} 으로 상담 신청` : '관심 태그로 상담 신청'}
+              {selectedVariant?.name
+                ? t('procedures.consultBoxTitleVariant', { variant: selectedVariant.name })
+                : t('procedures.consultBoxTitleDefault')}
             </p>
             <p className="text-[11px] text-[var(--color-text-dim)] mt-0.5">
-              사진과 고민을 보내면 병원이 맞춤 제안을 드려요
+              {t('procedures.consultBoxDesc')}
             </p>
           </div>
         </div>
@@ -250,7 +247,7 @@ export default function ProcedureDetailPage() {
       <div className="fixed bottom-[calc(var(--fo-bottom-bar-height)+var(--fo-safe-area-bottom)+8px)] left-1/2 -translate-x-1/2 w-full max-w-[var(--fo-frame-max-width)] px-5 z-30">
         <Button variant="primary" size="xl" fullWidth onClick={startConsult}>
           <MessageCircle size={18} />
-          관심 태그로 상담 시작
+          {t('procedures.consultCta')}
         </Button>
       </div>
     </div>

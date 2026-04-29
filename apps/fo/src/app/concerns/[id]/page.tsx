@@ -182,7 +182,7 @@ export default function ConcernDetailPage({ params }: Props) {
                 <div className="flex items-center gap-3 px-3.5 py-3 rounded-[var(--app-radius)] bg-[var(--color-bg)]"
                   style={{ boxShadow: 'var(--app-shadow-card-light)' }}>
                   <div className="w-9 h-9 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center text-[12px] font-bold text-[var(--color-text-dim)] shrink-0">
-                    {(p.hospitalName || '병')[0]}
+                    {(p.hospitalName || t('services.fallbackHospitalName'))[0]}
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-[13px] font-medium text-[var(--color-text)]">{p.hospitalName}</span>
@@ -208,7 +208,11 @@ export default function ConcernDetailPage({ params }: Props) {
             style={{ boxShadow: 'var(--app-shadow-card-light)' }}>
             <h3 className="text-[14px] font-semibold text-[var(--color-text)] mb-3">{t('concern.servicePrep')}</h3>
             <div className="flex flex-col gap-2">
-              {['일정 관리', '통역 서비스', '픽업 서비스'].map(service => (
+              {[
+                t('services.schedule'),
+                t('services.interpreter'),
+                t('services.pickup'),
+              ].map(service => (
                 <div key={service} className="flex items-center justify-between px-3 py-2.5 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
                   <span className="text-[13px] text-[var(--color-text)]">{service}</span>
                   <ChevronRight size={14} className="text-[var(--color-text-dim)]" />

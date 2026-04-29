@@ -10,6 +10,13 @@ import type { Article } from '@/lib/articles-data';
 
 const CATEGORIES_KO = ['전체', '시술 비교', '시술 가이드', '안전 정보'];
 
+const CATEGORY_LABEL_KEYS: Record<string, string> = {
+  '전체': 'articles2.categoryAll',
+  '시술 비교': 'articles2.categoryComparison',
+  '시술 가이드': 'articles2.categoryGuide',
+  '안전 정보': 'articles2.categorySafety',
+};
+
 import { AREA_BAR } from '@/lib/area-styles';
 const AREA_COLORS = AREA_BAR;
 
@@ -51,7 +58,7 @@ export default function ArticlesPage() {
               </div>
               <div className="px-3.5 py-3">
                 <div className="flex items-center gap-1.5 mb-1.5">
-                  <Badge variant={a.tagColor} size="sm">{a.category}</Badge>
+                  <Badge variant={a.tagColor} size="sm">{t(CATEGORY_LABEL_KEYS[a.category] ?? 'articles2.categoryAll')}</Badge>
                 </div>
                 <p className="text-[13px] font-semibold text-[var(--color-text)] leading-snug line-clamp-2 mb-1.5">{a.title}</p>
                 <div className="flex items-center gap-3 text-[10px] text-[var(--color-text-dim)]">
@@ -75,7 +82,7 @@ export default function ArticlesPage() {
                   ? 'bg-[var(--color-text)] text-white'
                   : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'
               }`}>
-              {cat}
+              {t(CATEGORY_LABEL_KEYS[cat] ?? 'articles2.categoryAll')}
             </button>
           ))}
         </div>
@@ -93,7 +100,7 @@ export default function ArticlesPage() {
             </div>
             <div className="flex flex-col gap-1 justify-center min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <Badge variant={a.tagColor} size="sm">{a.category}</Badge>
+                <Badge variant={a.tagColor} size="sm">{t(CATEGORY_LABEL_KEYS[a.category] ?? 'articles2.categoryAll')}</Badge>
                 {a.bodyArea !== '전체' && (
                   <span className="text-[10px] text-[var(--color-text-dim)]">{a.bodyArea}</span>
                 )}
