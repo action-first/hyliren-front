@@ -6,8 +6,9 @@ import { FOTabBar } from '@/components/layout/FOTabBar';
 import Toast from '@/components/common/Toast';
 import { SessionBootstrap } from '@/components/auth/SessionBootstrap';
 
+// metadata 는 server-side fixed text (SEO 용). locale 별 분기는 향후 i18n routing 도입 시 처리.
 export const metadata: Metadata = {
-  title: '한옌리런 — 나에게 맞는 시술, 병원이 먼저 제안합니다',
+  title: '미묘 (MIMYO) — 나에게 맞는 시술, 병원이 먼저 제안합니다',
   description: 'K-성형 의사결정 플랫폼. 고민을 등록하면 검증된 한국 병원이 맞춤 제안서를 보내드립니다.',
 };
 

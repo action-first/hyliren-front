@@ -67,10 +67,15 @@ export default function ProposalListPage({ params }: Props) {
             const isSelected = selected.has(proposal.id);
             const hospitalName = proposal.hospitalName;
             const valueProp = '';
+            const anesthesiaShort = proposal.anesthesiaType === 'local'
+              ? t('common.anesthesiaLocalShort')
+              : proposal.anesthesiaType === 'sedation'
+                ? t('common.anesthesiaSedationShort')
+                : t('common.anesthesiaGeneralShort');
             const meta = [
-              `회복 ${proposal.recoveryDays}일`,
-              `${proposal.anesthesiaType === 'local' ? '부분' : proposal.anesthesiaType === 'sedation' ? '수면' : '전신'}마취`,
-              proposal.hospitalStayDays > 0 ? `입원 ${proposal.hospitalStayDays}일` : '',
+              `${t('common.recovery')} ${t('report.daysShort', { days: proposal.recoveryDays })}`,
+              `${anesthesiaShort}${t('common.anesthesia')}`,
+              proposal.hospitalStayDays > 0 ? `${t('common.hospitalization')} ${t('report.daysShort', { days: proposal.hospitalStayDays })}` : '',
             ].filter(Boolean).join(' · ');
 
             return (
