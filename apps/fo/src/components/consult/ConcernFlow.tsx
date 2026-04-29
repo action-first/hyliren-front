@@ -71,8 +71,8 @@ export function ConcernFlow() {
 
   const STEP_LABELS: Record<string, string> = {
     narrative: t('consult.stepNarrative'),
-    budget: '예산',
-    'visit-plan': '방문 계획',
+    budget: t('consult.budgetLabel'),
+    'visit-plan': t('consult.visitPlanLabel'),
     processing: t('consult.stepProcessing'),
     review: t('consult.stepReview'),
     feedback: t('consult.stepFeedback'),

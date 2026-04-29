@@ -94,12 +94,12 @@ export function StepAIProcessing() {
         // 서버 장애·네트워크 오류만 fallback — 사용자 입력 탓은 아니므로 진행 허용
         showToast(t('consult.processingFallback'), 'error');
         analysis = {
-          empathy: '고민을 나눠주셔서 감사합니다.',
-          education: '한국은 다양한 미용 시술에서 세계적인 수준을 갖추고 있습니다.',
-          options: [{ key: 'generic', name: '맞춤 상담', description: '병원과 함께 최적의 방법을 찾아보세요.', bodyArea: '기타' }],
+          empathy: t('consult.fallbackEmpathy'),
+          education: t('consult.fallbackEducation'),
+          options: [{ key: 'generic', name: t('consult.fallbackOptionGenericName'), description: t('consult.fallbackOptionGenericDesc'), bodyArea: '기타' }],
           extractedTags: { symptoms: [], preferences: [], budget: [], timing: [] },
-          extractedSummary: { bodyAreas: ['기타'], primaryArea: '기타', bodyAreaDetail: '일반 상담' },
-          disclaimer: '정확한 진단은 실제 병원 상담을 통해 결정됩니다.',
+          extractedSummary: { bodyAreas: ['기타'], primaryArea: '기타', bodyAreaDetail: t('consult.fallbackBodyAreaDetail') },
+          disclaimer: t('consult.fallbackDisclaimer'),
           ruleVersion: 'fallback',
         };
       }

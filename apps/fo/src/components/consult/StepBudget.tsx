@@ -3,16 +3,18 @@
 import { Button } from '@hyliren/ui';
 import { ArrowRight, ArrowLeft, Check } from 'lucide-react';
 import { useConcernFlowStore, BUDGET_LABELS, type BudgetRange } from '@/store/concern-flow';
+import { useLocaleStore } from '@/store/locale';
 
-const BUDGET_OPTIONS: { key: BudgetRange; sub: string }[] = [
-  { key: 'under100', sub: '간단한 시술 위주' },
-  { key: '100to300', sub: '가장 많이 선택하는 범위' },
-  { key: '300to500', sub: '복합 시술 포함' },
-  { key: 'over500', sub: '수술 + 복합 구성' },
+const BUDGET_OPTIONS: { key: BudgetRange; subKey: string }[] = [
+  { key: 'under100', subKey: 'consult.budgetUnder100Hint' },
+  { key: '100to300', subKey: 'consult.budget100to300Hint' },
+  { key: '300to500', subKey: 'consult.budget300to500Hint' },
+  { key: 'over500', subKey: 'consult.budgetOver500Hint' },
 ];
 
 export function StepBudget() {
   const { budgetRange, setBudgetRange, setStep } = useConcernFlowStore();
+  const t = useLocaleStore(s => s.t);
 
   return (
     <div className="flex flex-col px-5 pt-6 pb-10">
@@ -21,14 +23,14 @@ export function StepBudget() {
         onClick={() => setStep('narrative')}
         className="flex items-center gap-1 text-[12px] text-[var(--color-text-dim)] bg-transparent border-0 cursor-pointer p-0 mb-4"
       >
-        <ArrowLeft size={14} /> 이전
+        <ArrowLeft size={14} /> {t('consult.previous')}
       </button>
 
       <h1 className="text-[1.25rem] font-bold text-[var(--color-text)] leading-tight mb-1">
-        예산은 대략 어느 범위예요?
+        {t('consult.budgetTitle')}
       </h1>
       <p className="text-[13px] text-[var(--color-text-dim)] mb-6">
-        정확하지 않아도 괜찮아요, 병원이 참고할 수 있는 범위면 충분해요
+        {t('consult.budgetDesc')}
       </p>
 
       <div className="flex flex-col gap-2 mb-4">
@@ -55,7 +57,7 @@ export function StepBudget() {
                 <span className={`text-[14px] block ${selected ? 'font-bold text-[var(--color-primary)]' : 'font-medium text-[var(--color-text)]'}`}>
                   {BUDGET_LABELS[opt.key]}
                 </span>
-                <span className="text-[11px] text-[var(--color-text-dim)]">{opt.sub}</span>
+                <span className="text-[11px] text-[var(--color-text-dim)]">{t(opt.subKey)}</span>
               </div>
             </button>
           );
@@ -70,7 +72,7 @@ export function StepBudget() {
           budgetRange === 'undecided' ? 'font-bold text-[var(--color-primary)]' : 'text-[var(--color-text-dim)]'
         }`}
       >
-        아직 정해진 예산은 없어요
+        {t('consult.budgetUndecided')}
       </button>
 
       <Button
@@ -80,7 +82,7 @@ export function StepBudget() {
         disabled={!budgetRange}
         onClick={() => setStep('visit-plan')}
       >
-        다음 <ArrowRight size={16} />
+        {t('common.next')} <ArrowRight size={16} />
       </Button>
     </div>
   );
