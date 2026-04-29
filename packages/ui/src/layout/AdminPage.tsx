@@ -14,9 +14,11 @@ export interface AdminPageProps {
   prefix?: 'bo' | 'po' | 'admin';
   /** 지정 시 title 좌측에 뒤로가기 버튼 노출. 클릭 시 호출. */
   onBack?: () => void;
+  /** Back button aria-label (스크린 리더). 미지정 시 한국어 기본값. */
+  backLabel?: string;
 }
 
-export function AdminPage({ sidebar, title, actions, children, prefix = 'admin', onBack }: AdminPageProps) {
+export function AdminPage({ sidebar, title, actions, children, prefix = 'admin', onBack, backLabel = '뒤로 가기' }: AdminPageProps) {
   return (
     <div className={`${prefix}-layout`}>
       {sidebar}
@@ -28,7 +30,7 @@ export function AdminPage({ sidebar, title, actions, children, prefix = 'admin',
                 type="button"
                 onClick={onBack}
                 className={`${prefix}-topbar-back`}
-                aria-label="뒤로 가기"
+                aria-label={backLabel}
               >
                 <ArrowLeft size={18} />
               </button>

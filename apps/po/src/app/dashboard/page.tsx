@@ -14,6 +14,7 @@ import { POSidebar } from '@/components/POSidebar';
 import { useCreditBalance, useCreditTransactions } from '@/hooks/queries/credits';
 import { useToastStore } from '@/store/toast';
 import { useLocaleStore } from '@/store/locale';
+import { useDateFilterLabels } from '@/hooks/useDateFilterLabels';
 import { toUserMessage } from '@/lib/api/error-messages';
 import { useConcerns } from '@/hooks/queries/concerns';
 import { useMyProposals } from '@/hooks/queries/proposals';
@@ -320,6 +321,7 @@ export default function DashboardPage() {
   const transactions = transactionsQ.data?.transactions ?? [];
   const showToast = useToastStore(s => s.showToast);
   const t = useLocaleStore(s => s.t);
+  const dateFilterLabels = useDateFilterLabels();
 
   const [dateRange, setDateRange] = useState<DateRange>('7d');
   const [customFrom, setCustomFrom] = useState<Date | null>(null);
@@ -448,6 +450,7 @@ export default function DashboardPage() {
           </div>
           <DateFilter
             value={dateRange}
+            labels={dateFilterLabels}
             onChange={(range, from, to) => {
               setDateRange(range);
               setCustomFrom(from ?? null);

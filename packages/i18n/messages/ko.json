@@ -590,6 +590,22 @@
     "poTitle": "미묘 파트너 오피스",
     "poDescription": "병원 관리 시스템"
   },
+  "dateFilter": {
+    "today": "오늘",
+    "last7Days": "7일",
+    "last30Days": "30일",
+    "customRange": "기간 지정",
+    "startDate": "시작일",
+    "startDatePlaceholder": "시작일 선택",
+    "endDate": "종료일",
+    "endDatePlaceholder": "종료일 선택",
+    "cancel": "취소",
+    "apply": "적용"
+  },
+  "uiCommon": {
+    "close": "닫기",
+    "back": "뒤로 가기"
+  },
   "dataGrid": {
     "dateFromPlaceholder": "시작일",
     "dateToPlaceholder": "종료일",

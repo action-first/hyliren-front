@@ -590,6 +590,22 @@
     "poTitle": "美妙合作伙伴办公室",
     "poDescription": "医院管理系统"
   },
+  "dateFilter": {
+    "today": "今天",
+    "last7Days": "7天",
+    "last30Days": "30天",
+    "customRange": "自定义范围",
+    "startDate": "起始日",
+    "startDatePlaceholder": "选择起始日",
+    "endDate": "结束日",
+    "endDatePlaceholder": "选择结束日",
+    "cancel": "取消",
+    "apply": "应用"
+  },
+  "uiCommon": {
+    "close": "关闭",
+    "back": "返回"
+  },
   "dataGrid": {
     "dateFromPlaceholder": "起始日",
     "dateToPlaceholder": "结束日",

@@ -44,7 +44,7 @@ export { ToastContainer } from './primitives/Toast';
 export type { ToastItem, ToastType, ToastContainerProps } from './primitives/Toast';
 
 export { DateFilter } from './primitives/DateFilter';
-export type { DateFilterProps, DateRange } from './primitives/DateFilter';
+export type { DateFilterProps, DateFilterLabels, DateRange } from './primitives/DateFilter';
 
 export { DataGrid } from './primitives/DataGrid';
 export type { DataGridProps, DataGridLabels, SearchField } from './primitives/DataGrid';

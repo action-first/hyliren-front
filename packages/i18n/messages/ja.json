@@ -590,6 +590,22 @@
     "poTitle": "ミミょ パートナーオフィス",
     "poDescription": "病院管理システム"
   },
+  "dateFilter": {
+    "today": "今日",
+    "last7Days": "7日",
+    "last30Days": "30日",
+    "customRange": "期間指定",
+    "startDate": "開始日",
+    "startDatePlaceholder": "開始日を選択",
+    "endDate": "終了日",
+    "endDatePlaceholder": "終了日を選択",
+    "cancel": "キャンセル",
+    "apply": "適用"
+  },
+  "uiCommon": {
+    "close": "閉じる",
+    "back": "戻る"
+  },
   "dataGrid": {
     "dateFromPlaceholder": "開始日",
     "dateToPlaceholder": "終了日",
