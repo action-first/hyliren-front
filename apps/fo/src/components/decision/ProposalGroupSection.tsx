@@ -79,7 +79,7 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
         <Badge variant={STATUS_COLORS[concern.status] || 'default'} size="sm">
           {STATUS_LABELS[concern.status] || concern.status}
         </Badge>
-        <span className="ml-auto text-[11px] text-[var(--color-text-dim)]">제안 {proposals.length}건</span>
+        <span className="ml-auto text-[11px] text-[var(--color-text-dim)]">{t('decision.proposalCount', { count: proposals.length })}</span>
       </div>
       <p className="text-[13px] text-[var(--color-text)] leading-snug line-clamp-2 mb-2">
         {concern.description}
@@ -89,12 +89,12 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
       <div className="flex items-center gap-2 mb-3">
         {concern.budgetMin && concern.budgetMax && (
           <span className="flex items-center gap-0.5 px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-bg)] text-[11px] font-medium text-[var(--color-text-secondary)]">
-            <Banknote size={11} /> {concern.budgetMin}~{concern.budgetMax}만
+            <Banknote size={11} /> {t('decision.budgetRangeMan', { min: concern.budgetMin, max: concern.budgetMax })}
           </span>
         )}
         {concern.visitDateFrom && (
           <span className="flex items-center gap-0.5 px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-bg)] text-[11px] font-medium text-[var(--color-text-secondary)]">
-            <Calendar size={11} /> {concern.visitDateFrom.slice(5)}~ 방문
+            <Calendar size={11} /> {t('decision.visitDateLabel', { date: concern.visitDateFrom.slice(5) })}
           </span>
         )}
       </div>
@@ -102,7 +102,7 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
       {/* 구분선 + 제안 라벨 */}
       <div className="flex items-center gap-2 mb-2.5">
         <div className="flex-1 h-px bg-[var(--color-border-light)]" />
-        <span className="text-[10px] font-medium text-[var(--color-text-dim)] shrink-0">받은 제안</span>
+        <span className="text-[10px] font-medium text-[var(--color-text-dim)] shrink-0">{t('decision.receivedProposals')}</span>
         <div className="flex-1 h-px bg-[var(--color-border-light)]" />
       </div>
 
@@ -119,9 +119,9 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
           className="flex items-center justify-center gap-1 w-full mt-2.5 py-2.5 rounded-[var(--app-radius)] border border-dashed border-[var(--color-border-light)] bg-transparent text-[12px] font-medium text-[var(--color-text-secondary)] cursor-pointer"
         >
           {expanded ? (
-            <>접기 <ChevronUp size={14} /></>
+            <>{t('decision.collapse')} <ChevronUp size={14} /></>
           ) : (
-            <>나머지 {hiddenCount}개 제안 더 보기 <ChevronDown size={14} /></>
+            <>{t('decision.showMoreProposals', { count: hiddenCount })} <ChevronDown size={14} /></>
           )}
         </button>
       )}

@@ -224,12 +224,19 @@
     "heroTitle": "{count}家医院\n已回复",
     "heroDesc": "点击方案分析，做出最合理的选择",
     "addConcern": "也可以咨询其他部位",
+    "addConcernTitle": "添加其他部位",
+    "addConcernSubtitle": "也可以咨询其他部位",
     "compareCount": "对比{count}个",
     "selectedCount": "已选{count}个 — 再选1个即可对比",
     "verifyThis": "验证此方案",
     "proposalCount": "方案 {count}个",
     "selectToCompare": "选择方案进行对比",
-    "selectedNeedMore": "已选{count}个 — 再选1个即可对比"
+    "selectedNeedMore": "已选{count}个 — 再选1个即可对比",
+    "receivedProposals": "收到的提案",
+    "collapse": "收起",
+    "showMoreProposals": "查看其余 {count} 个提案",
+    "budgetRangeMan": "{min}~{max}万",
+    "visitDateLabel": "{date}~ 到访"
   },
   "detail": {
     "priceQuestion": "{price}万韩元，价格合理吗？",
@@ -371,7 +378,19 @@
     "notifications": "通知设置",
     "privacy": "隐私政策",
     "support": "客服中心",
-    "logout": "退出登录"
+    "logout": "退出登录",
+    "loginToManage": "登录后,在一个页面\n管理我的诉求与提案",
+    "loginAfterConsultHint": "提交咨询后会自动引导至登录页面",
+    "loginOrSignup": "登录 / 注册",
+    "awaitingProposals": "等待中",
+    "concernSelectedHospital": "已选医院",
+    "concernViewProposal": "查看提案",
+    "concernVisitPlanned": "计划到访",
+    "articleHelpHint": "咨询时一并提供这些信息,可以获得更准确的建议",
+    "articleNotFound": "未找到文章",
+    "proposalsEmptyTitle": "尚未收到提案",
+    "proposalsEmptyDesc": "医院正在审核中。\n通常 1–2 个工作日内会收到提案。",
+    "backToArticles": "← 返回列表"
   },
   "concern": {
     "form": {

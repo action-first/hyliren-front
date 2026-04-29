@@ -224,12 +224,19 @@
     "heroTitle": "{count} clinic(s)\nresponded",
     "heroDesc": "Tap a proposal to analyze, then choose what makes sense",
     "addConcern": "Consult about other areas too",
+    "addConcernTitle": "Add another area",
+    "addConcernSubtitle": "Consult about other areas too",
     "compareCount": "Compare {count}",
     "selectedCount": "{count} selected — add 1 more to compare",
     "verifyThis": "Verify this proposal",
     "proposalCount": "{count} proposal(s)",
     "selectToCompare": "Select proposals to compare",
-    "selectedNeedMore": "{count} selected — pick one more to compare"
+    "selectedNeedMore": "{count} selected — pick one more to compare",
+    "receivedProposals": "Received proposals",
+    "collapse": "Collapse",
+    "showMoreProposals": "Show {count} more proposals",
+    "budgetRangeMan": "{min}–{max}0K KRW",
+    "visitDateLabel": "Visit from {date}"
   },
   "detail": {
     "priceQuestion": "Is {price}0K KRW a fair price?",
@@ -371,7 +378,19 @@
     "notifications": "Notifications",
     "privacy": "Privacy policy",
     "support": "Customer support",
-    "logout": "Log out"
+    "logout": "Log out",
+    "loginToManage": "Log in and manage your concerns\nand proposals in one place",
+    "loginAfterConsultHint": "You'll be guided to the login screen after registering a consultation",
+    "loginOrSignup": "Log in / Sign up",
+    "awaitingProposals": "Waiting",
+    "concernSelectedHospital": "Selected hospital",
+    "concernViewProposal": "View proposal",
+    "concernVisitPlanned": "Visit planned",
+    "articleHelpHint": "Sharing this info during consultation helps get more accurate guidance",
+    "articleNotFound": "Article not found",
+    "proposalsEmptyTitle": "No proposals yet",
+    "proposalsEmptyDesc": "Hospitals are reviewing.\nProposals usually arrive within 1–2 business days.",
+    "backToArticles": "← Back to list"
   },
   "concern": {
     "form": {

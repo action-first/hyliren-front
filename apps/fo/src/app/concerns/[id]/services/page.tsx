@@ -77,7 +77,7 @@ export default function ServicesPage({ params }: Props) {
       {/* Selected hospital */}
       {selectedProposal && (
         <div className="rounded-[var(--app-radius-md)] fo-gradient-accent px-4 py-3.5 mb-5">
-          <span className="text-[10px] text-[var(--color-text-dim)] block mb-1">선택한 병원</span>
+          <span className="text-[10px] text-[var(--color-text-dim)] block mb-1">{t('mypage.concernSelectedHospital')}</span>
           <div className="flex items-center justify-between">
             <div>
               <span className="text-[15px] font-bold text-[var(--color-text)]">{selectedProposal.hospitalName}</span>
@@ -87,7 +87,7 @@ export default function ServicesPage({ params }: Props) {
               </div>
             </div>
             <Link href={`/concerns/${concern.id}/proposals`} className="no-underline">
-              <Button variant="ghost" size="sm">제안 보기</Button>
+              <Button variant="ghost" size="sm">{t('mypage.concernViewProposal')}</Button>
             </Link>
           </div>
         </div>
@@ -98,7 +98,7 @@ export default function ServicesPage({ params }: Props) {
         <div className="flex items-center gap-3 px-4 py-3 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)] mb-5">
           <MapPin size={16} className="text-[var(--color-primary)] shrink-0" />
           <div>
-            <span className="text-[13px] font-medium text-[var(--color-text)]">방문 예정</span>
+            <span className="text-[13px] font-medium text-[var(--color-text)]">{t('mypage.concernVisitPlanned')}</span>
             <span className="text-[11px] text-[var(--color-text-dim)] block">{concern.visitDateFrom}~{concern.visitDateTo || ''}</span>
           </div>
         </div>
