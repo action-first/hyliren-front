@@ -590,6 +590,22 @@
     "poTitle": "MIMYO Partner Office",
     "poDescription": "Hospital management system"
   },
+  "dateFilter": {
+    "today": "Today",
+    "last7Days": "7 days",
+    "last30Days": "30 days",
+    "customRange": "Custom range",
+    "startDate": "Start date",
+    "startDatePlaceholder": "Select start date",
+    "endDate": "End date",
+    "endDatePlaceholder": "Select end date",
+    "cancel": "Cancel",
+    "apply": "Apply"
+  },
+  "uiCommon": {
+    "close": "Close",
+    "back": "Go back"
+  },
   "dataGrid": {
     "dateFromPlaceholder": "Start date",
     "dateToPlaceholder": "End date",

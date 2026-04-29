@@ -22,6 +22,8 @@ export interface SideSheetProps {
   showClose?: boolean;
   /** ESC 키 / backdrop 클릭으로 닫기. 기본 true. */
   dismissable?: boolean;
+  /** Close button aria-label (스크린 리더). 미지정 시 한국어 기본값. */
+  closeLabel?: string;
 }
 
 export function SideSheet({
@@ -33,6 +35,7 @@ export function SideSheet({
   width = 'md',
   showClose = true,
   dismissable = true,
+  closeLabel = '닫기',
 }: SideSheetProps) {
   useEffect(() => {
     if (!open) return;
@@ -70,7 +73,7 @@ export function SideSheet({
                 type="button"
                 onClick={onClose}
                 className="side-sheet-close"
-                aria-label="닫기"
+                aria-label={closeLabel}
               >
                 <X size={18} />
               </button>
