@@ -275,7 +275,13 @@
     "recoveryLabel": "회복:",
     "marketAvgRange": "시장 평균 {avg}{unit} ({min}~{max}{unit})",
     "daysShort": "{days}일",
-    "scoreUnit": "{score}점"
+    "scoreUnit": "{score}점",
+    "purchasedTitle": "구매한 리포트",
+    "purchasedSubtitle": "검증 리포트를 다시 확인하고 비교할 수 있어요",
+    "emptyTitle": "아직 구매한 리포트가 없어요",
+    "emptyDesc": "상담함에서 제안을 선택하고 검증 리포트를 구매해보세요",
+    "goToInbox": "상담함 가기",
+    "verifiedComplete": "검증 완료 — 상세 보기"
   },
   "nudge": {
     "title": "이 선택, 괜찮을까요?",
@@ -420,6 +426,31 @@
       "anesthesiaGeneral": "전신마취",
       "hospitalStay": "입원"
     }
+  },
+  "procedures": {
+    "loadError": "시술 정보를 불러올 수 없습니다",
+    "notFound": "시술을 찾을 수 없습니다",
+    "notFoundDesc": "삭제되었거나 공개되지 않은 시술입니다.",
+    "goHome": "홈으로 돌아가기",
+    "back": "뒤로가기",
+    "summaryRecovery": "회복",
+    "summaryDuration": "소요",
+    "minutesShort": "{min}분",
+    "hoursShort": "{hours}시간",
+    "hoursMinutes": "{hours}시간 {min}분",
+    "galleryTitle": "시술 이미지",
+    "variantsTitle": "관심 태그",
+    "variantsHint": "상담 신청 때 참고용으로 함께 전달돼요",
+    "variantDefault": "기본 관심 태그",
+    "variantSelected": "선택됨",
+    "recoveryDays": "회복 {days}일",
+    "indicationsTitle": "이런 고민에 자주 선택돼요",
+    "precautionsTitle": "시술 전 꼭 확인하세요",
+    "precautionsDefault": "개인 상태와 의료진 판단에 따라 회복 기간과 적합한 방법이 달라질 수 있습니다.",
+    "consultBoxTitleVariant": "{variant} 으로 상담 신청",
+    "consultBoxTitleDefault": "관심 태그로 상담 신청",
+    "consultBoxDesc": "사진과 고민을 보내면 병원이 맞춤 제안을 드려요",
+    "consultCta": "관심 태그로 상담 시작"
   },
   "auth": {
     "modalTitle": "상담을 이어서 확인하세요",

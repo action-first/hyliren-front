@@ -275,7 +275,13 @@
     "recoveryLabel": "Recovery:",
     "marketAvgRange": "Market avg. {avg}{unit} ({min}–{max}{unit})",
     "daysShort": "{days}d",
-    "scoreUnit": "{score}pts"
+    "scoreUnit": "{score}pts",
+    "purchasedTitle": "Purchased reports",
+    "purchasedSubtitle": "Review and compare verification reports anytime",
+    "emptyTitle": "No purchased reports yet",
+    "emptyDesc": "Pick a proposal in your inbox and purchase a verification report",
+    "goToInbox": "Open inbox",
+    "verifiedComplete": "Verified — View details"
   },
   "nudge": {
     "title": "Are you sure about this?",
@@ -420,6 +426,31 @@
       "anesthesiaGeneral": "General anesthesia",
       "hospitalStay": "Hospital stay"
     }
+  },
+  "procedures": {
+    "loadError": "Couldn't load procedure info",
+    "notFound": "Procedure not found",
+    "notFoundDesc": "This procedure was removed or is not public.",
+    "goHome": "Back to home",
+    "back": "Back",
+    "summaryRecovery": "Recovery",
+    "summaryDuration": "Duration",
+    "minutesShort": "{min}m",
+    "hoursShort": "{hours}h",
+    "hoursMinutes": "{hours}h {min}m",
+    "galleryTitle": "Gallery",
+    "variantsTitle": "Tags of interest",
+    "variantsHint": "Sent with your consultation as reference",
+    "variantDefault": "Default tag",
+    "variantSelected": "Selected",
+    "recoveryDays": "Recovery {days}d",
+    "indicationsTitle": "Often chosen for these concerns",
+    "precautionsTitle": "Before you proceed",
+    "precautionsDefault": "Recovery time and suitable methods may vary based on your condition and your medical team's judgment.",
+    "consultBoxTitleVariant": "Consult about {variant}",
+    "consultBoxTitleDefault": "Consult with this tag",
+    "consultBoxDesc": "Send photos and your concern—clinics will tailor proposals",
+    "consultCta": "Start consultation with tag"
   },
   "auth": {
     "modalTitle": "Continue your consultation",

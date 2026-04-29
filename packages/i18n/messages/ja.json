@@ -275,7 +275,13 @@
     "recoveryLabel": "回復:",
     "marketAvgRange": "市場平均 {avg}{unit} ({min}~{max}{unit})",
     "daysShort": "{days}日",
-    "scoreUnit": "{score}点"
+    "scoreUnit": "{score}点",
+    "purchasedTitle": "購入したレポート",
+    "purchasedSubtitle": "検証レポートを再確認して比較できます",
+    "emptyTitle": "まだ購入したレポートがありません",
+    "emptyDesc": "相談ボックスで提案を選び、検証レポートを購入してみましょう",
+    "goToInbox": "相談ボックスへ",
+    "verifiedComplete": "検証完了 — 詳細を見る"
   },
   "nudge": {
     "title": "この選択、大丈夫でしょうか?",
@@ -420,6 +426,31 @@
       "anesthesiaGeneral": "全身麻酔",
       "hospitalStay": "入院"
     }
+  },
+  "procedures": {
+    "loadError": "施術情報を読み込めません",
+    "notFound": "施術が見つかりません",
+    "notFoundDesc": "削除されたか、公開されていない施術です。",
+    "goHome": "ホームに戻る",
+    "back": "戻る",
+    "summaryRecovery": "回復",
+    "summaryDuration": "所要",
+    "minutesShort": "{min}分",
+    "hoursShort": "{hours}時間",
+    "hoursMinutes": "{hours}時間 {min}分",
+    "galleryTitle": "施術画像",
+    "variantsTitle": "関心タグ",
+    "variantsHint": "相談申込時に参考として一緒に送信されます",
+    "variantDefault": "基本の関心タグ",
+    "variantSelected": "選択中",
+    "recoveryDays": "回復 {days}日",
+    "indicationsTitle": "こんなお悩みでよく選ばれます",
+    "precautionsTitle": "施術前に必ず確認してください",
+    "precautionsDefault": "個人の状態と医療スタッフの判断により、回復期間と適切な方法が異なる場合があります。",
+    "consultBoxTitleVariant": "{variant} で相談申込",
+    "consultBoxTitleDefault": "関心タグで相談申込",
+    "consultBoxDesc": "写真とお悩みを送ると病院がオーダーメイド提案をお届けします",
+    "consultCta": "関心タグで相談開始"
   },
   "auth": {
     "modalTitle": "相談を続けて確認しましょう",
