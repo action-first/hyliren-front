@@ -1,18 +1,29 @@
 /**
  * Partner 프로필 API 클라이언트.
- * BE PR #23 — GET /profile/me + PATCH /profile/me (upsert).
+ * GET /profile/me + PATCH /profile/me (upsert).
+ *
+ * i18n 컨벤션 — partner_profile_translations 테이블 분리 (BE PR #29):
+ * - 다국어 컨텐츠 (hospitalName / description) 는 i18n Record 로 전달
+ * - 비-i18n 메타 (address, phone, website, logoUrl, coverImageUrl, specialties) 는 그대로 flat
  */
 import type { BodyArea } from '@hyliren/shared';
 import { request } from './client';
 
 const BASE = '/api/v1/profile';
 
+export type Locale = 'ko' | 'zh-CN' | 'ja' | 'en';
+
+export interface PartnerProfileI18nBlock {
+  hospitalName: string;
+  description: string | null;
+}
+
 export interface PartnerProfileWire {
   memberId: string;
-  hospitalName: string;
-  hospitalNameZh: string | null;
-  description: string | null;
-  descriptionZh: string | null;
+  /** 원본 언어 — i18n fallback 기준 */
+  sourceLocale: Locale;
+  /** locale 별 다국어 컨텐츠. 미입력 locale 은 키 자체가 없을 수 있음. */
+  i18n: Partial<Record<Locale, PartnerProfileI18nBlock>>;
   address: string | null;
   phone: string | null;
   website: string | null;
@@ -26,10 +37,9 @@ export interface PartnerProfileWire {
 }
 
 export interface UpdatePartnerProfileBody {
-  hospitalName?: string;
-  hospitalNameZh?: string;
-  description?: string;
-  descriptionZh?: string;
+  /** locale 별 UPSERT — 전달된 locale 만 처리, 나머지는 유지 */
+  i18n?: Partial<Record<Locale, { hospitalName: string; description?: string | null }>>;
+  sourceLocale?: Locale;
   address?: string;
   phone?: string;
   website?: string;

@@ -40,10 +40,10 @@ export default function ProfilePage() {
   // 첫 데이터 도달 시 1회 form 채움. 이후엔 사용자 입력 보호 (refetch 도 무시).
   useEffect(() => {
     if (profile && !hydrated) {
-      setHospitalName(profile.hospitalName ?? '');
-      setHospitalNameZh(profile.hospitalNameZh ?? '');
-      setDescription(profile.description ?? '');
-      setDescriptionZh(profile.descriptionZh ?? '');
+      setHospitalName(profile.i18n?.ko?.hospitalName ?? '');
+      setHospitalNameZh(profile.i18n?.['zh-CN']?.hospitalName ?? '');
+      setDescription(profile.i18n?.ko?.description ?? '');
+      setDescriptionZh(profile.i18n?.['zh-CN']?.description ?? '');
       setAddress(profile.address ?? '');
       setPhone(profile.phone ?? '');
       setWebsite(profile.website ?? '');
@@ -64,12 +64,25 @@ export default function ProfilePage() {
   }
 
   function handleSave() {
+    // i18n 은 입력된 locale 만 전달 — BE 가 locale 별 UPSERT (전달 안 된 locale 은 유지).
+    const i18n: Record<string, { hospitalName: string; description?: string | null }> = {};
+    if (hospitalName.trim()) {
+      i18n.ko = {
+        hospitalName,
+        description: description.trim() ? description : null,
+      };
+    }
+    if (hospitalNameZh.trim()) {
+      i18n['zh-CN'] = {
+        hospitalName: hospitalNameZh,
+        description: descriptionZh.trim() ? descriptionZh : null,
+      };
+    }
+
     updateMutation.mutate(
       {
-        hospitalName,
-        hospitalNameZh: hospitalNameZh || undefined,
-        description: description || undefined,
-        descriptionZh: descriptionZh || undefined,
+        i18n: Object.keys(i18n).length > 0 ? i18n : undefined,
+        sourceLocale: 'ko',
         address: address || undefined,
         phone: phone || undefined,
         website: website || undefined,
