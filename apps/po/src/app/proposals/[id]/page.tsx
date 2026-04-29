@@ -80,12 +80,17 @@ export default function ProposalDetailPage({ params }: Props) {
   }
 
   const statusLabel = PROPOSAL_STATUS_KR[proposal.status] ?? proposal.status;
-  const titleSuffix = concern ? ` — ${concern.primaryArea} ${concern.bodyAreaDetail ?? ''}` : '';
+  const concernLabel = concern
+    ? `${concern.primaryArea} ${concern.bodyAreaDetail ?? ''}`.trim()
+    : '';
+  const title = concernLabel
+    ? t('po.proposalDetailTitleConcern', { concern: concernLabel })
+    : t('po.proposalDetailTitle');
 
   return (
     <AdminPage
       sidebar={<POSidebar active="/activity" />}
-      title={`제안서 상세${titleSuffix}`}
+      title={title}
       prefix="po"
       onBack={() => router.back()}
       actions={<StatusBadge label={statusLabel} />}
