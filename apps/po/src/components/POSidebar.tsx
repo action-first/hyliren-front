@@ -113,7 +113,7 @@ export function POSidebar({ active }: { active: string }) {
                 <div className="po-sidebar-account__body">
                   <div className="po-sidebar-account__topline">
                     <strong className="po-sidebar-account__hospital">
-                      {profile?.hospitalName ?? '파트너 계정'}
+                      {profile?.i18n?.ko?.hospitalName ?? '파트너 계정'}
                     </strong>
                     {profile?.verified ? (
                       <span className="po-sidebar-account__verified">
