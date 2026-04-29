@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { POSidebar } from '@/components/POSidebar';
 import { Card, Button, Input, Textarea, SectionHeader, Badge, AdminPage, Spinner } from '@hyliren/ui';
 import { useToastStore } from '@/store/toast';
+import { useLocaleStore } from '@/store/locale';
 import { toUserMessage } from '@/lib/api/error-messages';
 import { useMyPartnerProfile } from '@/hooks/queries/partner-profile';
 import { useUpdateMyPartnerProfile } from '@/hooks/mutations/partner-profile';
@@ -21,6 +22,7 @@ import { ShieldCheck, ShieldAlert, AlertTriangle } from 'lucide-react';
  */
 export default function ProfilePage() {
   const { showToast } = useToastStore();
+  const t = useLocaleStore(s => s.t);
   const profileQ = useMyPartnerProfile();
   const updateMutation = useUpdateMyPartnerProfile();
   const profile = profileQ.data;
@@ -91,10 +93,10 @@ export default function ProfilePage() {
       {
         onSuccess: () => {
           setIsDirty(false);
-          showToast('파트너 정보가 저장되었습니다.', 'success');
+          showToast(t('po.profileSaveSuccess'), 'success');
         },
         onError: (e) => {
-          showToast(toUserMessage(e, '저장에 실패했습니다'), 'error');
+          showToast(toUserMessage(e, t('po.profileSaveFail')), 'error');
         },
       },
     );
@@ -108,7 +110,7 @@ export default function ProfilePage() {
   // hydrate 전 입력 race (저장 시 빈 값 덮어쓰기) 도 함께 차단.
   if (!hydrated && profileQ.isLoading) {
     return (
-      <AdminPage sidebar={<POSidebar active="/profile" />} title="파트너 정보" prefix="po">
+      <AdminPage sidebar={<POSidebar active="/profile" />} title={t('po.navProfile')} prefix="po">
         <Card padding="md">
           <div className="flex items-center justify-center py-12"><Spinner /></div>
         </Card>
@@ -118,18 +120,18 @@ export default function ProfilePage() {
 
   if (!hydrated && profileQ.isError) {
     return (
-      <AdminPage sidebar={<POSidebar active="/profile" />} title="파트너 정보" prefix="po">
+      <AdminPage sidebar={<POSidebar active="/profile" />} title={t('po.navProfile')} prefix="po">
         <Card padding="md">
           <div className="text-center py-10">
             <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
             <p className="text-[var(--text-sm)] font-medium text-[var(--text-default)] mb-1">
-              프로필을 불러오지 못했어요
+              {t('po.profileLoadFail')}
             </p>
             <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
-              {toUserMessage(profileQ.error, '알 수 없는 오류')}
+              {toUserMessage(profileQ.error, t('po.unknownError'))}
             </p>
             <Button variant="secondary" size="sm" onClick={() => profileQ.refetch()}>
-              다시 시도
+              {t('common.retry')}
             </Button>
           </div>
         </Card>
@@ -150,13 +152,13 @@ export default function ProfilePage() {
   return (
     <AdminPage
       sidebar={<POSidebar active="/profile" />}
-      title="파트너 정보"
+      title={t('po.navProfile')}
       prefix="po"
       actions={
         <div className="flex items-center gap-3">
           {statusBadge}
           <Button variant="primary" size="sm" onClick={handleSave} disabled={!isDirty || saving}>
-            {saving ? '저장 중...' : '저장'}
+            {saving ? t('po.profileSaving') : t('common.save')}
           </Button>
         </div>
       }
@@ -167,12 +169,12 @@ export default function ProfilePage() {
         <Card padding="md">
           <div className="flex items-center justify-between mb-3">
             <SectionHeader
-              title="프로필 완성도"
+              title={t('po.profileCompleteness')}
               subtitle={completeness === 100
-                ? '프로필이 완성되었습니다'
+                ? t('po.profileComplete100')
                 : completeness >= 50
-                  ? '거의 완성! 나머지 항목을 채워주세요'
-                  : '프로필을 채워주세요. 완성도가 높을수록 고객 노출이 증가합니다'}
+                  ? t('po.profileAlmostDone')
+                  : t('po.profileFillIn')}
             />
             <span style={{ fontSize: "var(--text-lg)", fontWeight: "var(--font-bold)", color: 'var(--color-primary)' }}>{completeness}%</span>
           </div>
@@ -183,23 +185,23 @@ export default function ProfilePage() {
 
         {/* 병원 기본 정보 */}
         <Card padding="md">
-          <SectionHeader title="병원 기본 정보" subtitle="고객에게 노출되는 병원 이름을 입력하세요" />
+          <SectionHeader title={t('po.profileBasicInfo')} subtitle={t('po.profileBasicInfoSub')} />
           <div className="propose-form-row mt-4">
-            <Input label="병원명 (한국어)" value={hospitalName} onChange={e => { setHospitalName(e.target.value); markDirty(); }} placeholder="예: 강남아이 성형외과" />
-            <Input label="병원명 (중국어)" value={hospitalNameZh} onChange={e => { setHospitalNameZh(e.target.value); markDirty(); }} placeholder="예: 江南之眼整形外科" />
+            <Input label={t('po.profileHospitalNameKo')} value={hospitalName} onChange={e => { setHospitalName(e.target.value); markDirty(); }} placeholder={t('po.profileHospitalNameKoPh')} />
+            <Input label={t('po.profileHospitalNameZh')} value={hospitalNameZh} onChange={e => { setHospitalNameZh(e.target.value); markDirty(); }} placeholder={t('po.profileHospitalNameZhPh')} />
           </div>
           <div className="propose-form-row mt-3">
-            <Input label="대표 전화" value={phone} onChange={e => { setPhone(e.target.value); markDirty(); }} placeholder="02-1234-5678" />
-            <Input label="웹사이트" value={website} onChange={e => { setWebsite(e.target.value); markDirty(); }} placeholder="https://example.kr" />
+            <Input label={t('po.profilePhone')} value={phone} onChange={e => { setPhone(e.target.value); markDirty(); }} placeholder="02-1234-5678" />
+            <Input label={t('po.profileWebsite')} value={website} onChange={e => { setWebsite(e.target.value); markDirty(); }} placeholder="https://example.kr" />
           </div>
           <div className="mt-3">
-            <Input label="주소" value={address} onChange={e => { setAddress(e.target.value); markDirty(); }} placeholder="서울 강남구 역삼동 123" />
+            <Input label={t('po.profileAddress')} value={address} onChange={e => { setAddress(e.target.value); markDirty(); }} placeholder={t('po.profileAddressPh')} />
           </div>
         </Card>
 
         {/* 전문 분야 */}
         <Card padding="md">
-          <SectionHeader title="전문 분야" subtitle="병원이 집중하는 시술 분야를 선택하세요" />
+          <SectionHeader title={t('po.profileSpecialties')} subtitle={t('po.profileSpecialtiesSub')} />
           <div className="flex gap-2 mt-4 flex-wrap">
             {(BODY_AREAS as readonly BodyArea[]).map(area => (
               <button key={area} type="button" onClick={() => toggleSpecialty(area)}
@@ -216,20 +218,20 @@ export default function ProfilePage() {
 
         {/* 병원 소개 */}
         <Card padding="md">
-          <SectionHeader title="병원 소개" subtitle="고객이 보는 병원 설명 (한국어 + 중국어)" />
+          <SectionHeader title={t('po.profileIntro')} subtitle={t('po.profileIntroSub')} />
           <div className="mt-4">
-            <Textarea label="소개 (한국어)" value={description} onChange={e => { setDescription(e.target.value); markDirty(); }}
-              placeholder="병원의 강점과 전문성을 소개하세요" rows={3} />
+            <Textarea label={t('po.profileDescKo')} value={description} onChange={e => { setDescription(e.target.value); markDirty(); }}
+              placeholder={t('po.profileDescKoPh')} rows={3} />
           </div>
           <div className="mt-3">
-            <Textarea label="소개 (중국어)" value={descriptionZh} onChange={e => { setDescriptionZh(e.target.value); markDirty(); }}
-              placeholder="用中文介绍医院的优势和专业性" rows={3} />
+            <Textarea label={t('po.profileDescZh')} value={descriptionZh} onChange={e => { setDescriptionZh(e.target.value); markDirty(); }}
+              placeholder={t('po.profileDescZhPh')} rows={3} />
           </div>
         </Card>
 
         <div className="flex justify-end">
           <Button variant="primary" onClick={handleSave} disabled={!isDirty || saving}>
-            {saving ? '저장 중...' : '저장'}
+            {saving ? t('po.profileSaving') : t('common.save')}
           </Button>
         </div>
       </div>
