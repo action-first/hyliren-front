@@ -51,14 +51,14 @@ export default function MyPage() {
     return (
       <>
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-5 gap-4">
-          <p className="text-[15px] font-medium text-[var(--color-text)] text-center">
-            로그인하고 내 고민과 제안을<br/>한 곳에서 관리하세요
+          <p className="text-[15px] font-medium text-[var(--color-text)] text-center whitespace-pre-line">
+            {t('mypage.loginToManage')}
           </p>
           <p className="text-[12px] text-[var(--color-text-dim)] text-center mb-2">
-            상담 등록 후 자동으로 로그인 화면이 안내됩니다
+            {t('mypage.loginAfterConsultHint')}
           </p>
           <Button variant="primary" size="xl" onClick={() => setShowAuthModal(true)}>
-            로그인 / 회원가입
+            {t('mypage.loginOrSignup')}
           </Button>
         </div>
         <AuthModal
@@ -156,9 +156,9 @@ export default function MyPage() {
                     <p className="text-[13px] text-[var(--color-text-secondary)] line-clamp-1 mb-1.5">{c.description}</p>
                     <div className="flex items-center justify-between">
                       {cProposalCount > 0 ? (
-                        <span className="text-[11px] text-[var(--color-text-dim)]">제안 {cProposalCount}건</span>
+                        <span className="text-[11px] text-[var(--color-text-dim)]">{t('decision.proposalCount', { count: cProposalCount })}</span>
                       ) : (
-                        <span className="text-[11px] text-[var(--color-text-dim)]">대기 중</span>
+                        <span className="text-[11px] text-[var(--color-text-dim)]">{t('mypage.awaitingProposals')}</span>
                       )}
                       <ChevronRight size={14} className="text-[var(--color-text-dim)]" />
                     </div>

@@ -4,10 +4,12 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Bell, User } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
+import { useLocaleStore } from '@/store/locale';
 import { AuthModal } from '@/components/auth/AuthModal';
 
 export function FOHeader() {
   const { isLoggedIn, user } = useAuthStore();
+  const t = useLocaleStore(s => s.t);
   const [showAuth, setShowAuth] = useState(false);
   // 미읽은 제안서 카운트는 customer backend 의 "내 모든 제안" 집계 엔드포인트
   // 추가 후 연결 (현재 customer API 는 concernId 별 listProposals 만 제공).
@@ -18,8 +20,8 @@ export function FOHeader() {
     <>
       <header className="fo-header">
         <Link href="/" className="fo-header-logo">
-          <span className="fo-logo-mark">韩</span>
-          <span className="fo-logo-text">한옌리런</span>
+          <span className="fo-logo-mark">美</span>
+          <span className="fo-logo-text">{t('common.appName')}</span>
         </Link>
         <div className="fo-header-actions">
           <Link href="/decision" className="fo-header-icon-btn relative">

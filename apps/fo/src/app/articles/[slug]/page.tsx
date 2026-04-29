@@ -13,8 +13,10 @@ function formatViews(n: number): string {
   return n >= 10000 ? `${(n / 10000).toFixed(1)}만` : n >= 1000 ? `${(n / 1000).toFixed(1)}천` : String(n);
 }
 
+type TFn = (key: string, params?: Record<string, string | number>) => string;
+
 /* ── Markdown → JSX (lightweight) ── */
-function renderBody(article: Article) {
+function renderBody(article: Article, t: TFn) {
   const lines = article.body.split('\n');
   const elements: React.ReactNode[] = [];
   let i = 0;
@@ -48,7 +50,7 @@ function renderBody(article: Article) {
                   </div>
                 ))}
               </div>
-              <p className="text-[10.5px] text-[var(--color-text-dim)] mt-4">상담 시 이 정보를 함께 전달하면 더 정확한 방향을 잡을 수 있어요</p>
+              <p className="text-[10.5px] text-[var(--color-text-dim)] mt-4">{t('mypage.articleHelpHint')}</p>
             </div>,
           );
         }
@@ -191,9 +193,9 @@ export default function ArticleDetailPage() {
   if (!article) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-5">
-        <p className="text-[15px] font-semibold text-[var(--color-text)] mb-2">아티클을 찾을 수 없습니다</p>
+        <p className="text-[15px] font-semibold text-[var(--color-text)] mb-2">{t('mypage.articleNotFound')}</p>
         <Link href="/articles" className="text-[13px] text-[var(--color-primary)] no-underline">
-          ← 목록으로
+          {t('mypage.backToArticles')}
         </Link>
       </div>
     );
@@ -235,7 +237,7 @@ export default function ArticleDetailPage() {
 
       {/* Body */}
       <div className="px-5">
-        {renderBody(article)}
+        {renderBody(article, t)}
       </div>
 
       {/* Bottom CTA */}

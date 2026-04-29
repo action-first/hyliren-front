@@ -224,12 +224,19 @@
     "heroTitle": "{count}件の病院が\n回答しました",
     "heroDesc": "提案をタップして分析し、最も合理的な選択をしてください",
     "addConcern": "他の部位も一緒に相談してみましょう",
+    "addConcernTitle": "他の部位を追加",
+    "addConcernSubtitle": "他の部位も一緒に相談してみましょう",
     "compareCount": "{count}件を比較",
     "selectedCount": "{count}件選択 — もう1件追加で比較",
     "verifyThis": "この提案を検証する",
     "proposalCount": "提案{count}件",
     "selectToCompare": "提案書を選択して比較してみましょう",
-    "selectedNeedMore": "{count}件選択中 — もう1件選ぶと比較できます"
+    "selectedNeedMore": "{count}件選択中 — もう1件選ぶと比較できます",
+    "receivedProposals": "受け取った提案",
+    "collapse": "閉じる",
+    "showMoreProposals": "残りの {count} 件の提案を見る",
+    "budgetRangeMan": "{min}〜{max}万",
+    "visitDateLabel": "{date}〜 来院"
   },
   "detail": {
     "priceQuestion": "{price}万ウォン、合理的な価格でしょうか?",
@@ -371,7 +378,19 @@
     "notifications": "通知設定",
     "privacy": "個人情報処理方針",
     "support": "カスタマーサポート",
-    "logout": "ログアウト"
+    "logout": "ログアウト",
+    "loginToManage": "ログインして、悩みと提案を\n一括で管理しましょう",
+    "loginAfterConsultHint": "相談登録後、自動でログイン画面に遷移します",
+    "loginOrSignup": "ログイン / 新規登録",
+    "awaitingProposals": "待機中",
+    "concernSelectedHospital": "選択した病院",
+    "concernViewProposal": "提案を見る",
+    "concernVisitPlanned": "来院予定",
+    "articleHelpHint": "相談時にこの情報を併せて伝えると、より正確な提案が受けられます",
+    "articleNotFound": "記事が見つかりません",
+    "proposalsEmptyTitle": "まだ提案を受け取っていません",
+    "proposalsEmptyDesc": "病院で検討中です。\n通常 1〜2 営業日以内に提案書が届きます。",
+    "backToArticles": "← 一覧に戻る"
   },
   "concern": {
     "form": {

@@ -33,9 +33,9 @@ export default function ProposalListPage({ params }: Props) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-8 text-center gap-3">
         <Inbox size={40} className="text-[var(--color-text-dim)]" />
-        <h2 className="text-[1.125rem] font-bold text-[var(--color-text)]">아직 받은 제안서가 없어요</h2>
-        <p className="text-[13px] text-[var(--color-text-dim)] leading-relaxed">
-          병원들이 검토 중입니다.<br />보통 1–2 영업일 내에 제안서가 도착해요.
+        <h2 className="text-[1.125rem] font-bold text-[var(--color-text)]">{t('mypage.proposalsEmptyTitle')}</h2>
+        <p className="text-[13px] text-[var(--color-text-dim)] leading-relaxed whitespace-pre-line">
+          {t('mypage.proposalsEmptyDesc')}
         </p>
       </div>
     );

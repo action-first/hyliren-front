@@ -155,8 +155,8 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
               <Plus size={16} className="text-[var(--color-primary)]" />
             </div>
             <div className="flex-1">
-              <span className="text-[13px] font-semibold text-[var(--color-text)] block">{t('decision.addConcern')}</span>
-              <span className="text-[11px] text-[var(--color-text-dim)]">다른 부위도 함께 상담받아보세요</span>
+              <span className="text-[13px] font-semibold text-[var(--color-text)] block">{t('decision.addConcernTitle')}</span>
+              <span className="text-[11px] text-[var(--color-text-dim)]">{t('decision.addConcernSubtitle')}</span>
             </div>
             <ArrowRight size={16} className="text-[var(--color-text-dim)]" />
           </div>

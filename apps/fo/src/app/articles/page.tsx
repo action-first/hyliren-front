@@ -62,7 +62,7 @@ export default function ArticlesPage() {
                 </div>
                 <p className="text-[13px] font-semibold text-[var(--color-text)] leading-snug line-clamp-2 mb-1.5">{a.title}</p>
                 <div className="flex items-center gap-3 text-[10px] text-[var(--color-text-dim)]">
-                  <span className="flex items-center gap-0.5"><Clock size={9} /> {a.readTime}분</span>
+                  <span className="flex items-center gap-0.5"><Clock size={9} /> {t('articles.readTime', { min: a.readTime })}</span>
                   <span className="flex items-center gap-0.5"><Eye size={9} /> {formatViews(a.views)}</span>
                 </div>
               </div>
