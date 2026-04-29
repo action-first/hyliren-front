@@ -5,6 +5,7 @@ import { Input, Select } from '@hyliren/ui';
 import { BODY_AREAS, proceduresByArea, PROCEDURE_TYPE_AREAS } from '@hyliren/shared';
 import type { BodyArea, ProcedureType, Locale } from '@hyliren/shared';
 import { LocaleTabs } from './LocaleTabs';
+import { useLocaleStore } from '@/store/locale';
 import type { WizardForm } from '@/lib/wizard/types';
 
 interface Step1Props {
@@ -59,6 +60,7 @@ function procedureOptionsForArea(area: BodyArea | ''): { value: string; label: s
 }
 
 export function Step1Basics({ form, onChange }: Step1Props) {
+  const t = useLocaleStore(s => s.t);
   const [activeLocale, setActiveLocale] = useState<Locale>(form.sourceLocale);
 
   const completed: Partial<Record<Locale, boolean>> = {};
@@ -96,25 +98,27 @@ export function Step1Basics({ form, onChange }: Step1Props) {
     ? PROCEDURE_TYPE_LABEL[form.procedureType as ProcedureType]?.replace(/^[^·]*·\s*/, '')
     : '';
   const titlePlaceholder = activeLocale === 'ko'
-    ? (procedureTypeSuggestion ? `예: ${procedureTypeSuggestion} (자연스러운 라인)` : '예: 쌍꺼풀 수술')
+    ? (procedureTypeSuggestion
+        ? t('po.wizardTitlePlaceholderSuggest', { suggestion: procedureTypeSuggestion })
+        : t('po.wizardTitlePlaceholderKoDefault'))
     : activeLocale === 'zh-CN'
-      ? '例: 双眼皮手术'
+      ? t('po.wizardTitlePlaceholderZhCN')
       : '';
 
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-3">
         <Select
-          label="부위 *"
+          label={t('po.wizardBodyArea')}
           value={form.primaryArea || ''}
-          options={[{ value: '', label: '선택…' }, ...BODY_AREA_OPTIONS]}
+          options={[{ value: '', label: t('po.wizardSelectPlaceholder') }, ...BODY_AREA_OPTIONS]}
           onChange={v => changePrimaryArea(v as BodyArea)}
         />
         <Select
-          label="시술 유형 *"
+          label={t('po.wizardProcedureType')}
           value={form.procedureType || ''}
           options={[
-            { value: '', label: form.primaryArea ? '선택…' : '먼저 부위를 선택하세요' },
+            { value: '', label: form.primaryArea ? t('po.wizardSelectPlaceholder') : t('po.wizardSelectAreaFirst') },
             ...typeOptions,
           ]}
           onChange={v => onChange({ procedureType: v as ProcedureType })}
@@ -123,13 +127,13 @@ export function Step1Basics({ form, onChange }: Step1Props) {
 
       <div>
         <Input
-          label="대표 이미지 URL *"
+          label={t('po.wizardHeroImageUrl')}
           value={form.heroImageUrl}
           onChange={e => onChange({ heroImageUrl: e.target.value })}
           placeholder="https://…"
         />
         <p className="text-[var(--app-text-micro)] text-[var(--text-disabled)] mt-1.5">
-          ⚠️ 시술 전/후 비교 이미지는 의료법상 등록 금지. 시술 과정·의료진·시설 이미지로 구성해주세요.
+          {t('po.wizardHeroImageHelp')}
         </p>
         {form.heroImageUrl && (
           <div className="mt-3 w-full h-40 rounded-md overflow-hidden bg-[var(--surface-subdued)]">
@@ -146,27 +150,31 @@ export function Step1Basics({ form, onChange }: Step1Props) {
           onChange={setActiveLocale}
         />
         <Input
-          label={`시술명 * (${activeLocale === form.sourceLocale ? '원본' : '번역'})`}
+          label={t('po.wizardTitleField', {
+            label: activeLocale === form.sourceLocale
+              ? t('po.wizardTitleOriginal')
+              : t('po.wizardTitleTranslation'),
+          })}
           value={currentBlock.title}
           onChange={e => updateTitle(e.target.value)}
           placeholder={titlePlaceholder}
         />
         {activeLocale !== form.sourceLocale && !currentBlock.title && (
           <p className="text-[var(--app-text-micro)] text-[var(--text-disabled)] mt-1.5">
-            비워두면 {form.sourceLocale} 원본으로 자동 fallback 됩니다.
+            {t('po.wizardTitleFallbackHint', { locale: form.sourceLocale })}
           </p>
         )}
       </div>
 
       <div>
         <Input
-          label="URL Slug (선택)"
+          label={t('po.wizardUrlSlug')}
           value={form.slug}
           onChange={e => onChange({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-          placeholder="비워두면 자동 생성됩니다"
+          placeholder={t('po.wizardUrlSlugPlaceholder')}
         />
         <p className="text-[var(--app-text-micro)] text-[var(--text-disabled)] mt-1.5">
-          영문 소문자·숫자·하이픈만 사용. URL 에 노출됩니다: /procedures/<strong>{form.slug || '...'}</strong>
+          {t('po.wizardUrlSlugHelp')}: /procedures/<strong>{form.slug || '...'}</strong>
         </p>
       </div>
     </div>

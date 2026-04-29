@@ -5,6 +5,7 @@ import { Input, Textarea, Button, SectionHeader } from '@hyliren/ui';
 import { X, Plus, AlertTriangle } from 'lucide-react';
 import type { Locale } from '@hyliren/shared';
 import { LocaleTabs } from './LocaleTabs';
+import { useLocaleStore } from '@/store/locale';
 import type { WizardForm } from '@/lib/wizard/types';
 
 interface Step3Props {
@@ -13,6 +14,7 @@ interface Step3Props {
 }
 
 export function Step3Content({ form, onChange }: Step3Props) {
+  const t = useLocaleStore(s => s.t);
   const [activeLocale, setActiveLocale] = useState<Locale>(form.sourceLocale);
   const [indicationInput, setIndicationInput] = useState('');
 
@@ -62,8 +64,8 @@ export function Step3Content({ form, onChange }: Step3Props) {
     <div className="flex flex-col gap-6">
       <div>
         <SectionHeader
-          title="시술 콘텐츠"
-          subtitle="언어별로 시술 설명·고지 사항·적응증을 입력합니다. 한 언어 탭만 입력해도 나머지 언어는 자동 fallback 됩니다."
+          title={t('po.wizardContentTitle')}
+          subtitle={t('po.wizardContentSubtitle')}
         />
         <div className="mt-3" />
         <LocaleTabs
@@ -75,23 +77,23 @@ export function Step3Content({ form, onChange }: Step3Props) {
 
         <div className="flex flex-col gap-4">
           <Textarea
-            label="시술 개요 *"
+            label={t('po.wizardDescription')}
             value={block.description}
             onChange={e => updateBlock({ description: e.target.value })}
             rows={5}
-            placeholder="시술의 특징·접근법·적합 대상 등을 설명해주세요 (최대 2000자)"
+            placeholder={t('po.wizardDescriptionPlaceholder')}
           />
           <Textarea
-            label="필수 고지 * (회복 기간·주의사항·예상 부작용)"
+            label={t('po.wizardPrecautions')}
             value={block.precautions}
             onChange={e => updateBlock({ precautions: e.target.value })}
             rows={4}
-            placeholder="의료법상 필수 고지 사항 (최대 500자)"
+            placeholder={t('po.wizardPrecautionsPlaceholder')}
           />
 
           <div>
             <label className="block text-[var(--text-xs)] font-semibold text-[var(--text-disabled)] mb-1">
-              적응증 (최대 5개)
+              {t('po.wizardIndicationsLabel')}
             </label>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {block.indications.map((ind, i) => (
@@ -113,11 +115,11 @@ export function Step3Content({ form, onChange }: Step3Props) {
                   value={indicationInput}
                   onChange={e => setIndicationInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addIndication())}
-                  placeholder="예: 쌍꺼풀 미형성"
+                  placeholder={t('po.wizardIndicationPlaceholder')}
                   className="flex-1"
                 />
                 <Button variant="secondary" size="sm" onClick={addIndication}>
-                  <Plus size={13} /> 추가
+                  <Plus size={13} /> {t('po.wizardAdd')}
                 </Button>
               </div>
             )}
@@ -127,8 +129,8 @@ export function Step3Content({ form, onChange }: Step3Props) {
 
       <div>
         <SectionHeader
-          title="갤러리 이미지"
-          subtitle="시설·시술 과정·의료진 이미지로 구성합니다. 최대 8장까지 등록 가능합니다."
+          title={t('po.wizardGalleryTitle')}
+          subtitle={t('po.wizardGallerySubtitle')}
           action={
             <span className="text-[var(--app-text-micro)] text-[var(--text-subdued)]">
               {form.galleryImageUrls.length}/8
@@ -138,7 +140,7 @@ export function Step3Content({ form, onChange }: Step3Props) {
         <div className="mt-2 mb-3 flex items-start gap-2 p-2.5 rounded-[var(--app-radius-sm)] bg-[var(--color-warning-soft)]">
           <AlertTriangle size={14} className="text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
           <p className="text-[var(--text-xs)] text-[var(--text-default)] leading-relaxed">
-            <strong className="font-semibold">의료법상 시술 전/후 비교 이미지 등록 금지.</strong> 위반 시 행정 처분 대상이 될 수 있습니다.
+            <strong className="font-semibold">{t('po.wizardGalleryWarning')}</strong>{t('po.wizardGalleryWarningDetail')}
           </p>
         </div>
 
@@ -155,7 +157,7 @@ export function Step3Content({ form, onChange }: Step3Props) {
               <button
                 type="button"
                 onClick={() => removeGalleryAt(i)}
-                title="삭제"
+                title={t('po.wizardImageDelete')}
                 className="
                   absolute top-1 right-1 p-1 rounded-full
                   bg-black/55 text-white opacity-0 group-hover:opacity-100
@@ -182,7 +184,7 @@ export function Step3Content({ form, onChange }: Step3Props) {
                   placeholder="https://…"
                   className="w-full text-[var(--app-text-micro)]"
                 />
-                <span className="text-[10px] text-[var(--text-disabled)]">Enter: 추가 · Esc: 취소</span>
+                <span className="text-[10px] text-[var(--text-disabled)]">{t('po.wizardEnterEscHelp')}</span>
               </div>
             ) : (
               <button
@@ -197,7 +199,7 @@ export function Step3Content({ form, onChange }: Step3Props) {
                 "
               >
                 <Plus size={20} />
-                <span className="text-[var(--app-text-micro)]">이미지 추가</span>
+                <span className="text-[var(--app-text-micro)]">{t('po.wizardImageAdd')}</span>
               </button>
             )
           )}

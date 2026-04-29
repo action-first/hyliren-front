@@ -6,6 +6,7 @@ import type { AnesthesiaType } from '@hyliren/shared';
 import { formatNumberWithComma, parseNumberFromInput } from '@hyliren/shared';
 import { VariantCard } from './VariantCard';
 import { emptyVariant } from '@/lib/wizard/defaults';
+import { useLocaleStore } from '@/store/locale';
 import type { WizardForm, WizardVariant } from '@/lib/wizard/types';
 
 interface Step2Props {
@@ -13,13 +14,13 @@ interface Step2Props {
   onChange: (patch: Partial<WizardForm>) => void;
 }
 
-const ANESTHESIA_OPTIONS = [
-  { value: 'local', label: '부분마취' },
-  { value: 'sedation', label: '수면마취' },
-  { value: 'general', label: '전신마취' },
-];
-
 export function Step2Pricing({ form, onChange }: Step2Props) {
+  const t = useLocaleStore(s => s.t);
+  const ANESTHESIA_OPTIONS = [
+    { value: 'local', label: t('po.wizardAnesthesiaLocal') },
+    { value: 'sedation', label: t('po.wizardAnesthesiaSedation') },
+    { value: 'general', label: t('po.wizardAnesthesiaGeneral') },
+  ];
   function updateVariant(id: string, patch: Partial<WizardVariant>) {
     onChange({
       variants: form.variants.map(v => v.id === id ? { ...v, ...patch } : v),
@@ -56,13 +57,13 @@ export function Step2Pricing({ form, onChange }: Step2Props) {
       {/* 기본값 */}
       <div>
         <SectionHeader
-          title="기본값"
-          subtitle="모든 옵션이 공통으로 갖는 시술 정보입니다. 옵션별로 다른 값이 필요하면 아래 옵션 카드에서 개별 설정할 수 있습니다."
+          title={t('po.wizardBaseDefaultsTitle')}
+          subtitle={t('po.wizardBaseDefaultsSubtitle')}
         />
         <div className="grid grid-cols-2 gap-3 mt-3">
           {/* 기본 가격 — 콤마 포맷 + '원' 단위 inline */}
           <div className="input-wrapper">
-            <label className="input-label">기본 가격 *</label>
+            <label className="input-label">{t('po.wizardBasePrice')}</label>
             <div className="flex items-center gap-2">
               <input
                 type="text"
@@ -72,29 +73,29 @@ export function Step2Pricing({ form, onChange }: Step2Props) {
                 placeholder="0"
                 className="input-field flex-1 text-right tabular-nums"
               />
-              <span className="text-[var(--text-sm)] text-[var(--text-subdued)] flex-shrink-0">원</span>
+              <span className="text-[var(--text-sm)] text-[var(--text-subdued)] flex-shrink-0">{t('po.wizardWonUnit')}</span>
             </div>
           </div>
           <Select
-            label="기본 마취 *"
+            label={t('po.wizardBaseAnesthesia')}
             value={form.baseAnesthesia}
             options={ANESTHESIA_OPTIONS}
             onChange={v => onChange({ baseAnesthesia: v as AnesthesiaType })}
           />
           <Input
-            label="기본 시술 시간 (분) *"
+            label={t('po.wizardBaseDuration')}
             type="number"
             value={form.baseDurationMinutes || ''}
             onChange={e => onChange({ baseDurationMinutes: Number(e.target.value) || 0 })}
           />
           <Input
-            label="기본 회복일 *"
+            label={t('po.wizardBaseRecoveryDays')}
             type="number"
             value={form.baseRecoveryDays}
             onChange={e => onChange({ baseRecoveryDays: Number(e.target.value) || 0 })}
           />
           <Input
-            label="기본 입원일 *"
+            label={t('po.wizardBaseHospitalStayDays')}
             type="number"
             value={form.baseHospitalStayDays}
             onChange={e => onChange({ baseHospitalStayDays: Number(e.target.value) || 0 })}
@@ -105,11 +106,11 @@ export function Step2Pricing({ form, onChange }: Step2Props) {
       {/* Variants */}
       <div>
         <SectionHeader
-          title="시술 옵션"
-          subtitle="같은 시술의 여러 변형을 등록합니다. 예: 쌍꺼풀 → 매몰 / 부분절개 / 절개. 최소 1개 등록, 대표 옵션 1개를 지정해주세요."
+          title={t('po.wizardVariantsTitle')}
+          subtitle={t('po.wizardVariantsSubtitle')}
           action={
             <Button variant="secondary" size="sm" onClick={addVariant}>
-              <Plus size={13} /> 옵션 추가
+              <Plus size={13} /> {t('po.wizardVariantAdd')}
             </Button>
           }
         />
