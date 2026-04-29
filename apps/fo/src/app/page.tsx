@@ -66,11 +66,11 @@ export default function HomePage() {
 
           {/* 텍스트 오버레이 */}
           <div className="absolute inset-0 flex flex-col justify-end px-5 pb-6">
-            <h1 className="text-[1.75rem] font-bold text-white leading-[1.35] tracking-[-0.5px] mb-3 drop-shadow-md">
-              {'요즘,\n나만 신경 쓰이는 걸까?'}
+            <h1 className="text-[1.75rem] font-bold text-white leading-[1.35] tracking-[-0.5px] mb-3 drop-shadow-md whitespace-pre-line">
+              {t('landing.heroOverlayTitle')}
             </h1>
-            <p className="text-[15px] text-white/85 leading-[1.6] drop-shadow-sm">
-              {'내 얼굴 기준으로\n어떤 선택이 맞는지 먼저 확인해보세요'}
+            <p className="text-[15px] text-white/85 leading-[1.6] drop-shadow-sm whitespace-pre-line">
+              {t('landing.heroOverlaySubtitle')}
             </p>
           </div>
         </div>
@@ -165,12 +165,12 @@ export default function HomePage() {
         <section className="px-5 pb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-[1.0625rem] font-bold text-[var(--color-text)] tracking-[-0.18px]">이런 제안을 받아볼 수 있어요</h2>
-              <p className="text-[11px] text-[var(--color-text-dim)] mt-1">관심 있는 시술은 상담 신청에 태그처럼 함께 전달돼요</p>
+              <h2 className="text-[1.0625rem] font-bold text-[var(--color-text)] tracking-[-0.18px]">{t('landing.proceduresTitle')}</h2>
+              <p className="text-[11px] text-[var(--color-text-dim)] mt-1">{t('landing.proceduresHint')}</p>
             </div>
           </div>
           {proceduresLoading ? (
-            <div className="flex flex-col gap-3" aria-busy="true" aria-label="시술 정보를 불러오는 중">
+            <div className="flex flex-col gap-3" aria-busy="true" aria-label={t('landing.loadingProcedures')}>
               <div className="aspect-[16/10] rounded-[var(--app-radius-card)] bg-[var(--color-bg-secondary)] animate-pulse" />
               <div className="aspect-[16/10] rounded-[var(--app-radius-card)] bg-[var(--color-bg-secondary)] animate-pulse" />
               <div className="aspect-[16/10] rounded-[var(--app-radius-card)] bg-[var(--color-bg-secondary)] animate-pulse" />
@@ -178,7 +178,7 @@ export default function HomePage() {
           ) : (
             <div className="flex flex-col gap-3">
               {popularProcedures.slice(0, 4).map((procedure, i) => (
-                <ProcedureFeatureCard key={procedure.id} procedure={procedure} featured={i === 0} />
+                <ProcedureFeatureCard key={procedure.id} procedure={procedure} featured={i === 0} t={t} />
               ))}
             </div>
           )}
@@ -192,7 +192,7 @@ export default function HomePage() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-[1.0625rem] font-bold text-[var(--color-text)] tracking-[-0.18px]">{t('landing.articlesTitle')}</h2>
           <Link href="/articles" className="flex items-center gap-0.5 text-[11px] text-[var(--color-text-dim)] no-underline">
-            더보기 <ChevronRight size={14} />
+            {t('landing.viewMore')} <ChevronRight size={14} />
           </Link>
         </div>
         <div className="flex flex-col gap-2.5">
@@ -208,7 +208,7 @@ export default function HomePage() {
                 <div className="flex items-center gap-1.5">
                   <Badge variant={a.tagColor} size="sm">{a.category}</Badge>
                   <span className="flex items-center gap-0.5 text-[10px] text-[var(--color-text-dim)]">
-                    <Clock size={9} /> {a.readTime}분
+                    <Clock size={9} /> {t('landing.minutesRead', { min: a.readTime })}
                   </span>
                 </div>
                 <span className="text-[13px] font-medium text-[var(--color-text)] leading-snug line-clamp-2">{a.title}</span>
@@ -220,29 +220,18 @@ export default function HomePage() {
 
       {/* ═══ 제안 도착 바텀시트 ═══ */}
       {phase === 'proposals_ready' && (
-        <ProposalArrivedSheet count={userProposalCount} />
+        <ProposalArrivedSheet count={userProposalCount} t={t} />
       )}
     </div>
   );
 }
 
-function formatProcedurePrice(min: number, max: number): string {
-  const toMan = (value: number) => `${Math.round(value / 10000).toLocaleString('ko-KR')}만`;
+function formatProcedurePrice(min: number, max: number, manLabel: string): string {
+  const toMan = (value: number) => `${Math.round(value / 10000).toLocaleString()}${manLabel}`;
   return min === max ? toMan(min) : `${toMan(min)}~${toMan(max)}`;
 }
 
-function procedureTypeLabel(type: string): string {
-  return type
-    .replace(/^eye_/, '눈 ')
-    .replace(/^nose_/, '코 ')
-    .replace(/^lift_/, '리프팅 ')
-    .replace(/^skin_/, '피부 ')
-    .replace(/^diet_/, '다이어트 ')
-    .replace(/^contour_/, '윤곽 ')
-    .replace(/_/g, ' ');
-}
-
-function ProcedureFeatureCard({ procedure, featured = false }: { procedure: ProcedureListItemWire; featured?: boolean }) {
+function ProcedureFeatureCard({ procedure, featured = false, t }: { procedure: ProcedureListItemWire; featured?: boolean; t: (k: string, p?: Record<string, string | number>) => string }) {
   return (
     <Link href={`/procedures/${procedure.slug}`} className="no-underline block">
       <article
@@ -255,7 +244,7 @@ function ProcedureFeatureCard({ procedure, featured = false }: { procedure: Proc
           ) : null}
           <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
           <div className="absolute left-3 top-3 flex gap-1.5">
-            {featured && <Badge variant="primary" size="sm">이번 주 인기</Badge>}
+            {featured && <Badge variant="primary" size="sm">{t('landing.thisWeekPopular')}</Badge>}
             <Badge variant="default" size="sm">{procedure.primaryArea}</Badge>
           </div>
           <div className="absolute left-4 right-4 bottom-4">
@@ -267,14 +256,14 @@ function ProcedureFeatureCard({ procedure, featured = false }: { procedure: Proc
 
         <div className="px-4 pt-3 pb-3.5">
           <p className="text-[14px] text-[var(--color-text)] leading-snug font-medium mb-1.5">
-            내 고민에 맞는지 상담으로 확인해보세요
+            {t('landing.proposalCardCopy')}
           </p>
           <div className="flex items-center justify-between">
             <div className="flex items-baseline gap-1.5">
               <span className="text-[15px] font-bold text-[var(--color-text)]">
-                {formatProcedurePrice(procedure.priceMin, procedure.priceMax)}
+                {formatProcedurePrice(procedure.priceMin, procedure.priceMax, t('common.man'))}
               </span>
-              <span className="text-[11px] text-[var(--color-text-dim)]">· 참고가</span>
+              <span className="text-[11px] text-[var(--color-text-dim)]">· {t('landing.referencePrice')}</span>
             </div>
             <ChevronRight size={15} className="text-[var(--color-text-dim)]" />
           </div>
@@ -285,7 +274,7 @@ function ProcedureFeatureCard({ procedure, featured = false }: { procedure: Proc
 }
 
 /* ═══ 제안 도착 바텀시트 ═══ */
-function ProposalArrivedSheet({ count }: { count: number }) {
+function ProposalArrivedSheet({ count, t }: { count: number; t: (k: string, p?: Record<string, string | number>) => string }) {
   const [dismissed, setDismissed] = useState(false);
 
   return (
@@ -295,16 +284,16 @@ function ProposalArrivedSheet({ count }: { count: number }) {
           <img src="/images/proposal-arrived.jpg" alt="" className="w-40 h-40 object-contain" />
         </div>
         <h3 className="text-[1.25rem] font-bold text-[var(--color-text)] leading-tight mb-2">
-          새로운 제안이 도착했어요
+          {t('landing.proposalArrivedTitle')}
         </h3>
         <p className="text-[13px] text-[var(--color-text-dim)]">
-          {count > 0 ? `${count}개 병원이 맞춤 제안을 보냈어요` : '병원의 맞춤 제안을 확인하세요'}
+          {count > 0 ? t('landing.proposalArrivedDescCount', { count }) : t('landing.proposalArrivedDescDefault')}
         </p>
       </div>
 
       <Link href="/decision" className="no-underline block">
         <Button variant="primary" size="xl" fullWidth>
-          제안 확인하기
+          {t('landing.proposalArrivedAction')}
           <ArrowRight size={18} />
         </Button>
       </Link>
