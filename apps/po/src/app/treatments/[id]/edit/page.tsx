@@ -13,6 +13,7 @@ import { Step3Content } from '@/components/procedure-wizard/Step3Content';
 import { Step4Preview } from '@/components/procedure-wizard/Step4Preview';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
+import { useLocaleStore } from '@/store/locale';
 import { toUserMessage } from '@/lib/api/error-messages';
 import { proceduresApi } from '@/lib/api/procedures';
 import {
@@ -23,11 +24,11 @@ import { pickI18n } from '@hyliren/shared/src/domain/procedure';
 import type { WizardForm, WizardVariant } from '@/lib/wizard/types';
 import type { ProcedureStatus, Procedure, ProcedureVariant } from '@hyliren/shared';
 
-const STEPS = [
-  { key: 'basics', label: '기본 정보' },
-  { key: 'pricing', label: '가격·옵션' },
-  { key: 'content', label: '상세·이미지' },
-  { key: 'preview', label: '미리보기·공개' },
+const STEP_KEYS = [
+  { key: 'basics', labelKey: 'po.wizardStepBasics' },
+  { key: 'pricing', labelKey: 'po.wizardStepPricing' },
+  { key: 'content', labelKey: 'po.wizardStepContent' },
+  { key: 'preview', labelKey: 'po.wizardStepPreview' },
 ];
 
 /** API 에서 로드한 procedure + variants 를 wizard 폼 형태로 변환. */
@@ -64,6 +65,8 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   const router = useRouter();
   const member = usePOAuthStore(s => s.member);
   const { showToast } = useToastStore();
+  const t = useLocaleStore(s => s.t);
+  const STEPS = STEP_KEYS.map(s => ({ key: s.key, label: t(s.labelKey) }));
 
   const [form, setForm] = useState<WizardForm | null>(null);
   const [activeStep, setActiveStep] = useState(0);
@@ -107,7 +110,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       })
       .catch((e: unknown) => {
         if (cancelled) return;
-        setLoadError(toUserMessage(e, '불러올 수 없습니다'));
+        setLoadError(toUserMessage(e, t('po.treatmentLoadFail')));
       });
     return () => { cancelled = true; };
   }, [id, member]);
@@ -199,8 +202,8 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     if (!ok) {
       showToast(
         status === 'published'
-          ? '필수 입력값을 모두 채워주세요.'
-          : '분류와 원본 언어 타이틀은 최소한 입력해야 저장할 수 있어요.',
+          ? t('po.treatmentFillRequired')
+          : t('po.treatmentMinDraftRequired'),
         'error',
       );
       return;
@@ -280,17 +283,17 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       });
       showToast(
         status === 'published'
-          ? '공개되었습니다.'
+          ? t('po.treatmentPublished')
           : status === 'draft'
-            ? '임시저장되었습니다.'
-            : '저장되었습니다.',
+            ? t('po.treatmentDraftSaved')
+            : t('po.treatmentChangesSaved'),
         'success',
       );
       // 명시적 save 후 목록 복귀 — "task done" 시그널 강화. 사용자가 변경 반영을 즉시 확인.
       // (auto-save 는 별도 경로로 silent 동작 — 이 redirect 와 무관.)
       router.push('/treatments');
     } catch (e: unknown) {
-      const msg = toUserMessage(e, '저장에 실패했습니다');
+      const msg = toUserMessage(e, t('po.treatmentSaveFail'));
       track({
         eventType: 'treatment_wizard_save_fail',
         actorType: 'member',
@@ -303,7 +306,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       try {
         const reload = await proceduresApi.get(id);
         setForm(toWizardForm(reload.procedure, reload.variants));
-        showToast('서버 상태로 복구되었습니다. 다시 시도해주세요.', 'info');
+        showToast(t('po.treatmentRevertedToServer'), 'info');
       } catch { /* reload 실패는 무시 — 기존 에러가 더 중요 */ }
     } finally {
       savingRef.current = false;
@@ -316,10 +319,10 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     setArchiving(true);
     try {
       await proceduresApi.softDelete(id);
-      showToast('비공개로 전환되었습니다.', 'success');
+      showToast(t('po.treatmentArchivedSuccess'), 'success');
       router.push('/treatments');
     } catch (e: unknown) {
-      showToast(toUserMessage(e, '전환에 실패했습니다'), 'error');
+      showToast(toUserMessage(e, t('po.treatmentSwitchFail')), 'error');
       setArchiving(false);
       setArchiveOpen(false);
     }
@@ -330,14 +333,14 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     setUnarchiving(true);
     try {
       await proceduresApi.update(id, { status: 'published' });
-      showToast('공개로 전환되었습니다.', 'success');
+      showToast(t('po.treatmentPublishedSuccess'), 'success');
       // 폼 status 만 변경 — 다른 필드 변경 없음 — 즉시 reload 해서 최신 상태 반영.
       const reload = await proceduresApi.get(id);
       setForm(toWizardForm(reload.procedure, reload.variants));
       setUnarchiveOpen(false);
     } catch (e: unknown) {
       // BE publish-strict 검증 실패 시 — 사용자가 누락 항목 보완 후 재시도해야 함.
-      showToast(toUserMessage(e, '전환에 실패했습니다'), 'error');
+      showToast(toUserMessage(e, t('po.treatmentSwitchFail')), 'error');
     } finally {
       setUnarchiving(false);
     }
@@ -348,11 +351,11 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     setDeleting(true);
     try {
       await proceduresApi.permanentDelete(id);
-      showToast('영구 삭제되었습니다.', 'success');
+      showToast(t('po.treatmentDeletedSuccess'), 'success');
       router.push('/treatments');
     } catch (e: unknown) {
       // BE 가드 (archived 상태 아님) 위반 등 에러를 사용자에게 그대로 노출.
-      showToast(toUserMessage(e, '삭제에 실패했습니다'), 'error');
+      showToast(toUserMessage(e, t('po.treatmentDeleteFail')), 'error');
       setDeleting(false);
       setDeleteOpen(false);
     }
@@ -379,7 +382,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     );
   }
 
-  const procedureTitle = pickI18n(form.i18n, 'ko', form.sourceLocale)?.content.title || '(제목 없음)';
+  const procedureTitle = pickI18n(form.i18n, 'ko', form.sourceLocale)?.content.title || t('po.treatmentNoTitle');
 
   /**
    * 수정 화면 액션 정책 (확정):
@@ -401,7 +404,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       return {
         // 클릭 시 모달로 공개/비공개 선택. 마법사 마지막 = 진열 결정의 의식.
         // (mode='create' 라 Step 1-3 에선 WizardShell 이 '다음' 으로 자동 대체)
-        label: '완료하기',
+        label: t('po.treatmentComplete'),
         onClick: () => setPublishOptionOpen(true),
         disabled: saving || !allStepsValid(form),
         loading: saving,
@@ -409,7 +412,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     }
     if (form.status === 'published') {
       return {
-        label: '변경사항 저장',
+        label: t('po.treatmentSaveChanges'),
         onClick: () => submit('published'),
         disabled: saving || !allStepsValid(form),
         loading: saving,
@@ -417,7 +420,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
     }
     // archived
     return {
-      label: '변경사항 저장',
+      label: t('po.treatmentSaveChanges'),
       onClick: () => submit('archived'),
       disabled: saving || !stepsValidForDraft(form),
       loading: saving,
@@ -438,7 +441,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
           onClick={() => submit('draft')}
           disabled={saving || !stepsValidForDraft(form)}
         >
-          임시저장
+          {t('po.treatmentDraftSaveAction')}
         </Button>
       );
     }
@@ -449,7 +452,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
           onClick={() => setUnarchiveOpen(true)}
           disabled={saving}
         >
-          다시 공개
+          {t('po.treatmentReopenAction')}
         </Button>
       );
     }
@@ -465,12 +468,12 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
   const menuItems: DropdownMenuItem[] = (() => {
     if (form.status === 'archived') {
       return [
-        { label: '삭제하기', icon: <Trash2 size={14} />, destructive: true, onClick: () => setDeleteOpen(true) },
+        { label: t('po.treatmentDeleteMenu'), icon: <Trash2 size={14} />, destructive: true, onClick: () => setDeleteOpen(true) },
       ];
     }
     if (form.status === 'published') {
       return [
-        { label: '비공개로 전환', icon: <EyeOff size={14} />, onClick: () => setArchiveOpen(true) },
+        { label: t('po.treatmentArchiveAction'), icon: <EyeOff size={14} />, onClick: () => setArchiveOpen(true) },
       ];
     }
     return [];
@@ -481,7 +484,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       <POSidebar active="/treatments" />
       <div className="flex-1 flex flex-col bg-white">
         <WizardShell
-          title="시술 수정"
+          title={t('po.treatmentEditTitle')}
           /* mode 분기:
              - draft: sequential (1-3 = '다음' per-step / 4 = '공개하기'). 작성 완료 흐름.
              - published/archived: free 탐색. '변경사항 저장' 어디서나. 부분 수정 흐름.
@@ -518,22 +521,22 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       <Modal
         open={archiveOpen}
         onClose={() => !archiving && setArchiveOpen(false)}
-        title="이 시술을 비공개로 전환할까요?"
+        title={t('po.treatmentArchiveModalTitle')}
       >
         <div className="flex flex-col gap-5">
           <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
             <span className="font-semibold text-[var(--text-default)]">{procedureTitle}</span>
             <br />
-            비공개 상태에서는 고객에게 노출되지 않습니다.
+            {t('po.treatmentArchiveModalDescLine1')}
             <br />
-            언제든 다시 공개할 수 있어요.
+            {t('po.treatmentArchiveModalDescLine2')}
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Button variant="secondary" onClick={() => setArchiveOpen(false)} disabled={archiving}>
-              취소
+              {t('common.cancel')}
             </Button>
             <Button variant="primary" onClick={handleConfirmArchive} disabled={archiving}>
-              {archiving ? '전환 중...' : '비공개로 전환'}
+              {archiving ? t('po.treatmentSwitching') : t('po.treatmentArchiveAction')}
             </Button>
           </div>
         </div>
@@ -543,20 +546,20 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       <Modal
         open={unarchiveOpen}
         onClose={() => !unarchiving && setUnarchiveOpen(false)}
-        title="이 시술을 다시 공개할까요?"
+        title={t('po.treatmentUnarchiveModalTitle')}
       >
         <div className="flex flex-col gap-5">
           <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
             <span className="font-semibold text-[var(--text-default)]">{procedureTitle}</span>
             <br />
-            공개 상태로 전환하면 고객에게 다시 노출됩니다.
+            {t('po.treatmentUnarchiveModalDesc')}
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Button variant="secondary" onClick={() => setUnarchiveOpen(false)} disabled={unarchiving}>
-              취소
+              {t('common.cancel')}
             </Button>
             <Button variant="primary" onClick={handleConfirmUnarchive} disabled={unarchiving}>
-              {unarchiving ? '전환 중...' : '다시 공개'}
+              {unarchiving ? t('po.treatmentSwitching') : t('po.treatmentReopenAction')}
             </Button>
           </div>
         </div>
@@ -567,22 +570,22 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       <Modal
         open={deleteOpen}
         onClose={() => !deleting && setDeleteOpen(false)}
-        title="시술을 삭제할까요?"
+        title={t('po.treatmentDeleteModalTitle')}
       >
         <div className="flex flex-col gap-5">
           <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
             <span className="font-semibold text-[var(--text-default)]">{procedureTitle}</span>
             <br />
-            삭제하면 <span className="font-semibold text-[var(--color-danger)]">복구할 수 없습니다.</span>
+            {t('po.treatmentDeleteModalDescPrefix')}<span className="font-semibold text-[var(--color-danger)]">{t('po.treatmentDeleteCannotRecover')}</span>
             <br />
-            잠시 숨기는 거라면 비공개 상태로 두시는 걸 권장해요.
+            {t('po.treatmentDeleteHideRecommend')}
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Button variant="secondary" onClick={() => setDeleteOpen(false)} disabled={deleting}>
-              취소
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" onClick={handleConfirmPermanentDelete} disabled={deleting}>
-              {deleting ? '삭제 중...' : '삭제'}
+              {deleting ? t('po.treatmentDeleting') : t('po.treatmentDeleteAction')}
             </Button>
           </div>
         </div>
@@ -593,7 +596,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       <Modal
         open={publishOptionOpen}
         onClose={() => !saving && setPublishOptionOpen(false)}
-        title="이 시술을 어떻게 저장할까요?"
+        title={t('po.treatmentSaveChooseModalTitle')}
       >
         <div className="flex flex-col gap-3">
           <button
@@ -607,10 +610,10 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
           >
             <div className="flex items-center gap-2 mb-1">
               <Eye size={16} className="text-[var(--color-success)]" />
-              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">공개로 저장</span>
+              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">{t('po.treatmentSaveAsPublic')}</span>
             </div>
             <p className="text-[var(--app-text-micro)] text-[var(--text-subdued)] leading-relaxed">
-              즉시 고객에게 노출됩니다. 상담 신청 화면과 시술 상세에 표시돼요.
+              {t('po.treatmentSaveAsPublicDesc')}
             </p>
           </button>
 
@@ -625,15 +628,15 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
           >
             <div className="flex items-center gap-2 mb-1">
               <EyeOff size={16} className="text-[var(--text-subdued)]" />
-              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">비공개로 저장</span>
+              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">{t('po.treatmentSaveAsArchived')}</span>
             </div>
             <p className="text-[var(--app-text-micro)] text-[var(--text-subdued)] leading-relaxed">
-              데이터만 저장하고 고객에게는 아직 노출하지 않습니다. 시술 관리에서 언제든 공개로 전환할 수 있어요.
+              {t('po.treatmentSaveAsArchivedDesc')}
             </p>
           </button>
 
           <Button variant="secondary" onClick={() => setPublishOptionOpen(false)} disabled={saving}>
-            취소
+            {t('common.cancel')}
           </Button>
         </div>
       </Modal>
