@@ -6,6 +6,7 @@ import { SideSheet, Spinner } from '@hyliren/ui';
 import { findMyProposalByConcern, type ProposalDetailWire } from '@/lib/api/proposal';
 import { ApiError } from '@/lib/api/errors';
 import { ProposalDetailView } from './ProposalDetailView';
+import { useLocaleStore } from '@/store/locale';
 
 interface MyProposalSheetProps {
   /** 본인 제안서를 조회할 concern id. */
@@ -18,6 +19,7 @@ export function MyProposalSheet({ concernId, open, onClose }: MyProposalSheetPro
   const [proposal, setProposal] = useState<ProposalDetailWire | null>(null);
   const [loading, setLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const t = useLocaleStore(s => s.t);
 
   useEffect(() => {
     if (!open) {
@@ -52,7 +54,7 @@ export function MyProposalSheet({ concernId, open, onClose }: MyProposalSheetPro
   }, [open, concernId]);
 
   return (
-    <SideSheet open={open} onClose={onClose} width="lg" title="내 제안서">
+    <SideSheet open={open} onClose={onClose} width="lg" title={t('po.myProposalSheetTitle')}>
       {loading && (
         <div className="flex items-center justify-center py-20">
           <Spinner />

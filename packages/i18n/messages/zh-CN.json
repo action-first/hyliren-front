@@ -566,7 +566,45 @@
     "categorySafety": "安全信息"
   },
   "metadata": {
-    "title": "美妙 — 适合您的手术,医院主动提供方案"
+    "title": "美妙 — 适合您的手术,医院主动提供方案",
+    "poTitle": "美妙合作伙伴办公室",
+    "poDescription": "医院管理系统"
+  },
+  "po": {
+    "navDashboard": "仪表板",
+    "navConcerns": "烦恼",
+    "navActivity": "活动记录",
+    "navTreatments": "手术管理",
+    "navProfile": "合作伙伴信息",
+    "creditChargeContact": "积分充值请联系管理员。",
+    "logoutSuccess": "已退出登录。",
+    "logoutPartial": "已退出登录。部分清理将在重新连接时自动处理。",
+    "accountAriaLabel": "查看当前登录的合作伙伴账户信息",
+    "fallbackPartnerAccount": "合作伙伴账户",
+    "language": "语言",
+    "creditBalance": "积分余额",
+    "charge": "充值",
+    "accountNoInfo": "无账户信息",
+    "logoutAria": "退出登录",
+    "loginButton": "登录",
+    "myProposalSheetTitle": "我的提案",
+    "proposalDetailTitle": "提案详情"
+  },
+  "poLogin": {
+    "emailInvalid": "请输入正确的邮箱格式。",
+    "loginSuccess": "已登录。",
+    "loginFail": "登录失败",
+    "heroBrand": "Partner Office",
+    "heroTitle": "用医院运营账户\n管理手术和提案",
+    "heroAccessNote": "只有已发放的合作伙伴账户才能访问。",
+    "heroFooter": "账户创建由运营团队或BO处理。如无登录信息,请联系负责人。",
+    "formTagline": "Hyliren PO",
+    "formTitle": "合作伙伴登录",
+    "emailLabel": "邮箱",
+    "passwordLabel": "密码",
+    "passwordPlaceholder": "密码",
+    "submitting": "登录中...",
+    "submit": "登录"
   },
   "bodyArea": {
     "눈": "眼部",
