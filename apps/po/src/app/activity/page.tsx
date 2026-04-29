@@ -17,6 +17,7 @@ import { POSidebar } from '@/components/POSidebar';
 import { MyProposalSheet } from '@/components/concerns/MyProposalSheet';
 import { useToastStore } from '@/store/toast';
 import { useLocaleStore } from '@/store/locale';
+import { useDataGridLabels } from '@/hooks/useDataGridLabels';
 import { toUserMessage } from '@/lib/api/error-messages';
 import { useConcerns } from '@/hooks/queries/concerns';
 import { useMyProposals } from '@/hooks/queries/proposals';
@@ -41,6 +42,7 @@ interface ActivityRow {
 export default function ActivityPage() {
   const showToast = useToastStore(s => s.showToast);
   const t = useLocaleStore(s => s.t);
+  const dataGridLabels = useDataGridLabels();
 
   // CREDIT reason 라벨 (locale 별)
   const CREDIT_REASON_LABELS: Record<string, string> = {
@@ -219,6 +221,7 @@ export default function ActivityPage() {
           searchFields={searchFields}
           exportFileName={t('po.activityExportFileName')}
           title={t('po.activityListTitle')}
+          labels={dataGridLabels}
           onRowClick={(row) => {
             // 제안서 row 만 클릭 가능 — 크레딧 충전/차감 row 는 detail 없음.
             if (row.type === 'proposal' && row.concernId) {

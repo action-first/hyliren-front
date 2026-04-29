@@ -590,6 +590,28 @@
     "poTitle": "美妙合作伙伴办公室",
     "poDescription": "医院管理系统"
   },
+  "dataGrid": {
+    "dateFromPlaceholder": "起始日",
+    "dateToPlaceholder": "结束日",
+    "selectAll": "全部",
+    "searchPlaceholder": "搜索",
+    "searchButton": "搜索",
+    "resetButton": "重置",
+    "defaultTitle": "列表",
+    "resultCountTemplate": "共 {count} 条",
+    "exportButton": "导出 Excel",
+    "noRowsMessage": "暂无数据",
+    "exportModalTitle": "导出 Excel",
+    "exportModalDesc": "请选择要下载的数据范围",
+    "exportAllTitle": "下载全部数据",
+    "exportAllDescTemplate": "下载系统中已登记的所有数据 ({count} 条)",
+    "exportFilteredTitle": "下载当前查询数据",
+    "exportFilteredDesc": "仅下载符合当前筛选与搜索条件的数据",
+    "exportSelectedTitle": "下载所选数据",
+    "exportSelectedDesc": "请先选择数据",
+    "cancel": "取消",
+    "downloadButton": "下载"
+  },
   "po": {
     "navDashboard": "仪表板",
     "navConcerns": "烦恼",

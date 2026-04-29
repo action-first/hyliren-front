@@ -590,6 +590,28 @@
     "poTitle": "ミミょ パートナーオフィス",
     "poDescription": "病院管理システム"
   },
+  "dataGrid": {
+    "dateFromPlaceholder": "開始日",
+    "dateToPlaceholder": "終了日",
+    "selectAll": "すべて",
+    "searchPlaceholder": "検索",
+    "searchButton": "検索",
+    "resetButton": "リセット",
+    "defaultTitle": "一覧",
+    "resultCountTemplate": "全 {count} 件",
+    "exportButton": "Excel ダウンロード",
+    "noRowsMessage": "データがありません",
+    "exportModalTitle": "Excel ダウンロード",
+    "exportModalDesc": "ダウンロードするデータ範囲を選択してください",
+    "exportAllTitle": "全データダウンロード",
+    "exportAllDescTemplate": "システムに登録された全データをダウンロードします ({count} 件)",
+    "exportFilteredTitle": "現在表示中のデータをダウンロード",
+    "exportFilteredDesc": "現在のフィルター・検索条件に合致するデータのみダウンロードします",
+    "exportSelectedTitle": "選択したデータをダウンロード",
+    "exportSelectedDesc": "先にデータを選択してください",
+    "cancel": "キャンセル",
+    "downloadButton": "ダウンロード"
+  },
   "po": {
     "navDashboard": "ダッシュボード",
     "navConcerns": "悩み",
