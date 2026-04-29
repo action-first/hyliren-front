@@ -16,6 +16,7 @@ import { useCreateProposal } from '@/hooks/mutations/proposals';
 import { useProcedures } from '@/hooks/queries/procedures';
 import { useCreditBalance } from '@/hooks/queries/credits';
 import { toUserMessage } from '@/lib/api/error-messages';
+import { useLocaleStore } from '@/store/locale';
 
 interface FormItem {
   name: string;
@@ -31,17 +32,18 @@ interface ProposeFormSheetProps {
   onSuccess?: () => void;
 }
 
-const ANESTHESIA_OPTIONS = [
-  { value: 'local', label: '부분마취' },
-  { value: 'sedation', label: '수면마취' },
-  { value: 'general', label: '전신마취' },
-] as const;
-
 export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: ProposeFormSheetProps) {
   // 잔액 = real BE. 발송 후 mutation 이 invalidate → 자동 갱신.
   const balanceQ = useCreditBalance();
   const balance = balanceQ.data?.balance ?? 0;
   const { showToast } = useToastStore();
+  const t = useLocaleStore(s => s.t);
+
+  const ANESTHESIA_OPTIONS = [
+    { value: 'local', label: t('common.anesthesiaLocal') },
+    { value: 'sedation', label: t('common.anesthesiaSedation') },
+    { value: 'general', label: t('common.anesthesiaGeneral') },
+  ];
 
   // 카탈로그 = published procedure. 시술관리 페이지와 동일 캐시 (5분) 공유.
   const proceduresQ = useProcedures('published');
@@ -176,7 +178,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
           onClose();
         },
         onError: (err) => {
-          showToast(toUserMessage(err, '제안서 발송에 실패했습니다.'), 'error');
+          showToast(toUserMessage(err, t('po.proposalSendFail')), 'error');
         },
       },
     );
@@ -187,7 +189,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
       open={open}
       onClose={onClose}
       width="lg"
-      title="제안서 작성"
+      title={t('po.proposalSheetTitle')}
       footer={
         <div className="w-full flex flex-col gap-2">
           <p className="text-[var(--text-xs)] text-[var(--text-subdued)] text-right">
@@ -196,7 +198,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
           <div className="flex justify-end gap-2">
             <Button variant="secondary" onClick={onClose}>취소</Button>
             <Button variant="primary" onClick={handleSend} disabled={!canSend || sending}>
-              {sending ? '발송 중…' : '제안서 발송'}
+              {sending ? t('po.proposalSending') : t('po.proposalSend')}
             </Button>
           </div>
         </div>
@@ -207,7 +209,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
         {/* 시술 항목 */}
         <Card padding="md">
           <SectionHeader
-            title="시술 항목"
+            title={t('po.proposalSectionItems')}
             action={
               <div className="flex gap-2">
                 <div className="relative">
@@ -264,7 +266,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
                 {/* 카드 헤더: 시술명 input 풀폭 */}
                 <input
                   type="text"
-                  placeholder="시술명 (한국어)"
+                  placeholder={t('po.proposeItemNamePh')}
                   value={item.name}
                   onChange={e => updateItem(idx, 'name', e.target.value)}
                   className="input-field"
@@ -275,7 +277,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
                   {items.length > 1 ? (
                     <button
                       type="button"
-                      aria-label="항목 삭제"
+                      aria-label={t('po.proposeItemDelete')}
                       className="w-8 h-8 flex items-center justify-center rounded-[var(--app-radius-sm)] bg-transparent border-0 text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] cursor-pointer transition-colors"
                       onClick={() => removeItem(idx)}
                     >
@@ -304,11 +306,11 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
         {/* 총 비용 — 시술 항목 합계 자동 동기화 / 사용자 입력 시 override */}
         <Card padding="md">
           <SectionHeader
-            title="총 비용"
+            title={t('po.proposeTotalCost')}
             subtitle={
               totalDirty
-                ? `자동 합계와 다름 (합계 ${formatPrice(itemsSum)}만원)`
-                : '시술 항목 합계가 자동 반영됩니다 (직접 수정 가능)'
+                ? t('po.proposeTotalDiff', { sum: formatPrice(itemsSum) })
+                : t('po.proposeTotalAutoSum')
             }
             action={
               totalDirty ? (
@@ -317,13 +319,13 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
                   className="text-[var(--text-xs)] font-medium text-[var(--interactive-default)] hover:underline cursor-pointer bg-transparent border-0 p-0"
                   onClick={() => setTotalDirty(false)}
                 >
-                  자동 합계로 되돌리기
+                  {t('po.proposeTotalReset')}
                 </button>
               ) : undefined
             }
           />
           <div className="propose-total-row mt-4">
-            <span className="propose-total-label">총 예상 비용</span>
+            <span className="propose-total-label">{t('po.proposeTotalEstimated')}</span>
             <div className="flex items-baseline gap-2">
               <input
                 type="text"
@@ -336,23 +338,23 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
                 placeholder="0"
                 className="propose-total-input"
               />
-              <span className="text-[var(--text-subdued)]">만원</span>
+              <span className="text-[var(--text-subdued)]">{t('common.currency')}</span>
             </div>
           </div>
         </Card>
 
         {/* 시술 정보 */}
         <Card padding="md">
-          <SectionHeader title="시술 정보" />
+          <SectionHeader title={t('po.proposalSectionInfo')} />
           <div className="propose-form-row mt-4">
             <Input
-              label="회복 기간 (일)"
+              label={t('po.proposeRecoveryDays')}
               type="number"
               value={recoveryDays}
               onChange={e => setRecoveryDays(Number(e.target.value))}
             />
             <Select
-              label="마취 유형"
+              label={t('po.proposeAnesthesiaType')}
               value={anesthesia}
               options={ANESTHESIA_OPTIONS}
               onChange={nextValue => setAnesthesia(nextValue as AnesthesiaType)}
@@ -360,7 +362,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
           </div>
           <div className="mt-3">
             <Input
-              label="입원 기간 (일)"
+              label={t('po.proposeStayDays')}
               type="number"
               value={stayDays}
               onChange={e => setStayDays(Number(e.target.value))}
@@ -368,28 +370,28 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
           </div>
           <div className="propose-form-row mt-3">
             <div className="input-wrapper">
-              <label className="input-label">시작일</label>
+              <label className="input-label">{t('po.proposeDateStart')}</label>
               <div className="datepicker-wrapper">
                 <Calendar size={14} className="datepicker-icon" />
                 <DatePicker
                   selected={dateFrom}
                   onChange={(d: Date | null) => setDateFrom(d)}
                   dateFormat="yyyy.MM.dd"
-                  placeholderText="선택"
+                  placeholderText={t('po.proposeDateSelect')}
                   locale={ko}
                   className="datepicker-input"
                 />
               </div>
             </div>
             <div className="input-wrapper">
-              <label className="input-label">종료일</label>
+              <label className="input-label">{t('po.proposeDateEnd')}</label>
               <div className="datepicker-wrapper">
                 <Calendar size={14} className="datepicker-icon" />
                 <DatePicker
                   selected={dateTo}
                   onChange={(d: Date | null) => setDateTo(d)}
                   dateFormat="yyyy.MM.dd"
-                  placeholderText="선택"
+                  placeholderText={t('po.proposeDateSelect')}
                   locale={ko}
                   className="datepicker-input"
                   minDate={dateFrom || undefined}
@@ -402,8 +404,8 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
         {/* 부연 설명 */}
         <Card padding="md">
           <Textarea
-            label="부연 설명 (선택)"
-            placeholder="고객에게 전달할 추가 설명이 있으면 적어주세요"
+            label={t('po.proposeNote')}
+            placeholder={t('po.proposeNotePh')}
             value={note}
             onChange={e => setNote(e.target.value)}
             rows={3}

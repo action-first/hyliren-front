@@ -184,7 +184,7 @@ export default function ConcernDetailPage() {
 
           {/* 2. 고민 내용 */}
           <Card padding="md">
-            <SectionHeader title="고민 내용" />
+            <SectionHeader title={t('po.concernSectionContent')} />
             <p className="text-[var(--text-base)] text-[var(--text-default)] leading-relaxed mt-3 whitespace-pre-wrap">
               {concern.description}
             </p>
@@ -192,19 +192,19 @@ export default function ConcernDetailPage() {
 
           {/* 3. 핵심 정보 grid */}
           <Card padding="md">
-            <SectionHeader title="요청 정보" />
+            <SectionHeader title={t('po.concernSectionInfo')} />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 mt-3">
-              <InfoBlock label="예산" value={formatBudget(concern.budgetMin, concern.budgetMax)} emphasis />
-              <InfoBlock label="방문 시기" value={formatDateRange(concern.visitDateFrom, concern.visitDateTo)} />
-              <InfoBlock label="유입 경로" value={SOURCE_LABELS[concern.source] || concern.source} />
-              <InfoBlock label="접수 제안서" value={`${concern.proposalCount}건`} />
+              <InfoBlock label={t('po.concernInfoBudget')} value={formatBudget(concern.budgetMin, concern.budgetMax)} emphasis />
+              <InfoBlock label={t('po.concernInfoVisitDate')} value={formatDateRange(concern.visitDateFrom, concern.visitDateTo)} />
+              <InfoBlock label={t('po.concernInfoSource')} value={SOURCE_LABELS[concern.source] || concern.source} />
+              <InfoBlock label={t('po.concernInfoProposalCount')} value={`${concern.proposalCount}${t('po.concernCountUnit')}`} />
             </div>
           </Card>
 
           {/* 4. 첨부 사진 */}
           {concern.photos.length > 0 && (
             <Card padding="md">
-              <SectionHeader title={`첨부 사진 (${concern.photos.length}장)`} />
+              <SectionHeader title={`${t('po.concernPhotoAlt')} (${t('po.proposalMetaCreditUnit', { count: concern.photos.length })})`} />
               <div className="grid grid-cols-3 gap-2 mt-3">
                 {concern.photos.map(p => (
                   <div
@@ -213,9 +213,9 @@ export default function ConcernDetailPage() {
                   >
                     {p.url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.url} alt="첨부 사진" className="w-full h-full object-cover" />
+                      <img src={p.url} alt={t('po.concernPhotoAlt')} className="w-full h-full object-cover" />
                     ) : (
-                      '사진'
+                      t('po.concernPhotoPlaceholder')
                     )}
                   </div>
                 ))}
@@ -225,15 +225,15 @@ export default function ConcernDetailPage() {
 
           {/* 5. 내 제안서 */}
           <Card padding="md">
-            <SectionHeader title="내 제안서" />
+            <SectionHeader title={t('po.concernSectionMyProposal')} />
             {myProposal ? (
               <div className="flex items-center justify-between gap-4 mt-3">
                 <div className="flex-1 min-w-0">
                   <div className="text-[var(--text-md)] font-semibold text-[var(--text-default)] tabular-nums">
-                    {formatKrwAsMan(myProposal.totalPrice)} · 회복 {myProposal.recoveryDays}일
+                    {formatKrwAsMan(myProposal.totalPrice)} · {t('common.recovery')} {t('po.proposalMetaDays', { days: myProposal.recoveryDays })}
                   </div>
                   <div className="text-[var(--text-sm)] text-[var(--text-subdued)] mt-1 truncate">
-                    {myProposal.items.map(item => item.treatmentName).join(', ') || '항목 없음'}
+                    {myProposal.items.map(item => item.treatmentName).join(', ') || t('po.concernNoItems')}
                   </div>
                 </div>
                 <Button variant="secondary" size="sm" onClick={() => setMyProposalOpen(true)}>
