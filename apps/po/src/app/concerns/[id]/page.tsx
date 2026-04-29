@@ -18,14 +18,7 @@ import { ProposeFormSheet } from '@/components/concerns/ProposeFormSheet';
 import { findMyProposalByConcern, formatKrwAsMan, type ProposalDetailWire } from '@/lib/api/proposal';
 import { getConcern, type ConcernDetailWire } from '@/lib/api/concern';
 import { ApiError } from '@/lib/api/errors';
-
-const SOURCE_KR: Record<string, string> = {
-  organic: '직접 유입',
-  referral: '추천',
-  article: '아티클',
-  ad: '광고',
-  direct: '다이렉트',
-};
+import { useLocaleStore } from '@/store/locale';
 
 // ── 작은 표시 컴포넌트 ──
 function StatusBadge({ label, map }: { label: string; map: Record<string, { bg: string; text: string }> }) {
@@ -76,6 +69,14 @@ export default function ConcernDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { id } = useParams<{ id: string }>();
+  const t = useLocaleStore(s => s.t);
+  const SOURCE_LABELS: Record<string, string> = {
+    organic: t('po.concernSourceOrganic'),
+    referral: t('po.concernSourceReferral'),
+    article: t('po.concernSourceArticle'),
+    ad: t('po.concernSourceAd'),
+    direct: t('po.concernSourceDirect'),
+  };
   const [concern, setConcern] = useState<ConcernDetailWire | null>(null);
   const [myProposal, setMyProposal] = useState<ProposalDetailWire | null>(null);
   const [loading, setLoading] = useState(true);
@@ -116,7 +117,7 @@ export default function ConcernDetailPage() {
     return (
       <AdminPage
         sidebar={<POSidebar active="/concerns" />}
-        title="고민 상세"
+        title={t('po.concernDetailTitle')}
         prefix="po"
         onBack={() => router.back()}
       >
@@ -137,7 +138,7 @@ export default function ConcernDetailPage() {
     <>
       <AdminPage
         sidebar={<POSidebar active="/concerns" />}
-        title="고민 상세"
+        title={t('po.concernDetailTitle')}
         prefix="po"
         onBack={() => router.back()}
         actions={
@@ -195,7 +196,7 @@ export default function ConcernDetailPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 mt-3">
               <InfoBlock label="예산" value={formatBudget(concern.budgetMin, concern.budgetMax)} emphasis />
               <InfoBlock label="방문 시기" value={formatDateRange(concern.visitDateFrom, concern.visitDateTo)} />
-              <InfoBlock label="유입 경로" value={SOURCE_KR[concern.source] || concern.source} />
+              <InfoBlock label="유입 경로" value={SOURCE_LABELS[concern.source] || concern.source} />
               <InfoBlock label="접수 제안서" value={`${concern.proposalCount}건`} />
             </div>
           </Card>
