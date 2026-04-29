@@ -33,7 +33,9 @@ interface ProposalScore {
   bestAt: string[];
 }
 
-function generateCompareScores(proposals: ProposalWithHospital[]): ProposalScore[] {
+type T = (key: string, params?: Record<string, string | number>) => string;
+
+function generateCompareScores(proposals: ProposalWithHospital[], t: T): ProposalScore[] {
   const lowestPrice = Math.min(...proposals.map(p => p.totalPrice));
   const fastestRecovery = Math.min(...proposals.map(p => p.recoveryDays));
 
@@ -47,8 +49,6 @@ function generateCompareScores(proposals: ProposalWithHospital[]): ProposalScore
     if (p.totalPrice === lowestPrice) bestAt.push('lowestPrice');
     if (p.recoveryDays === fastestRecovery) bestAt.push('fastRecovery');
     // TODO: 백엔드 listProposals 응답에 hospitalVerified 필드 추가 시 재연결.
-    //       현재 list DTO 는 hospitalName/hospitalLogo 만 반환하고 verified 는
-    //       detail DTO (hospitalIsCertified) 에만 노출됨.
 
     return {
       proposalId: p.id,
@@ -57,8 +57,14 @@ function generateCompareScores(proposals: ProposalWithHospital[]): ProposalScore
       riskScore,
       valueScore,
       totalScore,
-      priceVerdict: p.totalPrice === lowestPrice ? '가장 합리적인 가격입니다' : `최저가 대비 ${Math.round((p.totalPrice - lowestPrice) / lowestPrice * 100)}% 높습니다`,
-      riskVerdict: p.anesthesiaType === 'local' ? '부분마취로 리스크가 매우 낮습니다' : p.anesthesiaType === 'sedation' ? '수면마취로 리스크가 낮은 편입니다' : '전신마취로 사전 검진이 필요합니다',
+      priceVerdict: p.totalPrice === lowestPrice
+        ? t('services.compareLowestPrice')
+        : t('services.comparePriceHigher', { percent: Math.round((p.totalPrice - lowestPrice) / lowestPrice * 100) }),
+      riskVerdict: p.anesthesiaType === 'local'
+        ? t('services.compareRiskLocal')
+        : p.anesthesiaType === 'sedation'
+          ? t('services.compareRiskSedation')
+          : t('services.compareRiskGeneral'),
       bestAt,
     };
   }).sort((a, b) => b.totalScore - a.totalScore);
@@ -73,7 +79,7 @@ export function CompareReport({ proposals, items, concernId, onClose }: Props) {
 
   // "compare report" 는 concernId 기준으로 구매 여부 판단
   const purchased = checkPurchased(`compare-${concernId}`);
-  const scores = generateCompareScores(proposals);
+  const scores = generateCompareScores(proposals, t);
   const winner = scores[0];
 
   useEffect(() => {

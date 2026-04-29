@@ -6,6 +6,7 @@ import { Badge } from '@hyliren/ui';
 import { ChevronDown, ChevronUp, Banknote, Calendar } from 'lucide-react';
 import { SelectableProposalCard } from './SelectableProposalCard';
 import { useDecisionStore } from '@/store/decision';
+import { useLocaleStore } from '@/store/locale';
 import { STATUS_LABELS, STATUS_COLORS } from '@/domain/lifecycle';
 
 import { AREA_ACCENT } from '@/lib/area-styles';
@@ -22,6 +23,7 @@ const INITIAL_SHOW = 2;
 
 export function ProposalGroupSection({ concern, proposals, profiles, items, onCardClick }: Props) {
   const { selectedProposalIds, toggleSelect } = useDecisionStore();
+  const t = useLocaleStore(s => s.t);
   const [expanded, setExpanded] = useState(false);
 
   const hasMore = proposals.length > INITIAL_SHOW;
@@ -32,7 +34,15 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
   function renderCard(p: Proposal, idx: number) {
     const profile = profiles.find(pp => pp.memberId === p.memberId);
     const proposalItems = items.filter(i => i.proposalId === p.id);
-    const meta = `회복 ${p.recoveryDays}일 · ${p.anesthesiaType === 'local' ? '부분' : p.anesthesiaType === 'sedation' ? '수면' : '전신'}마취`;
+    const anesthesiaShort = p.anesthesiaType === 'local'
+      ? t('common.anesthesiaLocalShort')
+      : p.anesthesiaType === 'sedation'
+        ? t('common.anesthesiaSedationShort')
+        : t('common.anesthesiaGeneralShort');
+    const meta = t('report.metaRecoveryAnesthesia', {
+      days: p.recoveryDays,
+      anesthesia: `${anesthesiaShort}${t('common.anesthesia')}`,
+    });
     return (
       <SelectableProposalCard
         key={p.id}

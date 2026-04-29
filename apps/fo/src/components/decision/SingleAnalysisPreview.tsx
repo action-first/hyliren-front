@@ -18,42 +18,47 @@ interface Props {
   onClose: () => void;
 }
 
-/* ── Mock generators ── */
+/* ── Mock generators (i18n 적용) ── */
 
-function generatePreview(proposal: Proposal, profile: PartnerProfile | undefined): ReportPreview {
+type T = (key: string, params?: Record<string, string | number>) => string;
+
+function generatePreview(proposal: Proposal, profile: PartnerProfile | undefined, t: T): ReportPreview {
   return {
     proposalId: proposal.id,
     hospitalName: profile?.hospitalName || '',
     priceAdequacy: proposal.totalPrice < 200 ? 'low' : proposal.totalPrice > 400 ? 'high' : 'fair',
     riskLevel: proposal.anesthesiaType === 'general' ? 'medium' : 'low',
     overtreatment: 'none',
-    summary: `${profile?.hospitalName}의 ${proposal.totalPrice}만원 제안에 대한 분석입니다.`,
+    summary: t('report.summaryTemplate', { hospital: profile?.hospitalName ?? '', price: proposal.totalPrice }),
   };
 }
 
-function generateFullReport(proposal: Proposal, profile: PartnerProfile | undefined): FullReport {
+function generateFullReport(proposal: Proposal, profile: PartnerProfile | undefined, t: T): FullReport {
   const avgPrice = Math.round(proposal.totalPrice * 1.1);
   return {
     proposalId: proposal.id,
     hospitalName: profile?.hospitalName || '',
     priceScore: proposal.totalPrice < 200 ? 85 : proposal.totalPrice > 400 ? 55 : 72,
     priceVerdict: proposal.totalPrice <= avgPrice
-      ? '이 제안의 가격은 시장 평균 대비 합리적인 수준입니다.'
-      : '이 제안의 가격은 시장 평균보다 다소 높은 편입니다. 포함된 시술 항목을 확인해보세요.',
+      ? t('report.priceVerdictFair')
+      : t('report.priceVerdictHigh'),
     priceBreakdown: [
-      { itemName: '주요 시술', proposalPrice: Math.round(proposal.totalPrice * 0.75), marketAvg: Math.round(proposal.totalPrice * 0.8), marketRange: [Math.round(proposal.totalPrice * 0.5), Math.round(proposal.totalPrice * 1.2)], verdict: 'fair' },
-      { itemName: '부가 시술', proposalPrice: Math.round(proposal.totalPrice * 0.25), marketAvg: Math.round(proposal.totalPrice * 0.3), marketRange: [Math.round(proposal.totalPrice * 0.15), Math.round(proposal.totalPrice * 0.4)], verdict: proposal.totalPrice > 300 ? 'above' : 'below' },
+      { itemName: t('report.itemMainTreatment'), proposalPrice: Math.round(proposal.totalPrice * 0.75), marketAvg: Math.round(proposal.totalPrice * 0.8), marketRange: [Math.round(proposal.totalPrice * 0.5), Math.round(proposal.totalPrice * 1.2)], verdict: 'fair' },
+      { itemName: t('report.itemSubTreatment'), proposalPrice: Math.round(proposal.totalPrice * 0.25), marketAvg: Math.round(proposal.totalPrice * 0.3), marketRange: [Math.round(proposal.totalPrice * 0.15), Math.round(proposal.totalPrice * 0.4)], verdict: proposal.totalPrice > 300 ? 'above' : 'below' },
     ],
-    overtreatmentVerdict: '현재 제안에 포함된 시술 항목은 고민 내용에 비추어 일반적으로 적정한 수준으로 판단됩니다.',
+    overtreatmentVerdict: t('report.overtreatmentVerdictDefault'),
     unnecessaryItems: [],
-    necessaryItems: ['주요 시술은 고민 해결에 직접적으로 관련됩니다', '부가 시술은 결과의 완성도를 높이는 역할을 합니다'],
+    necessaryItems: [t('report.necessaryItemMain'), t('report.necessaryItemSub')],
     overallRisk: proposal.anesthesiaType === 'general' ? 'medium' : 'low',
     riskItems: [
-      { procedure: '주요 시술', riskLevel: 'low', description: '일반적으로 안전한 시술이며, 심각한 부작용 사례가 매우 드뭅니다', recoveryDays: `${proposal.recoveryDays}일`, frequency: '한국 내 연간 10만 건 이상 시행' },
-      ...(proposal.anesthesiaType === 'general' ? [{ procedure: '전신마취', riskLevel: 'medium' as const, description: '전신마취에 따른 일반적 위험이 존재하며, 사전 건강 검진이 필요합니다', recoveryDays: '당일~1일', frequency: '정상 범위' }] : []),
+      { procedure: t('report.itemMainTreatment'), riskLevel: 'low', description: t('report.riskMainDesc'), recoveryDays: t('report.daysShort', { days: proposal.recoveryDays }), frequency: t('report.riskMainFrequency') },
+      ...(proposal.anesthesiaType === 'general' ? [{ procedure: t('report.riskGeneralAnesthesia'), riskLevel: 'medium' as const, description: t('report.riskGeneralDesc'), recoveryDays: t('report.riskGeneralRecovery'), frequency: t('report.riskGeneralFrequency') }] : []),
     ],
-    conclusion: `종합적으로, ${profile?.hospitalName}의 이 제안은 가격과 시술 구성 면에서 ${proposal.totalPrice <= avgPrice ? '합리적인' : '검토가 필요한'} 수준입니다. 최종 결정 전 병원 상담을 통해 개인 상태에 맞는 정밀 진단을 받으시기를 권합니다.`,
-    disclaimer: '이 리포트는 일반적인 시장 데이터와 시술 정보를 기반으로 작성되었으며, 개인의 의료 상태에 따라 결과가 달라질 수 있습니다. 정확한 판단은 반드시 병원 상담을 통해 이루어져야 합니다.',
+    conclusion: t('report.conclusionTemplate', {
+      hospital: profile?.hospitalName ?? '',
+      verdict: proposal.totalPrice <= avgPrice ? t('report.conclusionFair') : t('report.conclusionHigh'),
+    }),
+    disclaimer: t('report.disclaimerText'),
   };
 }
 
@@ -68,16 +73,16 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
   const router = useRouter();
   const { markPurchased, isPurchased: checkPurchased, setFullReport } = useReportStore();
   const purchased = checkPurchased(proposal.id);
-  const preview = generatePreview(proposal, profile);
+  const preview = generatePreview(proposal, profile, t);
 
   useEffect(() => {
     track({ eventType: 'report_preview_viewed', actorType: 'user', targetType: 'proposal', targetId: proposal.id, metadata: { source: 'fo', locale: 'ko' } });
     if (purchased) {
-      setFullReport(generateFullReport(proposal, profile));
+      setFullReport(generateFullReport(proposal, profile, t));
     }
   }, [proposal.id, purchased]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fullReport = purchased ? generateFullReport(proposal, profile) : null;
+  const fullReport = purchased ? generateFullReport(proposal, profile, t) : null;
 
   function handlePurchase() {
     track({ eventType: 'report_purchased', actorType: 'user', targetType: 'proposal', targetId: proposal.id, metadata: { source: 'fo', locale: 'ko', value: '4900' } });

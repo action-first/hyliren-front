@@ -313,7 +313,8 @@
     "emptyTitle": "아직 구매한 리포트가 없어요",
     "emptyDesc": "상담함에서 제안을 선택하고 검증 리포트를 구매해보세요",
     "goToInbox": "상담함 가기",
-    "verifiedComplete": "검증 완료 — 상세 보기"
+    "verifiedComplete": "검증 완료 — 상세 보기",
+    "summaryTemplate": "{hospital}의 {price}만원 제안에 대한 분석입니다."
   },
   "nudge": {
     "title": "이 선택, 괜찮을까요?",
@@ -531,6 +532,41 @@
       "network": "네트워크 연결을 확인해주세요",
       "server": "잠시 후 다시 시도해주세요"
     }
+  },
+  "services": {
+    "schedule": "일정 관리",
+    "scheduleDesc": "시술 날짜와 사전 검진 일정을 조율합니다",
+    "interpreter": "통역 서비스",
+    "interpreterDesc": "병원 상담 시 전문 의료 통역을 제공합니다",
+    "interpreterPrice": "₩80,000~",
+    "pickup": "공항 픽업",
+    "pickupDesc": "인천공항에서 숙소/병원까지 이동을 지원합니다",
+    "pickupPrice": "₩50,000~",
+    "hotel": "숙소 안내",
+    "hotelDesc": "병원 근처 회복에 적합한 숙소를 추천합니다",
+    "recovery": "회복 케어",
+    "recoveryDesc": "시술 후 관리와 경과 체크를 도와드립니다",
+    "statusAvailable": "예약 가능",
+    "statusBooked": "예약 완료",
+    "statusCompleted": "완료",
+    "fallbackHospitalName": "병원",
+    "riskGeneralLevel": "보통",
+    "riskSedationLevel": "낮음",
+    "riskLocalLevel": "매우 낮음",
+    "compareLowestPrice": "가장 합리적인 가격입니다",
+    "comparePriceHigher": "최저가 대비 {percent}% 높습니다",
+    "compareRiskLocal": "부분마취로 리스크가 매우 낮습니다",
+    "compareRiskSedation": "수면마취로 리스크가 낮은 편입니다",
+    "compareRiskGeneral": "전신마취로 사전 검진이 필요합니다"
+  },
+  "articles2": {
+    "categoryAll": "전체",
+    "categoryComparison": "시술 비교",
+    "categoryGuide": "시술 가이드",
+    "categorySafety": "안전 정보"
+  },
+  "metadata": {
+    "title": "미묘 — 나에게 맞는 시술, 병원이 먼저 제안합니다"
   },
   "bodyArea": {
     "눈": "눈",

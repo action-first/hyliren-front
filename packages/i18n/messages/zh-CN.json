@@ -313,7 +313,8 @@
     "emptyTitle": "还没有购买的报告",
     "emptyDesc": "请在咨询箱中选择提案并购买验证报告",
     "goToInbox": "前往咨询箱",
-    "verifiedComplete": "验证完成 — 查看详情"
+    "verifiedComplete": "验证完成 — 查看详情",
+    "summaryTemplate": "对 {hospital} 的 {price}万韩元提案进行分析。"
   },
   "nudge": {
     "title": "这个选择，没问题吗？",
@@ -531,6 +532,41 @@
       "network": "请检查网络连接",
       "server": "请稍后重试"
     }
+  },
+  "services": {
+    "schedule": "日程管理",
+    "scheduleDesc": "协调手术日期和事前检查日程",
+    "interpreter": "翻译服务",
+    "interpreterDesc": "医院咨询时提供专业医疗翻译",
+    "interpreterPrice": "₩80,000~",
+    "pickup": "机场接机",
+    "pickupDesc": "支持从仁川机场到住所/医院的交通",
+    "pickupPrice": "₩50,000~",
+    "hotel": "住宿介绍",
+    "hotelDesc": "推荐医院附近适合恢复的住宿",
+    "recovery": "恢复护理",
+    "recoveryDesc": "协助术后管理和恢复检查",
+    "statusAvailable": "可预约",
+    "statusBooked": "已预约",
+    "statusCompleted": "已完成",
+    "fallbackHospitalName": "医院",
+    "riskGeneralLevel": "中等",
+    "riskSedationLevel": "低",
+    "riskLocalLevel": "非常低",
+    "compareLowestPrice": "最合理的价格",
+    "comparePriceHigher": "比最低价高出{percent}%",
+    "compareRiskLocal": "局部麻醉,风险非常低",
+    "compareRiskSedation": "静脉麻醉,风险较低",
+    "compareRiskGeneral": "全身麻醉,需要事前检查"
+  },
+  "articles2": {
+    "categoryAll": "全部",
+    "categoryComparison": "手术对比",
+    "categoryGuide": "手术指南",
+    "categorySafety": "安全信息"
+  },
+  "metadata": {
+    "title": "美妙 — 适合您的手术,医院主动提供方案"
   },
   "bodyArea": {
     "눈": "眼部",

@@ -41,15 +41,19 @@ export default function ServicesPage({ params }: Props) {
     : proposals[0];
 
   const services: ServiceItem[] = [
-    { key: 'schedule', icon: Calendar, title: '일정 관리', desc: '시술 날짜와 사전 검진 일정을 조율합니다', status: 'available' },
-    { key: 'interpreter', icon: Languages, title: '통역 서비스', desc: '병원 상담 시 전문 의료 통역을 제공합니다', status: 'available', price: '₩80,000~' },
-    { key: 'pickup', icon: Car, title: '공항 픽업', desc: '인천공항에서 숙소/병원까지 이동을 지원합니다', status: 'available', price: '₩50,000~' },
-    { key: 'hotel', icon: Hotel, title: '숙소 안내', desc: '병원 근처 회복에 적합한 숙소를 추천합니다', status: 'available' },
-    { key: 'recovery', icon: HeartPulse, title: '회복 케어', desc: '시술 후 관리와 경과 체크를 도와드립니다', status: 'available' },
+    { key: 'schedule', icon: Calendar, title: t('services.schedule'), desc: t('services.scheduleDesc'), status: 'available' },
+    { key: 'interpreter', icon: Languages, title: t('services.interpreter'), desc: t('services.interpreterDesc'), status: 'available', price: t('services.interpreterPrice') },
+    { key: 'pickup', icon: Car, title: t('services.pickup'), desc: t('services.pickupDesc'), status: 'available', price: t('services.pickupPrice') },
+    { key: 'hotel', icon: Hotel, title: t('services.hotel'), desc: t('services.hotelDesc'), status: 'available' },
+    { key: 'recovery', icon: HeartPulse, title: t('services.recovery'), desc: t('services.recoveryDesc'), status: 'available' },
   ];
 
   const STATUS_ICON = { available: Clock, booked: CheckCircle, completed: CheckCircle };
-  const STATUS_TEXT = { available: '예약 가능', booked: '예약 완료', completed: '완료' };
+  const STATUS_TEXT: Record<'available' | 'booked' | 'completed', string> = {
+    available: t('services.statusAvailable'),
+    booked: t('services.statusBooked'),
+    completed: t('services.statusCompleted'),
+  };
 
   return (
     <div className="flex flex-col px-5 pt-5 pb-10">

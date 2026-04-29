@@ -313,7 +313,8 @@
     "emptyTitle": "まだ購入したレポートがありません",
     "emptyDesc": "相談ボックスで提案を選び、検証レポートを購入してみましょう",
     "goToInbox": "相談ボックスへ",
-    "verifiedComplete": "検証完了 — 詳細を見る"
+    "verifiedComplete": "検証完了 — 詳細を見る",
+    "summaryTemplate": "{hospital} の {price}万ウォンの提案に対する分析です。"
   },
   "nudge": {
     "title": "この選択、大丈夫でしょうか?",
@@ -531,6 +532,41 @@
       "network": "ネットワーク接続を確認してください",
       "server": "しばらくしてから再度お試しください"
     }
+  },
+  "services": {
+    "schedule": "日程管理",
+    "scheduleDesc": "施術日と事前検診スケジュールを調整します",
+    "interpreter": "通訳サービス",
+    "interpreterDesc": "病院相談時に専門医療通訳を提供します",
+    "interpreterPrice": "₩80,000~",
+    "pickup": "空港送迎",
+    "pickupDesc": "仁川空港から宿/病院まで移動をサポート",
+    "pickupPrice": "₩50,000~",
+    "hotel": "宿のご案内",
+    "hotelDesc": "病院近く、回復に適した宿を推奨",
+    "recovery": "回復ケア",
+    "recoveryDesc": "施術後の管理と経過チェックをお手伝い",
+    "statusAvailable": "予約可能",
+    "statusBooked": "予約完了",
+    "statusCompleted": "完了",
+    "fallbackHospitalName": "病院",
+    "riskGeneralLevel": "普通",
+    "riskSedationLevel": "低い",
+    "riskLocalLevel": "非常に低い",
+    "compareLowestPrice": "最も合理的な価格です",
+    "comparePriceHigher": "最安値より{percent}%高い",
+    "compareRiskLocal": "局所麻酔でリスクが非常に低い",
+    "compareRiskSedation": "静脈麻酔でリスクが低い方",
+    "compareRiskGeneral": "全身麻酔のため事前検診が必要"
+  },
+  "articles2": {
+    "categoryAll": "すべて",
+    "categoryComparison": "施術比較",
+    "categoryGuide": "施術ガイド",
+    "categorySafety": "安全情報"
+  },
+  "metadata": {
+    "title": "ミミょ — あなたに合う施術、病院から先にご提案"
   },
   "bodyArea": {
     "눈": "目",

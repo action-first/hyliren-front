@@ -313,7 +313,8 @@
     "emptyTitle": "No purchased reports yet",
     "emptyDesc": "Pick a proposal in your inbox and purchase a verification report",
     "goToInbox": "Open inbox",
-    "verifiedComplete": "Verified — View details"
+    "verifiedComplete": "Verified — View details",
+    "summaryTemplate": "Analysis of {hospital}'s {price}0K KRW proposal."
   },
   "nudge": {
     "title": "Are you sure about this?",
@@ -531,6 +532,41 @@
       "network": "Check your network connection",
       "server": "Please try again in a moment"
     }
+  },
+  "services": {
+    "schedule": "Schedule",
+    "scheduleDesc": "Coordinate procedure dates and pre-op checks",
+    "interpreter": "Interpreter",
+    "interpreterDesc": "Professional medical interpretation during consults",
+    "interpreterPrice": "₩80,000~",
+    "pickup": "Airport pickup",
+    "pickupDesc": "Transport from Incheon airport to your stay/clinic",
+    "pickupPrice": "₩50,000~",
+    "hotel": "Stay options",
+    "hotelDesc": "Recommended places near the clinic for recovery",
+    "recovery": "Recovery care",
+    "recoveryDesc": "Post-op care and follow-up checks",
+    "statusAvailable": "Available",
+    "statusBooked": "Booked",
+    "statusCompleted": "Completed",
+    "fallbackHospitalName": "Clinic",
+    "riskGeneralLevel": "Medium",
+    "riskSedationLevel": "Low",
+    "riskLocalLevel": "Very low",
+    "compareLowestPrice": "Most reasonably priced",
+    "comparePriceHigher": "{percent}% higher than the lowest",
+    "compareRiskLocal": "Local anesthesia—risk is very low",
+    "compareRiskSedation": "IV sedation—lower risk",
+    "compareRiskGeneral": "General anesthesia—requires pre-op screening"
+  },
+  "articles2": {
+    "categoryAll": "All",
+    "categoryComparison": "Procedure comparison",
+    "categoryGuide": "Procedure guide",
+    "categorySafety": "Safety info"
+  },
+  "metadata": {
+    "title": "MIMYO — The right treatment, suggested first by clinics"
   },
   "bodyArea": {
     "눈": "Eyes",
