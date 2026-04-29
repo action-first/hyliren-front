@@ -47,7 +47,7 @@ export { DateFilter } from './primitives/DateFilter';
 export type { DateFilterProps, DateRange } from './primitives/DateFilter';
 
 export { DataGrid } from './primitives/DataGrid';
-export type { DataGridProps, SearchField } from './primitives/DataGrid';
+export type { DataGridProps, DataGridLabels, SearchField } from './primitives/DataGrid';
 
 export {
   badgeCellRenderer,

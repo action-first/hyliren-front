@@ -590,6 +590,28 @@
     "poTitle": "MIMYO Partner Office",
     "poDescription": "Hospital management system"
   },
+  "dataGrid": {
+    "dateFromPlaceholder": "Start date",
+    "dateToPlaceholder": "End date",
+    "selectAll": "All",
+    "searchPlaceholder": "Search",
+    "searchButton": "Search",
+    "resetButton": "Reset",
+    "defaultTitle": "List",
+    "resultCountTemplate": "{count} total",
+    "exportButton": "Export to Excel",
+    "noRowsMessage": "No data",
+    "exportModalTitle": "Export to Excel",
+    "exportModalDesc": "Choose the data range to download",
+    "exportAllTitle": "Download all data",
+    "exportAllDescTemplate": "Download all data registered in the system ({count} rows)",
+    "exportFilteredTitle": "Download current view",
+    "exportFilteredDesc": "Download only the data matching current filters and search",
+    "exportSelectedTitle": "Download selected data",
+    "exportSelectedDesc": "Please select data first",
+    "cancel": "Cancel",
+    "downloadButton": "Download"
+  },
   "po": {
     "navDashboard": "Dashboard",
     "navConcerns": "Concerns",

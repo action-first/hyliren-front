@@ -8,6 +8,7 @@ import { Search, Download, RotateCcw, Calendar, X } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ko } from 'date-fns/locale';
+import type { Locale as DateFnsLocale } from 'date-fns';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -20,6 +21,61 @@ export interface SearchField {
   /** 검색 행 번호 (1 또는 2, 기본 1) */
   row?: 1 | 2;
 }
+
+/**
+ * DataGrid 내부에서 노출되는 사용자 가시 문자열.
+ * 미지정 시 한국어 기본값 사용 (하위 호환).
+ * 컴포넌트가 특정 앱 locale store 에 결합되지 않도록 prop 으로 주입.
+ */
+export interface DataGridLabels {
+  dateFromPlaceholder?: string;
+  dateToPlaceholder?: string;
+  selectAll?: string;
+  searchPlaceholder?: string;
+  searchButton?: string;
+  resetButton?: string;
+  defaultTitle?: string;
+  /** "{count}" 토큰 사용. 예: "총 {count}건" */
+  resultCountTemplate?: string;
+  exportButton?: string;
+  noRowsMessage?: string;
+  exportModalTitle?: string;
+  exportModalDesc?: string;
+  exportAllTitle?: string;
+  /** "{count}" 토큰 사용. 예: "...({count}개)" */
+  exportAllDescTemplate?: string;
+  exportFilteredTitle?: string;
+  exportFilteredDesc?: string;
+  exportSelectedTitle?: string;
+  exportSelectedDesc?: string;
+  cancel?: string;
+  downloadButton?: string;
+  dateLocale?: DateFnsLocale;
+}
+
+const DEFAULT_LABELS: Required<DataGridLabels> = {
+  dateFromPlaceholder: '시작일',
+  dateToPlaceholder: '종료일',
+  selectAll: '전체',
+  searchPlaceholder: '검색',
+  searchButton: '검색',
+  resetButton: '초기화',
+  defaultTitle: '목록',
+  resultCountTemplate: '총 {count}건',
+  exportButton: '엑셀 다운로드',
+  noRowsMessage: '데이터가 없습니다',
+  exportModalTitle: '엑셀 다운로드',
+  exportModalDesc: '다운로드할 데이터 범위를 선택하세요',
+  exportAllTitle: '전체 데이터 다운로드',
+  exportAllDescTemplate: '시스템에 등록된 모든 데이터를 다운로드합니다 ({count}개)',
+  exportFilteredTitle: '현재 조회된 데이터 다운로드',
+  exportFilteredDesc: '현재 적용된 필터와 검색 조건에 맞는 데이터만 다운로드합니다',
+  exportSelectedTitle: '선택한 데이터 다운로드',
+  exportSelectedDesc: '데이터를 먼저 선택해주세요',
+  cancel: '취소',
+  downloadButton: '다운로드',
+  dateLocale: ko,
+};
 
 export interface DataGridProps<T> {
   columnDefs: ColDef<T>[];
@@ -36,6 +92,8 @@ export interface DataGridProps<T> {
    * 미지정 시 클라이언트 필터링(rowData on appliedFilters)만 동작.
    */
   onSearch?: (filters: Record<string, string>) => void;
+  /** i18n 라벨. 미지정 시 한국어 기본값 사용. */
+  labels?: DataGridLabels;
 }
 
 // ── dateRange 디폴트: 최근 30일 ──
@@ -65,10 +123,11 @@ function parseDate(s: string): Date | null {
 export function DataGrid<T>({
   columnDefs, rowData, searchFields, height,
   exportFileName = 'export', onRowClick, defaultColDef: userDefaultColDef,
-  title, actions, onSearch,
+  title, actions, onSearch, labels,
 }: DataGridProps<T>) {
   const gridRef = useRef<AgGridReact<T>>(null);
   const [gridApi, setGridApi] = useState<GridApi<T> | null>(null);
+  const l = { ...DEFAULT_LABELS, ...labels };
 
   const dateRangeField = useMemo(
     () => searchFields?.find(f => f.type === 'dateRange'),
@@ -226,8 +285,8 @@ export function DataGrid<T>({
                 selected={dateFrom}
                 onChange={(date: Date | null) => handleDateChange(field.key, 'from', date)}
                 dateFormat="yyyy.MM.dd"
-                placeholderText="시작일"
-                locale={ko}
+                placeholderText={l.dateFromPlaceholder}
+                locale={l.dateLocale}
                 className="datepicker-input"
               />
             </div>
@@ -238,8 +297,8 @@ export function DataGrid<T>({
                 selected={dateTo}
                 onChange={(date: Date | null) => handleDateChange(field.key, 'to', date)}
                 dateFormat="yyyy.MM.dd"
-                placeholderText="종료일"
-                locale={ko}
+                placeholderText={l.dateToPlaceholder}
+                locale={l.dateLocale}
                 className="datepicker-input"
                 minDate={dateFrom || undefined}
               />
@@ -253,7 +312,7 @@ export function DataGrid<T>({
         <div key={field.key} className="datagrid-search-group datagrid-search-group--fixed">
           <label>{field.label}</label>
           <select value={formValues[field.key] || ''} onChange={e => handleFieldChange(field.key, e.target.value)}>
-            <option value="">전체</option>
+            <option value="">{l.selectAll}</option>
             {field.options?.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
           </select>
         </div>
@@ -266,7 +325,7 @@ export function DataGrid<T>({
           <Search size={14} />
           <input
             type="text"
-            placeholder={field.placeholder || '검색'}
+            placeholder={field.placeholder || l.searchPlaceholder}
             value={formValues[field.key] || ''}
             onChange={e => handleFieldChange(field.key, e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearchClick(); } }}
@@ -297,10 +356,10 @@ export function DataGrid<T>({
             {/* 버튼 영역 — 우측 하단 정렬 */}
             <div className="datagrid-search-actions">
               <button type="button" className="datagrid-btn datagrid-btn--primary" onClick={handleSearchClick}>
-                <Search size={14} /> 검색
+                <Search size={14} /> {l.searchButton}
               </button>
               <button type="button" className="datagrid-btn" onClick={handleReset}>
-                <RotateCcw size={14} /> 초기화
+                <RotateCcw size={14} /> {l.resetButton}
               </button>
             </div>
           </div>
@@ -310,13 +369,13 @@ export function DataGrid<T>({
       {/* ═══ 2. 결과 바 ═══ */}
       <div className="datagrid-result-bar">
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <h3>{title || '목록'}</h3>
-          <span className="result-count">총 {filteredData.length.toLocaleString()}건</span>
+          <h3>{title || l.defaultTitle}</h3>
+          <span className="result-count">{l.resultCountTemplate.replace('{count}', filteredData.length.toLocaleString())}</span>
         </div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           {actions}
           <button type="button" className="datagrid-btn" onClick={handleExportClick}>
-            <Download size={13} /> 엑셀 다운로드
+            <Download size={13} /> {l.exportButton}
           </button>
         </div>
       </div>
@@ -339,7 +398,7 @@ export function DataGrid<T>({
             theme="legacy"
             rowHeight={36}
             headerHeight={36}
-            overlayNoRowsTemplate="<span style='font-size:14px;color:#9ca3af;padding:40px 0;display:block;text-align:center'>데이터가 없습니다</span>"
+            overlayNoRowsTemplate={`<span style='font-size:14px;color:#9ca3af;padding:40px 0;display:block;text-align:center'>${l.noRowsMessage}</span>`}
           />
         </div>
       </div>
@@ -350,41 +409,41 @@ export function DataGrid<T>({
           <div className="export-modal-backdrop" onClick={() => setShowExportModal(false)} />
           <div className="export-modal">
             <div className="export-modal-header">
-              <h2>엑셀 다운로드</h2>
+              <h2>{l.exportModalTitle}</h2>
               <button type="button" onClick={() => setShowExportModal(false)} className="export-modal-close">
                 <X size={15} />
               </button>
             </div>
-            <p className="export-modal-desc">다운로드할 데이터 범위를 선택하세요</p>
+            <p className="export-modal-desc">{l.exportModalDesc}</p>
 
             <div className="export-modal-options">
               <label className={`export-modal-option ${exportMode === 'all' ? 'export-modal-option--active' : ''}`}>
                 <input type="radio" name="exportMode" checked={exportMode === 'all'} onChange={() => setExportMode('all')} />
                 <div>
-                  <span className="export-modal-option-title">전체 데이터 다운로드</span>
-                  <span className="export-modal-option-desc">시스템에 등록된 모든 데이터를 다운로드합니다 ({rowData.length}개)</span>
+                  <span className="export-modal-option-title">{l.exportAllTitle}</span>
+                  <span className="export-modal-option-desc">{l.exportAllDescTemplate.replace('{count}', String(rowData.length))}</span>
                 </div>
               </label>
               <label className={`export-modal-option ${exportMode === 'filtered' ? 'export-modal-option--active' : ''}`}>
                 <input type="radio" name="exportMode" checked={exportMode === 'filtered'} onChange={() => setExportMode('filtered')} />
                 <div>
-                  <span className="export-modal-option-title">현재 조회된 데이터 다운로드</span>
-                  <span className="export-modal-option-desc">현재 적용된 필터와 검색 조건에 맞는 데이터만 다운로드합니다</span>
+                  <span className="export-modal-option-title">{l.exportFilteredTitle}</span>
+                  <span className="export-modal-option-desc">{l.exportFilteredDesc}</span>
                 </div>
               </label>
               <label className={`export-modal-option ${exportMode === 'selected' ? 'export-modal-option--active' : ''}`} style={{ opacity: 0.4, pointerEvents: 'none' }}>
                 <input type="radio" name="exportMode" disabled />
                 <div>
-                  <span className="export-modal-option-title">선택한 데이터 다운로드</span>
-                  <span className="export-modal-option-desc">데이터를 먼저 선택해주세요</span>
+                  <span className="export-modal-option-title">{l.exportSelectedTitle}</span>
+                  <span className="export-modal-option-desc">{l.exportSelectedDesc}</span>
                 </div>
               </label>
             </div>
 
             <div className="export-modal-footer">
-              <button type="button" className="datagrid-btn" onClick={() => setShowExportModal(false)}>취소</button>
+              <button type="button" className="datagrid-btn" onClick={() => setShowExportModal(false)}>{l.cancel}</button>
               <button type="button" className="export-modal-confirm" onClick={handleExportConfirm}>
-                <Download size={14} /> 다운로드
+                <Download size={14} /> {l.downloadButton}
               </button>
             </div>
           </div>

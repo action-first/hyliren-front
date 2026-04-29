@@ -16,6 +16,7 @@ import { AlertTriangle } from 'lucide-react';
 import { POSidebar } from '@/components/POSidebar';
 import { useToastStore } from '@/store/toast';
 import { useLocaleStore } from '@/store/locale';
+import { useDataGridLabels } from '@/hooks/useDataGridLabels';
 import { toUserMessage } from '@/lib/api/error-messages';
 import { useConcerns } from '@/hooks/queries/concerns';
 import type { ConcernListQuery } from '@/lib/api/concern';
@@ -67,6 +68,7 @@ export default function ConcernListPage() {
   const router = useRouter();
   const showToast = useToastStore(s => s.showToast);
   const t = useLocaleStore(s => s.t);
+  const dataGridLabels = useDataGridLabels();
 
   // 검색 필드 (locale 별 t() 적용)
   const searchFields: SearchField[] = [
@@ -203,6 +205,7 @@ export default function ConcernListPage() {
           searchFields={searchFields}
           exportFileName={t('po.concernsExportFileName')}
           title={t('po.concernsListGridTitle')}
+          labels={dataGridLabels}
           onRowClick={(data) => router.push(`/concerns/${data.id}`)}
           onSearch={handleSearch}
         />

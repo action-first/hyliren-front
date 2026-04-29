@@ -18,6 +18,7 @@ import type { ColDef } from 'ag-grid-community';
 import { POSidebar } from '@/components/POSidebar';
 import { useToastStore } from '@/store/toast';
 import { useLocaleStore } from '@/store/locale';
+import { useDataGridLabels } from '@/hooks/useDataGridLabels';
 import { toUserMessage } from '@/lib/api/error-messages';
 import { useConcerns } from '@/hooks/queries/concerns';
 import { useMyProposals } from '@/hooks/queries/proposals';
@@ -76,6 +77,7 @@ export default function ProposalsPage() {
   const router = useRouter();
   const showToast = useToastStore(s => s.showToast);
   const t = useLocaleStore(s => s.t);
+  const dataGridLabels = useDataGridLabels();
   const [query, setQuery] = useState<MyProposalsQuery>(() => {
     const { from, to } = defaultMonthRange();
     return { sentAtFrom: from, sentAtTo: to };
@@ -169,6 +171,7 @@ export default function ProposalsPage() {
           searchFields={searchFields}
           exportFileName={t('po.proposalExportFile')}
           title={t('po.myProposalSheetTitle')}
+          labels={dataGridLabels}
           onRowClick={(data) => router.push(`/proposals/${data.id}`)}
           onSearch={handleSearch}
         />
