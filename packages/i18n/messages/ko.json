@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "한옌리런",
-    "appNameZh": "韩颜丽人",
+    "appName": "미묘",
+    "appNameZh": "美妙",
     "login": "로그인",
     "signup": "회원가입",
     "next": "다음",
@@ -17,6 +17,8 @@
     "won": "원",
     "langKo": "한국어",
     "langZh": "中文",
+    "langJa": "日本語",
+    "langEn": "English",
     "or": "또는",
     "continueWith": "계속하기",
     "viewAll": "전체보기",

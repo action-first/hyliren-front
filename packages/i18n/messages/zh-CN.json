@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "韩颜丽人",
-    "appNameZh": "韩颜丽人",
+    "appName": "美妙",
+    "appNameZh": "美妙",
     "login": "登录",
     "signup": "注册",
     "next": "下一步",
@@ -17,6 +17,8 @@
     "won": "韩元",
     "langKo": "한국어",
     "langZh": "中文",
+    "langJa": "日本語",
+    "langEn": "English",
     "or": "或",
     "continueWith": "继续",
     "viewAll": "查看全部",
