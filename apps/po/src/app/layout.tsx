@@ -6,8 +6,9 @@ import { QueryProvider } from '@/components/common/QueryProvider';
 import { PartnerSessionBootstrap } from '@/components/auth/PartnerSessionBootstrap';
 import { PartnerAuthGate } from '@/components/auth/PartnerAuthGate';
 
+// metadata 는 server-side fixed text. locale 별 분기는 향후 i18n routing 도입 시 처리.
 export const metadata: Metadata = {
-  title: '한옌리런 파트너 오피스',
+  title: '미묘 파트너 오피스 (MIMYO Partner Office)',
   description: '병원 관리 시스템',
 };
 

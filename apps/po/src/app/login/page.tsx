@@ -6,6 +6,7 @@ import { Building2, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { Button } from '@hyliren/ui';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
+import { useLocaleStore } from '@/store/locale';
 import { toUserMessage } from '@/lib/api/error-messages';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -17,6 +18,7 @@ function PartnerLoginForm() {
   const status = usePOAuthStore(s => s.status);
   const member = usePOAuthStore(s => s.member);
   const { showToast } = useToastStore();
+  const t = useLocaleStore(s => s.t);
 
   const [email, setEmail] = useState('');
   const [emailTouched, setEmailTouched] = useState(false);
@@ -25,7 +27,7 @@ function PartnerLoginForm() {
 
   const next = searchParams.get('next') || '/treatments';
   const emailError = emailTouched && email && !EMAIL_PATTERN.test(email)
-    ? '올바른 이메일 형식으로 입력해주세요.'
+    ? t('poLogin.emailInvalid')
     : null;
 
   useEffect(() => {
@@ -43,10 +45,10 @@ function PartnerLoginForm() {
     setSubmitting(true);
     try {
       await loginWithPassword({ email, password });
-      showToast('로그인되었습니다.', 'success');
+      showToast(t('poLogin.loginSuccess'), 'success');
       router.replace(next);
     } catch (err) {
-      const message = toUserMessage(err, '로그인에 실패했습니다');
+      const message = toUserMessage(err, t('poLogin.loginFail'));
       showToast(message, 'error');
     } finally {
       setSubmitting(false);
@@ -59,19 +61,19 @@ function PartnerLoginForm() {
         <div>
           <div className="inline-flex items-center gap-2 text-[13px] font-semibold">
             <Building2 size={18} />
-            Partner Office
+            {t('poLogin.heroBrand')}
           </div>
-          <h1 className="mt-12 text-[30px] font-bold leading-tight tracking-normal">
-            병원 운영 계정으로<br />시술과 제안을 관리합니다
+          <h1 className="mt-12 text-[30px] font-bold leading-tight tracking-normal whitespace-pre-line">
+            {t('poLogin.heroTitle')}
           </h1>
         </div>
         <div className="grid gap-3 text-[13px] text-white/75">
           <div className="flex items-center gap-2">
             <ShieldCheck size={16} />
-            <span>발급된 파트너 계정만 접근할 수 있습니다.</span>
+            <span>{t('poLogin.heroAccessNote')}</span>
           </div>
           <p className="max-w-[360px] leading-6">
-            계정 생성은 운영팀 또는 BO에서 처리합니다. 로그인 정보가 없다면 담당자에게 문의하세요.
+            {t('poLogin.heroFooter')}
           </p>
         </div>
       </section>
@@ -82,12 +84,12 @@ function PartnerLoginForm() {
           className="w-full max-w-[380px] bg-[var(--surface-default)] border border-[var(--border-subdued)] rounded-[8px] p-6 shadow-sm"
         >
           <div className="mb-6">
-            <p className="text-[12px] font-semibold text-[var(--text-subdued)] mb-1">Hyliren PO</p>
-            <h2 className="text-[20px] font-bold text-[var(--text-default)]">파트너 로그인</h2>
+            <p className="text-[12px] font-semibold text-[var(--text-subdued)] mb-1">{t('poLogin.formTagline')}</p>
+            <h2 className="text-[20px] font-bold text-[var(--text-default)]">{t('poLogin.formTitle')}</h2>
           </div>
 
           <label className="block mb-3">
-            <span className="block text-[12px] font-semibold text-[var(--text-subdued)] mb-1.5">이메일</span>
+            <span className="block text-[12px] font-semibold text-[var(--text-subdued)] mb-1.5">{t('poLogin.emailLabel')}</span>
             <span className="flex items-center gap-2 rounded-[6px] border border-[var(--border-subdued)] px-3 h-10 bg-white">
               <Mail size={15} className="text-[var(--text-disabled)]" />
               <input
@@ -108,7 +110,7 @@ function PartnerLoginForm() {
           </label>
 
           <label className="block mb-5">
-            <span className="block text-[12px] font-semibold text-[var(--text-subdued)] mb-1.5">비밀번호</span>
+            <span className="block text-[12px] font-semibold text-[var(--text-subdued)] mb-1.5">{t('poLogin.passwordLabel')}</span>
             <span className="flex items-center gap-2 rounded-[6px] border border-[var(--border-subdued)] px-3 h-10 bg-white">
               <LockKeyhole size={15} className="text-[var(--text-disabled)]" />
               <input
@@ -119,7 +121,7 @@ function PartnerLoginForm() {
                 required
                 minLength={8}
                 className="min-w-0 flex-1 outline-none text-[14px] bg-transparent"
-                placeholder="비밀번호"
+                placeholder={t('poLogin.passwordPlaceholder')}
               />
             </span>
           </label>
@@ -131,7 +133,7 @@ function PartnerLoginForm() {
             disabled={submitting || !email || !password || !!emailError}
             className="w-full"
           >
-            {submitting ? '로그인 중...' : '로그인'}
+            {submitting ? t('poLogin.submitting') : t('poLogin.submit')}
           </Button>
         </form>
       </section>

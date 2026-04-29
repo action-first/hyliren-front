@@ -566,7 +566,45 @@
     "categorySafety": "安全情報"
   },
   "metadata": {
-    "title": "ミミょ — あなたに合う施術、病院から先にご提案"
+    "title": "ミミょ — あなたに合う施術、病院から先にご提案",
+    "poTitle": "ミミょ パートナーオフィス",
+    "poDescription": "病院管理システム"
+  },
+  "po": {
+    "navDashboard": "ダッシュボード",
+    "navConcerns": "悩み",
+    "navActivity": "活動履歴",
+    "navTreatments": "施術管理",
+    "navProfile": "パートナー情報",
+    "creditChargeContact": "クレジットチャージは管理者にお問い合わせください。",
+    "logoutSuccess": "ログアウトしました。",
+    "logoutPartial": "ログアウトしました。一部の整理は再接続時に自動処理されます。",
+    "accountAriaLabel": "現在ログイン中のパートナーアカウント情報を見る",
+    "fallbackPartnerAccount": "パートナーアカウント",
+    "language": "言語",
+    "creditBalance": "クレジット残高",
+    "charge": "チャージ",
+    "accountNoInfo": "アカウント情報なし",
+    "logoutAria": "ログアウト",
+    "loginButton": "ログイン",
+    "myProposalSheetTitle": "私の提案書",
+    "proposalDetailTitle": "提案書詳細"
+  },
+  "poLogin": {
+    "emailInvalid": "正しいメールアドレス形式で入力してください。",
+    "loginSuccess": "ログインしました。",
+    "loginFail": "ログインに失敗しました",
+    "heroBrand": "Partner Office",
+    "heroTitle": "病院運営アカウントで\n施術と提案を管理します",
+    "heroAccessNote": "発行されたパートナーアカウントのみアクセスできます。",
+    "heroFooter": "アカウント作成は運営チームまたはBOで処理します。ログイン情報がない場合は担当者にお問い合わせください。",
+    "formTagline": "Hyliren PO",
+    "formTitle": "パートナーログイン",
+    "emailLabel": "メール",
+    "passwordLabel": "パスワード",
+    "passwordPlaceholder": "パスワード",
+    "submitting": "ログイン中...",
+    "submit": "ログイン"
   },
   "bodyArea": {
     "눈": "目",

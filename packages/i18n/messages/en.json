@@ -566,7 +566,45 @@
     "categorySafety": "Safety info"
   },
   "metadata": {
-    "title": "MIMYO — The right treatment, suggested first by clinics"
+    "title": "MIMYO — The right treatment, suggested first by clinics",
+    "poTitle": "MIMYO Partner Office",
+    "poDescription": "Hospital management system"
+  },
+  "po": {
+    "navDashboard": "Dashboard",
+    "navConcerns": "Concerns",
+    "navActivity": "Activity",
+    "navTreatments": "Treatments",
+    "navProfile": "Partner profile",
+    "creditChargeContact": "Please contact admin for credit top-up.",
+    "logoutSuccess": "Signed out.",
+    "logoutPartial": "Signed out. Some cleanup will run on next sign-in.",
+    "accountAriaLabel": "View current partner account info",
+    "fallbackPartnerAccount": "Partner account",
+    "language": "Language",
+    "creditBalance": "Credit balance",
+    "charge": "Top up",
+    "accountNoInfo": "No account info",
+    "logoutAria": "Sign out",
+    "loginButton": "Sign in",
+    "myProposalSheetTitle": "My proposal",
+    "proposalDetailTitle": "Proposal details"
+  },
+  "poLogin": {
+    "emailInvalid": "Please enter a valid email format.",
+    "loginSuccess": "Signed in.",
+    "loginFail": "Sign-in failed",
+    "heroBrand": "Partner Office",
+    "heroTitle": "Manage procedures and proposals\nwith your clinic operations account",
+    "heroAccessNote": "Only issued partner accounts can access.",
+    "heroFooter": "Account creation is handled by the ops team or BO. If you don't have credentials, please contact your account owner.",
+    "formTagline": "Hyliren PO",
+    "formTitle": "Partner sign-in",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Password",
+    "submitting": "Signing in...",
+    "submit": "Sign in"
   },
   "bodyArea": {
     "눈": "Eyes",

@@ -9,6 +9,7 @@ import { ProposalDetailView } from '@/components/concerns/ProposalDetailView';
 import { getConcern, type ConcernDetailWire } from '@/lib/api/concern';
 import { listMyProposals, type ProposalDetailWire } from '@/lib/api/proposal';
 import { ApiError } from '@/lib/api/errors';
+import { useLocaleStore } from '@/store/locale';
 
 function StatusBadge({ label }: { label: string }) {
   const c = PROPOSAL_STATUS_BADGE[label];
@@ -31,6 +32,7 @@ interface Props {
 export default function ProposalDetailPage({ params }: Props) {
   const router = useRouter();
   const { id } = use(params);
+  const t = useLocaleStore(s => s.t);
   const [proposal, setProposal] = useState<ProposalDetailWire | null>(null);
   const [concern, setConcern] = useState<ConcernDetailWire | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,7 +64,7 @@ export default function ProposalDetailPage({ params }: Props) {
     return (
       <AdminPage
         sidebar={<POSidebar active="/activity" />}
-        title="제안서 상세"
+        title={t('po.proposalDetailTitle')}
         prefix="po"
         onBack={() => router.back()}
       >
