@@ -12,6 +12,7 @@ import { Step3Content } from '@/components/procedure-wizard/Step3Content';
 import { Step4Preview } from '@/components/procedure-wizard/Step4Preview';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
+import { useLocaleStore } from '@/store/locale';
 import { toUserMessage } from '@/lib/api/error-messages';
 import { proceduresApi } from '@/lib/api/procedures';
 import { emptyWizardForm } from '@/lib/wizard/defaults';
@@ -22,11 +23,11 @@ import { track } from '@hyliren/shared/src/events';
 import type { WizardForm } from '@/lib/wizard/types';
 import type { ProcedureStatus } from '@hyliren/shared';
 
-const STEPS = [
-  { key: 'basics', label: '기본 정보' },
-  { key: 'pricing', label: '가격·옵션' },
-  { key: 'content', label: '상세·이미지' },
-  { key: 'preview', label: '미리보기·공개' },
+const STEP_KEYS = [
+  { key: 'basics', labelKey: 'po.wizardStepBasics' },
+  { key: 'pricing', labelKey: 'po.wizardStepPricing' },
+  { key: 'content', labelKey: 'po.wizardStepContent' },
+  { key: 'preview', labelKey: 'po.wizardStepPreview' },
 ];
 
 /** 입력 데이터가 있는지 판단 — empty form 대비. */
@@ -46,6 +47,8 @@ export default function NewProcedurePage() {
   const router = useRouter();
   const member = usePOAuthStore(s => s.member);
   const { showToast } = useToastStore();
+  const t = useLocaleStore(s => s.t);
+  const STEPS = STEP_KEYS.map(s => ({ key: s.key, label: t(s.labelKey) }));
 
   /* sessionStorage persist 제거 (2026-04-26):
      이전엔 작성본을 자동으로 sessionStorage 에 저장 → 재진입 시 복원했으나,
@@ -137,7 +140,7 @@ export default function NewProcedurePage() {
     // H3: 중복 클릭 방지
     if (savingRef.current) return;
     if (!member) {
-      showToast('로그인이 필요합니다.', 'error');
+      showToast(t('po.treatmentNeedLogin'), 'error');
       return;
     }
     // D1: draft 저장은 Step 1 최소 필드만, published 는 전체 검증
@@ -145,8 +148,8 @@ export default function NewProcedurePage() {
     if (!ok) {
       showToast(
         status === 'published'
-          ? '필수 입력값을 모두 채워주세요.'
-          : '분류와 원본 언어 타이틀은 최소한 입력해야 저장할 수 있어요.',
+          ? t('po.treatmentFillRequired')
+          : t('po.treatmentMinDraftRequired'),
         'error',
       );
       return;
@@ -192,17 +195,17 @@ export default function NewProcedurePage() {
       });
       showToast(
         status === 'published'
-          ? '공개로 등록되었습니다.'
+          ? t('po.treatmentPublishedRegistered')
           : status === 'archived'
-            ? '비공개로 등록되었습니다.'
-            : '임시저장되었습니다.',
+            ? t('po.treatmentArchivedRegistered')
+            : t('po.treatmentDraftSaved'),
         'success',
       );
       // 저장 완료 → 목록 복귀. 서버 저장 완료 시점이라 nav guard 도 불필요.
       // (form state 는 unmount 시 휘발 — 재진입 시 fresh form)
       router.push('/treatments');
     } catch (e: unknown) {
-      const msg = toUserMessage(e, '저장에 실패했습니다');
+      const msg = toUserMessage(e, t('po.treatmentSaveFail'));
       track({
         eventType: 'treatment_wizard_save_fail',
         actorType: 'member',
@@ -221,7 +224,7 @@ export default function NewProcedurePage() {
       <POSidebar active="/treatments" />
       <div className="flex-1 flex flex-col bg-white">
         <WizardShell
-          title="새 시술 등록"
+          title={t('po.treatmentNewTitle')}
           steps={stepsWithDone}
           activeIndex={activeStep}
           onStepChange={i => { if (i <= activeStep || stepsWithDone[i - 1]?.done) setActiveStep(i); }}
@@ -244,7 +247,7 @@ export default function NewProcedurePage() {
           primaryAction={{
             /* Step 4 (마지막) primary = '등록하기' — 클릭 시 모달로 공개/비공개 선택.
                데이터 완성 = 진열 결정의 갈림길. 모달이 의식 (ceremony) 역할. */
-            label: '등록하기',
+            label: t('po.treatmentRegister'),
             onClick: () => setPublishOptionOpen(true),
             disabled: saving || !allStepsValid(form),
             loading: saving,
@@ -262,7 +265,7 @@ export default function NewProcedurePage() {
       <Modal
         open={publishOptionOpen}
         onClose={() => !saving && setPublishOptionOpen(false)}
-        title="이 시술을 어떻게 등록할까요?"
+        title={t('po.treatmentRegisterChooseTitle')}
       >
         <div className="flex flex-col gap-3">
           <button
@@ -312,7 +315,7 @@ export default function NewProcedurePage() {
       <Modal
         open={discardModalOpen}
         onClose={handleCancelDiscard}
-        title="작성 내용을 두고 나가시겠어요?"
+        title={t('po.treatmentLeaveTitle')}
       >
         <div className="flex flex-col gap-5">
           <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
