@@ -279,10 +279,10 @@ export default function NewProcedurePage() {
           >
             <div className="flex items-center gap-2 mb-1">
               <Eye size={16} className="text-[var(--color-success)]" />
-              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">공개로 등록</span>
+              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">{t('po.treatmentSaveAsPublic')}</span>
             </div>
             <p className="text-[var(--app-text-micro)] text-[var(--text-subdued)] leading-relaxed">
-              즉시 고객에게 노출됩니다. 상담 신청 화면과 시술 상세에 표시돼요.
+              {t('po.treatmentSaveAsPublicDesc')}
             </p>
           </button>
 
@@ -297,15 +297,15 @@ export default function NewProcedurePage() {
           >
             <div className="flex items-center gap-2 mb-1">
               <EyeOff size={16} className="text-[var(--text-subdued)]" />
-              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">비공개로 등록</span>
+              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">{t('po.treatmentSaveAsArchived')}</span>
             </div>
             <p className="text-[var(--app-text-micro)] text-[var(--text-subdued)] leading-relaxed">
-              데이터만 저장하고 고객에게는 아직 노출하지 않습니다. 시술 관리 메뉴에서 언제든 공개로 전환할 수 있어요.
+              {t('po.treatmentSaveAsArchivedDesc')}
             </p>
           </button>
 
           <Button variant="secondary" onClick={() => setPublishOptionOpen(false)} disabled={saving}>
-            취소
+            {t('common.cancel')}
           </Button>
         </div>
       </Modal>
@@ -319,16 +319,16 @@ export default function NewProcedurePage() {
       >
         <div className="flex flex-col gap-5">
           <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
-            저장하지 않고 나가면 지금까지 입력한 내용이 <span className="font-semibold text-[var(--color-danger)]">사라집니다.</span>
+            {t('po.treatmentLeaveDescPrefix')}<span className="font-semibold text-[var(--color-danger)]">{t('po.treatmentLeaveDescHighlight')}</span>
             <br />
-            계속 이어서 작성하려면 먼저 <span className="font-semibold text-[var(--text-default)]">임시저장</span> 을 눌러 주세요.
+            {t('po.treatmentLeaveHintPrefix')}<span className="font-semibold text-[var(--text-default)]">{t('po.treatmentLeaveHintHighlight')}</span>{t('po.treatmentLeaveHintSuffix')}
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Button variant="secondary" onClick={handleCancelDiscard}>
-              계속 작성
+              {t('po.treatmentLeaveContinue')}
             </Button>
             <Button variant="danger" onClick={handleConfirmDiscard}>
-              저장 안 하고 나가기
+              {t('po.treatmentLeaveDiscard')}
             </Button>
           </div>
         </div>
