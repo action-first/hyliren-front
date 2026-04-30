@@ -22,6 +22,8 @@ export {
   BODY_AREAS,
   LOCALES,
   DEFAULT_SOURCE_LOCALE,
+  isLocale,
+  narrowLocale,
   PROCEDURE_TYPES,
   PROCEDURE_TYPE_AREAS,
   proceduresByArea,
