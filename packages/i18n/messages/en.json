@@ -322,7 +322,10 @@
     "emptyDesc": "Pick a proposal in your inbox and purchase a verification report",
     "goToInbox": "Open inbox",
     "verifiedComplete": "Verified — View details",
-    "summaryTemplate": "Analysis of {hospital}'s {price}0K KRW proposal."
+    "summaryTemplate": "Analysis of {hospital}'s {price}0K KRW proposal.",
+    "compareWinnerOpinion": "Across {count} proposals, {hospitalName} stands out as the most balanced option on price and risk.",
+    "compareWinnerAdvice": " Before finalizing, schedule a hospital consultation for a diagnosis tailored to your condition.",
+    "compareDisclaimer": "This report is based on general market data and procedure information; results may vary depending on individual medical conditions."
   },
   "nudge": {
     "title": "Are you sure about this?",

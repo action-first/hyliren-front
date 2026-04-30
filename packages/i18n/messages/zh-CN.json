@@ -322,7 +322,10 @@
     "emptyDesc": "请在咨询箱中选择提案并购买验证报告",
     "goToInbox": "前往咨询箱",
     "verifiedComplete": "验证完成 — 查看详情",
-    "summaryTemplate": "对 {hospital} 的 {price}万韩元提案进行分析。"
+    "summaryTemplate": "对 {hospital} 的 {price}万韩元提案进行分析。",
+    "compareWinnerOpinion": "通过对 {count} 个方案的综合分析，{hospitalName} 在价格与风险方面最为均衡。",
+    "compareWinnerAdvice": "在最终决定前，建议通过医院咨询获得符合您个人情况的精准诊断。",
+    "compareDisclaimer": "本报告基于一般市场数据与术式信息撰写，结果可能因个人医疗状况而异。"
   },
   "nudge": {
     "title": "这个选择，没问题吗？",
