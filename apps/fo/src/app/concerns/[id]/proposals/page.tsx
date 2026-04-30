@@ -47,7 +47,7 @@ export default function ProposalListPage({ params }: Props) {
         {/* ── Header ── */}
         <div className="px-5 pt-7 pb-5">
           <div className="flex items-center gap-2 mb-2">
-            <Badge variant="info" size="sm">{concern.primaryArea}</Badge>
+            <Badge variant="info" size="sm">{t(`common.bodyArea.${concern.primaryArea}`)}</Badge>
             {concern.bodyAreaDetail && (
               <span className="text-[13px] text-[var(--color-text-secondary)]">{concern.bodyAreaDetail}</span>
             )}

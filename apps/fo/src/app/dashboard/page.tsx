@@ -115,7 +115,7 @@ export default function DashboardPage() {
 
       {/* ═══ 대기 중 패널 ═══ */}
       {dashboard.phase === 'waiting' && (
-        <WaitingStatePanel bodyArea={dashboard.primaryConcern?.primaryArea || t('bodyArea.기타')} />
+        <WaitingStatePanel bodyArea={dashboard.primaryConcern?.primaryArea || 'etc'} />
       )}
 
       {/* ═══ 맞춤 추천 정보 ═══ */}
@@ -237,7 +237,7 @@ function ConcernStatusCard({
           <div className="flex items-center gap-1.5">
             {bodyAreas.map(area => (
               <span key={area} className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${AREA_ACCENT[area] || 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}`}>
-                {area}
+                {t(`common.bodyArea.${area}`)}
               </span>
             ))}
           </div>

@@ -81,7 +81,7 @@ export default function ProposalDetailPage({ params }: Props) {
 
   const statusLabel = PROPOSAL_STATUS_KR[proposal.status] ?? proposal.status;
   const concernLabel = concern
-    ? `${concern.primaryArea} ${concern.bodyAreaDetail ?? ''}`.trim()
+    ? `${t(`common.bodyArea.${concern.primaryArea}`)} ${concern.bodyAreaDetail ?? ''}`.trim()
     : '';
   const title = concernLabel
     ? t('po.proposalDetailTitleConcern', { concern: concernLabel })

@@ -127,7 +127,7 @@ export default function ProcedureDetailPage() {
 
         <div className="px-5 pt-5 pb-6">
           <div className="flex items-center gap-2 mb-3">
-            <Badge variant="primary" size="sm">{procedure.primaryArea}</Badge>
+            <Badge variant="primary" size="sm">{t(`common.bodyArea.${procedure.primaryArea}`)}</Badge>
             <span className="text-[11px] text-[var(--color-text-dim)]">{procedure.procedureType}</span>
           </div>
           <h1 className="text-[1.55rem] leading-tight font-bold text-[var(--color-text)] tracking-normal mb-3">

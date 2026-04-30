@@ -652,7 +652,7 @@ export default function DashboardPage() {
                         <span style={{
                           display: 'inline-block', padding: '3px 10px', borderRadius: 6,
                           fontSize: "var(--text-sm)", fontWeight: "var(--font-semibold)", background: areaStyle.bg, color: areaStyle.text,
-                        }}>{c.primaryArea}</span>
+                        }}>{t(`common.bodyArea.${c.primaryArea}`)}</span>
                         {c.bodyAreaDetail && <span style={{ fontSize: "var(--text-sm)", color: 'var(--text-subdued)' }}>{c.bodyAreaDetail}</span>}
                       </div>
                     </td>

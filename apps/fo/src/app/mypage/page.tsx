@@ -145,7 +145,7 @@ export default function MyPage() {
                       <div className="flex items-center gap-1.5">
                         {c.bodyAreas.slice(0, 2).map(area => (
                           <span key={area} className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${AREA_ACCENT[area] || 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}`}>
-                            {area}
+                            {t(`common.bodyArea.${area}`)}
                           </span>
                         ))}
                       </div>

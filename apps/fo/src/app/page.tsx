@@ -245,7 +245,7 @@ function ProcedureFeatureCard({ procedure, featured = false, t }: { procedure: P
           <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
           <div className="absolute left-3 top-3 flex gap-1.5">
             {featured && <Badge variant="primary" size="sm">{t('landing.thisWeekPopular')}</Badge>}
-            <Badge variant="default" size="sm">{procedure.primaryArea}</Badge>
+            <Badge variant="default" size="sm">{t(`common.bodyArea.${procedure.primaryArea}`)}</Badge>
           </div>
           <div className="absolute left-4 right-4 bottom-4">
             <h3 className="font-bold text-white text-[1.05rem] leading-tight drop-shadow-sm">

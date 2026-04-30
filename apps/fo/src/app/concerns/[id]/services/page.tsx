@@ -63,7 +63,7 @@ export default function ServicesPage({ params }: Props) {
         <div className="flex items-center gap-2 mb-2">
           <Badge variant={STATUS_COLORS[concern.status] || 'default'}>{STATUS_LABELS[concern.status]}</Badge>
           {concern.bodyAreas.map(area => (
-            <Badge key={area} variant="info" size="sm">{area}</Badge>
+            <Badge key={area} variant="info" size="sm">{t(`common.bodyArea.${area}`)}</Badge>
           ))}
         </div>
         <h1 className="text-[1.375rem] font-bold text-[var(--color-text)] leading-tight mb-1">
