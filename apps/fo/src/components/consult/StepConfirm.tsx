@@ -69,7 +69,7 @@ export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {
 
     track({
       eventType: 'concern_submit_started', actorType: 'user', metadata: {
-        source: 'fo', locale: 'ko',
+        source: 'fo',
         label: analysisResult!.extractedSummary.primaryArea || '',
         value: String(analysisCount),
       },
@@ -113,7 +113,7 @@ export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {
       if (err instanceof ApiError && err.isUnauthorized()) {
         track({
           eventType: 'concern_submit_blocked_unauth', actorType: 'user',
-          metadata: { source: 'fo', locale: 'ko' },
+          metadata: { source: 'fo' },
         });
         setSubmitting(false);
         onAuthRequired?.();
@@ -129,7 +129,7 @@ export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {
 
     track({
       eventType: 'concern_submit_completed', actorType: 'user', metadata: {
-        source: 'fo', locale: 'ko',
+        source: 'fo',
         label: analysisResult!.extractedSummary.primaryArea || '',
         value: String(analysisCount),
       },

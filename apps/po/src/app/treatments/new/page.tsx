@@ -123,7 +123,7 @@ export default function NewProcedurePage() {
       eventType: 'treatment_wizard_start',
       actorType: 'member',
       actorId: member.id,
-      metadata: { source: 'po', locale: 'ko', mode: 'create' },
+      metadata: { source: 'po', mode: 'create' },
     });
   }, [member]);
 
@@ -191,7 +191,7 @@ export default function NewProcedurePage() {
         actorType: 'member',
         actorId: member.id,
         targetId: res.procedure.id,
-        metadata: { source: 'po', locale: 'ko', mode: 'create', value: status },
+        metadata: { source: 'po', mode: 'create', value: status },
       });
       showToast(
         status === 'published'
@@ -210,7 +210,7 @@ export default function NewProcedurePage() {
         eventType: 'treatment_wizard_save_fail',
         actorType: 'member',
         actorId: member.id,
-        metadata: { source: 'po', locale: 'ko', mode: 'create', value: status, label: msg.slice(0, 120) },
+        metadata: { source: 'po', mode: 'create', value: status, label: msg.slice(0, 120) },
       });
       showToast(msg, 'error');
     } finally {

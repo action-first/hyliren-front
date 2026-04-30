@@ -783,7 +783,7 @@
     "concernColSentDate": "Sent",
     "concernCountSent": "Sent",
     "concernCountUnsent": "Unsent",
-    "concernCountUnit": "",
+    "concernCountUnit": " cases",
     "concernDetailTitle": "Concern details",
     "concernSourceOrganic": "Organic",
     "concernSourceReferral": "Referral",
