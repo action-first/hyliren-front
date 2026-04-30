@@ -36,14 +36,16 @@ function StatusBadge({ label, map }: { label: string; map: Record<string, { bg: 
 }
 
 function AreaBadge({ name }: { name: string }) {
+  const t = useLocaleStore(s => s.t);
+  const label = t(`common.bodyArea.${name}`);
   const c = BODY_AREA_BADGE[name];
-  if (!c) return <Badge>{name}</Badge>;
+  if (!c) return <Badge>{label}</Badge>;
   return (
     <span
       className="inline-flex items-center px-2 py-0.5 rounded-[var(--app-radius-sm)] text-[var(--text-xs)] font-medium"
       style={{ backgroundColor: c.bg, color: c.text }}
     >
-      {name}
+      {label}
     </span>
   );
 }

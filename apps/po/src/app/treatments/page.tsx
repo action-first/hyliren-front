@@ -294,7 +294,7 @@ export default function TreatmentsPage() {
                       {title}
                     </p>
                     <div className="flex items-center gap-2 text-[var(--text-xs)] text-[var(--text-subdued)]">
-                      <span>{p.primaryArea}</span>
+                      <span>{t(`common.bodyArea.${p.primaryArea}`)}</span>
                       <span>·</span>
                       <span className="font-semibold text-[var(--text-default)]">
                         {p.priceMin === p.priceMax

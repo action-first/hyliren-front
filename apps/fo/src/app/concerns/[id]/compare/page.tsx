@@ -64,7 +64,7 @@ export default function ComparePage({ params }: Props) {
         {/* ── Header ── */}
         <div className="px-5 pt-7 pb-4">
           <div className="flex items-center gap-2 mb-1">
-            {concern.bodyAreas.map(a => <Badge key={a} variant="info" size="sm">{a}</Badge>)}
+            {concern.bodyAreas.map(a => <Badge key={a} variant="info" size="sm">{t(`common.bodyArea.${a}`)}</Badge>)}
           </div>
           <h1 className="text-[1.5rem] font-bold text-[var(--color-text)] leading-tight">
             {t('proposal.compare.title', { count: proposals.length })}

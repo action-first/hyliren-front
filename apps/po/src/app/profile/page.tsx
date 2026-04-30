@@ -206,12 +206,12 @@ export default function ProfilePage() {
             {(BODY_AREAS as readonly BodyArea[]).map(area => (
               <button key={area} type="button" onClick={() => toggleSpecialty(area)}
                 className={`specialty-tag ${specialties.includes(area) ? 'specialty-tag--active' : ''}`}
-              >{area}</button>
+              >{t(`common.bodyArea.${area}`)}</button>
             ))}
           </div>
           {specialties.length > 0 && (
             <div className="flex gap-1.5 mt-3 flex-wrap">
-              {specialties.map(s => <Badge key={s} variant="info">{s}</Badge>)}
+              {specialties.map(s => <Badge key={s} variant="info">{t(`common.bodyArea.${s}`)}</Badge>)}
             </div>
           )}
         </Card>

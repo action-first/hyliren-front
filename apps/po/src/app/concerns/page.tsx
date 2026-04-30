@@ -73,7 +73,7 @@ export default function ConcernListPage() {
   // 검색 필드 (locale 별 t() 적용)
   const searchFields: SearchField[] = [
     { key: 'createdAt', label: t('po.concernFilterPeriod'), type: 'dateRange', row: 1 },
-    { key: 'primaryArea', label: t('po.concernFilterArea'), type: 'select', row: 1, options: (BODY_AREAS as readonly string[]).map(a => ({ value: a, label: a })) },
+    { key: 'primaryArea', label: t('po.concernFilterArea'), type: 'select', row: 1, options: (BODY_AREAS as readonly string[]).map(a => ({ value: a, label: t(`common.bodyArea.${a}`) })) },
     { key: 'mySentLabel', label: t('po.concernFilterMyProposal'), type: 'select', row: 1, options: [
       { value: '미발송', label: t('po.concernMySentNot') },
       { value: '발송완료', label: t('po.concernMySentDone') },

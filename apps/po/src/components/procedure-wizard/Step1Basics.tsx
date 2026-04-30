@@ -13,7 +13,8 @@ interface Step1Props {
   onChange: (patch: Partial<WizardForm>) => void;
 }
 
-const BODY_AREA_OPTIONS = BODY_AREAS.map(a => ({ value: a, label: a }));
+// BODY_AREA_OPTIONS — value 는 enum key, label 은 t() 로 활성 locale 기준 매핑.
+// 컴포넌트 안에서 useMemo 로 t 의존성 갱신.
 
 // procedureType 을 한국어 라벨로 표시 (enum value → 라벨)
 const PROCEDURE_TYPE_LABEL: Record<ProcedureType, string> = {
@@ -115,7 +116,10 @@ export function Step1Basics({ form, onChange }: Step1Props) {
         <Select
           label={t('po.wizardBodyArea')}
           value={form.primaryArea || ''}
-          options={[{ value: '', label: t('po.wizardSelectPlaceholder') }, ...BODY_AREA_OPTIONS]}
+          options={[
+            { value: '', label: t('po.wizardSelectPlaceholder') },
+            ...BODY_AREAS.map(a => ({ value: a, label: t(`common.bodyArea.${a}`) })),
+          ]}
           onChange={v => changePrimaryArea(v as BodyArea)}
         />
         <Select
