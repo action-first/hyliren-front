@@ -16,6 +16,19 @@ function makeT(locale: Locale) {
     translate(locale, key, params);
 }
 
+const LOCALE_COOKIE_NAME = 'mimyo-locale';
+const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1년
+
+/**
+ * SSR (RootLayout `<html lang>`, generateMetadata) 가 cookie 로 locale 을 읽기 위한 동기화.
+ * client-only 환경에서만 동작 — useLocaleStore.setLocale 호출 시·persist rehydrate 후 호출.
+ */
+function syncLocaleCookie(locale: Locale) {
+  if (typeof document === 'undefined') return;
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `${LOCALE_COOKIE_NAME}=${locale}; Path=/; Max-Age=${LOCALE_COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
+}
+
 /**
  * locale store — 번역 함수 t 를 locale 변경 시 새 reference 로 갱신.
  *
@@ -33,14 +46,21 @@ export const useLocaleStore = create<LocaleState>()(
   persist(
     (set) => ({
       locale: 'ko',
-      setLocale: (locale) => set({ locale, t: makeT(locale) }),
+      setLocale: (locale) => {
+        set({ locale, t: makeT(locale) });
+        syncLocaleCookie(locale);
+      },
       t: makeT('ko'),
     }),
     {
       name: 'hyliren-locale',
       partialize: (state) => ({ locale: state.locale }),
       onRehydrateStorage: () => (state) => {
-        if (state) state.t = makeT(state.locale);
+        if (state) {
+          state.t = makeT(state.locale);
+          // 새로고침 후에도 cookie 가 SSR 과 정합되도록 재동기화.
+          syncLocaleCookie(state.locale);
+        }
       },
     },
   ),
