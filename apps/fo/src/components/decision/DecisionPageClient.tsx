@@ -40,7 +40,7 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
   const myGroups = groups;
 
   useEffect(() => {
-    track({ eventType: 'decision_page_viewed', actorType: 'user', metadata: { source: 'fo', locale: 'ko', value: String(totalProposalCount) } });
+    track({ eventType: 'decision_page_viewed', actorType: 'user', metadata: { source: 'fo', value: String(totalProposalCount) } });
   }, [totalProposalCount]);
 
   // URL hash(#concern-xxx) 기반 자동 스크롤 — Dashboard 의 concern 카드에서 넘어올 때 해당 섹션으로 이동.
@@ -82,7 +82,7 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
     setCompareIntentProposalId(proposalId);
     setShowCompareIntent(true);
     track({ eventType: 'compare_intent_clicked', actorType: 'user', targetType: 'proposal', targetId: proposalId,
-      metadata: { source: 'fo', locale: 'ko' } });
+      metadata: { source: 'fo' } });
   }
 
   function handleCompareIntentProceed() {
@@ -99,7 +99,7 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
     setShowCompareIntent(false);
     setAnalysisProposalId(proposalId);
     track({ eventType: 'analysis_clicked', actorType: 'user', targetType: 'proposal', targetId: proposalId,
-      metadata: { source: 'fo', locale: 'ko' } });
+      metadata: { source: 'fo' } });
   }
 
   // Empty state

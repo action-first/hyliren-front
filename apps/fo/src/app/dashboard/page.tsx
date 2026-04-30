@@ -57,7 +57,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!dashboardPhase || !userId) return;
     // targetType 'user' 는 DB event_target_type enum (concern/proposal/order/member) 에 없음 → userId 는 metadata 로 이관.
-    track({ eventType: 'dashboard_viewed', actorType: 'user', metadata: { source: 'fo', locale: 'ko', value: dashboardPhase, userId } });
+    track({ eventType: 'dashboard_viewed', actorType: 'user', metadata: { source: 'fo', value: dashboardPhase, userId } });
   }, [dashboardPhase, userId]);
 
   if (!ready) {
@@ -300,7 +300,7 @@ function WaitingStatePanel({ bodyArea }: { bodyArea: string }) {
   const waitUserId = useAuthStore(s => s.user?.id);
   useEffect(() => {
     if (!waitUserId) return;
-    track({ eventType: 'waiting_panel_viewed', actorType: 'user', metadata: { source: 'fo', locale: 'ko', userId: waitUserId } });
+    track({ eventType: 'waiting_panel_viewed', actorType: 'user', metadata: { source: 'fo', userId: waitUserId } });
   }, [waitUserId]);
 
   return (

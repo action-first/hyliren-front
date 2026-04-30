@@ -111,7 +111,7 @@ export default function ServicesPage({ params }: Props) {
           const StatusIcon = STATUS_ICON[service.status];
           return (
             <button key={service.key} type="button"
-              onClick={() => track({ eventType: 'service_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: service.key } })}
+              onClick={() => track({ eventType: 'service_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', label: service.key } })}
               className="flex items-center gap-3.5 px-4 py-4 rounded-[var(--app-radius-md)] bg-[var(--color-bg)] border-0 text-left cursor-pointer w-full"
               style={{ boxShadow: 'var(--app-shadow-card-light)' }}>
               <div className="w-10 h-10 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center shrink-0">

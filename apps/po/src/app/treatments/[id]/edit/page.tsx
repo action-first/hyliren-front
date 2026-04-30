@@ -105,7 +105,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
           actorType: 'member',
           actorId: member.id,
           targetId: id,
-          metadata: { source: 'po', locale: 'ko', mode: 'edit' },
+          metadata: { source: 'po', mode: 'edit' },
         });
       })
       .catch((e: unknown) => {
@@ -279,7 +279,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
         actorType: 'member',
         actorId: member.id,
         targetId: id,
-        metadata: { source: 'po', locale: 'ko', mode: 'edit', value: status },
+        metadata: { source: 'po', mode: 'edit', value: status },
       });
       showToast(
         status === 'published'
@@ -299,7 +299,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
         actorType: 'member',
         actorId: member.id,
         targetId: id,
-        metadata: { source: 'po', locale: 'ko', mode: 'edit', value: status, label: msg.slice(0, 120) },
+        metadata: { source: 'po', mode: 'edit', value: status, label: msg.slice(0, 120) },
       });
       showToast(msg, 'error');
       // C4: 실패 시 서버 상태로 싱크 — 부분 저장 상태를 드러내고 다음 시도 안전 보장

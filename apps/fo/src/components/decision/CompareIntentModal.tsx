@@ -22,7 +22,7 @@ export function CompareIntentModal({ prices, hospitalNames, onClose, onProceedTo
   const diff = maxPrice - minPrice;
 
   function handleProceed() {
-    track({ eventType: 'report_clicked', actorType: 'user', metadata: { source: 'fo', locale: 'ko', label: 'compare_intent_modal' } });
+    track({ eventType: 'report_clicked', actorType: 'user', metadata: { source: 'fo', label: 'compare_intent_modal' } });
     onClose();
     onProceedToReport();
   }
