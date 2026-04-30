@@ -72,7 +72,7 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
         <div className="flex items-center gap-1.5">
           {concern.bodyAreas.map(area => (
             <span key={area} className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${AREA_ACCENT[area] || accent}`}>
-              {area}
+              {t(`common.bodyArea.${area}`)}
             </span>
           ))}
         </div>
