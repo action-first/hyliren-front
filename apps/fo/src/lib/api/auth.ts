@@ -93,3 +93,13 @@ export async function fetchMe(): Promise<User> {
   const raw = await request<RawMeResponse>('/auth/me', { method: 'GET' });
   return toUser(raw);
 }
+
+/**
+ * 사용자 표시 언어 변경 — users.locale DB 갱신.
+ *
+ * UX: locale 스위처에서 선택 시 store 즉시 반영(낙관적 UI) + 본 호출은 silent fail.
+ * 디바이스 간 일관성 (다음 로그인 시 다른 디바이스에서도 복원) 을 위한 동기화 용도.
+ */
+export async function updateLocale(locale: Locale): Promise<void> {
+  await request<void>('/auth/locale', { method: 'PATCH', body: { locale } });
+}
