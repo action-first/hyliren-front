@@ -47,7 +47,16 @@
     "hospitalNote": "병원 메모",
     "marketAvg": "시장 평균",
     "notFound": "찾을 수 없습니다",
-    "retry": "다시 시도"
+    "retry": "다시 시도",
+    "bodyArea": {
+      "eyes": "눈",
+      "nose": "코",
+      "lifting": "리프팅",
+      "skin": "피부",
+      "diet": "다이어트",
+      "etc": "기타",
+      "all": "전체"
+    }
   },
   "landing": {
     "heroEmpathy": "거울 볼 때마다 신경 쓰이는 부분이 있으시죠?",

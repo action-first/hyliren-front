@@ -5,8 +5,15 @@ import type { ConcernWire, ConcernListItemWire, ConcernPhotoWire } from './types
 
 const VALID_BODY_AREAS = new Set<string>(BODY_AREAS);
 
+// 한국어 raw 도 enum key 로 매핑 — Stage 3 마이그레이션 전 row 호환.
+const KO_TO_ENUM: Record<string, BodyArea> = {
+  '눈': 'eyes', '코': 'nose', '리프팅': 'lifting',
+  '피부': 'skin', '다이어트': 'diet', '기타': 'etc',
+};
 function toBodyArea(raw: string): BodyArea {
-  return VALID_BODY_AREAS.has(raw) ? (raw as BodyArea) : '기타';
+  if (VALID_BODY_AREAS.has(raw)) return raw as BodyArea;
+  if (KO_TO_ENUM[raw]) return KO_TO_ENUM[raw];
+  return 'etc';
 }
 
 /**

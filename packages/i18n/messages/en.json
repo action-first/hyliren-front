@@ -47,7 +47,16 @@
     "hospitalNote": "Hospital note",
     "marketAvg": "Market avg.",
     "notFound": "Not found",
-    "retry": "Retry"
+    "retry": "Retry",
+    "bodyArea": {
+      "eyes": "Eyes",
+      "nose": "Nose",
+      "lifting": "Lifting",
+      "skin": "Skin",
+      "diet": "Body",
+      "etc": "Other",
+      "all": "All"
+    }
   },
   "landing": {
     "heroEmpathy": "Is there something you notice every time you look in the mirror?",

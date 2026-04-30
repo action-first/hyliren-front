@@ -47,7 +47,16 @@
     "hospitalNote": "病院メモ",
     "marketAvg": "市場平均",
     "notFound": "見つかりません",
-    "retry": "再試行"
+    "retry": "再試行",
+    "bodyArea": {
+      "eyes": "目元",
+      "nose": "鼻",
+      "lifting": "リフティング",
+      "skin": "肌",
+      "diet": "ダイエット",
+      "etc": "その他",
+      "all": "すべて"
+    }
   },
   "landing": {
     "heroEmpathy": "鏡を見るたびに気になる部分はありませんか?",

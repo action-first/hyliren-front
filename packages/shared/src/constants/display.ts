@@ -102,20 +102,21 @@ export const ANESTHESIA_KR: Record<string, string> = {
 };
 
 // ── 부위 dot 색상 (AG Grid 경량 표시용) ──
+// key 는 BodyArea enum (eyes/nose/...) — i18n QA Stage 3 정렬.
 export const BODY_AREA_DOT: Record<string, string> = {
-  '눈': '#3b82f6', '코': '#ec4899', '리프팅': '#8b5cf6',
-  '피부': '#10b981', '다이어트': '#f59e0b', '기타': '#94a3b8',
-  '전체': '#64748b',
+  eyes: '#3b82f6', nose: '#ec4899', lifting: '#8b5cf6',
+  skin: '#10b981', diet: '#f59e0b', etc: '#94a3b8',
+  all: '#64748b',
 };
 
 // ── 부위 뱃지 색상 (상세 페이지용) ──
 export const BODY_AREA_BADGE: Record<string, BadgeColor> = {
-  '눈':       { bg: '#dbeafe', text: '#1d4ed8' },
-  '코':       { bg: '#fce7f3', text: '#be185d' },
-  '리프팅':   { bg: '#ede9fe', text: '#6d28d9' },
-  '피부':     { bg: '#d1fae5', text: '#047857' },
-  '다이어트': { bg: '#fef3c7', text: '#b45309' },
-  '기타':     { bg: '#f3f4f6', text: '#4b5563' },
+  eyes:    { bg: '#dbeafe', text: '#1d4ed8' },
+  nose:    { bg: '#fce7f3', text: '#be185d' },
+  lifting: { bg: '#ede9fe', text: '#6d28d9' },
+  skin:    { bg: '#d1fae5', text: '#047857' },
+  diet:    { bg: '#fef3c7', text: '#b45309' },
+  etc:     { bg: '#f3f4f6', text: '#4b5563' },
 };
 
 // ── 주문 상태 한글 라벨 ──
