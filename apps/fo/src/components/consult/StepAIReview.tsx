@@ -43,7 +43,7 @@ export function StepAIReview() {
       <div className="rounded-[var(--app-radius-md)] fo-gradient-wash-br px-4 py-4 mb-3"
         style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
         <p className="text-[14px] text-[var(--color-text)] leading-[1.7]">
-          {analysisResult.empathy}
+          {t(analysisResult.empathy.key, analysisResult.empathy.params)}
         </p>
       </div>
 
@@ -51,7 +51,7 @@ export function StepAIReview() {
       <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg)] px-4 py-4 mb-3"
         style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
         <p className="text-[13px] text-[var(--color-text-secondary)] leading-[1.7]">
-          {analysisResult.education}
+          {t(analysisResult.education.key, analysisResult.education.params)}
         </p>
       </div>
 
