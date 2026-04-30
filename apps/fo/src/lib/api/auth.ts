@@ -38,8 +38,12 @@ function narrowRole(role: string): UserRole {
   return role === 'admin' ? 'admin' : 'buyer';
 }
 
+// 서버 응답 locale 을 LOCALES enum 으로 좁힘. 미지원 값은 'ko' 로 fallback.
+const SUPPORTED_LOCALES: readonly Locale[] = ['ko', 'zh-CN', 'ja', 'en'];
 function narrowLocale(locale: string): Locale {
-  return locale === 'zh-CN' ? 'zh-CN' : 'ko';
+  return (SUPPORTED_LOCALES as readonly string[]).includes(locale)
+    ? (locale as Locale)
+    : 'ko';
 }
 
 function toUser(raw: RawMeResponse): User {
