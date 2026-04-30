@@ -103,7 +103,11 @@ export function Step1Basics({ form, onChange }: Step1Props) {
         : t('po.wizardTitlePlaceholderKoDefault'))
     : activeLocale === 'zh-CN'
       ? t('po.wizardTitlePlaceholderZhCN')
-      : '';
+      : activeLocale === 'ja'
+        ? t('po.wizardTitlePlaceholderJa')
+        : activeLocale === 'en'
+          ? t('po.wizardTitlePlaceholderEn')
+          : '';
 
   return (
     <div className="flex flex-col gap-6">
