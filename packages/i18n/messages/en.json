@@ -638,7 +638,8 @@
   "metadata": {
     "title": "MIMYO — The right treatment, suggested first by clinics",
     "poTitle": "MIMYO Partner Office",
-    "poDescription": "Hospital management system"
+    "poDescription": "Hospital management system",
+    "description": "K-beauty decision platform. Register your concern and verified Korean hospitals will send tailored proposals."
   },
   "dateFilter": {
     "today": "Today",
