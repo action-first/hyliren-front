@@ -8,4 +8,4 @@ import type { Locale } from '@hyliren/shared';
  *
  * 주의: sourceLocale 은 반드시 이 배열에 포함되어 있어야 함 (현재 'ko' 기본).
  */
-export const PO_WIZARD_LOCALES: Locale[] = ['ko', 'zh-CN'];
+export const PO_WIZARD_LOCALES: Locale[] = ['ko', 'zh-CN', 'ja', 'en'];

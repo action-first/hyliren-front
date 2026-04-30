@@ -126,7 +126,13 @@ export function VariantCard({
           label={t('po.wizardOptionName')}
           value={block.name}
           onChange={e => updateI18n({ name: e.target.value })}
-          placeholder={activeLocale === 'ko' ? t('po.wizardOptionNamePlaceholderKo') : activeLocale === 'zh-CN' ? t('po.wizardOptionNamePlaceholderZh') : ''}
+          placeholder={
+            activeLocale === 'ko' ? t('po.wizardOptionNamePlaceholderKo')
+              : activeLocale === 'zh-CN' ? t('po.wizardOptionNamePlaceholderZh')
+              : activeLocale === 'ja' ? t('po.wizardOptionNamePlaceholderJa')
+              : activeLocale === 'en' ? t('po.wizardOptionNamePlaceholderEn')
+              : ''
+          }
         />
         <Textarea
           label={t('po.wizardOptionDescription')}
