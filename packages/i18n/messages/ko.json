@@ -331,7 +331,10 @@
     "emptyDesc": "상담함에서 제안을 선택하고 검증 리포트를 구매해보세요",
     "goToInbox": "상담함 가기",
     "verifiedComplete": "검증 완료 — 상세 보기",
-    "summaryTemplate": "{hospital}의 {price}만원 제안에 대한 분석입니다."
+    "summaryTemplate": "{hospital}의 {price}만원 제안에 대한 분석입니다.",
+    "compareWinnerOpinion": "{count}개 제안을 종합 분석한 결과, {hospitalName}이 가격과 리스크 면에서 가장 균형 잡힌 제안입니다.",
+    "compareWinnerAdvice": " 최종 결정 전 병원 상담을 통해 개인 상태에 맞는 정밀 진단을 받으시기를 권합니다.",
+    "compareDisclaimer": "이 리포트는 일반적인 시장 데이터와 시술 정보를 기반으로 작성되었으며, 개인의 의료 상태에 따라 결과가 달라질 수 있습니다."
   },
   "nudge": {
     "title": "이 선택, 괜찮을까요?",

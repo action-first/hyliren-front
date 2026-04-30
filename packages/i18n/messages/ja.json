@@ -331,7 +331,10 @@
     "emptyDesc": "相談ボックスで提案を選び、検証レポートを購入してみましょう",
     "goToInbox": "相談ボックスへ",
     "verifiedComplete": "検証完了 — 詳細を見る",
-    "summaryTemplate": "{hospital} の {price}万ウォンの提案に対する分析です。"
+    "summaryTemplate": "{hospital} の {price}万ウォンの提案に対する分析です。",
+    "compareWinnerOpinion": "{count}件の提案を総合分析した結果、{hospitalName}が価格とリスクの面で最もバランスの取れた提案です。",
+    "compareWinnerAdvice": "最終決定の前に、医院相談を通じて個人の状態に合わせた精密診断を受けることをお勧めします。",
+    "compareDisclaimer": "本レポートは一般的な市場データと施術情報に基づいて作成されており、個人の医療状態によって結果が異なる場合があります。"
   },
   "nudge": {
     "title": "この選択、大丈夫でしょうか?",
