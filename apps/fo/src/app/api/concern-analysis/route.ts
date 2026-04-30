@@ -68,10 +68,10 @@ export async function POST(request: NextRequest) {
       error: error instanceof Error ? error.message : 'Unknown error',
     });
 
-    // Never return empty — provide generic guidance
+    // Never return empty — i18n key 만 반환, FE 가 viewerLocale 기준 번역.
     return NextResponse.json({
-      empathy: '고민을 나눠주셔서 감사합니다. 어떤 변화를 원하시는지 이해하고 있어요.',
-      education: '한국은 다양한 미용 시술 분야에서 세계적인 수준을 갖추고 있습니다. 고객님의 상황에 맞는 방법을 여러 병원의 의견을 통해 비교해 보시는 것을 권합니다.',
+      empathy: { key: 'concern.analysis.empathy.fallback' },
+      education: { key: 'concern.analysis.education.fallback' },
       options: [{
         key: 'generic_consultation',
         name: '맞춤 상담',
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       }],
       extractedTags: { symptoms: [], preferences: [], budget: [], timing: [] },
       extractedSummary: { bodyAreas: ['기타'], primaryArea: '기타', bodyAreaDetail: '일반 상담' },
-      disclaimer: '정확한 적용 여부는 실제 병원의 상담과 진단을 통해 결정됩니다.',
+      disclaimer: { key: 'concern.analysis.disclaimer' },
       ruleVersion: 'fallback',
     });
   }

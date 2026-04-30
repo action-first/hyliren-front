@@ -63,7 +63,9 @@ export function AIAnalysisResultCard({ result, compact = false }: Props) {
 
       <div className="flex items-start gap-1.5 px-4 py-2.5 bg-[var(--color-bg-secondary)] border-t border-[var(--color-border-light)]">
         <Shield size={11} className="text-[var(--color-text-dim)] shrink-0 mt-0.5" />
-        <span className="text-[10px] text-[var(--color-text-dim)] leading-relaxed">{disclaimer}</span>
+        <span className="text-[10px] text-[var(--color-text-dim)] leading-relaxed">
+          {t(disclaimer.key, disclaimer.params)}
+        </span>
       </div>
     </div>
   );

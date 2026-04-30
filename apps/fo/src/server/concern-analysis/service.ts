@@ -51,15 +51,15 @@ export async function analyzeConcernService(
   try {
     guide = await generateConcernGuide(narrative, extractResult.tags, ruleResult, feedbackTurns);
   } catch {
-    // Fallback: basic description
+    // Fallback: i18n key 만 반환 — FE 가 viewerLocale 기준 번역.
     console.warn('[ANALYSIS] Generation failed, using fallback');
     guide = {
-      empathy: '고민을 나눠주셔서 감사합니다.',
-      education: '고객님의 상황에 맞는 방법을 여러 병원의 의견을 통해 찾아보시는 것을 권합니다.',
+      empathy: { key: 'concern.analysis.empathy.fallback' },
+      education: { key: 'concern.analysis.education.fallback' },
       options: ruleResult.matchedOptions.map(o => ({
         key: o.key, name: o.name, description: o.description, bodyArea: o.bodyArea,
       })),
-      disclaimer: '정확한 적용 여부는 실제 병원의 상담과 진단을 통해 결정됩니다.',
+      disclaimer: { key: 'concern.analysis.disclaimer' },
     };
   }
 

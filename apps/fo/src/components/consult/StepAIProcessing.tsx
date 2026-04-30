@@ -94,12 +94,12 @@ export function StepAIProcessing() {
         // 서버 장애·네트워크 오류만 fallback — 사용자 입력 탓은 아니므로 진행 허용
         showToast(t('consult.processingFallback'), 'error');
         analysis = {
-          empathy: t('consult.fallbackEmpathy'),
-          education: t('consult.fallbackEducation'),
+          empathy: { key: 'concern.analysis.empathy.fallback' },
+          education: { key: 'concern.analysis.education.fallback' },
           options: [{ key: 'generic', name: t('consult.fallbackOptionGenericName'), description: t('consult.fallbackOptionGenericDesc'), bodyArea: '기타' }],
           extractedTags: { symptoms: [], preferences: [], budget: [], timing: [] },
           extractedSummary: { bodyAreas: ['기타'], primaryArea: '기타', bodyAreaDetail: t('consult.fallbackBodyAreaDetail') },
-          disclaimer: t('consult.fallbackDisclaimer'),
+          disclaimer: { key: 'concern.analysis.disclaimer' },
           ruleVersion: 'fallback',
         };
       }

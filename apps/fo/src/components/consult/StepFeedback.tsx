@@ -66,7 +66,7 @@ export function StepFeedback() {
         {analysisResult && (
           <div className="flex justify-start">
             <div className="max-w-[85%] px-4 py-3 rounded-[20px] rounded-bl-md bg-[var(--color-bg-secondary)] text-[13px] text-[var(--color-text)] leading-relaxed">
-              {analysisResult.empathy}
+              {t(analysisResult.empathy.key, analysisResult.empathy.params)}
             </div>
           </div>
         )}
