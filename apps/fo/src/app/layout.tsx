@@ -1,16 +1,26 @@
 import type { Metadata, Viewport } from 'next';
+import { t } from '@hyliren/i18n';
 import './globals.css';
 import { FOHeader } from '@/components/layout/FOHeader';
 import { FOTabBar } from '@/components/layout/FOTabBar';
 
 import Toast from '@/components/common/Toast';
 import { SessionBootstrap } from '@/components/auth/SessionBootstrap';
+import { getServerLocale } from '@/lib/server-locale';
 
-// metadata 는 server-side fixed text (SEO 용). locale 별 분기는 향후 i18n routing 도입 시 처리.
-export const metadata: Metadata = {
-  title: '미묘 (MIMYO) — 나에게 맞는 시술, 병원이 먼저 제안합니다',
-  description: 'K-성형 의사결정 플랫폼. 고민을 등록하면 검증된 한국 병원이 맞춤 제안서를 보내드립니다.',
-};
+/**
+ * SSR locale 기반 metadata — Customer 앱.
+ *
+ * 우선순위(getServerLocale): cookie `mimyo-locale` → Accept-Language → 'zh-CN' fallback.
+ * 검색엔진/소셜 미리보기가 첫 응답에서 locale 별 정확한 메타를 받음.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+  return {
+    title: t(locale, 'metadata.title'),
+    description: t(locale, 'metadata.description'),
+  };
+}
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -19,9 +29,10 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getServerLocale();
   return (
-    <html lang="ko" data-theme="fo">
+    <html lang={locale} data-theme="fo">
       <body>
         <SessionBootstrap />
         <div className="fo-shell">
