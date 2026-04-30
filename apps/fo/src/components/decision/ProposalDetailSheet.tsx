@@ -22,7 +22,7 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
 
   useEffect(() => {
     track({ eventType: 'proposal_viewed', actorType: 'user', targetType: 'proposal', targetId: proposal.id,
-      metadata: { source: 'fo', locale: 'ko', label: profile?.hospitalName || '' } });
+      metadata: { source: 'fo', label: profile?.hospitalName || '' } });
   }, [proposal.id, profile?.hospitalName]);
 
   const valueProp = profile?.description || '';

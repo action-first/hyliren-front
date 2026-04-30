@@ -23,7 +23,7 @@ export function StickyBottomBar({ onCompareClick, onAnalyzeClick }: Props) {
       {count >= 2 ? (
         <Button variant="primary" size="xl" fullWidth
           onClick={() => {
-            track({ eventType: 'compare_intent_clicked', actorType: 'user', metadata: { source: 'fo', locale: 'ko', value: String(count) } });
+            track({ eventType: 'compare_intent_clicked', actorType: 'user', metadata: { source: 'fo', value: String(count) } });
             onCompareClick();
           }}>
           <Scale size={16} />
@@ -34,7 +34,7 @@ export function StickyBottomBar({ onCompareClick, onAnalyzeClick }: Props) {
           onClick={() => {
             const id = Array.from(selectedProposalIds)[0];
             if (id && onAnalyzeClick) {
-              track({ eventType: 'single_analyze_clicked', actorType: 'user', metadata: { source: 'fo', locale: 'ko' } });
+              track({ eventType: 'single_analyze_clicked', actorType: 'user', metadata: { source: 'fo' } });
               onAnalyzeClick(id);
             }
           }}>

@@ -399,7 +399,34 @@ CREATE TABLE inquiry_reply_translations (
 
 ## 8. UI 라벨 i18n (별도 트랙)
 
-본 문서 범위 외. `packages/i18n/messages/{ko,zh-CN}.json` 키 + `useLocaleStore` 로 관리. 컨텐츠 다국어와 독립적으로 진행.
+`packages/i18n/messages/{ko,zh-CN,ja,en}.json` 키 + `useLocaleStore` 로 관리. 컨텐츠 다국어와 독립적으로 진행.
+
+### 8-1. 앱별 i18n 정책
+
+| 앱 | 다국어 | fallback | 주 사용자 |
+|---|---|---|---|
+| **FO (Customer)** | 4-locale (ko/zh-CN/ja/en) | `zh-CN` | 중국 의료관광 고객 |
+| **PO (Partner)** | 4-locale | `ko` | 한국 병원 |
+| **BO (Admin)** | **ko-only** | — | 한국 운영자 |
+
+- BO 는 운영자 전용이라 i18n 인프라 (`useLocaleStore`) 미적용. UI primitive `labels` prop 미주입 시 한국어 fallback 그대로 사용. 향후 ja/en 운영 필요 시 도입.
+- BO 에서 표시되는 BE 응답 콘텐츠 (병원 zh-CN 작성 데이터 등) 는 `Accept-Language: ko` 로 ko fallback 받아 표기. 원문 검수 화면이 필요해지면 별도 패턴으로 처리.
+
+### 8-2. Locale 결정 파이프라인
+
+```
+[브라우저 nav.language] → 회원가입 입력 → users.locale (DB)
+                                              ↓
+[로그인 응답 user.locale] → useLocaleStore (FE)
+                                              ↓
+[useLocaleStore.locale] → Accept-Language 헤더 자동 주입
+                                              ↓
+[BE resolveLocale] → translations 테이블 picked
+```
+
+- locale 변경 시 `PATCH /auth/locale` 호출로 DB 즉시 동기화 → 디바이스 간 일관성
+- 로그인 시 `user.locale` → `useLocaleStore.setLocale()` 자동 동기화
+- 호환: `narrowLocale(value, fallback)` 정본 헬퍼 (`@hyliren/shared`) 만 사용. 앱별 SUPPORTED_LOCALES 별도 정의 금지.
 
 ---
 

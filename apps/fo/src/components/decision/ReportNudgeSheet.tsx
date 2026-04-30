@@ -25,7 +25,7 @@ export function ReportNudgeSheet({ concernId, proposalId, delay = 5000 }: Props)
     if (dismissed || alreadyPurchased) return;
     const timer = setTimeout(() => {
       setVisible(true);
-      track({ eventType: 'report_nudge_viewed', actorType: 'user', targetType: 'concern', targetId: concernId, metadata: { source: 'fo', locale: 'ko' } });
+      track({ eventType: 'report_nudge_viewed', actorType: 'user', targetType: 'concern', targetId: concernId, metadata: { source: 'fo' } });
     }, delay);
     return () => clearTimeout(timer);
   }, [concernId, delay, dismissed]);
@@ -36,9 +36,9 @@ export function ReportNudgeSheet({ concernId, proposalId, delay = 5000 }: Props)
   }
 
   function handleClick() {
-    track({ eventType: 'report_clicked', actorType: 'user', targetType: 'concern', targetId: concernId, metadata: { source: 'fo', locale: 'ko', label: 'nudge_sheet' } });
+    track({ eventType: 'report_clicked', actorType: 'user', targetType: 'concern', targetId: concernId, metadata: { source: 'fo', label: 'nudge_sheet' } });
     track({ eventType: 'report_purchased', actorType: 'user', targetType: 'proposal', targetId: proposalId,
-      metadata: { source: 'fo', locale: 'ko', value: '4900', label: 'nudge' } });
+      metadata: { source: 'fo', value: '4900', label: 'nudge' } });
     markPurchased(proposalId);
     handleDismiss();
   }

@@ -84,12 +84,12 @@ export function CompareReport({ proposals, items, concernId, onClose }: Props) {
 
   useEffect(() => {
     track({ eventType: 'compare_report_viewed', actorType: 'user', targetType: 'concern', targetId: concernId,
-      metadata: { source: 'fo', locale: 'ko', value: String(proposals.length) } });
+      metadata: { source: 'fo', value: String(proposals.length) } });
   }, [concernId, proposals.length]);
 
   function handlePurchase() {
     track({ eventType: 'report_purchased', actorType: 'user', targetType: 'concern', targetId: concernId,
-      metadata: { source: 'fo', locale: 'ko', value: '6900', label: 'compare_report' } });
+      metadata: { source: 'fo', value: '6900', label: 'compare_report' } });
     markPurchased(`compare-${concernId}`);
   }
 

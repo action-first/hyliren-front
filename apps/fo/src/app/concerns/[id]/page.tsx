@@ -105,7 +105,7 @@ export default function ConcernDetailPage({ params }: Props) {
             ))}
             {actions.canAddPhotos && photos.length < 3 && (
               <button type="button"
-                onClick={() => track({ eventType: 'concern_photo_added', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko' } })}
+                onClick={() => track({ eventType: 'concern_photo_added', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo' } })}
                 className="w-24 h-28 rounded-[var(--app-radius)] border-2 border-dashed border-[var(--color-border)] flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-transparent shrink-0">
                 <Camera size={20} className="text-[var(--color-text-dim)]" />
                 <span className="text-[10px] text-[var(--color-text-dim)]">{t('concern.form.photosAddMore')}</span>
@@ -116,7 +116,7 @@ export default function ConcernDetailPage({ params }: Props) {
 
         {actions.editable && (
           <Link href="/consult" className="flex items-center gap-1 mt-3 text-[12px] font-medium text-[var(--color-primary)] no-underline"
-            onClick={() => track({ eventType: 'concern_edited', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko' } })}>
+            onClick={() => track({ eventType: 'concern_edited', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo' } })}>
             <Edit3 size={12} /> {t('concern.editConcern')}
           </Link>
         )}
@@ -260,7 +260,7 @@ export default function ConcernDetailPage({ params }: Props) {
           <span className="text-[13px] text-[var(--color-text-secondary)]">{t('concern.reentryQuestion')}</span>
         </div>
         <Link href="/consult" className="no-underline"
-          onClick={() => track({ eventType: 'reentry_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: 'concern_detail' } })}>
+          onClick={() => track({ eventType: 'reentry_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', label: 'concern_detail' } })}>
           <Button variant="ghost" size="sm">{t('common.register')}</Button>
         </Link>
       </div>
