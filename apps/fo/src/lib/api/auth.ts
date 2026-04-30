@@ -1,4 +1,4 @@
-import type { Locale, User, UserRole } from '@hyliren/shared';
+import { narrowLocale, type Locale, type User, type UserRole } from '@hyliren/shared';
 import { request, setTokens, clearTokens } from './client';
 
 interface TokenPair {
@@ -38,14 +38,6 @@ function narrowRole(role: string): UserRole {
   return role === 'admin' ? 'admin' : 'buyer';
 }
 
-// 서버 응답 locale 을 LOCALES enum 으로 좁힘. 미지원 값은 'ko' 로 fallback.
-const SUPPORTED_LOCALES: readonly Locale[] = ['ko', 'zh-CN', 'ja', 'en'];
-function narrowLocale(locale: string): Locale {
-  return (SUPPORTED_LOCALES as readonly string[]).includes(locale)
-    ? (locale as Locale)
-    : 'ko';
-}
-
 function toUser(raw: RawMeResponse): User {
   return {
     id: raw.id,
@@ -53,7 +45,8 @@ function toUser(raw: RawMeResponse): User {
     email: raw.email,
     phone: raw.phone,
     name: raw.name,
-    locale: narrowLocale(raw.locale),
+    // FO 사용자 미지정 시 'zh-CN' 기본 — Customer DB users.locale DEFAULT 와 일치.
+    locale: narrowLocale(raw.locale, 'zh-CN'),
     avatarUrl: raw.avatarUrl,
     referralCode: raw.referralCode,
     referredBy: raw.referredBy,

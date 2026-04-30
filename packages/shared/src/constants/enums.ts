@@ -170,6 +170,22 @@ export type Locale = typeof LOCALES[number];
 /** 서비스 기본 소스 언어 — 모든 원본 콘텐츠의 기준. */
 export const DEFAULT_SOURCE_LOCALE: Locale = 'ko';
 
+export function isLocale(value: unknown): value is Locale {
+  return typeof value === 'string' && (LOCALES as readonly string[]).includes(value);
+}
+
+/**
+ * 임의 string 을 Locale 로 좁힘. 미지원 값은 fallback (기본 'ko').
+ *
+ * 호출처별 fallback:
+ *   - Customer (FO): 'zh-CN' — 중국 의료관광 고객 주력
+ *   - Partner (PO):  'ko'    — 한국 병원
+ *   - Admin (BO):    'ko'    — 한국 운영자
+ */
+export function narrowLocale(value: unknown, fallback: Locale = 'ko'): Locale {
+  return isLocale(value) ? value : fallback;
+}
+
 // --- Procedure (DB: procedure_type, procedure_status) ---
 // FO 시술 상세페이지 / PO 시술 등록 페이지에서 사용하는 시술 유형.
 // enum 으로 고정 (자유 문자열 사용 시 나중에 정규화 마이그레이션 비용이 큼).

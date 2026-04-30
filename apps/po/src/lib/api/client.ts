@@ -2,6 +2,26 @@ import { env } from '@/lib/env';
 import { partnerTokenStore } from '@/lib/auth/token-store';
 import { ApiError } from './errors';
 
+/**
+ * 현재 partner 의 locale 을 localStorage 에서 읽어 Accept-Language 헤더에 주입.
+ * - zustand persist 스토리지(po-locale) 에서 직접 읽음 — store import 시 SSR 호환·순환의존 회피.
+ * - 미설정·서버 측 호출 시 null → 헤더 미첨부 → BE 가 ko 기본 fallback (Partner 컨벤션).
+ *
+ * Why: concern 본문, hospital description 등 콘텐츠 API 는 Accept-Language 로 분기.
+ *      미첨부 시 partner 가 zh-CN/ja/en locale 사용 중에도 콘텐츠가 ko 로만 내려오는 결함.
+ */
+function getCurrentLocale(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem('po-locale');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { state?: { locale?: string } };
+    return parsed?.state?.locale ?? null;
+  } catch {
+    return null;
+  }
+}
+
 interface Envelope<T> {
   success: boolean;
   data?: T;
@@ -116,6 +136,12 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   if (auth) {
     const token = partnerTokenStore.getAccessToken();
     if (token) { finalHeaders.set('Authorization', `Bearer ${token}`); }
+  }
+
+  // 호출부가 Accept-Language 를 명시 안 했으면 현재 locale 자동 주입.
+  if (!finalHeaders.has('Accept-Language')) {
+    const locale = getCurrentLocale();
+    if (locale) finalHeaders.set('Accept-Language', locale);
   }
 
   let res: Response;
