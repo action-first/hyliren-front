@@ -450,13 +450,13 @@ export default function TreatmentsPage() {
           <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
             <span className="font-semibold text-[var(--text-default)]">{deleteTargetTitle}</span>
             <br />
-            삭제하면 <span className="font-semibold text-[var(--color-danger)]">복구할 수 없습니다.</span>
+            {t('po.treatmentDeleteModalDescPrefix')}<span className="font-semibold text-[var(--color-danger)]">{t('po.treatmentDeleteCannotRecover')}</span>
             <br />
-            잠시 숨기는 거라면 비공개 상태로 두시는 걸 권장해요.
+            {t('po.treatmentDeleteHideRecommend')}
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Button variant="secondary" onClick={() => setDeleteTarget(null)} disabled={deleting}>
-              취소
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" onClick={handleConfirmDelete} disabled={deleting}>
               {deleting ? t('po.treatmentDeleting') : t('po.treatmentDeleteAction')}

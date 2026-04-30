@@ -437,7 +437,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <AdminPage sidebar={<POSidebar active="/dashboard" />} title="대시보드" prefix="po">
+    <AdminPage sidebar={<POSidebar active="/dashboard" />} title={t('po.dashboardTitle')} prefix="po">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         {/* ═══ 기간 필터 ═══ */}
@@ -507,7 +507,7 @@ export default function DashboardPage() {
                   <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value, name) => [`${Number(value)}건`, String(name)]} />
                   <Legend content={<CustomLegend />} />
                   <text x="50%" y="42%" textAnchor="middle" style={{ fontSize: "var(--text-2xl)", fontWeight: "var(--font-bold)", fill: 'var(--text-default)' }}>{myProposals.length}</text>
-                  <text x="50%" y="50%" textAnchor="middle" style={{ fontSize: "var(--text-xs)", fontWeight: "var(--font-medium)", fill: 'var(--text-disabled)' }}>총 제안</text>
+                  <text x="50%" y="50%" textAnchor="middle" style={{ fontSize: "var(--text-xs)", fontWeight: "var(--font-medium)", fill: 'var(--text-disabled)' }}>{t('po.dashboardTotalProposals')}</text>
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -593,8 +593,8 @@ export default function DashboardPage() {
             padding: '18px 24px',
           }}>
             <div>
-              <div style={{ fontSize: "var(--text-md)", fontWeight: "var(--font-bold)", color: 'var(--text-default)' }}>최근 고민</div>
-              <div style={{ fontSize: "var(--text-sm)", color: 'var(--text-disabled)', marginTop: 2 }}>{openConcerns.length}건의 제안 가능한 고민</div>
+              <div style={{ fontSize: "var(--text-md)", fontWeight: "var(--font-bold)", color: 'var(--text-default)' }}>{t('po.dashboardRecentConcerns')}</div>
+              <div style={{ fontSize: "var(--text-sm)", color: 'var(--text-disabled)', marginTop: 2 }}>{t('po.dashboardOpenConcernsCount', { count: openConcerns.length })}</div>
             </div>
             <Link href="/concerns" style={{
               display: 'inline-flex', alignItems: 'center', gap: 4,

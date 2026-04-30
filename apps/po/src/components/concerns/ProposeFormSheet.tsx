@@ -193,10 +193,10 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
       footer={
         <div className="w-full flex flex-col gap-2">
           <p className="text-[var(--text-xs)] text-[var(--text-subdued)] text-right">
-            잔액 <strong className="text-[var(--text-default)]">{balance}</strong>크레딧 · 발송 시 {CREDIT_COST}개 차감
+            {t('po.proposeBalanceLine', { balance, cost: CREDIT_COST })}
           </p>
           <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={onClose}>취소</Button>
+            <Button variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>
             <Button variant="primary" onClick={handleSend} disabled={!canSend || sending}>
               {sending ? t('po.proposalSending') : t('po.proposalSend')}
             </Button>
@@ -214,28 +214,28 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
               <div className="flex gap-2">
                 <div className="relative">
                   <Button variant="ghost" size="sm" onClick={() => setShowCatalog(v => !v)}>
-                    카탈로그에서 추가 <ChevronDown size={13} className="ml-1" />
+                    {t('po.proposeAddFromCatalog')} <ChevronDown size={13} className="ml-1" />
                   </Button>
                   {showCatalog && (
                     <div className="catalog-dropdown">
                       {proceduresQ.isLoading ? (
-                        <p className="catalog-empty">시술 목록을 불러오는 중...</p>
+                        <p className="catalog-empty">{t('po.proposeCatalogLoading')}</p>
                       ) : publishedProcedures.length === 0 ? (
                         <div className="catalog-empty">
-                          <p className="mb-1">공개된 시술이 없습니다.</p>
+                          <p className="mb-1">{t('po.proposeCatalogEmpty')}</p>
                           <Link
                             href="/treatments"
                             className="text-[var(--text-xs)] text-[var(--color-primary)] hover:underline"
                           >
-                            시술 관리에서 등록하기 →
+                            {t('po.proposeCatalogEmptyCta')}
                           </Link>
                         </div>
                       ) : (
                         publishedProcedures.map(p => {
-                          const koTitle = pickI18n(p.i18n, 'ko', p.sourceLocale)?.content.title || '(제목 없음)';
+                          const koTitle = pickI18n(p.i18n, 'ko', p.sourceLocale)?.content.title || t('po.treatmentNoTitle');
                           const minMan = Math.round(p.priceMin / 10000);
                           const maxMan = Math.round(p.priceMax / 10000);
-                          const priceLabel = minMan === maxMan ? `${minMan}만` : `${minMan}~${maxMan}만`;
+                          const priceLabel = minMan === maxMan ? `${minMan}${t('common.man')}` : `${minMan}~${maxMan}${t('common.man')}`;
                           return (
                             <button
                               key={p.id}
@@ -252,7 +252,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
                     </div>
                   )}
                 </div>
-                <Button variant="ghost" size="sm" onClick={addItem}>+ 직접 추가</Button>
+                <Button variant="ghost" size="sm" onClick={addItem}>{t('po.proposeAddDirect')}</Button>
               </div>
             }
           />
@@ -295,7 +295,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
                       onChange={e => updateItem(idx, 'price', parsePrice(e.target.value))}
                       className="propose-item-price-input"
                     />
-                    <span className="text-[var(--text-sm)] text-[var(--text-subdued)]">만원</span>
+                    <span className="text-[var(--text-sm)] text-[var(--text-subdued)]">{t('common.currency')}</span>
                   </div>
                 </div>
               </div>
