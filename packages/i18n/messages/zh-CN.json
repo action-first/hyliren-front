@@ -47,7 +47,16 @@
     "hospitalNote": "医院备注",
     "marketAvg": "市场均价",
     "notFound": "未找到",
-    "retry": "重试"
+    "retry": "重试",
+    "bodyArea": {
+      "eyes": "眼部",
+      "nose": "鼻部",
+      "lifting": "提升",
+      "skin": "皮肤",
+      "diet": "塑形",
+      "etc": "其他",
+      "all": "全部"
+    }
   },
   "landing": {
     "heroEmpathy": "每次照镜子，总有些在意的地方吧？",
