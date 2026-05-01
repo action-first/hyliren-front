@@ -60,14 +60,14 @@ const PROPOSAL_PALETTE: Record<string, { hex: string; label: string }> = {
   draft:       { hex: '#E2E8F0',                  label: '임시저장' },
 };
 
-/** 부위 팔레트 — 차트 색상 (배지는 공통 info 토큰 사용). */
+/** 부위 팔레트 — 차트 색상 (BodyArea enum key 기반, Stage 3 정렬). */
 const AREA_CHART_HEX: Record<string, string> = {
-  '눈':       CHART_PALETTE.primary,
-  '코':       '#818CF8',
-  '리프팅':   CHART_PALETTE.secondary,
-  '피부':     '#A78BFA',
-  '다이어트': '#6366F1',
-  '기타':     CHART_PALETTE.neutral,
+  eyes:    CHART_PALETTE.primary,
+  nose:    '#818CF8',
+  lifting: CHART_PALETTE.secondary,
+  skin:    '#A78BFA',
+  diet:    '#6366F1',
+  etc:     CHART_PALETTE.neutral,
 };
 
 /** 고민 상태 배지 — semantic 토큰 사용. */
@@ -377,7 +377,10 @@ export default function DashboardPage() {
     acc[c.primaryArea] = (acc[c.primaryArea] ?? 0) + 1; return acc;
   }, {});
   const areaPieData = Object.entries(areaGroups).map(([area, count]) => ({
-    name: area, value: count, color: AREA_CHART_HEX[area] ?? CHART_PALETTE.neutral,
+    // BodyArea enum key → viewerLocale 라벨 매핑 (Stage 3).
+    name: t(`common.bodyArea.${area}`) || area,
+    value: count,
+    color: AREA_CHART_HEX[area] ?? CHART_PALETTE.neutral,
   }));
 
   // 기간별 제안 추이
