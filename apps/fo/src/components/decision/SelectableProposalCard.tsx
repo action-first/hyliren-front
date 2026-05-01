@@ -1,6 +1,7 @@
 'use client';
 
 import { ShieldCheck, Star, Check, Clock, Syringe } from 'lucide-react';
+import { useLocaleStore } from '@/store/locale';
 
 interface Props {
   hospitalName: string;
@@ -22,6 +23,7 @@ export function SelectableProposalCard({
   hospitalName, verified, valueProp, price, meta,
   coverTags, quote, selected, onToggle, onCardClick, rating = 4.8, unread = false,
 }: Props) {
+  const t = useLocaleStore(s => s.t);
   return (
     <button
       onClick={() => onCardClick ? onCardClick() : onToggle()}
@@ -54,7 +56,7 @@ export function SelectableProposalCard({
             </span>
             {verified && (
               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[var(--color-success-soft)] text-[9px] font-semibold text-[var(--color-success)] shrink-0">
-                <ShieldCheck size={9} /> 인증
+                <ShieldCheck size={9} /> {t('common.verified')}
               </span>
             )}
             {unread && (
@@ -73,7 +75,7 @@ export function SelectableProposalCard({
           )}
 
           {/* 3행: 가격 */}
-          <span className="text-[17px] font-bold text-[var(--color-text)] block mb-1">{price}만원</span>
+          <span className="text-[17px] font-bold text-[var(--color-text)] block mb-1">{price}{t('common.currency')}</span>
 
           {/* 4행: 메타 (회복·마취) */}
           <div className="flex items-center gap-1 text-[11px] text-[var(--color-text-dim)] mb-2">
