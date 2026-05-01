@@ -243,7 +243,9 @@
       "5to7d": "5~7天",
       "2weeks": "约2周",
       "undecided": "尚未决定"
-    }
+    },
+    "reviewFallbackNotice": "无法连接到分析服务器,正在显示默认指引。请检查网络后重试。",
+    "reviewRetry": "重新分析"
   },
   "decision": {
     "emptyTitle": "还没有收到方案",
@@ -270,7 +272,8 @@
     "priceQuestion": "{price}万韩元，价格合理吗？",
     "priceHint": "同样的手术，不同医院的价格和方案不同。\n请确认是否存在过度治疗和市场均价。",
     "verifyCta": "验证此方案 · ₩4,900",
-    "otherProposals": "我想看其他方案"
+    "otherProposals": "我想看其他方案",
+    "verifyReportCta": "查看验证报告"
   },
   "report": {
     "verificationReport": "验证报告",

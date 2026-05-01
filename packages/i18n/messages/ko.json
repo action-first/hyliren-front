@@ -243,7 +243,9 @@
       "5to7d": "5~7일",
       "2weeks": "2주 정도",
       "undecided": "아직 미정"
-    }
+    },
+    "reviewFallbackNotice": "분석 서버에 연결할 수 없어 기본 안내를 표시하고 있습니다. 네트워크를 확인하고 다시 시도해 주세요.",
+    "reviewRetry": "다시 분석하기"
   },
   "decision": {
     "emptyTitle": "아직 도착한 제안이 없어요",
@@ -270,7 +272,8 @@
     "priceQuestion": "{price}만원, 합리적인 가격일까요?",
     "priceHint": "같은 시술도 병원마다 가격과 구성이 다릅니다.\n과잉진료 여부와 시장 평균을 확인해보세요.",
     "verifyCta": "이 제안 검증하기 · ₩4,900",
-    "otherProposals": "다른 제안도 보고 싶어요"
+    "otherProposals": "다른 제안도 보고 싶어요",
+    "verifyReportCta": "검증 리포트 보기"
   },
   "report": {
     "verificationReport": "검증 리포트",
