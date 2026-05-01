@@ -1104,7 +1104,8 @@
     "wizardOverrideDuration": "Duration (min)",
     "wizardOverrideRecovery": "Recovery (days)",
     "wizardOverrideHospitalStay": "Hospital stay (days)",
-    "wizardBasePlaceholder": "Default: {value}"
+    "wizardBasePlaceholder": "Default: {value}",
+    "proposeWriteTitle": "Write proposal"
   },
   "poLogin": {
     "emailInvalid": "Please enter a valid email format.",

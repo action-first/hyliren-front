@@ -1104,7 +1104,8 @@
     "wizardOverrideDuration": "施術時間 (分)",
     "wizardOverrideRecovery": "回復日数",
     "wizardOverrideHospitalStay": "入院日数",
-    "wizardBasePlaceholder": "デフォルト: {value}"
+    "wizardBasePlaceholder": "デフォルト: {value}",
+    "proposeWriteTitle": "提案書作成"
   },
   "poLogin": {
     "emailInvalid": "正しいメールアドレス形式で入力してください。",
