@@ -12,29 +12,29 @@ import type { ExtractedTags, RuleMatchResult, GeneratedGuide, FeedbackTurn, I18n
 
 const DISCLAIMER: I18nMessage = { key: 'concern.analysis.disclaimer' };
 
-/* ── Empathy 매핑: bodyArea(한국어 raw, BODY_AREAS Stage 3 까지 유지) → 시술군 → i18n key ── */
+/* ── Empathy 매핑: bodyArea(BodyArea enum key — Stage 3) → 시술군 → i18n key ── */
 const EMPATHY_KEY: Record<string, Record<string, string>> = {
-  '눈': {
-    '눈매교정': 'concern.analysis.empathy.eye.eyelines',
-    '쌍꺼풀': 'concern.analysis.empathy.eye.doubleEyelid',
-    '눈밑': 'concern.analysis.empathy.eye.underEye',
-    _default: 'concern.analysis.empathy.eye.default',
+  eyes: {
+    '눈매교정': 'concern.analysis.empathy.eyes.eyelines',
+    '쌍꺼풀': 'concern.analysis.empathy.eyes.doubleEyelid',
+    '눈밑': 'concern.analysis.empathy.eyes.underEye',
+    _default: 'concern.analysis.empathy.eyes.default',
   },
-  '코': { _default: 'concern.analysis.empathy.nose.default' },
-  '리프팅': { _default: 'concern.analysis.empathy.lifting.default' },
-  '피부': { _default: 'concern.analysis.empathy.skin.default' },
+  nose: { _default: 'concern.analysis.empathy.nose.default' },
+  lifting: { _default: 'concern.analysis.empathy.lifting.default' },
+  skin: { _default: 'concern.analysis.empathy.skin.default' },
 };
 
 const EDUCATION_KEY: Record<string, Record<string, string>> = {
-  '눈': {
-    '눈매교정': 'concern.analysis.education.eye.eyelines',
-    '쌍꺼풀': 'concern.analysis.education.eye.doubleEyelid',
-    '눈밑': 'concern.analysis.education.eye.underEye',
-    _default: 'concern.analysis.education.eye.default',
+  eyes: {
+    '눈매교정': 'concern.analysis.education.eyes.eyelines',
+    '쌍꺼풀': 'concern.analysis.education.eyes.doubleEyelid',
+    '눈밑': 'concern.analysis.education.eyes.underEye',
+    _default: 'concern.analysis.education.eyes.default',
   },
-  '코': { _default: 'concern.analysis.education.nose.default' },
-  '리프팅': { _default: 'concern.analysis.education.lifting.default' },
-  '피부': { _default: 'concern.analysis.education.skin.default' },
+  nose: { _default: 'concern.analysis.education.nose.default' },
+  lifting: { _default: 'concern.analysis.education.lifting.default' },
+  skin: { _default: 'concern.analysis.education.skin.default' },
 };
 
 export function generateMock(
