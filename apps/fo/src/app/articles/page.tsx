@@ -26,8 +26,12 @@ const CATEGORY_FILTERS: { value: 'all' | 'review' | 'guide' | 'tip'; labelKey: s
 
 const AREA_COLORS = AREA_BAR;
 
-function formatViews(n: number): string {
-  return n >= 10000 ? `${(n / 10000).toFixed(1)}만` : n >= 1000 ? `${(n / 1000).toFixed(1)}천` : String(n);
+/**
+ * 조회수 압축 표기 — 로케일별 자연스러운 단위 적용 (Intl.NumberFormat compact).
+ * - ko: 1.5만 / zh-CN: 1.5万 / ja: 1.5万 / en: 15K
+ */
+function formatViews(n: number, locale: string): string {
+  return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(n);
 }
 
 export default function ArticlesPage() {
@@ -107,7 +111,7 @@ export default function ArticlesPage() {
                   </div>
                   <p className="text-[13px] font-semibold text-[var(--color-text)] leading-snug line-clamp-2 mb-1.5">{a.title}</p>
                   <div className="flex items-center gap-3 text-[10px] text-[var(--color-text-dim)]">
-                    <span className="flex items-center gap-0.5"><Eye size={9} /> {formatViews(a.viewCount)}</span>
+                    <span className="flex items-center gap-0.5"><Eye size={9} /> {formatViews(a.viewCount, locale)}</span>
                   </div>
                 </div>
               </Link>
@@ -165,7 +169,7 @@ export default function ArticlesPage() {
                 </div>
                 <span className="text-[13px] font-medium text-[var(--color-text)] leading-snug line-clamp-2">{a.title}</span>
                 <div className="flex items-center gap-3 text-[10px] text-[var(--color-text-dim)]">
-                  <span className="flex items-center gap-0.5"><Eye size={9} /> {formatViews(a.viewCount)}</span>
+                  <span className="flex items-center gap-0.5"><Eye size={9} /> {formatViews(a.viewCount, locale)}</span>
                 </div>
               </div>
               <ChevronRight size={14} className="text-[var(--color-text-dim)] shrink-0 self-center" />
