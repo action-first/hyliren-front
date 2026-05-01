@@ -374,7 +374,9 @@
     "bottomDesc": "Our AI analyzes your concern",
     "bottomCta": "Start consultation",
     "readTime": "{min} min read",
-    "all": "All"
+    "all": "All",
+    "loadError": "Failed to load articles.",
+    "empty": "No articles in this category yet."
   },
   "mypage": {
     "registeredConcerns": "Registered",

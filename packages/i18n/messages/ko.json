@@ -374,7 +374,9 @@
     "bottomDesc": "AI가 고민을 분석해드립니다",
     "bottomCta": "상담 시작",
     "readTime": "{min}분 읽기",
-    "all": "전체"
+    "all": "전체",
+    "loadError": "아티클을 불러오지 못했어요.",
+    "empty": "해당 카테고리의 아티클이 아직 없어요."
   },
   "mypage": {
     "registeredConcerns": "등록 고민",

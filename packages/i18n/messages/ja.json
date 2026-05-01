@@ -374,7 +374,9 @@
     "bottomDesc": "AIが悩みを分析します",
     "bottomCta": "相談を始める",
     "readTime": "{min}分で読める",
-    "all": "すべて"
+    "all": "すべて",
+    "loadError": "記事を読み込めませんでした。",
+    "empty": "このカテゴリーにはまだ記事がありません。"
   },
   "mypage": {
     "registeredConcerns": "登録した悩み",
