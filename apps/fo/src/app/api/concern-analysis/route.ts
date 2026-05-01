@@ -36,10 +36,20 @@ export async function POST(request: NextRequest) {
 
   const { photos, narrative, feedbackTurns } = parsed.data;
 
+  // Accept-Language 헤더 → sourceLocale 추론 (extract 키워드 사전 선택용).
+  // Customer 앱 fallback 'zh-CN' (i18n-strategy §8-1).
+  const acceptLang = request.headers.get('accept-language')?.split(',')[0]?.trim().toLowerCase() ?? '';
+  const sourceLocale: 'ko' | 'zh-CN' | 'ja' | 'en' =
+    acceptLang.startsWith('ko') ? 'ko' :
+    acceptLang.startsWith('ja') ? 'ja' :
+    acceptLang.startsWith('en') ? 'en' :
+    'zh-CN';
+
   log('info', 'analysis_request_received', {
     photoCount: photos.length,
     narrativeLength: narrative.length,
     feedbackTurnCount: feedbackTurns.length,
+    sourceLocale,
   });
 
   /* ── Run analysis ── */
@@ -48,6 +58,7 @@ export async function POST(request: NextRequest) {
       photos,
       narrative,
       feedbackTurns,
+      sourceLocale,
     });
 
     const duration = Date.now() - startTime;
