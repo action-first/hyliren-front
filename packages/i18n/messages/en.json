@@ -1118,13 +1118,5 @@
     "passwordPlaceholder": "Password",
     "submitting": "Signing in...",
     "submit": "Sign in"
-  },
-  "bodyArea": {
-    "눈": "Eyes",
-    "코": "Nose",
-    "리프팅": "Lifting",
-    "피부": "Skin",
-    "다이어트": "Body",
-    "기타": "Other"
   }
 }
