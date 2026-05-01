@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { ShieldCheck, Star, Heart, Check } from 'lucide-react';
+import { useLocaleStore } from '@/store/locale';
 
 type CardVariant = 'primary' | 'secondary';
 
@@ -38,6 +39,7 @@ export function ExperienceCard({
   unread = false,
   children,
 }: ExperienceCardProps) {
+  const t = useLocaleStore(s => s.t);
   const isPrimary = variant === 'primary';
 
   return (
@@ -103,7 +105,7 @@ export function ExperienceCard({
         <div className="flex items-baseline gap-1.5 mb-1">
           <span className={`font-bold text-[var(--color-text)] ${
             isPrimary ? 'text-[1.25rem]' : 'text-[15px]'
-          }`}>{price}만원</span>
+          }`}>{price}{t('common.currency')}</span>
           {meta && (
             <span className="text-[11px] text-[var(--color-text-dim)]">· {meta}</span>
           )}
