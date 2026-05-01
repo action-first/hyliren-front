@@ -56,11 +56,14 @@ export function matchProcedures(tags: ExtractedTags): RuleMatchResult {
   for (const opt of topOptions) {
     areaSet.add(opt.bodyArea);
   }
-  const bodyAreas = areaSet.size > 0 ? [...areaSet] : ['기타'];
+  // BodyArea enum key — Stage 3 정렬. 매칭 0건이면 'etc'.
+  const bodyAreas = areaSet.size > 0 ? [...areaSet] : ['etc'];
   const primaryArea = bodyAreas[0];
 
+  // FE 가 viewerLocale 기준 라벨 매핑 — bodyAreaDetail 은 enum key 만 join,
+  // 표시 라벨은 컴포넌트가 t('common.bodyArea.${key}') 로 생성.
   const bodyAreaDetail = bodyAreas.length > 1
-    ? bodyAreas.join('+') + ' 복합'
+    ? bodyAreas.join('+')
     : primaryArea;
 
   return {
