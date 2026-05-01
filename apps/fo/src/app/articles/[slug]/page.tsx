@@ -9,8 +9,12 @@ import { useLocaleStore } from '@/store/locale';
 import { getArticle, mapArticleDetail, type ArticleDetail, type ArticleImage } from '@/lib/api/article';
 import { ARTICLE_QUIZZES } from '@/lib/article-quizzes';
 
-function formatViews(n: number): string {
-  return n >= 10000 ? `${(n / 10000).toFixed(1)}만` : n >= 1000 ? `${(n / 1000).toFixed(1)}천` : String(n);
+/**
+ * 조회수 압축 표기 — 로케일별 자연스러운 단위 적용 (Intl.NumberFormat compact).
+ * - ko: 1.5만 / zh-CN: 1.5万 / ja: 1.5万 / en: 15K
+ */
+function formatViews(n: number, locale: string): string {
+  return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(n);
 }
 
 const CATEGORY_LABEL_KEY: Record<string, string> = {
@@ -268,7 +272,7 @@ export default function ArticleDetailPage() {
         </h1>
         <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-dim)]">
           <span className="flex items-center gap-1"><Clock size={11} /> {t('articles.readTime', { min: article.readTime })}</span>
-          <span className="flex items-center gap-1"><Eye size={11} /> {formatViews(article.viewCount)}</span>
+          <span className="flex items-center gap-1"><Eye size={11} /> {formatViews(article.viewCount, locale)}</span>
           {article.publishedAt && <span>{article.publishedAt.slice(0, 10)}</span>}
         </div>
       </div>
