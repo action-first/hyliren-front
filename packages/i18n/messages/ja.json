@@ -1194,5 +1194,53 @@
         "description": "希望部位の脂肪を直接除去する方法です。部位と量によってアプローチが異なります。"
       }
     }
+  },
+  "lifecycle": {
+    "draft": {
+      "primary": "相談を続けて作成",
+      "helper": "写真とお悩みを整理して相談を完了してください"
+    },
+    "submitted": {
+      "primaryWithProposal": "届いた提案を確認",
+      "primaryEditConcern": "お悩み内容を修正",
+      "secondary": "関連情報を読む",
+      "helper": "通常24~48時間以内に提案が届きます"
+    },
+    "proposalReceived": {
+      "primary": "届いた提案を確認",
+      "helper": "すぐ選ばず、まず分析してみましょう",
+      "extraNewArrived": "新しい提案 {count}件 到着"
+    },
+    "comparing": {
+      "primary": "比較分析を続ける",
+      "helper": "価格・リスク・過剰治療の有無を一緒に確認しましょう"
+    },
+    "reportPurchased": {
+      "primary": "分析結果を確認",
+      "secondary": "届いた提案を再確認",
+      "helper": "分析結果をもとに選択を整理しましょう"
+    },
+    "hospitalSelected": {
+      "primary": "スケジュール・通訳・送迎の準備",
+      "secondary": "選択した提案を再確認",
+      "helper": "通訳、スケジュール、送迎など次の準備を進めましょう"
+    },
+    "servicePurchased": {
+      "primary": "サービス進捗を確認",
+      "secondary": "追加のお悩みを登録",
+      "helper": "サービス準備状況を確認し、必要な内容を補完してください"
+    },
+    "completed": {
+      "primary": "別のお悩みを登録",
+      "secondary": "関連記事を見る",
+      "helper": "他の部位や追加のお悩みも相談できます"
+    },
+    "cancelled": {
+      "primary": "再度相談を始める",
+      "helper": "お悩みを整理し直して、新たに始めることができます"
+    },
+    "fallback": {
+      "primary": "詳細を見る"
+    }
   }
 }

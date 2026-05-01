@@ -57,7 +57,10 @@ export function computeDashboardState(concerns: Concern[], proposals: Proposal[]
    ══════════════════════════════════════ */
 
 export type ConcernActionItem = {
+  /** i18n key — 컴포넌트가 t(label, i18nParams) 로 매핑. */
   label: string;
+  /** dynamic interpolation params (예: 새 제안 N건). */
+  i18nParams?: Record<string, string | number>;
   href: string;
   variant: 'primary' | 'secondary' | 'ghost';
 };
@@ -104,67 +107,73 @@ export function computeConcernActions(concern: Concern, proposals: Proposal[]): 
   const extraActions: ConcernActionItem[] = [];
   let helperMessage = '';
 
+  // i18n key 패턴 — label/helperMessage 는 컴포넌트가 t() 로 매핑.
+  // dynamic params (예: 새 제안 N건) 은 별도 i18nParams 필드로 전달.
   switch (s) {
     case 'draft':
-      primaryAction = { label: '이어서 상담 작성하기', href: '/consult', variant: 'primary' };
-      helperMessage = '사진과 고민을 정리해 상담을 완료하세요';
+      primaryAction = { label: 'lifecycle.draft.primary', href: '/consult', variant: 'primary' };
+      helperMessage = 'lifecycle.draft.helper';
       break;
 
     case 'submitted':
       if (concernProposals.length > 0) {
-        primaryAction = { label: '도착한 제안 확인하기', href: `/concerns/${cid}/proposals`, variant: 'primary' };
+        primaryAction = { label: 'lifecycle.submitted.primaryWithProposal', href: `/concerns/${cid}/proposals`, variant: 'primary' };
       } else {
-        primaryAction = { label: '고민 내용 수정하기', href: '/consult', variant: 'primary' };
+        primaryAction = { label: 'lifecycle.submitted.primaryEditConcern', href: '/consult', variant: 'primary' };
       }
-      secondaryAction = { label: '관련 정보 읽기', href: '/articles', variant: 'secondary' };
-      helperMessage = '보통 24~48시간 내 제안이 도착합니다';
+      secondaryAction = { label: 'lifecycle.submitted.secondary', href: '/articles', variant: 'secondary' };
+      helperMessage = 'lifecycle.submitted.helper';
       break;
 
     case 'proposal_received':
-      primaryAction = { label: '받은 제안 확인하기', href: `/concerns/${cid}/proposals`, variant: 'primary' };
-      helperMessage = '바로 선택하지 말고 먼저 분석해보세요';
+      primaryAction = { label: 'lifecycle.proposalReceived.primary', href: `/concerns/${cid}/proposals`, variant: 'primary' };
+      helperMessage = 'lifecycle.proposalReceived.helper';
       if (unread.length > 0) {
-        extraActions.push({ label: `새 제안 ${unread.length}건 도착`, href: `/concerns/${cid}/proposals`, variant: 'ghost' });
+        extraActions.push({
+          label: 'lifecycle.proposalReceived.extraNewArrived',
+          i18nParams: { count: unread.length },
+          href: `/concerns/${cid}/proposals`,
+          variant: 'ghost',
+        });
       }
       break;
 
     case 'comparing':
-      primaryAction = { label: '비교 분석 계속하기', href: '/decision', variant: 'primary' };
-      helperMessage = '가격·리스크·과잉진료 여부를 함께 확인하세요';
+      primaryAction = { label: 'lifecycle.comparing.primary', href: '/decision', variant: 'primary' };
+      helperMessage = 'lifecycle.comparing.helper';
       break;
 
     case 'report_purchased':
-      primaryAction = { label: '분석 결과 확인하기', href: '/decision', variant: 'primary' };
-      secondaryAction = { label: '받은 제안 다시 보기', href: `/concerns/${cid}/proposals`, variant: 'secondary' };
-      helperMessage = '분석 결과를 바탕으로 선택을 정리해보세요';
+      primaryAction = { label: 'lifecycle.reportPurchased.primary', href: '/decision', variant: 'primary' };
+      secondaryAction = { label: 'lifecycle.reportPurchased.secondary', href: `/concerns/${cid}/proposals`, variant: 'secondary' };
+      helperMessage = 'lifecycle.reportPurchased.helper';
       break;
 
     case 'hospital_selected':
-      // 서비스 섹션은 페이지 하단에 인라인으로 표시됨 — CTA는 서비스 연결
-      primaryAction = { label: '일정·통역·픽업 준비하기', href: `/concerns/${cid}/services`, variant: 'primary' };
-      secondaryAction = { label: '선택한 제안 다시 보기', href: `/concerns/${cid}/proposals`, variant: 'secondary' };
-      helperMessage = '통역, 일정, 픽업 등 다음 준비를 진행하세요';
+      primaryAction = { label: 'lifecycle.hospitalSelected.primary', href: `/concerns/${cid}/services`, variant: 'primary' };
+      secondaryAction = { label: 'lifecycle.hospitalSelected.secondary', href: `/concerns/${cid}/proposals`, variant: 'secondary' };
+      helperMessage = 'lifecycle.hospitalSelected.helper';
       break;
 
     case 'service_purchased':
-      primaryAction = { label: '서비스 진행 상황 보기', href: `/concerns/${cid}/services`, variant: 'primary' };
-      secondaryAction = { label: '추가 고민 등록하기', href: '/consult', variant: 'secondary' };
-      helperMessage = '서비스 준비 상태를 확인하고 필요한 내용을 보완하세요';
+      primaryAction = { label: 'lifecycle.servicePurchased.primary', href: `/concerns/${cid}/services`, variant: 'primary' };
+      secondaryAction = { label: 'lifecycle.servicePurchased.secondary', href: '/consult', variant: 'secondary' };
+      helperMessage = 'lifecycle.servicePurchased.helper';
       break;
 
     case 'completed':
-      primaryAction = { label: '다른 고민 등록하기', href: '/consult', variant: 'primary' };
-      secondaryAction = { label: '관련 아티클 보기', href: '/articles', variant: 'secondary' };
-      helperMessage = '다른 부위나 추가 고민도 상담할 수 있습니다';
+      primaryAction = { label: 'lifecycle.completed.primary', href: '/consult', variant: 'primary' };
+      secondaryAction = { label: 'lifecycle.completed.secondary', href: '/articles', variant: 'secondary' };
+      helperMessage = 'lifecycle.completed.helper';
       break;
 
     case 'cancelled':
-      primaryAction = { label: '다시 상담 시작하기', href: '/consult', variant: 'primary' };
-      helperMessage = '고민을 다시 정리해 새로 시작할 수 있습니다';
+      primaryAction = { label: 'lifecycle.cancelled.primary', href: '/consult', variant: 'primary' };
+      helperMessage = 'lifecycle.cancelled.helper';
       break;
 
     default:
-      primaryAction = { label: '상세 보기', href: `/concerns/${cid}/proposals`, variant: 'primary' };
+      primaryAction = { label: 'lifecycle.fallback.primary', href: `/concerns/${cid}/proposals`, variant: 'primary' };
       helperMessage = '';
   }
 

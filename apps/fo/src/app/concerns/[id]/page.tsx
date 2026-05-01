@@ -134,7 +134,7 @@ export default function ConcernDetailPage({ params }: Props) {
         </div>
         {actions.helperMessage && (
           <p className="text-[13px] text-[var(--color-text-secondary)] leading-relaxed mb-4">
-            {actions.helperMessage}
+            {t(actions.helperMessage)}
           </p>
         )}
 
@@ -142,7 +142,7 @@ export default function ConcernDetailPage({ params }: Props) {
           <Link key={action.label} href={action.href} className="no-underline block mb-3">
             <div className="flex items-center gap-2 px-3 py-2 rounded-[var(--app-radius-sm)] bg-[var(--color-bg)]">
               <Sparkles size={13} className="text-[var(--color-primary)]" />
-              <span className="text-[12px] font-medium text-[var(--color-primary)]">{action.label}</span>
+              <span className="text-[12px] font-medium text-[var(--color-primary)]">{t(action.label, action.i18nParams)}</span>
             </div>
           </Link>
         ))}
@@ -150,7 +150,7 @@ export default function ConcernDetailPage({ params }: Props) {
         {actions.primaryAction && (
           <Link href={actions.primaryAction.href} className="no-underline block">
             <Button variant="primary" size="xl" fullWidth>
-              {actions.primaryAction.label}
+              {t(actions.primaryAction.label, actions.primaryAction.i18nParams)}
               <ArrowRight size={18} />
             </Button>
           </Link>
@@ -159,7 +159,7 @@ export default function ConcernDetailPage({ params }: Props) {
         {actions.secondaryAction && (
           <Link href={actions.secondaryAction.href} className="no-underline block mt-2">
             <Button variant="secondary" size="xl" fullWidth>
-              {actions.secondaryAction.label}
+              {t(actions.secondaryAction.label, actions.secondaryAction.i18nParams)}
             </Button>
           </Link>
         )}
