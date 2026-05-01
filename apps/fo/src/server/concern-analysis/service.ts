@@ -23,7 +23,8 @@ export async function analyzeConcernService(
   try {
     extractResult = await extractConcernTags(narrative, photos, feedbackTurns);
   } catch {
-    // Fallback: generic tags
+    // Fallback: generic tags. bodyArea 는 enum key (BodyArea.ETC), 자유 텍스트는 빈 문자열.
+    // FE 가 viewerLocale 기준 t('common.bodyArea.etc') 로 라벨 매핑 + 빈 detail 은 라벨 미노출 처리.
     console.warn('[ANALYSIS] Extract failed, using fallback');
     extractResult = {
       tags: {
@@ -33,10 +34,10 @@ export async function analyzeConcernService(
         timing: [],
       },
       summary: {
-        bodyAreas: ['기타'],
-        primaryArea: '기타',
-        bodyAreaDetail: '종합',
-        desiredOutcome: '자연스러운 개선',
+        bodyAreas: ['etc'],
+        primaryArea: 'etc',
+        bodyAreaDetail: '',
+        desiredOutcome: '',
         budgetMax: null,
         visitDate: null,
       },
