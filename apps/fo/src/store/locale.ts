@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Locale } from '@hyliren/shared';
+import { isLocale, type Locale } from '@hyliren/shared';
 import { t as translate } from '@hyliren/i18n';
 
 interface LocaleState {
@@ -18,6 +18,8 @@ function makeT(locale: Locale) {
 
 const LOCALE_COOKIE_NAME = 'mimyo-locale';
 const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1년
+/** FO Customer 앱 fallback (i18n-strategy §8-1). */
+const FALLBACK_LOCALE: Locale = 'zh-CN';
 
 /**
  * SSR (RootLayout `<html lang>`, generateMetadata) 가 cookie 로 locale 을 읽기 위한 동기화.
@@ -27,6 +29,22 @@ function syncLocaleCookie(locale: Locale) {
   if (typeof document === 'undefined') return;
   const secure = window.location.protocol === 'https:' ? '; Secure' : '';
   document.cookie = `${LOCALE_COOKIE_NAME}=${locale}; Path=/; Max-Age=${LOCALE_COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
+}
+
+/**
+ * cookie 에서 locale 읽기 — SSR-CSR 단일 진실원천.
+ *
+ * 우선순위 (rehydrate 시점):
+ *   1. cookie `mimyo-locale` (SSR 가 결정한 값 — Accept-Language 첫 진입 시 동기화 미설정)
+ *   2. zustand persist localStorage (이전 setLocale 결과)
+ *   3. FALLBACK_LOCALE
+ */
+function readLocaleCookie(): Locale | null {
+  if (typeof document === 'undefined') return null;
+  const m = /(?:^|;\s*)mimyo-locale=([^;]+)/.exec(document.cookie);
+  if (!m) return null;
+  const v = decodeURIComponent(m[1]);
+  return isLocale(v) ? v : null;
 }
 
 /**
@@ -45,22 +63,26 @@ function syncLocaleCookie(locale: Locale) {
 export const useLocaleStore = create<LocaleState>()(
   persist(
     (set) => ({
-      locale: 'ko',
+      locale: FALLBACK_LOCALE,
       setLocale: (locale) => {
         set({ locale, t: makeT(locale) });
         syncLocaleCookie(locale);
       },
-      t: makeT('ko'),
+      t: makeT(FALLBACK_LOCALE),
     }),
     {
       name: 'hyliren-locale',
       partialize: (state) => ({ locale: state.locale }),
       onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.t = makeT(state.locale);
-          // 새로고침 후에도 cookie 가 SSR 과 정합되도록 재동기화.
-          syncLocaleCookie(state.locale);
+        if (!state) return;
+        // Cookie 우선 — SSR getServerLocale 이 결정한 값이 SSOT. localStorage 와 다르면 cookie 값 채택.
+        const fromCookie = readLocaleCookie();
+        if (fromCookie && fromCookie !== state.locale) {
+          state.locale = fromCookie;
         }
+        state.t = makeT(state.locale);
+        // 새로고침 후에도 cookie 가 SSR 과 정합되도록 재동기화 (cookie 미존재 사용자에게 채워둠).
+        syncLocaleCookie(state.locale);
       },
     },
   ),

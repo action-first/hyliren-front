@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Locale } from '@hyliren/shared';
+import { isLocale, type Locale } from '@hyliren/shared';
 import { t as translate } from '@hyliren/i18n';
 
 interface LocaleState {
@@ -18,14 +18,22 @@ function makeT(locale: Locale) {
 
 const LOCALE_COOKIE_NAME = 'mimyo-po-locale';
 const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1년
+/** Partner 앱 fallback (i18n-strategy §8-1). */
+const FALLBACK_LOCALE: Locale = 'ko';
 
-/**
- * SSR (RootLayout `<html lang>`, generateMetadata) 가 cookie 로 locale 을 읽기 위한 동기화.
- */
 function syncLocaleCookie(locale: Locale) {
   if (typeof document === 'undefined') return;
   const secure = window.location.protocol === 'https:' ? '; Secure' : '';
   document.cookie = `${LOCALE_COOKIE_NAME}=${locale}; Path=/; Max-Age=${LOCALE_COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
+}
+
+/** cookie 우선 — SSR getServerLocale 결정값과 client 의 zustand 를 단일 진실원천으로 정합. */
+function readLocaleCookie(): Locale | null {
+  if (typeof document === 'undefined') return null;
+  const m = /(?:^|;\s*)mimyo-po-locale=([^;]+)/.exec(document.cookie);
+  if (!m) return null;
+  const v = decodeURIComponent(m[1]);
+  return isLocale(v) ? v : null;
 }
 
 /**
@@ -44,21 +52,24 @@ function syncLocaleCookie(locale: Locale) {
 export const useLocaleStore = create<LocaleState>()(
   persist(
     (set) => ({
-      locale: 'ko',
+      locale: FALLBACK_LOCALE,
       setLocale: (locale) => {
         set({ locale, t: makeT(locale) });
         syncLocaleCookie(locale);
       },
-      t: makeT('ko'),
+      t: makeT(FALLBACK_LOCALE),
     }),
     {
       name: 'po-locale',
       partialize: (state) => ({ locale: state.locale }),
       onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.t = makeT(state.locale);
-          syncLocaleCookie(state.locale);
+        if (!state) return;
+        const fromCookie = readLocaleCookie();
+        if (fromCookie && fromCookie !== state.locale) {
+          state.locale = fromCookie;
         }
+        state.t = makeT(state.locale);
+        syncLocaleCookie(state.locale);
       },
     },
   ),
