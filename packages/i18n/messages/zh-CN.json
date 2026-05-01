@@ -652,7 +652,11 @@
     "comparePriceHigher": "比最低价高出{percent}%",
     "compareRiskLocal": "局部麻醉,风险非常低",
     "compareRiskSedation": "静脉麻醉,风险较低",
-    "compareRiskGeneral": "全身麻醉,需要事前检查"
+    "compareRiskGeneral": "全身麻醉,需要事前检查",
+    "pageTitle": "执行服务准备",
+    "pageDesc": "准备术前术后所需的服务",
+    "bottomCtaHelper": "服务将在确定医院后按顺序准备。\n请提前确认所需的服务。",
+    "bottomCtaBack": "返回困扰详情"
   },
   "articles2": {
     "categoryAll": "全部",
@@ -1260,6 +1264,17 @@
     },
     "fallback": {
       "primary": "查看详情"
+    },
+    "status": {
+      "draft": "草稿",
+      "submitted": "等待方案",
+      "proposalReceived": "方案已到",
+      "comparing": "比较中",
+      "reportPurchased": "查看报告中",
+      "hospitalSelected": "已选择医院",
+      "servicePurchased": "服务进行中",
+      "completed": "已完成",
+      "cancelled": "已取消"
     }
   }
 }

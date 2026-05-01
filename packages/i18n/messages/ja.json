@@ -652,7 +652,11 @@
     "comparePriceHigher": "最安値より{percent}%高い",
     "compareRiskLocal": "局所麻酔でリスクが非常に低い",
     "compareRiskSedation": "静脈麻酔でリスクが低い方",
-    "compareRiskGeneral": "全身麻酔のため事前検診が必要"
+    "compareRiskGeneral": "全身麻酔のため事前検診が必要",
+    "pageTitle": "実行サービスの準備",
+    "pageDesc": "施術前後に必要なサービスを準備しましょう",
+    "bottomCtaHelper": "サービスは病院確定後に順次準備されます。\n必要なサービスを事前にご確認ください。",
+    "bottomCtaBack": "お悩み詳細に戻る"
   },
   "articles2": {
     "categoryAll": "すべて",
@@ -1260,6 +1264,17 @@
     },
     "fallback": {
       "primary": "詳細を見る"
+    },
+    "status": {
+      "draft": "下書き",
+      "submitted": "提案待ち",
+      "proposalReceived": "提案到着",
+      "comparing": "比較中",
+      "reportPurchased": "レポート確認中",
+      "hospitalSelected": "病院選択完了",
+      "servicePurchased": "サービス進行中",
+      "completed": "完了",
+      "cancelled": "キャンセル"
     }
   }
 }

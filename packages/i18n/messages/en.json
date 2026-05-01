@@ -652,7 +652,11 @@
     "comparePriceHigher": "{percent}% higher than the lowest",
     "compareRiskLocal": "Local anesthesia—risk is very low",
     "compareRiskSedation": "IV sedation—lower risk",
-    "compareRiskGeneral": "General anesthesia—requires pre-op screening"
+    "compareRiskGeneral": "General anesthesia—requires pre-op screening",
+    "pageTitle": "Prepare execution services",
+    "pageDesc": "Set up the services you need before and after your procedure",
+    "bottomCtaHelper": "Services are arranged sequentially after hospital selection.\nPlease review what you may need in advance.",
+    "bottomCtaBack": "Back to concern details"
   },
   "articles2": {
     "categoryAll": "All",
@@ -1260,6 +1264,17 @@
     },
     "fallback": {
       "primary": "View details"
+    },
+    "status": {
+      "draft": "Draft",
+      "submitted": "Awaiting proposals",
+      "proposalReceived": "Proposal received",
+      "comparing": "Comparing",
+      "reportPurchased": "Report opened",
+      "hospitalSelected": "Hospital selected",
+      "servicePurchased": "Service in progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
     }
   }
 }

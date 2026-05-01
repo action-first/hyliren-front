@@ -77,7 +77,7 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
           ))}
         </div>
         <Badge variant={STATUS_COLORS[concern.status] || 'default'} size="sm">
-          {STATUS_LABELS[concern.status] || concern.status}
+          {STATUS_LABELS[concern.status] ? t(STATUS_LABELS[concern.status]) : concern.status}
         </Badge>
         <span className="ml-auto text-[11px] text-[var(--color-text-dim)]">{t('decision.proposalCount', { count: proposals.length })}</span>
       </div>
