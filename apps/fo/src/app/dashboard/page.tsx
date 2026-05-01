@@ -17,7 +17,7 @@ import { AREA_ACCENT, getAreaBar } from '@/lib/area-styles';
 import {
   type DashboardState,
   computeDashboardState, computeConcernActions,
-  getRecommendedArticles, STATUS_LABELS, STATUS_COLORS,
+  STATUS_LABELS, STATUS_COLORS,
 } from '@/domain/lifecycle';
 import { useLocaleStore } from '@/store/locale';
 import { useAuthStore } from '@/store/auth';
