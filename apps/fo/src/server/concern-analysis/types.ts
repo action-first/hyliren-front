@@ -96,6 +96,12 @@ export interface AnalysisRequest {
   photos: string[];
   narrative: string;
   feedbackTurns?: FeedbackTurn[];
+  /**
+   * narrative 작성 언어 — extract 단계 키워드 사전 선택용.
+   * 미명시 시 BE 가 Accept-Language 로 추론 (Customer 앱 fallback 'zh-CN').
+   * 'ko' | 'zh-CN' | 'ja' | 'en'.
+   */
+  sourceLocale?: string;
 }
 
 /** API Response — empathy/education/disclaimer 는 i18n key 형태로 반환 (FE 가 t() 호출). */

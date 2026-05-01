@@ -1,13 +1,24 @@
 import type { ExtractResult, FeedbackTurn } from '../concern-analysis/types';
 
+type SourceLocale = 'ko' | 'zh-CN' | 'ja' | 'en';
+
 /**
  * Mock Extractor — keyword-based tag extraction
  * Deterministic, no LLM cost
+ *
+ * sourceLocale: narrative 가 작성된 언어. 현재 ko 사전만 구현 — 다른 locale 은
+ * 콘텐츠 다국어 트랙 (자동 번역/LLM 도입) 에서 사전 추가 예정.
+ * ko 외 locale 입력은 매칭 0 → 결과 fallback tag (`'미분류_고민'`) 으로 처리됨.
  */
 export function extractMock(
   narrative: string,
   feedbackTurns: FeedbackTurn[] = [],
+  sourceLocale: SourceLocale = 'ko',
 ): ExtractResult {
+  // 현재 mock 은 ko 사전만 — 다른 locale narrative 는 매칭 못 하지만 시그니처는 정렬됨.
+  // Future: locale 별 KEYWORD_DICT[sourceLocale] 분기.
+  void sourceLocale;
+
   const combined = [
     narrative,
     ...feedbackTurns.filter(t => t.role === 'user').map(t => t.message),

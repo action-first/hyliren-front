@@ -16,12 +16,13 @@ import { generateConcernGuide } from '../generation/generateConcernGuide';
 export async function analyzeConcernService(
   request: AnalysisRequest,
 ): Promise<AnalysisResponse> {
-  const { photos, narrative, feedbackTurns = [] } = request;
+  const { photos, narrative, feedbackTurns = [], sourceLocale } = request;
+  const narrativeLocale = (sourceLocale ?? 'ko') as 'ko' | 'zh-CN' | 'ja' | 'en';
 
   /* ── Layer 1: Extract ── */
   let extractResult;
   try {
-    extractResult = await extractConcernTags(narrative, photos, feedbackTurns);
+    extractResult = await extractConcernTags(narrative, photos, feedbackTurns, narrativeLocale);
   } catch {
     // Fallback: generic tags. bodyArea 는 enum key (BodyArea.ETC), 자유 텍스트는 빈 문자열.
     // FE 가 viewerLocale 기준 t('common.bodyArea.etc') 로 라벨 매핑 + 빈 detail 은 라벨 미노출 처리.
