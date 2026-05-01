@@ -127,7 +127,7 @@ export default function ConcernDetailPage({ params }: Props) {
          ══════════════════════════════════════ */}
       <section className="rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)] px-4 py-4 mb-5">
         <div className="flex items-center gap-2 mb-2">
-          <Badge variant={actions.statusColor}>{actions.statusLabel}</Badge>
+          <Badge variant={actions.statusColor}>{t(actions.statusLabel)}</Badge>
           {actions.hasNewProposal && (
             <span className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />
           )}

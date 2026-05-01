@@ -248,7 +248,7 @@ function ConcernStatusCard({
               </span>
             )}
             <Badge variant={STATUS_COLORS[status] || 'default'} size="sm">
-              {STATUS_LABELS[status] || status}
+              {STATUS_LABELS[status] ? t(STATUS_LABELS[status]) : status}
             </Badge>
           </div>
         </div>

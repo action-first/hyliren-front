@@ -165,7 +165,7 @@ export default function MyPage() {
                         ))}
                       </div>
                       <Badge variant={STATUS_COLORS[c.status] || 'default'} size="sm">
-                        {STATUS_LABELS[c.status] || c.status}
+                        {STATUS_LABELS[c.status] ? t(STATUS_LABELS[c.status]) : c.status}
                       </Badge>
                     </div>
                     <p className="text-[13px] text-[var(--color-text-secondary)] line-clamp-1 mb-1.5">{c.description}</p>

@@ -279,18 +279,19 @@ export function getRecommendedArticles(bodyArea: string, status: string): Articl
   return areaSpecific;
 }
 
-/* ── Status Labels (상태 표시 전용 — CTA와 혼용 금지) ── */
+/* ── Status Labels (상태 표시 전용 — CTA와 혼용 금지) ──
+   i18n key 매핑 — 컴포넌트가 t(STATUS_LABELS[status]) 로 렌더링. */
 
 export const STATUS_LABELS: Record<string, string> = {
-  draft: '작성 중',
-  submitted: '제안 대기 중',
-  proposal_received: '제안 도착',
-  comparing: '비교 중',
-  report_purchased: '리포트 확인 중',
-  hospital_selected: '병원 선택 완료',
-  service_purchased: '서비스 진행 중',
-  completed: '완료',
-  cancelled: '취소됨',
+  draft: 'lifecycle.status.draft',
+  submitted: 'lifecycle.status.submitted',
+  proposal_received: 'lifecycle.status.proposalReceived',
+  comparing: 'lifecycle.status.comparing',
+  report_purchased: 'lifecycle.status.reportPurchased',
+  hospital_selected: 'lifecycle.status.hospitalSelected',
+  service_purchased: 'lifecycle.status.servicePurchased',
+  completed: 'lifecycle.status.completed',
+  cancelled: 'lifecycle.status.cancelled',
 };
 
 export const STATUS_COLORS: Record<string, 'info' | 'warning' | 'success' | 'danger' | 'default'> = {
