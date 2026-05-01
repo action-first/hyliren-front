@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@hyliren/ui';
 import { ArrowRight, Edit3, Sparkles, Clock, Loader2 } from 'lucide-react';
-import { useConcernFlowStore, BUDGET_LABELS, VISIT_TIMING_LABELS, STAY_DURATION_LABELS } from '@/store/concern-flow';
+import { useConcernFlowStore, BUDGET_LABEL_KEYS, VISIT_TIMING_LABEL_KEYS, STAY_DURATION_LABEL_KEYS } from '@/store/concern-flow';
 import type { BudgetRange, VisitTiming } from '@/store/concern-flow';
 import { useLocaleStore } from '@/store/locale';
 import { AIAnalysisResultCard } from './ConcernSummaryCard';
@@ -210,22 +210,22 @@ export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {
       <div className="flex flex-wrap gap-2 mb-3">
         {selectedBodyArea && (
           <span className="px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-info-soft)] text-[11px] font-medium text-[var(--color-info)]">
-            {selectedBodyArea}
+            {t(`common.bodyArea.${selectedBodyArea}`)}
           </span>
         )}
         {budgetRange && (
           <span className="px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)] text-[11px] font-medium text-[var(--color-text-secondary)]">
-            {BUDGET_LABELS[budgetRange]}
+            {t(BUDGET_LABEL_KEYS[budgetRange])}
           </span>
         )}
         {visitTiming && (
           <span className="px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)] text-[11px] font-medium text-[var(--color-text-secondary)]">
-            {VISIT_TIMING_LABELS[visitTiming]}
+            {t(VISIT_TIMING_LABEL_KEYS[visitTiming])}
           </span>
         )}
         {stayDuration && (
           <span className="px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)] text-[11px] font-medium text-[var(--color-text-secondary)]">
-            체류 {STAY_DURATION_LABELS[stayDuration]}
+            {t(STAY_DURATION_LABEL_KEYS[stayDuration])}
           </span>
         )}
       </div>
