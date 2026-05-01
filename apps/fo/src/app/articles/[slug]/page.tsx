@@ -22,8 +22,11 @@ const CATEGORY_LABEL_KEY: Record<string, string> = {
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
 
-/* ── Markdown → JSX (lightweight) ── */
-function renderBody(article: ArticleDetail, t: TFn) {
+/* ── Markdown → JSX (lightweight) ──
+ * quiz 콘텐츠는 현재 article-quizzes.ts 의 한국어 raw — locale 별 자연어 콘텐츠는
+ * 후속 트랙 (콘텐츠 다국어). 본 PR 단계에선 ko locale 만 quiz 노출, 그 외엔 skip.
+ */
+function renderBody(article: ArticleDetail, t: TFn, locale: string) {
   const lines = article.body.split('\n');
   const elements: React.ReactNode[] = [];
   const imageByType = (type: 'hero' | 'procedure' | 'lifestyle'): ArticleImage | undefined =>
@@ -38,7 +41,8 @@ function renderBody(article: ArticleDetail, t: TFn) {
       if (type === 'hero') { i++; continue; }
       if (type === 'lifestyle') {
         const quiz = ARTICLE_QUIZZES[article.slug];
-        if (quiz) {
+        // 한국어 raw 콘텐츠 — 다국어 번역 트랙 완료까지 ko locale 만 노출.
+        if (quiz && locale === 'ko') {
           elements.push(
             <div key={`quiz-${i}`} className="my-6 rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)] p-5">
               <p className="text-[15px] font-bold text-[var(--color-text)] mb-4">{quiz.title}</p>
@@ -271,7 +275,7 @@ export default function ArticleDetailPage() {
 
       {/* Body */}
       <div className="px-5">
-        {renderBody(article, t)}
+        {renderBody(article, t, locale)}
       </div>
 
       {/* Bottom CTA */}

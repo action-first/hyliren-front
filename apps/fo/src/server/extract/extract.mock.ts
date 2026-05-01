@@ -221,23 +221,24 @@ export function extractMock(
   if (symptoms.length === 0) symptoms.push('미분류_고민');
   if (preferences.length === 0) preferences.push('자연스러움_선호');
 
-  /* ── Build summary ── */
+  /* ── Build summary — area 는 BodyArea enum key (Stage 3) ── */
   const bodyAreaMap: Record<string, { area: string; detail: string }> = {
-    '눈꺼풀_처짐': { area: '눈', detail: '눈매교정' },
-    '인상_강함': { area: '눈', detail: '눈매교정' },
-    '쌍꺼풀_희망': { area: '눈', detail: '쌍꺼풀' },
-    '눈밑_문제': { area: '눈', detail: '눈밑' },
-    '코_고민': { area: '코', detail: '코 종합' },
-    '코_낮음': { area: '코', detail: '콧대' },
-    '코끝_둥금': { area: '코', detail: '코끝 성형' },
-    '주름_깊음': { area: '리프팅', detail: '주름 개선' },
-    '노화_고민': { area: '리프팅', detail: '동안' },
-    '피부_문제': { area: '피부', detail: '피부 관리' },
-    '안면윤곽_고민': { area: '리프팅', detail: '안면윤곽' },
-    '지방_고민': { area: '다이어트', detail: '지방흡입' },
+    '눈꺼풀_처짐': { area: 'eyes', detail: '눈매교정' },
+    '인상_강함':   { area: 'eyes', detail: '눈매교정' },
+    '쌍꺼풀_희망': { area: 'eyes', detail: '쌍꺼풀' },
+    '눈밑_문제':   { area: 'eyes', detail: '눈밑' },
+    '코_고민':     { area: 'nose', detail: '코 종합' },
+    '코_낮음':     { area: 'nose', detail: '콧대' },
+    '코끝_둥금':   { area: 'nose', detail: '코끝 성형' },
+    '주름_깊음':   { area: 'lifting', detail: '주름 개선' },
+    '노화_고민':   { area: 'lifting', detail: '동안' },
+    '피부_문제':   { area: 'skin', detail: '피부 관리' },
+    '안면윤곽_고민': { area: 'lifting', detail: '안면윤곽' },
+    '지방_고민':   { area: 'diet', detail: '지방흡입' },
   };
 
-  // Collect ALL body areas from symptoms (multi-area support)
+  // Collect ALL body areas from symptoms (multi-area support).
+  // detail 은 사용자 narrative 기반 자연어 — 본인 입력 locale 그대로.
   const areaSet = new Set<string>();
   const details: string[] = [];
   for (const s of symptoms) {
@@ -247,11 +248,12 @@ export function extractMock(
       if (!details.includes(info.detail)) details.push(info.detail);
     }
   }
-  const bodyAreas = areaSet.size > 0 ? [...areaSet] : ['기타'];
+  const bodyAreas = areaSet.size > 0 ? [...areaSet] : ['etc'];
   const primaryArea = bodyAreas[0];
-  const bodyAreaDetail = details.length > 1 ? details.join('+') + ' 복합' : details[0] || '종합';
+  // detail 미매칭 시 빈 문자열 — FE 가 빈 detail 라벨 미노출 처리 (Stage 4 정책).
+  const bodyAreaDetail = details.length > 1 ? details.join(' / ') : details[0] || '';
 
-  let desiredOutcome = '자연스러운 개선';
+  let desiredOutcome = '';
   if (preferences.includes('확실한변화_선호')) desiredOutcome = '확실한 변화';
   if (preferences.includes('비절개_선호')) desiredOutcome = '비절개 위주 자연스러운 개선';
 
