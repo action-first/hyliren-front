@@ -44,8 +44,8 @@ export function AIAnalysisResultCard({ result, compact = false }: Props) {
             <div className="flex flex-col gap-2">
               {options.map(opt => (
                 <div key={opt.key} className="px-3 py-2.5 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
-                  <span className="text-[12px] font-semibold text-[var(--color-text)] block mb-0.5">{opt.name}</span>
-                  <span className="text-[11px] text-[var(--color-text-dim)] leading-relaxed">{opt.description}</span>
+                  <span className="text-[12px] font-semibold text-[var(--color-text)] block mb-0.5">{t(opt.name)}</span>
+                  <span className="text-[11px] text-[var(--color-text-dim)] leading-relaxed">{t(opt.description)}</span>
                 </div>
               ))}
             </div>

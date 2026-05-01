@@ -14,7 +14,7 @@ export const PROCEDURE_RULES: ProcedureRule[] = [
   /* ══ 눈 ══ */
   {
     id: 'eye_01',
-    bodyArea: '눈',
+    bodyArea: 'eyes',
     requiredTags: ['눈꺼풀_처짐'],
     optionalTags: ['인상_강함', '자연스러움_선호', '빠른회복_선호'],
     excludedTags: [],
@@ -24,7 +24,7 @@ export const PROCEDURE_RULES: ProcedureRule[] = [
   },
   {
     id: 'eye_02',
-    bodyArea: '눈',
+    bodyArea: 'eyes',
     requiredTags: ['쌍꺼풀_희망'],
     optionalTags: ['자연스러움_선호', '빠른회복_선호'],
     excludedTags: [],
@@ -34,7 +34,7 @@ export const PROCEDURE_RULES: ProcedureRule[] = [
   },
   {
     id: 'eye_03',
-    bodyArea: '눈',
+    bodyArea: 'eyes',
     requiredTags: ['쌍꺼풀_희망'],
     optionalTags: ['확실한변화_선호'],
     excludedTags: ['비절개_선호'],
@@ -44,7 +44,7 @@ export const PROCEDURE_RULES: ProcedureRule[] = [
   },
   {
     id: 'eye_04',
-    bodyArea: '눈',
+    bodyArea: 'eyes',
     requiredTags: ['눈밑_문제'],
     optionalTags: ['자연스러움_선호'],
     excludedTags: [],
@@ -56,7 +56,7 @@ export const PROCEDURE_RULES: ProcedureRule[] = [
   /* ══ 코 ══ */
   {
     id: 'nose_01',
-    bodyArea: '코',
+    bodyArea: 'nose',
     requiredTags: ['코끝_둥금'],
     optionalTags: ['자연스러움_선호'],
     excludedTags: [],
@@ -66,7 +66,7 @@ export const PROCEDURE_RULES: ProcedureRule[] = [
   },
   {
     id: 'nose_02',
-    bodyArea: '코',
+    bodyArea: 'nose',
     requiredTags: ['코_낮음'],
     optionalTags: ['자연스러움_선호'],
     excludedTags: [],
@@ -76,7 +76,7 @@ export const PROCEDURE_RULES: ProcedureRule[] = [
   },
   {
     id: 'nose_03',
-    bodyArea: '코',
+    bodyArea: 'nose',
     requiredTags: ['코_고민'],
     optionalTags: [],
     excludedTags: [],
@@ -88,7 +88,7 @@ export const PROCEDURE_RULES: ProcedureRule[] = [
   /* ══ 리프팅 ══ */
   {
     id: 'lift_01',
-    bodyArea: '리프팅',
+    bodyArea: 'lifting',
     requiredTags: ['주름_깊음'],
     optionalTags: ['빠른회복_선호', '자연스러움_선호'],
     excludedTags: [],
@@ -98,7 +98,7 @@ export const PROCEDURE_RULES: ProcedureRule[] = [
   },
   {
     id: 'lift_02',
-    bodyArea: '리프팅',
+    bodyArea: 'lifting',
     requiredTags: ['노화_고민'],
     optionalTags: ['빠른회복_선호'],
     excludedTags: [],
@@ -108,7 +108,7 @@ export const PROCEDURE_RULES: ProcedureRule[] = [
   },
   {
     id: 'lift_03',
-    bodyArea: '리프팅',
+    bodyArea: 'lifting',
     requiredTags: ['안면윤곽_고민'],
     optionalTags: [],
     excludedTags: ['비절개_선호'],
@@ -120,7 +120,7 @@ export const PROCEDURE_RULES: ProcedureRule[] = [
   /* ══ 피부 ══ */
   {
     id: 'skin_01',
-    bodyArea: '피부',
+    bodyArea: 'skin',
     requiredTags: ['피부_문제'],
     optionalTags: ['빠른회복_선호'],
     excludedTags: [],
@@ -132,7 +132,7 @@ export const PROCEDURE_RULES: ProcedureRule[] = [
   /* ══ 다이어트 ══ */
   {
     id: 'diet_01',
-    bodyArea: '다이어트',
+    bodyArea: 'diet',
     requiredTags: ['지방_고민'],
     optionalTags: [],
     excludedTags: [],
