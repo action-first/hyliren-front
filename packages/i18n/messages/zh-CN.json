@@ -374,7 +374,9 @@
     "bottomDesc": "AI为你分析困扰",
     "bottomCta": "开始咨询",
     "readTime": "{min}分钟阅读",
-    "all": "全部"
+    "all": "全部",
+    "loadError": "文章加载失败。",
+    "empty": "该分类暂无文章。"
   },
   "mypage": {
     "registeredConcerns": "已提交困扰",
