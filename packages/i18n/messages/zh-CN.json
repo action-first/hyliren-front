@@ -94,7 +94,15 @@
     "proposalArrivedDescCount": "{count}家医院发送了定制提案",
     "proposalArrivedDescDefault": "请确认医院的定制提案",
     "proposalArrivedAction": "查看提案",
-    "minutesRead": "{min}分钟"
+    "minutesRead": "{min}分钟",
+    "painDetail": {
+      "doubleEyelid": "双眼皮",
+      "noseTip": "鼻尖整形",
+      "lifting": "提升",
+      "skincare": "皮肤管理",
+      "facialContour": "面部轮廓",
+      "underEyeFat": "眼下脂肪"
+    }
   },
   "nav": {
     "home": "首页",

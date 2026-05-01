@@ -94,7 +94,15 @@
     "proposalArrivedDescCount": "{count}개 병원이 맞춤 제안을 보냈어요",
     "proposalArrivedDescDefault": "병원의 맞춤 제안을 확인하세요",
     "proposalArrivedAction": "제안 확인하기",
-    "minutesRead": "{min}분"
+    "minutesRead": "{min}분",
+    "painDetail": {
+      "doubleEyelid": "쌍꺼풀",
+      "noseTip": "코끝 성형",
+      "lifting": "리프팅",
+      "skincare": "피부관리",
+      "facialContour": "안면윤곽",
+      "underEyeFat": "눈밑지방"
+    }
   },
   "nav": {
     "home": "홈",

@@ -94,7 +94,15 @@
     "proposalArrivedDescCount": "{count}件の病院がオーダーメイド提案を送りました",
     "proposalArrivedDescDefault": "病院のオーダーメイド提案を確認しましょう",
     "proposalArrivedAction": "提案を確認",
-    "minutesRead": "{min}分"
+    "minutesRead": "{min}分",
+    "painDetail": {
+      "doubleEyelid": "二重",
+      "noseTip": "鼻先形成",
+      "lifting": "リフティング",
+      "skincare": "スキンケア",
+      "facialContour": "輪郭形成",
+      "underEyeFat": "目元脂肪"
+    }
   },
   "nav": {
     "home": "ホーム",
