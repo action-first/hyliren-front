@@ -13,13 +13,19 @@ import { listArticles, mapArticleListItem, type ArticleListItem } from '@/lib/ap
 
 type UserPhase = 'idle' | 'waiting' | 'proposals_ready';
 
+/**
+ * 랜딩 카드 → 상담 prefill 정의.
+ * area: BodyArea enum key — non-ko 사용자도 동일 enum 사용 (BE 정책: enum 직접 저장)
+ * detailKey: i18n key — StepNarrative 가 사용자 로케일로 t() 매핑하여 store 에 저장
+ *   (한국어 raw 를 query 로 흘려보내 textarea 에 자동 주입하던 문제 차단)
+ */
 const CONCERN_DEFS = [
-  { key: 'landing.pain1', area: '눈', detail: '쌍꺼풀' },
-  { key: 'landing.pain2', area: '코', detail: '코끝 성형' },
-  { key: 'landing.pain3', area: '리프팅', detail: '리프팅' },
-  { key: 'landing.pain4', area: '피부', detail: '피부관리' },
-  { key: 'landing.pain5', area: '리프팅', detail: '안면윤곽' },
-  { key: 'landing.pain6', area: '눈', detail: '눈밑지방' },
+  { key: 'landing.pain1', area: 'eyes',    detailKey: 'landing.painDetail.doubleEyelid' },
+  { key: 'landing.pain2', area: 'nose',    detailKey: 'landing.painDetail.noseTip' },
+  { key: 'landing.pain3', area: 'lifting', detailKey: 'landing.painDetail.lifting' },
+  { key: 'landing.pain4', area: 'skin',    detailKey: 'landing.painDetail.skincare' },
+  { key: 'landing.pain5', area: 'lifting', detailKey: 'landing.painDetail.facialContour' },
+  { key: 'landing.pain6', area: 'eyes',    detailKey: 'landing.painDetail.underEyeFat' },
 ];
 
 export default function HomePage() {
@@ -157,7 +163,7 @@ export default function HomePage() {
         <h2 className="text-[1.0625rem] font-bold text-[var(--color-text)] tracking-[-0.18px] mb-3">{t('landing.concernsTitle')}</h2>
         <div className="flex flex-col gap-2">
           {CONCERN_DEFS.map((c, i) => (
-            <Link key={i} href={`/consult?area=${c.area}&detail=${c.detail}`}
+            <Link key={i} href={`/consult?area=${c.area}&detailKey=${c.detailKey}`}
               className="flex items-center justify-between px-4 py-3.5 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
               style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
               <span className="text-[14px] text-[var(--color-text)]">{t(c.key)}</span>

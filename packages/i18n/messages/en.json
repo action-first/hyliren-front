@@ -94,7 +94,15 @@
     "proposalArrivedDescCount": "{count} clinic(s) sent tailored proposals",
     "proposalArrivedDescDefault": "Check tailored proposals from clinics",
     "proposalArrivedAction": "Check proposals",
-    "minutesRead": "{min} min"
+    "minutesRead": "{min} min",
+    "painDetail": {
+      "doubleEyelid": "Double eyelid",
+      "noseTip": "Nose tip plasty",
+      "lifting": "Lifting",
+      "skincare": "Skincare",
+      "facialContour": "Facial contouring",
+      "underEyeFat": "Under-eye fat"
+    }
   },
   "nav": {
     "home": "Home",
