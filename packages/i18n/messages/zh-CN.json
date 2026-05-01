@@ -1104,7 +1104,8 @@
     "wizardOverrideDuration": "手术时间 (分钟)",
     "wizardOverrideRecovery": "恢复天数",
     "wizardOverrideHospitalStay": "住院天数",
-    "wizardBasePlaceholder": "默认: {value}"
+    "wizardBasePlaceholder": "默认: {value}",
+    "proposeWriteTitle": "撰写方案"
   },
   "poLogin": {
     "emailInvalid": "请输入正确的邮箱格式。",

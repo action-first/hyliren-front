@@ -1,10 +1,13 @@
-import { AdminPage, DashboardSkeleton } from '@hyliren/ui';
+import { AdminPage, ListPageSkeleton } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
+import { t } from '@hyliren/i18n';
+import { getServerLocale } from '@/lib/server-locale';
 
-export default function Loading() {
+export default async function Loading() {
+  const locale = await getServerLocale();
   return (
-    <AdminPage sidebar={<POSidebar active="/dashboard" />} title="대시보드" prefix="po">
-      <DashboardSkeleton />
+    <AdminPage sidebar={<POSidebar active="/dashboard" />} title={t(locale, 'po.dashboardTitle')} prefix="po">
+      <ListPageSkeleton rows={4} />
     </AdminPage>
   );
 }

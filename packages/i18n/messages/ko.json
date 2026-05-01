@@ -1104,7 +1104,8 @@
     "wizardOverrideDuration": "시술 시간 (분)",
     "wizardOverrideRecovery": "회복일",
     "wizardOverrideHospitalStay": "입원일",
-    "wizardBasePlaceholder": "기본: {value}"
+    "wizardBasePlaceholder": "기본: {value}",
+    "proposeWriteTitle": "제안서 작성"
   },
   "poLogin": {
     "emailInvalid": "올바른 이메일 형식으로 입력해주세요.",
