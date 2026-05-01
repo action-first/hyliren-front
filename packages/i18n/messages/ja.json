@@ -224,7 +224,26 @@
     "fallbackDisclaimer": "正確な診断は実際の病院相談で決定されます。",
     "visitPlanPageTitle": "訪問計画はありますか?",
     "visitPlanPageDesc": "日程に合わせた施術提案を受けられます",
-    "aiAnalysisStart": "AI分析開始"
+    "aiAnalysisStart": "AI分析開始",
+    "budget": {
+      "under100": "100万ウォン以下",
+      "100to300": "100~300万ウォン",
+      "300to500": "300~500万ウォン",
+      "over500": "500万ウォン以上",
+      "undecided": "未定"
+    },
+    "visit": {
+      "within1m": "1ヶ月以内",
+      "within3m": "3ヶ月以内",
+      "within6m": "6ヶ月以内",
+      "undecided": "未定"
+    },
+    "stay": {
+      "under3d": "3日以内",
+      "5to7d": "5~7日",
+      "2weeks": "2週間程度",
+      "undecided": "未定"
+    }
   },
   "decision": {
     "emptyTitle": "まだ届いた提案がありません",

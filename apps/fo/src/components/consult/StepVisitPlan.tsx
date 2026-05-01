@@ -2,7 +2,7 @@
 
 import { Button } from '@hyliren/ui';
 import { ArrowRight, ArrowLeft, Check } from 'lucide-react';
-import { useConcernFlowStore, VISIT_TIMING_LABELS, STAY_DURATION_LABELS, type VisitTiming, type StayDuration } from '@/store/concern-flow';
+import { useConcernFlowStore, VISIT_TIMING_LABEL_KEYS, STAY_DURATION_LABEL_KEYS, type VisitTiming, type StayDuration } from '@/store/concern-flow';
 import { useLocaleStore } from '@/store/locale';
 
 const TIMING_OPTIONS: { key: VisitTiming; subKey: string }[] = [
@@ -61,7 +61,7 @@ function SelectionGroup<T_ extends string>({
               </div>
               <div className="flex-1">
                 <span className={`text-[13px] block ${isSelected ? 'font-bold text-[var(--color-primary)]' : 'font-medium text-[var(--color-text)]'}`}>
-                  {labels[opt.key]}
+                  {t(labels[opt.key])}
                 </span>
                 <span className="text-[11px] text-[var(--color-text-dim)]">{t(opt.subKey)}</span>
               </div>
@@ -108,7 +108,7 @@ export function StepVisitPlan() {
       <SelectionGroup
         title={t('consult.visitTitle')}
         options={TIMING_OPTIONS}
-        labels={VISIT_TIMING_LABELS}
+        labels={VISIT_TIMING_LABEL_KEYS}
         selected={visitTiming}
         onSelect={setVisitTiming}
         undecidedLabel={t('consult.visitUndecided')}
@@ -118,7 +118,7 @@ export function StepVisitPlan() {
       <SelectionGroup
         title={t('consult.stayTitle')}
         options={STAY_OPTIONS}
-        labels={STAY_DURATION_LABELS}
+        labels={STAY_DURATION_LABEL_KEYS}
         selected={stayDuration}
         onSelect={setStayDuration}
         undecidedLabel={t('consult.stayUndecided')}
