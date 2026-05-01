@@ -4,3 +4,4 @@ export * as authApi from './auth';
 export type { LoginInput, RegisterInput } from './auth';
 export * as concernApi from './concern';
 export * as proposalApi from './proposal';
+export * as articleApi from './article';
