@@ -69,16 +69,14 @@ export async function POST(request: NextRequest) {
     });
 
     // Never return empty — i18n key 만 반환, FE 가 viewerLocale 기준 번역.
+    // options 는 빈 배열 — FE 가 fallback 키 (consult.fallbackOptionGeneric*) 로 자체 표시.
+    // bodyArea 는 enum key (etc), bodyAreaDetail 은 빈 문자열로 두어 FE 라벨 매핑 일관성 유지.
     return NextResponse.json({
       empathy: { key: 'concern.analysis.empathy.fallback' },
       education: { key: 'concern.analysis.education.fallback' },
-      options: [{
-        key: 'generic_consultation',
-        name: '맞춤 상담',
-        description: '고객님의 상황에 맞는 최적의 방법을 병원과 함께 찾아보세요.',
-      }],
+      options: [],
       extractedTags: { symptoms: [], preferences: [], budget: [], timing: [] },
-      extractedSummary: { bodyAreas: ['기타'], primaryArea: '기타', bodyAreaDetail: '일반 상담' },
+      extractedSummary: { bodyAreas: ['etc'], primaryArea: 'etc', bodyAreaDetail: '' },
       disclaimer: { key: 'concern.analysis.disclaimer' },
       ruleVersion: 'fallback',
     });
