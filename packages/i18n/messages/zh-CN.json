@@ -376,7 +376,8 @@
     "readTime": "{min}分钟阅读",
     "all": "全部",
     "loadError": "文章加载失败。",
-    "empty": "该分类暂无文章。"
+    "empty": "该分类暂无文章。",
+        "backToList": "返回列表"
   },
   "mypage": {
     "registeredConcerns": "已提交困扰",

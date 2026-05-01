@@ -376,7 +376,8 @@
     "readTime": "{min} min read",
     "all": "All",
     "loadError": "Failed to load articles.",
-    "empty": "No articles in this category yet."
+    "empty": "No articles in this category yet.",
+        "backToList": "Back to list"
   },
   "mypage": {
     "registeredConcerns": "Registered",

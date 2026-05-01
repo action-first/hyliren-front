@@ -376,7 +376,8 @@
     "readTime": "{min}分で読める",
     "all": "すべて",
     "loadError": "記事を読み込めませんでした。",
-    "empty": "このカテゴリーにはまだ記事がありません。"
+    "empty": "このカテゴリーにはまだ記事がありません。",
+        "backToList": "一覧へ戻る"
   },
   "mypage": {
     "registeredConcerns": "登録した悩み",
