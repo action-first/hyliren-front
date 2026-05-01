@@ -263,7 +263,7 @@ function ConcernStatusCard({
           <div className="flex items-center gap-2 mb-2.5">
             {budgetMin && budgetMax && (
               <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)]">
-                <Banknote size={10} /> {budgetMin}~{budgetMax}만
+                <Banknote size={10} /> {t('decision.budgetRangeMan', { min: budgetMin, max: budgetMax })}
               </span>
             )}
             {visitDateFrom && (
