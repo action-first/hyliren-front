@@ -1213,5 +1213,53 @@
         "description": "Directly removes fat from targeted areas. The approach varies by location and volume."
       }
     }
+  },
+  "lifecycle": {
+    "draft": {
+      "primary": "Continue consultation",
+      "helper": "Organize your photos and concerns to complete the consultation"
+    },
+    "submitted": {
+      "primaryWithProposal": "Check arrived proposals",
+      "primaryEditConcern": "Edit concern",
+      "secondary": "Read related info",
+      "helper": "Proposals usually arrive within 24~48 hours"
+    },
+    "proposalReceived": {
+      "primary": "Check received proposals",
+      "helper": "Don't pick right away — analyze first",
+      "extraNewArrived": "{count} new proposal(s) arrived"
+    },
+    "comparing": {
+      "primary": "Continue comparison",
+      "helper": "Review price, risk, and over-treatment together"
+    },
+    "reportPurchased": {
+      "primary": "View analysis results",
+      "secondary": "Re-review proposals",
+      "helper": "Organize your choice based on the analysis"
+    },
+    "hospitalSelected": {
+      "primary": "Plan schedule, interpreter, pickup",
+      "secondary": "Re-review the selected proposal",
+      "helper": "Proceed with interpreter, schedule, pickup, and other next steps"
+    },
+    "servicePurchased": {
+      "primary": "View service progress",
+      "secondary": "Register another concern",
+      "helper": "Check service status and supplement as needed"
+    },
+    "completed": {
+      "primary": "Register another concern",
+      "secondary": "View related articles",
+      "helper": "You can also consult on other areas or additional concerns"
+    },
+    "cancelled": {
+      "primary": "Start a new consultation",
+      "helper": "You can reorganize your concern and start fresh"
+    },
+    "fallback": {
+      "primary": "View details"
+    }
   }
 }

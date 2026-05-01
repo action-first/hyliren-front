@@ -1213,5 +1213,53 @@
         "description": "直接去除目标部位脂肪的方式。根据部位和量,方案各有不同。"
       }
     }
+  },
+  "lifecycle": {
+    "draft": {
+      "primary": "继续填写咨询",
+      "helper": "整理照片和困扰,完成咨询"
+    },
+    "submitted": {
+      "primaryWithProposal": "查看收到的方案",
+      "primaryEditConcern": "修改困扰内容",
+      "secondary": "阅读相关信息",
+      "helper": "通常24~48小时内会收到方案"
+    },
+    "proposalReceived": {
+      "primary": "查看收到的方案",
+      "helper": "请先分析后再做选择",
+      "extraNewArrived": "新方案 {count} 件已到达"
+    },
+    "comparing": {
+      "primary": "继续比较分析",
+      "helper": "一起确认价格、风险、过度治疗等情况"
+    },
+    "reportPurchased": {
+      "primary": "查看分析结果",
+      "secondary": "重新查看收到的方案",
+      "helper": "根据分析结果整理您的选择"
+    },
+    "hospitalSelected": {
+      "primary": "准备日程·翻译·接送",
+      "secondary": "重新查看选择的方案",
+      "helper": "请进行翻译、日程、接送等下一步准备"
+    },
+    "servicePurchased": {
+      "primary": "查看服务进度",
+      "secondary": "登记其他困扰",
+      "helper": "请确认服务准备状态并补充必要内容"
+    },
+    "completed": {
+      "primary": "登记其他困扰",
+      "secondary": "查看相关文章",
+      "helper": "您也可以咨询其他部位或补充困扰"
+    },
+    "cancelled": {
+      "primary": "重新开始咨询",
+      "helper": "可以重新整理困扰并开始新咨询"
+    },
+    "fallback": {
+      "primary": "查看详情"
+    }
   }
 }
