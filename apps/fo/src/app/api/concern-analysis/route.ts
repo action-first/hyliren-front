@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { parseAcceptLanguage } from '@hyliren/shared';
 import { analysisRequestSchema } from '@/server/concern-analysis/schema';
 import { analyzeConcernService } from '@/server/concern-analysis/service';
 import { log } from '@/lib/logger';
@@ -37,13 +38,11 @@ export async function POST(request: NextRequest) {
   const { photos, narrative, feedbackTurns } = parsed.data;
 
   // Accept-Language 헤더 → sourceLocale 추론 (extract 키워드 사전 선택용).
+  // q-value 우선순위 정렬 후 prefix 매칭 (BE 공통 resolver 와 정책 일치).
   // Customer 앱 fallback 'zh-CN' (i18n-strategy §8-1).
-  const acceptLang = request.headers.get('accept-language')?.split(',')[0]?.trim().toLowerCase() ?? '';
+  const acceptLang = request.headers.get('accept-language');
   const sourceLocale: 'ko' | 'zh-CN' | 'ja' | 'en' =
-    acceptLang.startsWith('ko') ? 'ko' :
-    acceptLang.startsWith('ja') ? 'ja' :
-    acceptLang.startsWith('en') ? 'en' :
-    'zh-CN';
+    (acceptLang ? parseAcceptLanguage(acceptLang) : null) ?? 'zh-CN';
 
   log('info', 'analysis_request_received', {
     photoCount: photos.length,
