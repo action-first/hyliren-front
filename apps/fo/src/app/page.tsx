@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button, Badge, BottomSheet } from '@hyliren/ui';
 import { ArrowRight, Camera, MessageCircle, FileText, ChevronRight, ShieldCheck, Clock } from 'lucide-react';
-import { ARTICLES } from '@/lib/articles-data';
 import { getAreaBar } from '@/lib/area-styles';
 import { useLocaleStore } from '@/store/locale';
 import { useMyConcerns } from '@/lib/hooks/concern';
 import { listProcedures } from '@/lib/api/procedure';
 import type { ProcedureListItemWire } from '@/lib/api/procedure';
+import { listArticles, mapArticleListItem, type ArticleListItem } from '@/lib/api/article';
 
 type UserPhase = 'idle' | 'waiting' | 'proposals_ready';
 
@@ -29,6 +29,8 @@ export default function HomePage() {
 
   const [popularProcedures, setPopularProcedures] = useState<ProcedureListItemWire[]>([]);
   const [proceduresLoading, setProceduresLoading] = useState(true);
+  const [recentArticles, setRecentArticles] = useState<ArticleListItem[]>([]);
+  const locale = useLocaleStore(s => s.locale);
 
   useEffect(() => {
     listProcedures({ sort: 'popular', limit: 6 })
@@ -36,6 +38,13 @@ export default function HomePage() {
       .catch(() => setPopularProcedures([]))
       .finally(() => setProceduresLoading(false));
   }, []);
+
+  // 랜딩 article 3건 — locale 변경 시 재호출 (Accept-Language 자동 주입).
+  useEffect(() => {
+    listArticles({ limit: 3 })
+      .then(w => setRecentArticles(w.articles.map(mapArticleListItem)))
+      .catch(() => setRecentArticles([]));
+  }, [locale]);
 
   // TODO: 백엔드에 unread proposal 집계 endpoint 추가되면 연결 (현재는 진입 시점에 도착 알림 미노출)
   const userProposalCount = 0;
@@ -196,20 +205,19 @@ export default function HomePage() {
           </Link>
         </div>
         <div className="flex flex-col gap-2.5">
-          {ARTICLES.slice(0, 3).map(a => (
+          {recentArticles.map(a => (
             <Link key={a.id} href={`/articles/${a.slug}`}
               className="flex gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
               style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
               <div className="w-14 h-14 rounded-[var(--app-radius-sm)] overflow-hidden shrink-0 relative">
-                <img src={a.heroImage} alt={a.title} className="w-full h-full object-cover" />
-                <div className={`absolute bottom-0 left-0 right-0 h-1 ${getAreaBar(a.bodyArea)}`} />
+                {a.coverImageUrl && (
+                  <img src={a.coverImageUrl} alt={a.title} className="w-full h-full object-cover" />
+                )}
+                <div className={`absolute bottom-0 left-0 right-0 h-1 ${getAreaBar(a.primaryArea)}`} />
               </div>
               <div className="flex flex-col gap-1 justify-center min-w-0">
                 <div className="flex items-center gap-1.5">
                   <Badge variant={a.tagColor} size="sm">{a.category}</Badge>
-                  <span className="flex items-center gap-0.5 text-[10px] text-[var(--color-text-dim)]">
-                    <Clock size={9} /> {t('landing.minutesRead', { min: a.readTime })}
-                  </span>
                 </div>
                 <span className="text-[13px] font-medium text-[var(--color-text)] leading-snug line-clamp-2">{a.title}</span>
               </div>
