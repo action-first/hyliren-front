@@ -243,7 +243,9 @@
       "5to7d": "5~7 days",
       "2weeks": "About 2 weeks",
       "undecided": "Not decided"
-    }
+    },
+    "reviewFallbackNotice": "Couldn't reach the analysis server — showing default guidance. Check your connection and try again.",
+    "reviewRetry": "Retry analysis"
   },
   "decision": {
     "emptyTitle": "No proposals yet",
@@ -270,7 +272,8 @@
     "priceQuestion": "Is {price}0K KRW a fair price?",
     "priceHint": "The same procedure can vary by clinic in price and composition.\nCheck for overtreatment and the market average.",
     "verifyCta": "Verify this proposal · ₩4,900",
-    "otherProposals": "Show me other proposals"
+    "otherProposals": "Show me other proposals",
+    "verifyReportCta": "View verification report"
   },
   "report": {
     "verificationReport": "Verification report",

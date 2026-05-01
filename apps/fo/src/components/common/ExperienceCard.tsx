@@ -67,7 +67,7 @@ export function ExperienceCard({
 
         {verified && (
           <span className={`absolute ${unread ? 'top-10' : 'top-3'} right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--color-bg)]/90 backdrop-blur-sm text-[11px] font-semibold text-[var(--color-success)]`}>
-            <ShieldCheck size={12} /> 인증
+            <ShieldCheck size={12} /> {t('common.verified')}
           </span>
         )}
 

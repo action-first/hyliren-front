@@ -243,7 +243,9 @@
       "5to7d": "5~7日",
       "2weeks": "2週間程度",
       "undecided": "未定"
-    }
+    },
+    "reviewFallbackNotice": "分析サーバーに接続できないため、基本案内を表示しています。ネットワークを確認して再度お試しください。",
+    "reviewRetry": "再分析する"
   },
   "decision": {
     "emptyTitle": "まだ届いた提案がありません",
@@ -270,7 +272,8 @@
     "priceQuestion": "{price}万ウォン、合理的な価格でしょうか?",
     "priceHint": "同じ施術でも病院によって価格と構成が異なります。\n過剰診療の有無と市場平均を確認してみましょう。",
     "verifyCta": "この提案を検証 · ₩4,900",
-    "otherProposals": "他の提案も見たい"
+    "otherProposals": "他の提案も見たい",
+    "verifyReportCta": "検証レポートを見る"
   },
   "report": {
     "verificationReport": "検証レポート",
