@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { track } from '@hyliren/shared';
 import { Button, Badge } from '@hyliren/ui';
@@ -8,10 +8,11 @@ import {
   ArrowRight, Edit3, Camera, ChevronRight,
   Sparkles, MessageCircle, BookOpen, Calendar, Wallet,
 } from 'lucide-react';
-import { computeConcernActions, getRecommendedArticles } from '@/domain/lifecycle';
+import { computeConcernActions } from '@/domain/lifecycle';
 import { useLocaleStore } from '@/store/locale';
 import { useConcern } from '@/lib/hooks/concern';
 import { useProposalsForConcern } from '@/lib/hooks/proposal';
+import { listArticles, listRelatedArticles, mapArticleListItem, type ArticleListItem } from '@/lib/api/article';
 
 function ConcernPhoto({ url }: { url: string }) {
   const [failed, setFailed] = useState(false);
@@ -56,7 +57,6 @@ export default function ConcernDetailPage({ params }: Props) {
 
   const proposals = realProposals.filter(p => p.isActive);
   const actions = computeConcernActions(concern, realProposals);
-  const articles = getRecommendedArticles(concern.primaryArea, concern.status);
 
   return (
     <div className="flex flex-col px-5 pt-5 pb-10">
@@ -224,32 +224,10 @@ export default function ConcernDetailPage({ params }: Props) {
       )}
 
       {/* ══════════════════════════════════════
-          SECTION 5: 관련 아티클
+          SECTION 5: 관련 아티클 (BE listRelatedArticles — 다국어)
          ══════════════════════════════════════ */}
-      <section className="mb-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[15px] font-bold text-[var(--color-text)]">{t('concern.relatedInfo')}</h2>
-          <Link href="/articles" className="flex items-center gap-0.5 text-[11px] text-[var(--color-text-dim)] no-underline">
-            {t('common.seeMore')} <ChevronRight size={14} />
-          </Link>
-        </div>
-        <div className="flex flex-col gap-2">
-          {articles.slice(0, 3).map((a, i) => (
-            <Link key={i} href="/articles" className="flex gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
-              style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
-              <div className="w-12 h-12 rounded-[var(--app-radius-sm)] overflow-hidden shrink-0">
-                <div className={`w-full h-full bg-gradient-to-br ${a.gradient} flex items-center justify-center`}>
-                  <BookOpen size={14} className="text-white/50" />
-                </div>
-              </div>
-              <div className="flex flex-col gap-0.5 justify-center min-w-0">
-                <Badge variant={a.tagColor} size="sm">{a.tag}</Badge>
-                <span className="text-[12px] font-medium text-[var(--color-text)] leading-snug line-clamp-1">{a.title}</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <RelatedArticlesSection bodyArea={concern.primaryArea} />
+
 
       {/* ══════════════════════════════════════
           SECTION 6: 재진입 CTA
@@ -265,5 +243,70 @@ export default function ConcernDetailPage({ params }: Props) {
         </Link>
       </div>
     </div>
+  );
+}
+
+/**
+ * BE listRelatedArticles 기반 관련 아티클 (Accept-Language 따라 4 로케일 자동).
+ * 정적 한국어 dict (lifecycle.ts AREA_ARTICLES/STATUS_ARTICLES) 폐기 — sourceLocale 오염 방지.
+ */
+function RelatedArticlesSection({ bodyArea }: { bodyArea: string }) {
+  const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
+  const [articles, setArticles] = useState<ArticleListItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const handle = async () => {
+      try {
+        const related = await listRelatedArticles({ area: bodyArea });
+        if (cancelled) return;
+        if (related.articles.length > 0) {
+          setArticles(related.articles.slice(0, 3).map(mapArticleListItem));
+          return;
+        }
+      } catch { /* fallback to list */ }
+      try {
+        const all = await listArticles({ limit: 3 });
+        if (!cancelled) setArticles(all.articles.map(mapArticleListItem));
+      } catch {
+        if (!cancelled) setArticles([]);
+      }
+    };
+    void handle();
+    return () => { cancelled = true; };
+  }, [bodyArea, locale]);
+
+  if (articles.length === 0) return null;
+
+  return (
+    <section className="mb-5">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-[15px] font-bold text-[var(--color-text)]">{t('concern.relatedInfo')}</h2>
+        <Link href="/articles" className="flex items-center gap-0.5 text-[11px] text-[var(--color-text-dim)] no-underline">
+          {t('common.seeMore')} <ChevronRight size={14} />
+        </Link>
+      </div>
+      <div className="flex flex-col gap-2">
+        {articles.map(a => (
+          <Link key={a.id} href={`/articles/${a.slug}`} className="flex gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
+            style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
+            <div className="w-12 h-12 rounded-[var(--app-radius-sm)] overflow-hidden shrink-0 bg-[var(--color-bg-secondary)] flex items-center justify-center">
+              {a.coverImageUrl ? (
+                <img src={a.coverImageUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <BookOpen size={14} className="text-[var(--color-text-dim)]" />
+              )}
+            </div>
+            <div className="flex flex-col gap-0.5 justify-center min-w-0">
+              {a.primaryArea !== 'all' && (
+                <Badge variant="info" size="sm">{t(`common.bodyArea.${a.primaryArea}`)}</Badge>
+              )}
+              <span className="text-[12px] font-medium text-[var(--color-text)] leading-snug line-clamp-1">{a.title}</span>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
