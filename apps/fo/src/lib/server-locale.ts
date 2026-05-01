@@ -1,5 +1,5 @@
 import { cookies, headers } from 'next/headers';
-import { narrowLocale, type Locale } from '@hyliren/shared';
+import { narrowLocale, parseAcceptLanguage, type Locale } from '@hyliren/shared';
 
 export const LOCALE_COOKIE_NAME = 'mimyo-locale';
 
@@ -8,7 +8,9 @@ export const LOCALE_COOKIE_NAME = 'mimyo-locale';
  *
  * 우선순위:
  *   1. cookie `mimyo-locale` (FE 의 useLocaleStore.setLocale 이 동기화)
- *   2. `Accept-Language` 헤더 첫 매치
+ *   2. `Accept-Language` 헤더 — q-value 우선순위로 정렬된 다단 매칭
+ *      (BE 공통 resolver 와 동일한 RFC 7231 §5.3.5 부분 구현)
+ *      예: `fr-FR, ja;q=0.9, en;q=0.8` → ja 매칭
  *   3. fallback `'zh-CN'` (Customer 앱 주 사용자)
  *
  * Why cookie:
@@ -24,11 +26,10 @@ export async function getServerLocale(): Promise<Locale> {
 
   const headerStore = await headers();
   const accept = headerStore.get('accept-language');
-  const first = accept?.split(',')[0]?.trim().toLowerCase();
-  if (first?.startsWith('zh')) return 'zh-CN';
-  if (first?.startsWith('ja')) return 'ja';
-  if (first?.startsWith('en')) return 'en';
-  if (first?.startsWith('ko')) return 'ko';
+  if (accept) {
+    const parsed = parseAcceptLanguage(accept);
+    if (parsed) return parsed;
+  }
 
   return 'zh-CN';
 }
