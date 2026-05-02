@@ -133,7 +133,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
               })}
               {!purchased && (
                 <p className="text-[11px] text-[var(--color-text-dim)] leading-relaxed px-1 mt-1">
-                  리포트 확인 시 정확한 결과를 보여드립니다.
+                  {t('report.previewLockedHint')}
                 </p>
               )}
             </div>
@@ -289,7 +289,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
           <div className="sticky bottom-0 bg-[var(--color-bg)] border-t border-[var(--color-border-light)] px-5 py-4">
             {purchased ? (
               <Button variant="neutral" size="xl" fullWidth onClick={() => { onClose(); router.push(`/mypage/reports/${proposal.id}`); }}>
-                리포트 상세 보기
+                {t('report.viewReportDetail')}
               </Button>
             ) : (
               <>

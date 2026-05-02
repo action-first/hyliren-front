@@ -364,7 +364,9 @@
     "summaryTemplate": "对 {hospital} 的 {price}万韩元提案进行分析。",
     "compareWinnerOpinion": "通过对 {count} 个方案的综合分析，{hospitalName} 在价格与风险方面最为均衡。",
     "compareWinnerAdvice": "在最终决定前，建议通过医院咨询获得符合您个人情况的精准诊断。",
-    "compareDisclaimer": "本报告基于一般市场数据与术式信息撰写，结果可能因个人医疗状况而异。"
+    "compareDisclaimer": "本报告基于一般市场数据与术式信息撰写，结果可能因个人医疗状况而异。",
+    "previewLockedHint": "查看完整报告后将显示精确结果。",
+    "viewReportDetail": "查看报告详情"
   },
   "nudge": {
     "title": "这个选择，没问题吗？",
