@@ -364,7 +364,9 @@
     "summaryTemplate": "Analysis of {hospital}'s {price}0K KRW proposal.",
     "compareWinnerOpinion": "Across {count} proposals, {hospitalName} stands out as the most balanced option on price and risk.",
     "compareWinnerAdvice": " Before finalizing, schedule a hospital consultation for a diagnosis tailored to your condition.",
-    "compareDisclaimer": "This report is based on general market data and procedure information; results may vary depending on individual medical conditions."
+    "compareDisclaimer": "This report is based on general market data and procedure information; results may vary depending on individual medical conditions.",
+    "previewLockedHint": "Exact details are revealed once you unlock the report.",
+    "viewReportDetail": "View report details"
   },
   "nudge": {
     "title": "Are you sure about this?",
