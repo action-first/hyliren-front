@@ -56,7 +56,10 @@
       "diet": "ダイエット",
       "etc": "その他",
       "all": "すべて"
-    }
+    },
+    "unknownHospital": "病院情報なし",
+    "untitled": "タイトルなし",
+    "anonymous": "匿名"
   },
   "landing": {
     "heroEmpathy": "鏡を見るたびに気になる部分はありませんか?",
@@ -519,7 +522,8 @@
         }
       },
       "disclaimer": "実際の適用可否は実際の医院での相談と診断によって決定されます。"
-    }
+    },
+    "aiMessageFallback": "こんにちは!お悩みをしっかり理解しました。"
   },
   "proposal": {
     "list": {
@@ -1410,5 +1414,10 @@
     "ERR_VARIANT_LAST_REQUIRED": "オプションは最低 1 つ維持する必要があります。",
     "ERR_VARIANT_REQUIRED": "最低 1 つのオプションが必要です。",
     "ERR_PASSWORD_RULE": "パスワードは英字と数字をそれぞれ 1 文字以上含む必要があります。"
+  },
+  "home": {
+    "bannerTitle": "MIMYO と一緒に始めましょう",
+    "bannerDesc": "認証済みの韓国の病院から最適な提案をお受け取りください",
+    "newProposalAlert": "{count}件の新しい提案が届きました"
   }
 }

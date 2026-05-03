@@ -125,7 +125,7 @@ export default function ReportDetailPage() {
       {/* 병원 요약 */}
       <div className="px-5 pt-2 pb-4">
         <div className="flex items-center gap-1.5 mb-1">
-          <h1 className="text-[1.25rem] font-bold text-[var(--color-text)]">{proposal.hospitalName}</h1>
+          <h1 className="text-[1.25rem] font-bold text-[var(--color-text)]">{proposal.hospitalName || t('common.unknownHospital')}</h1>
           {proposal.hospitalIsCertified && (
             <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[var(--color-success-soft)] text-[9px] font-semibold text-[var(--color-success)]">
               <ShieldCheck size={9} /> {t('common.verified')}

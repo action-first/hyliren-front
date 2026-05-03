@@ -56,7 +56,10 @@
       "diet": "다이어트",
       "etc": "기타",
       "all": "전체"
-    }
+    },
+    "unknownHospital": "병원 정보 없음",
+    "untitled": "제목 없음",
+    "anonymous": "익명"
   },
   "landing": {
     "heroEmpathy": "거울 볼 때마다 신경 쓰이는 부분이 있으시죠?",
@@ -519,7 +522,8 @@
         }
       },
       "disclaimer": "정확한 적용 여부는 실제 병원의 상담과 진단을 통해 결정됩니다."
-    }
+    },
+    "aiMessageFallback": "안녕하세요! 고민을 잘 이해했습니다."
   },
   "proposal": {
     "list": {
@@ -1410,5 +1414,10 @@
     "ERR_VARIANT_LAST_REQUIRED": "최소 1개의 옵션은 유지되어야 합니다.",
     "ERR_VARIANT_REQUIRED": "최소 1개의 옵션이 필요합니다.",
     "ERR_PASSWORD_RULE": "비밀번호는 영문과 숫자를 각각 1자 이상 포함해야 합니다."
+  },
+  "home": {
+    "bannerTitle": "미묘와 함께 시작하세요",
+    "bannerDesc": "검증된 한국 병원들의 맞춤 제안서를 받아보세요",
+    "newProposalAlert": "{count}개의 새로운 제안서가 도착했습니다"
   }
 }

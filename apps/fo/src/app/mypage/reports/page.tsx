@@ -109,7 +109,7 @@ export default function PurchasedReportsPage() {
                 {/* 병원명 + 인증 */}
                 <div className="flex items-center gap-1.5 mb-1">
                   <span className="text-[14px] font-semibold text-[var(--color-text)]">
-                    {proposal.hospitalName}
+                    {proposal.hospitalName || t('common.unknownHospital')}
                   </span>
                   {proposal.hospitalIsCertified && (
                     <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[var(--color-success-soft)] text-[9px] font-semibold text-[var(--color-success)]">

@@ -173,7 +173,7 @@ export default function ConcernListPage() {
   const rowData: ConcernRow[] = (data?.concerns ?? [])
     .map(c => ({
       id: c.id,
-      userName: c.userName,
+      userName: c.userName || t('common.anonymous'),
       primaryArea: c.primaryArea,
       bodyAreaDetail: c.bodyAreaDetail || '',
       description: c.description.length > 50 ? c.description.slice(0, 50) + '...' : c.description,

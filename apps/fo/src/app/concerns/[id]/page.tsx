@@ -185,7 +185,7 @@ export default function ConcernDetailPage({ params }: Props) {
                     {(p.hospitalName || t('services.fallbackHospitalName'))[0]}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-[13px] font-medium text-[var(--color-text)]">{p.hospitalName}</span>
+                    <span className="text-[13px] font-medium text-[var(--color-text)]">{p.hospitalName || t('common.unknownHospital')}</span>
                     <div className="flex items-center gap-2 text-[11px] text-[var(--color-text-dim)]">
                       <span>{p.totalPrice}{t('common.currency')}</span>
                       <span>{t('common.recovery')} {p.recoveryDays}{t('common.days')}</span>

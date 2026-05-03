@@ -56,7 +56,10 @@
       "diet": "Body",
       "etc": "Other",
       "all": "All"
-    }
+    },
+    "unknownHospital": "Hospital info unavailable",
+    "untitled": "Untitled",
+    "anonymous": "Anonymous"
   },
   "landing": {
     "heroEmpathy": "Is there something you notice every time you look in the mirror?",
@@ -519,7 +522,8 @@
         }
       },
       "disclaimer": "Actual suitability is determined through in-person consultation and diagnosis at the clinic."
-    }
+    },
+    "aiMessageFallback": "Hello! We have understood your concern well."
   },
   "proposal": {
     "list": {
@@ -1410,5 +1414,10 @@
     "ERR_VARIANT_LAST_REQUIRED": "At least one variant must remain.",
     "ERR_VARIANT_REQUIRED": "At least one variant is required.",
     "ERR_PASSWORD_RULE": "Password must contain at least 1 letter and 1 number."
+  },
+  "home": {
+    "bannerTitle": "Start with MIMYO",
+    "bannerDesc": "Receive personalized proposals from verified Korean hospitals",
+    "newProposalAlert": "{count} new proposals received"
   }
 }
