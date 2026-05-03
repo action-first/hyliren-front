@@ -5,7 +5,6 @@ import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation
 import {
   BODY_AREA_BADGE,
   CONCERN_STATUS_BADGE,
-  CONCERN_STATUS_KR,
   formatBudget,
   formatDateKR,
   formatDateRange,
@@ -21,8 +20,22 @@ import { ApiError } from '@/lib/api/errors';
 import { useLocaleStore } from '@/store/locale';
 
 // ── 작은 표시 컴포넌트 ──
-function StatusBadge({ label, map }: { label: string; map: Record<string, { bg: string; text: string }> }) {
-  const c = map[label];
+
+/** concern.status enum (snake_case) → lifecycle.status i18n key suffix (camelCase). */
+const CONCERN_STATUS_I18N_SUFFIX: Record<string, string> = {
+  draft: 'draft',
+  submitted: 'submitted',
+  proposal_received: 'proposalReceived',
+  comparing: 'comparing',
+  report_purchased: 'reportPurchased',
+  hospital_selected: 'hospitalSelected',
+  service_purchased: 'servicePurchased',
+  completed: 'completed',
+  cancelled: 'cancelled',
+};
+
+function StatusBadge({ statusKey, label, map }: { statusKey: string; label: string; map: Record<string, { bg: string; text: string }> }) {
+  const c = map[statusKey];
   if (!c) return <Badge>{label}</Badge>;
   return (
     <span
@@ -134,7 +147,7 @@ export default function ConcernDetailPage() {
     notFound();
   }
 
-  const statusLabel = CONCERN_STATUS_KR[concern.status] ?? concern.status;
+  const statusLabel = t(`lifecycle.status.${CONCERN_STATUS_I18N_SUFFIX[concern.status] ?? concern.status}`) || concern.status;
 
   return (
     <>
@@ -179,7 +192,7 @@ export default function ConcernDetailPage() {
                 </div>
               </div>
               <div className="flex-shrink-0">
-                <StatusBadge label={statusLabel} map={CONCERN_STATUS_BADGE} />
+                <StatusBadge statusKey={concern.status} label={statusLabel} map={CONCERN_STATUS_BADGE} />
               </div>
             </div>
           </Card>

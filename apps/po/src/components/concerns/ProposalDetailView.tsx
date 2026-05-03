@@ -1,12 +1,10 @@
 'use client';
 
 import {
-  ANESTHESIA_KR,
   CREDIT_COST,
   formatDateKR,
   formatDateRange,
   PROPOSAL_STATUS_BADGE,
-  PROPOSAL_STATUS_KR,
 } from '@hyliren/shared';
 import { Badge, Card, SectionHeader } from '@hyliren/ui';
 
@@ -32,8 +30,8 @@ function getStepIndex(status: string): number {
   return idx >= 0 ? idx : 0;
 }
 
-function StatusBadge({ label }: { label: string }) {
-  const c = PROPOSAL_STATUS_BADGE[label];
+function StatusBadge({ status, label }: { status: string; label: string }) {
+  const c = PROPOSAL_STATUS_BADGE[status];
   if (!c) return <Badge>{label}</Badge>;
   return (
     <span
@@ -44,6 +42,16 @@ function StatusBadge({ label }: { label: string }) {
       {label}
     </span>
   );
+}
+
+/**
+ * AnesthesiaType enum → 'common.anesthesia*' i18n key 매핑.
+ */
+function anesthesiaLabel(key: string, t: (k: string) => string): string {
+  if (key === 'local') return t('common.anesthesiaLocal');
+  if (key === 'sedation') return t('common.anesthesiaSedation');
+  if (key === 'general') return t('common.anesthesiaGeneral');
+  return key;
 }
 
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -61,7 +69,7 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
  */
 export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetailViewProps) {
   const t = useLocaleStore(s => s.t);
-  const statusLabel = PROPOSAL_STATUS_KR[proposal.status] ?? proposal.status;
+  const statusLabel = t(`po.proposalStatus.${proposal.status}`) || proposal.status;
   const currentStep = getStepIndex(proposal.status);
 
   return (
@@ -70,7 +78,7 @@ export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetail
       <Card padding="md">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[var(--text-sm)] text-[var(--text-subdued)]">{t('po.proposalProgressStatus')}</span>
-          <StatusBadge label={statusLabel} />
+          <StatusBadge status={proposal.status} label={statusLabel} />
         </div>
         <div className="flex items-center gap-1">
           {TIMELINE_STEPS.map((step, i) => {
@@ -154,7 +162,7 @@ export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetail
         <div className="flex flex-col gap-3 mt-3">
           <MetaRow label={t('po.proposalMetaRecovery')}>{t('po.proposalMetaDays', { days: proposal.recoveryDays })}</MetaRow>
           <hr className="border-0 border-t border-[var(--border-subdued)]" />
-          <MetaRow label={t('po.proposalMetaAnesthesia')}>{ANESTHESIA_KR[proposal.anesthesiaType] ?? proposal.anesthesiaType}</MetaRow>
+          <MetaRow label={t('po.proposalMetaAnesthesia')}>{anesthesiaLabel(proposal.anesthesiaType, t)}</MetaRow>
           <hr className="border-0 border-t border-[var(--border-subdued)]" />
           <MetaRow label={t('po.proposalMetaStay')}>{t('po.proposalMetaDays', { days: proposal.hospitalStayDays })}</MetaRow>
           <hr className="border-0 border-t border-[var(--border-subdued)]" />

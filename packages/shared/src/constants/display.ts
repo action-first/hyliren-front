@@ -66,17 +66,17 @@ export const CONCERN_STATUS_KR: Record<string, string> = {
 };
 
 // ── 고민 상태 뱃지 색상 ──
+// concern.status enum key 기반 (한국어 키 매핑 폐기 — 다국어 사용처 호환).
 export const CONCERN_STATUS_BADGE: Record<string, BadgeColor> = {
-  '임시저장':     { bg: '#f3f4f6', text: '#6b7280' },
-  '접수됨':       { bg: '#f3f4f6', text: '#374151' },
-  '제안 대기':    { bg: '#fef9c3', text: '#854d0e' },
-  '제안 도착':    { bg: '#dbeafe', text: '#1e40af' },
-  '비교 중':      { bg: '#e0e7ff', text: '#3730a3' },
-  '리포트 구매':  { bg: '#fce7f3', text: '#9d174d' },
-  '병원 선택':    { bg: '#dcfce7', text: '#166534' },
-  '서비스 구매':  { bg: '#d1fae5', text: '#047857' },
-  '완료':         { bg: '#f0fdf4', text: '#15803d' },
-  '취소':         { bg: '#fef2f2', text: '#991b1b' },
+  draft:             { bg: '#f3f4f6', text: '#6b7280' },
+  submitted:         { bg: '#f3f4f6', text: '#374151' },
+  proposal_received: { bg: '#dbeafe', text: '#1e40af' },
+  comparing:         { bg: '#e0e7ff', text: '#3730a3' },
+  report_purchased:  { bg: '#fce7f3', text: '#9d174d' },
+  hospital_selected: { bg: '#dcfce7', text: '#166534' },
+  service_purchased: { bg: '#d1fae5', text: '#047857' },
+  completed:         { bg: '#f0fdf4', text: '#15803d' },
+  cancelled:         { bg: '#fef2f2', text: '#991b1b' },
 };
 
 // ── 제안서 상태 한글 라벨 ──
@@ -93,15 +93,16 @@ export const PROPOSAL_STATUS_KR: Record<string, string> = {
   expired: '만료',
 };
 
-// ── 제안서 상태 뱃지 색상 ──
+// ── 제안서 상태 뱃지 색상 (proposal.status enum key 기반) ──
 export const PROPOSAL_STATUS_BADGE: Record<string, BadgeColor> = {
-  '임시저장': { bg: '#f3f4f6', text: '#6b7280' },
-  '발송':     { bg: '#f3f4f6', text: '#374151' },
-  '열람':     { bg: '#fef9c3', text: '#854d0e' },
-  '후보':     { bg: '#dbeafe', text: '#1e40af' },
-  '선택됨':   { bg: '#dcfce7', text: '#166534' },
-  '거절':     { bg: '#fef2f2', text: '#991b1b' },
-  '만료':     { bg: '#f3f4f6', text: '#6b7280' },
+  draft:       { bg: '#f3f4f6', text: '#6b7280' },
+  sent:        { bg: '#f3f4f6', text: '#374151' },
+  viewed:      { bg: '#fef9c3', text: '#854d0e' },
+  shortlisted: { bg: '#dbeafe', text: '#1e40af' },
+  selected:    { bg: '#dcfce7', text: '#166534' },
+  accepted:    { bg: '#dcfce7', text: '#166534' },
+  rejected:    { bg: '#fef2f2', text: '#991b1b' },
+  expired:     { bg: '#f3f4f6', text: '#6b7280' },
 };
 
 // ── 마취 유형 한글 라벨 ──

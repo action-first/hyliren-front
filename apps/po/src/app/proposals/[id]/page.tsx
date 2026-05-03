@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import { notFound, useRouter } from 'next/navigation';
-import { PROPOSAL_STATUS_BADGE, PROPOSAL_STATUS_KR } from '@hyliren/shared';
+import { PROPOSAL_STATUS_BADGE } from '@hyliren/shared';
 import { AdminPage, Badge, Spinner } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
 import { ProposalDetailView } from '@/components/concerns/ProposalDetailView';
@@ -11,8 +11,8 @@ import { listMyProposals, type ProposalDetailWire } from '@/lib/api/proposal';
 import { ApiError } from '@/lib/api/errors';
 import { useLocaleStore } from '@/store/locale';
 
-function StatusBadge({ label }: { label: string }) {
-  const c = PROPOSAL_STATUS_BADGE[label];
+function StatusBadge({ status, label }: { status: string; label: string }) {
+  const c = PROPOSAL_STATUS_BADGE[status];
   if (!c) return <Badge>{label}</Badge>;
   return (
     <span
@@ -79,7 +79,7 @@ export default function ProposalDetailPage({ params }: Props) {
     notFound();
   }
 
-  const statusLabel = PROPOSAL_STATUS_KR[proposal.status] ?? proposal.status;
+  const statusLabel = t(`po.proposalStatus.${proposal.status}`) || proposal.status;
   const concernLabel = concern
     ? `${t(`common.bodyArea.${concern.primaryArea}`)} ${concern.bodyAreaDetail ?? ''}`.trim()
     : '';
@@ -93,7 +93,7 @@ export default function ProposalDetailPage({ params }: Props) {
       title={title}
       prefix="po"
       onBack={() => router.back()}
-      actions={<StatusBadge label={statusLabel} />}
+      actions={<StatusBadge status={proposal.status} label={statusLabel} />}
     >
       <div className="max-w-[640px] mx-auto">
         <ProposalDetailView proposal={proposal} />

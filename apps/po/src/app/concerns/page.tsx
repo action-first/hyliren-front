@@ -40,7 +40,9 @@ interface ConcernRow {
   description: string;
   budget: string;
   visitDate: string;
-  /** FE-derived: '미발송' | '발송완료' */
+  /** FE-derived enum: 'not_sent' | 'sent' — 표시 라벨은 cellRenderer 에서 t() 매핑 */
+  mySentStatus: 'not_sent' | 'sent';
+  /** FE-derived 다국어 표시 라벨 (filter/render 용, 활성 locale 따름) */
   mySentLabel: string;
   createdAt: string;
   proposalCount: number;
@@ -48,10 +50,10 @@ interface ConcernRow {
   mySentAt: string;
 }
 
-// "내 제안" 라벨 ↔ FE-derived state 매핑 (FE-derived state, locale 무관)
+// "내 제안" 라벨 ↔ FE-derived state 매핑 (enum key 기반, locale 무관)
 const MY_SENT_BADGE: Record<string, BadgeColor> = {
-  '미발송':   { bg: '#fef9c3', text: '#854d0e' },
-  '발송완료': { bg: '#dbeafe', text: '#1e40af' },
+  not_sent: { bg: '#fef9c3', text: '#854d0e' },
+  sent:     { bg: '#dbeafe', text: '#1e40af' },
 };
 
 function isSameQuery(a: ConcernListQuery, b: ConcernListQuery): boolean {
@@ -74,9 +76,9 @@ export default function ConcernListPage() {
   const searchFields: SearchField[] = [
     { key: 'createdAt', label: t('po.concernFilterPeriod'), type: 'dateRange', row: 1 },
     { key: 'primaryArea', label: t('po.concernFilterArea'), type: 'select', row: 1, options: (BODY_AREAS as readonly string[]).map(a => ({ value: a, label: t(`common.bodyArea.${a}`) })) },
-    { key: 'mySentLabel', label: t('po.concernFilterMyProposal'), type: 'select', row: 1, options: [
-      { value: '미발송', label: t('po.concernMySentNot') },
-      { value: '발송완료', label: t('po.concernMySentDone') },
+    { key: 'mySentStatus', label: t('po.concernFilterMyProposal'), type: 'select', row: 1, options: [
+      { value: 'not_sent', label: t('po.concernMySentNot') },
+      { value: 'sent', label: t('po.concernMySentDone') },
     ]},
     { key: '_keyword', label: t('po.concernFilterKeyword'), placeholder: t('po.concernFilterKeywordPh'), row: 2 },
   ];
@@ -99,8 +101,21 @@ export default function ConcernListPage() {
     { field: 'budget', headerName: t('po.concernColBudget'), flex: 0.7, minWidth: 80, filter: false },
     { field: 'visitDate', headerName: t('po.concernColVisitDate'), flex: 0.8, minWidth: 90, filter: false },
     {
-      field: 'mySentLabel', headerName: t('po.concernColMyProposal'), flex: 0.7, minWidth: 80, filter: true,
-      cellRenderer: badgeCellRenderer(MY_SENT_BADGE),
+      field: 'mySentStatus', headerName: t('po.concernColMyProposal'), flex: 0.7, minWidth: 80, filter: true,
+      // 셀 값은 enum (sent/not_sent), 표시 라벨은 활성 locale 의 t() 매핑
+      cellRenderer: (p: { value: string }) => {
+        const status = p.value;
+        const c = MY_SENT_BADGE[status] || { bg: '#f3f4f6', text: '#374151' };
+        const label = status === 'sent' ? t('po.concernMySentDone') : t('po.concernMySentNot');
+        return (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center',
+            height: 22, padding: '0 8px', borderRadius: 4,
+            fontSize: 12, fontWeight: 500, lineHeight: 1,
+            background: c.bg, color: c.text,
+          }}>{label}</span>
+        );
+      },
     },
     {
       field: 'createdAt', headerName: t('po.concernColCreatedAt'), flex: 0.7, minWidth: 80, filter: false,
@@ -163,12 +178,13 @@ export default function ConcernListPage() {
       description: c.description.length > 50 ? c.description.slice(0, 50) + '...' : c.description,
       budget: formatBudget(c.budgetMin, c.budgetMax),
       visitDate: formatDateRange(c.visitDateFrom, c.visitDateTo),
-      mySentLabel: c.mySentAt ? '발송완료' : '미발송',
+      mySentStatus: c.mySentAt ? 'sent' : 'not_sent' as 'sent' | 'not_sent',
+      mySentLabel: c.mySentAt ? t('po.concernMySentDone') : t('po.concernMySentNot'),
       createdAt: formatDateKR(c.createdAt),
       proposalCount: c.proposalCount,
       mySentAt: c.mySentAt ? formatDateKR(c.mySentAt) : '-',
     }))
-    .filter(r => !mySentFilter || r.mySentLabel === mySentFilter);
+    .filter(r => !mySentFilter || r.mySentStatus === mySentFilter);
 
   return (
     <AdminPage sidebar={<POSidebar active="/concerns" />} title={t('po.concernsListTitle')} prefix="po">

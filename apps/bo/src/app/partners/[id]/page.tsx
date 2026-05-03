@@ -28,8 +28,8 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-function StatusBadge({ label, map }: { label: string; map: Record<string, { bg: string; text: string }> }) {
-  const c = map[label];
+function StatusBadge({ statusKey, label, map }: { statusKey: string; label: string; map: Record<string, { bg: string; text: string }> }) {
+  const c = map[statusKey];
   if (!c) return <Badge>{label}</Badge>;
   return (
     <span style={{
@@ -124,7 +124,7 @@ export default async function PartnerDetailPage({ params }: Props) {
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                         <span style={{ fontSize: 18, fontWeight: 700, color: '#0f172a' }}>{p.totalPrice}만원</span>
-                        <StatusBadge label={pStatus} map={PROPOSAL_STATUS_BADGE} />
+                        <StatusBadge statusKey={p.status} label={pStatus} map={PROPOSAL_STATUS_BADGE} />
                       </div>
                       <div style={{ display: 'flex', gap: 16, fontSize: 13, color: '#64748b' }}>
                         <span>회복 {p.recoveryDays}일</span>
