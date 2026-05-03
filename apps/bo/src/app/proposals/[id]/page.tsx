@@ -27,8 +27,8 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-function StatusBadge({ label, map }: { label: string; map: Record<string, { bg: string; text: string }> }) {
-  const c = map[label];
+function StatusBadge({ statusKey, label, map }: { statusKey: string; label: string; map: Record<string, { bg: string; text: string }> }) {
+  const c = map[statusKey];
   if (!c) return <Badge>{label}</Badge>;
   return (
     <span style={{
@@ -60,7 +60,7 @@ export default async function ProposalDetailPage({ params }: Props) {
       sidebar={<BOSidebar active="/proposals" />}
       title={`제안서 상세 — ${concern?.primaryArea ?? ''} ${concern?.bodyAreaDetail ?? ''}`}
       prefix="bo"
-      actions={<StatusBadge label={statusLabel} map={PROPOSAL_STATUS_BADGE} />}
+      actions={<StatusBadge statusKey={proposal.status} label={statusLabel} map={PROPOSAL_STATUS_BADGE} />}
     >
       <div className="detail-grid">
 
@@ -136,7 +136,7 @@ export default async function ProposalDetailPage({ params }: Props) {
           <Card padding="md">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <MetaRow label="상태">
-                <StatusBadge label={statusLabel} map={PROPOSAL_STATUS_BADGE} />
+                <StatusBadge statusKey={proposal.status} label={statusLabel} map={PROPOSAL_STATUS_BADGE} />
               </MetaRow>
               <hr style={S.divider} />
               <MetaRow label="발송일">{formatDateKR(proposal.sentAt)}</MetaRow>

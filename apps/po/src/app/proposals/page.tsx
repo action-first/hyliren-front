@@ -4,13 +4,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   PROPOSAL_STATUS_BADGE,
-  PROPOSAL_STATUS_KR,
   formatDateKR,
   formatBudget,
 } from '@hyliren/shared';
 import {
   AdminPage, Card, Spinner, Button, DataGrid,
-  badgeCellRenderer,
 } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
 import { AlertTriangle } from 'lucide-react';
@@ -36,15 +34,9 @@ interface ProposalRow {
   budget: string;
   totalPrice: string;
   itemNames: string;
-  statusLabel: string;
+  /** proposal.status enum (sent/viewed/...) — cellRenderer 가 t() 매핑. */
+  statusEnum: string;
 }
-
-// 한국어 라벨 → backend ProposalStatus 매핑 (역매핑은 lossy 한 항목 제외)
-const STATUS_LABEL_TO_RAW: Record<string, string> = {
-  '발송': 'sent',
-  '선택됨': 'accepted',
-  '거절': 'rejected',
-};
 
 // 디폴트 — 최근 한달
 function defaultMonthRange(): { from: string; to: string } {
@@ -69,7 +61,7 @@ function toRow(proposal: ProposalDetailWire, concerns: ConcernSummaryWire[]): Pr
     budget: concern ? formatBudget(concern.budgetMin, concern.budgetMax) : '-',
     totalPrice: formatKrwAsMan(proposal.totalPrice),
     itemNames: proposal.items.map(item => item.treatmentName).join(', ') || '-',
-    statusLabel: PROPOSAL_STATUS_KR[proposal.status] || proposal.status,
+    statusEnum: proposal.status,
   };
 }
 
@@ -85,10 +77,10 @@ export default function ProposalsPage() {
 
   const searchFields: SearchField[] = [
     { key: 'sentAt', label: t('po.proposalSearchPeriod'), type: 'dateRange', row: 1 },
-    { key: 'statusLabel', label: t('po.proposalSearchStatus'), type: 'select', row: 1, options: [
-      { value: '발송', label: t('po.proposalStatusFilterSent') },
-      { value: '선택됨', label: t('po.proposalStatusFilterAccepted') },
-      { value: '거절', label: t('po.proposalStatusFilterRejected') },
+    { key: 'statusEnum', label: t('po.proposalSearchStatus'), type: 'select', row: 1, options: [
+      { value: 'sent', label: t('po.proposalStatusFilterSent') },
+      { value: 'accepted', label: t('po.proposalStatusFilterAccepted') },
+      { value: 'rejected', label: t('po.proposalStatusFilterRejected') },
     ]},
     { key: '_keyword', label: t('po.proposalSearchKeyword'), placeholder: t('po.proposalSearchKeywordPlaceholder'), row: 2 },
   ];
@@ -105,8 +97,20 @@ export default function ProposalsPage() {
     { field: 'totalPrice', headerName: t('po.proposalColTotal'), flex: 0.7, minWidth: 100, filter: false,
       cellStyle: { fontWeight: 700, color: 'var(--text-default)', fontVariantNumeric: 'tabular-nums' },
     },
-    { field: 'statusLabel', headerName: t('po.proposalColStatus'), flex: 0.6, minWidth: 80, filter: true,
-      cellRenderer: badgeCellRenderer(PROPOSAL_STATUS_BADGE),
+    { field: 'statusEnum', headerName: t('po.proposalColStatus'), flex: 0.6, minWidth: 80, filter: true,
+      cellRenderer: (p: { value: string }) => {
+        if (!p.value) return null;
+        const c = PROPOSAL_STATUS_BADGE[p.value] || { bg: '#f3f4f6', text: '#374151' };
+        const label = t(`po.proposalStatus.${p.value}`) || p.value;
+        return (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', height: 22,
+            padding: '0 8px', borderRadius: 4,
+            fontSize: 12, fontWeight: 500, lineHeight: 1,
+            background: c.bg, color: c.text,
+          }}>{label}</span>
+        );
+      },
     },
   ];
 
@@ -131,8 +135,7 @@ export default function ProposalsPage() {
     const newQuery: MyProposalsQuery = {};
     if (filters['sentAt_from']) newQuery.sentAtFrom = filters['sentAt_from'];
     if (filters['sentAt_to']) newQuery.sentAtTo = filters['sentAt_to'];
-    const rawStatus = filters['statusLabel'] ? STATUS_LABEL_TO_RAW[filters['statusLabel']] : undefined;
-    if (rawStatus) newQuery.status = rawStatus;
+    if (filters['statusEnum']) newQuery.status = filters['statusEnum'];
     if (filters['_keyword']) newQuery.keyword = filters['_keyword'];
     setQuery(newQuery);
   }

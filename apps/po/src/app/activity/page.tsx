@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import {
-  PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE,
+  PROPOSAL_STATUS_BADGE,
   formatDateKR,
   formatBudget,
   CREDIT_COST,
@@ -34,7 +34,8 @@ interface ActivityRow {
   typeLabel: string;
   description: string;
   credit: string;
-  statusLabel: string;
+  /** proposal.status enum (sent/viewed/shortlisted/...) — cellRenderer 가 t() 매핑. 비-proposal row 는 ''. */
+  statusEnum: string;
   /** proposal row 한정 — 클릭 시 사이드 시트 진입에 사용. 다른 row 는 undefined. */
   concernId?: string;
 }
@@ -90,8 +91,20 @@ export default function ActivityPage() {
         );
       },
     },
-    { field: 'statusLabel', headerName: t('po.activityColStatus'), flex: 0.6, minWidth: 80, filter: true,
-      cellRenderer: badgeCellRenderer(PROPOSAL_STATUS_BADGE),
+    { field: 'statusEnum', headerName: t('po.activityColStatus'), flex: 0.6, minWidth: 80, filter: true,
+      cellRenderer: (p: { value: string }) => {
+        if (!p.value) return null;
+        const c = PROPOSAL_STATUS_BADGE[p.value] || { bg: '#f3f4f6', text: '#374151' };
+        const label = t(`po.proposalStatus.${p.value}`) || p.value;
+        return (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', height: 22,
+            padding: '0 8px', borderRadius: 4,
+            fontSize: 12, fontWeight: 500, lineHeight: 1,
+            background: c.bg, color: c.text,
+          }}>{label}</span>
+        );
+      },
     },
   ];
 
@@ -142,7 +155,7 @@ export default function ActivityPage() {
         typeLabel: t('po.activityProposalSend'),
         description: `${concern ? `${t(`common.bodyArea.${concern.primaryArea}`)} ${concern.bodyAreaDetail || ''}` : '-'} · ${formatBudget(concern?.budgetMin ?? null, concern?.budgetMax ?? null)} · ${formatKrwAsMan(p.totalPrice)}`,
         credit: `-${CREDIT_COST}`,
-        statusLabel: PROPOSAL_STATUS_KR[p.status] || p.status,
+        statusEnum: p.status,
         concernId: p.concernId,
       };
     }),
@@ -157,7 +170,7 @@ export default function ActivityPage() {
         typeLabel: CREDIT_REASON_LABELS[tx.reason] ?? t('po.activityCreditTrade'),
         description: CREDIT_REASON_LABELS[tx.reason] ?? tx.reason,
         credit: tx.amount > 0 ? `+${tx.amount}` : `${tx.amount}`,
-        statusLabel: '',
+        statusEnum: '',
       })),
   ].sort((a, b) => (a.date > b.date ? -1 : a.date < b.date ? 1 : 0));
 

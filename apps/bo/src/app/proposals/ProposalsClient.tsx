@@ -20,7 +20,8 @@ interface ProposalRow {
   area: string;
   hospitalName: string;
   totalPrice: string;
-  statusLabel: string;
+  /** proposal.status enum — BADGE 인덱싱용. cellRenderer 가 PROPOSAL_STATUS_KR 한국어 라벨 매핑. */
+  statusEnum: string;
   sentAt: string;
 }
 
@@ -30,9 +31,9 @@ const searchFields: SearchField[] = [
     { value: '눈', label: '눈' }, { value: '코', label: '코' },
     { value: '리프팅', label: '리프팅' }, { value: '피부', label: '피부' },
   ]},
-  { key: 'statusLabel', label: '상태', type: 'select', row: 1, options: [
-    { value: '발송', label: '발송' }, { value: '열람', label: '열람' },
-    { value: '선택됨', label: '선택됨' }, { value: '거절', label: '거절' },
+  { key: 'statusEnum', label: '상태', type: 'select', row: 1, options: [
+    { value: 'sent', label: '발송' }, { value: 'viewed', label: '열람' },
+    { value: 'selected', label: '선택됨' }, { value: 'rejected', label: '거절' },
   ]},
   { key: '_keyword', label: '키워드', placeholder: '병원명, 부위 통합 검색', row: 2 },
 ];
@@ -47,8 +48,20 @@ const columnDefs: ColDef<ProposalRow>[] = [
   { field: 'totalPrice', headerName: '가격', flex: 0.6, minWidth: 80, filter: false,
     cellStyle: { fontWeight: 600 },
   },
-  { field: 'statusLabel', headerName: '상태', flex: 0.6, minWidth: 80, filter: true,
-    cellRenderer: badgeCellRenderer(PROPOSAL_STATUS_BADGE),
+  { field: 'statusEnum', headerName: '상태', flex: 0.6, minWidth: 80, filter: true,
+    cellRenderer: (p: { value: string }) => {
+      if (!p.value) return null;
+      const c = PROPOSAL_STATUS_BADGE[p.value] || { bg: '#f3f4f6', text: '#374151' };
+      const label = PROPOSAL_STATUS_KR[p.value] || p.value;
+      return (
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', height: 22,
+          padding: '0 8px', borderRadius: 4,
+          fontSize: 12, fontWeight: 500, lineHeight: 1,
+          background: c.bg, color: c.text,
+        }}>{label}</span>
+      );
+    },
   },
   { field: 'sentAt', headerName: '발송일', flex: 0.7, minWidth: 90, filter: false,
     cellStyle: { color: '#9ca3af', fontVariantNumeric: 'tabular-nums' },
@@ -68,7 +81,7 @@ export function ProposalsClient({ proposals }: { proposals: Proposal[] }) {
       area: concern?.primaryArea || '-',
       hospitalName: profile?.hospitalName || p.memberId,
       totalPrice: `${p.totalPrice}만`,
-      statusLabel: PROPOSAL_STATUS_KR[p.status] || p.status,
+      statusEnum: p.status,
       sentAt: formatDateKR(p.sentAt),
     };
   });
