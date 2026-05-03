@@ -9,15 +9,25 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Badge, Button, Spinner } from '@hyliren/ui';
-import { ANESTHESIA_KR } from '@hyliren/shared/src/constants';
 import { getProcedure, consultClickProcedure } from '@/lib/api/procedure';
 import type { ProcedureDetailResponseWire } from '@/lib/api/procedure';
 import { useLocaleStore } from '@/store/locale';
 
 type T = (key: string, params?: Record<string, string | number>) => string;
 
-function formatPrice(min: number, max: number, manLabel: string): string {
-  const toMan = (value: number) => `${Math.round(value / 10000).toLocaleString()}${manLabel}`;
+/**
+ * AnesthesiaType enum → 'common.anesthesiaLocal/Sedation/General' i18n key 매핑.
+ * shared 의 한국어 ANESTHESIA_KR dict 직접 사용 시 모든 로케일에 한국어 노출되는 정책 위반 차단.
+ */
+function anesthesiaLabel(key: string, t: T): string {
+  if (key === 'local') return t('common.anesthesiaLocal');
+  if (key === 'sedation') return t('common.anesthesiaSedation');
+  if (key === 'general') return t('common.anesthesiaGeneral');
+  return key;
+}
+
+function formatPrice(min: number, max: number, locale: string, manLabel: string): string {
+  const toMan = (value: number) => `${Math.round(value / 10000).toLocaleString(locale)}${manLabel}`;
   return min === max ? toMan(min) : `${toMan(min)}~${toMan(max)}`;
 }
 
@@ -34,6 +44,7 @@ export default function ProcedureDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
   const [data, setData] = useState<ProcedureDetailResponseWire | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -140,7 +151,7 @@ export default function ProcedureDetailPage() {
       </section>
 
       <section className="grid grid-cols-3 gap-2 px-5 py-4 bg-[var(--color-bg)] border-t border-[var(--color-border-light)]">
-        <SummaryTile label={t('landing.referencePrice')} value={formatPrice(procedure.priceMin, procedure.priceMax, t('common.man'))} />
+        <SummaryTile label={t('landing.referencePrice')} value={formatPrice(procedure.priceMin, procedure.priceMax, locale, t('common.man'))} />
         <SummaryTile label={t('procedures.summaryRecovery')} value={defaultVariant ? t('report.daysShort', { days: defaultVariant.recoveryDays }) : '-'} />
         <SummaryTile label={t('procedures.summaryDuration')} value={defaultVariant ? formatDuration(defaultVariant.durationMinutes, t) : '-'} />
       </section>
@@ -190,10 +201,10 @@ export default function ProcedureDetailPage() {
                     <p className="text-[12px] leading-5 text-[var(--color-text-secondary)]">{variant.description}</p>
                   ) : null}
                 </div>
-                <strong className="text-[13px] whitespace-nowrap text-[var(--color-text)]">{formatPrice(variant.price, variant.price, t('common.man'))}</strong>
+                <strong className="text-[13px] whitespace-nowrap text-[var(--color-text)]">{formatPrice(variant.price, variant.price, locale, t('common.man'))}</strong>
               </div>
               <div className="grid grid-cols-3 gap-2 pt-3 border-t border-[var(--color-border-light)]">
-                <MiniMeta icon={ShieldCheck} label={ANESTHESIA_KR[variant.anesthesia] ?? variant.anesthesia} />
+                <MiniMeta icon={ShieldCheck} label={anesthesiaLabel(variant.anesthesia, t)} />
                 <MiniMeta icon={Clock3} label={formatDuration(variant.durationMinutes, t)} />
                 <MiniMeta icon={CalendarDays} label={t('procedures.recoveryDays', { days: variant.recoveryDays })} />
               </div>
