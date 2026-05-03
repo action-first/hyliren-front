@@ -1395,6 +1395,15 @@
     "ERR_SERVER": "服务器错误,请稍后重试。",
     "ERR_SERVER_TEMP": "服务器暂时出错,请稍后重试。",
     "ERR_SERVICE_UNAVAILABLE": "服务维护中,请稍后再试。",
-    "ERR_TIMEOUT": "响应超时,请重试。"
+    "ERR_TIMEOUT": "响应超时,请重试。",
+    "ERR_CONCERN_NOT_PROPOSABLE": "此困扰不可发送提案。",
+    "ERR_PROPOSAL_ALREADY_SENT": "已为此困扰发送过提案 (请使用 PATCH 修改)。",
+    "ERR_PROPOSAL_NOT_FOUND": "找不到提案。",
+    "ERR_PROPOSAL_NOT_OWNED": "只能编辑自己的提案。",
+    "ERR_PROPOSAL_NOT_EDITABLE": "当前状态不可编辑。",
+    "ERR_INSUFFICIENT_CREDIT": "积分不足,请充值后重试。",
+    "ERR_PROCEDURE_DELETE_ARCHIVED_ONLY": "仅可永久删除已下架项目。",
+    "ERR_VARIANT_LAST_REQUIRED": "至少需保留 1 个选项。",
+    "ERR_VARIANT_REQUIRED": "至少需要 1 个选项。"
   }
 }

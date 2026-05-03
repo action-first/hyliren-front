@@ -1395,6 +1395,15 @@
     "ERR_SERVER": "A server error occurred. Please try again in a moment.",
     "ERR_SERVER_TEMP": "A temporary server issue occurred. Please try again in a moment.",
     "ERR_SERVICE_UNAVAILABLE": "Service is under maintenance. Please try again later.",
-    "ERR_TIMEOUT": "Response timed out. Please try again."
+    "ERR_TIMEOUT": "Response timed out. Please try again.",
+    "ERR_CONCERN_NOT_PROPOSABLE": "This concern is not in a proposable state.",
+    "ERR_PROPOSAL_ALREADY_SENT": "A proposal has already been sent for this concern (use PATCH to edit).",
+    "ERR_PROPOSAL_NOT_FOUND": "Proposal not found.",
+    "ERR_PROPOSAL_NOT_OWNED": "You can only edit your own proposal.",
+    "ERR_PROPOSAL_NOT_EDITABLE": "The proposal is not in an editable state.",
+    "ERR_INSUFFICIENT_CREDIT": "Insufficient credit. Please recharge and try again.",
+    "ERR_PROCEDURE_DELETE_ARCHIVED_ONLY": "Only archived procedures can be permanently deleted.",
+    "ERR_VARIANT_LAST_REQUIRED": "At least one variant must remain.",
+    "ERR_VARIANT_REQUIRED": "At least one variant is required."
   }
 }

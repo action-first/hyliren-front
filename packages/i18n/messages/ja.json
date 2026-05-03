@@ -1395,6 +1395,15 @@
     "ERR_SERVER": "サーバーエラーが発生しました。しばらくしてから再度お試しください。",
     "ERR_SERVER_TEMP": "一時的なサーバー問題が発生しました。しばらくしてから再度お試しください。",
     "ERR_SERVICE_UNAVAILABLE": "メンテナンス中です。しばらくしてから再度お試しください。",
-    "ERR_TIMEOUT": "レスポンス待ち時間を超過しました。再度お試しください。"
+    "ERR_TIMEOUT": "レスポンス待ち時間を超過しました。再度お試しください。",
+    "ERR_CONCERN_NOT_PROPOSABLE": "提案できない状態のお悩みです。",
+    "ERR_PROPOSAL_ALREADY_SENT": "このお悩みには既に提案書を送信済みです (修正は PATCH を使用)。",
+    "ERR_PROPOSAL_NOT_FOUND": "提案書が見つかりません。",
+    "ERR_PROPOSAL_NOT_OWNED": "自分の提案書のみ編集できます。",
+    "ERR_PROPOSAL_NOT_EDITABLE": "編集できない状態です。",
+    "ERR_INSUFFICIENT_CREDIT": "クレジットが不足しています。チャージ後にやり直してください。",
+    "ERR_PROCEDURE_DELETE_ARCHIVED_ONLY": "非公開状態の施術のみ完全削除できます。",
+    "ERR_VARIANT_LAST_REQUIRED": "オプションは最低 1 つ維持する必要があります。",
+    "ERR_VARIANT_REQUIRED": "最低 1 つのオプションが必要です。"
   }
 }
