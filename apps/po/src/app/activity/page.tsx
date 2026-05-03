@@ -43,6 +43,7 @@ interface ActivityRow {
 export default function ActivityPage() {
   const showToast = useToastStore(s => s.showToast);
   const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
   const dataGridLabels = useDataGridLabels();
 
   // CREDIT reason 라벨 (locale 별)
@@ -148,12 +149,17 @@ export default function ActivityPage() {
   const rowData: ActivityRow[] = [
     ...proposals.map(p => {
       const concern = concerns.find(c => c.id === p.concernId);
+      const budgetMin = concern?.budgetMin ?? null;
+      const budgetMax = concern?.budgetMax ?? null;
+      const budgetText = (budgetMin == null && budgetMax == null)
+        ? '-'
+        : `${formatBudget(budgetMin, budgetMax)}${t('common.man')}`;
       return {
         id: `prop-${p.id}`,
-        date: formatDateKR(p.sentAt),
+        date: formatDateKR(p.sentAt, locale),
         type: 'proposal',
         typeLabel: t('po.activityProposalSend'),
-        description: `${concern ? `${t(`common.bodyArea.${concern.primaryArea}`)} ${concern.bodyAreaDetail || ''}` : '-'} · ${formatBudget(concern?.budgetMin ?? null, concern?.budgetMax ?? null)} · ${formatKrwAsMan(p.totalPrice)}`,
+        description: `${concern ? `${t(`common.bodyArea.${concern.primaryArea}`)} ${concern.bodyAreaDetail || ''}` : '-'} · ${budgetText} · ${formatKrwAsMan(p.totalPrice, locale)}`,
         credit: `-${CREDIT_COST}`,
         statusEnum: p.status,
         concernId: p.concernId,
@@ -165,7 +171,7 @@ export default function ActivityPage() {
       .filter(tx => tx.reason !== 'proposal_send')
       .map(tx => ({
         id: `tx-${tx.id}`,
-        date: formatDateKR(tx.createdAt),
+        date: formatDateKR(tx.createdAt, locale),
         type: 'credit',
         typeLabel: CREDIT_REASON_LABELS[tx.reason] ?? t('po.activityCreditTrade'),
         description: CREDIT_REASON_LABELS[tx.reason] ?? tx.reason,

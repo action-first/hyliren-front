@@ -16,6 +16,7 @@ interface Step2Props {
 
 export function Step2Pricing({ form, onChange }: Step2Props) {
   const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
   const ANESTHESIA_OPTIONS = [
     { value: 'local', label: t('po.wizardAnesthesiaLocal') },
     { value: 'sedation', label: t('po.wizardAnesthesiaSedation') },
@@ -68,7 +69,7 @@ export function Step2Pricing({ form, onChange }: Step2Props) {
               <input
                 type="text"
                 inputMode="numeric"
-                value={formatNumberWithComma(form.basePrice)}
+                value={formatNumberWithComma(form.basePrice, locale)}
                 onChange={e => onChange({ basePrice: parseNumberFromInput(e.target.value) })}
                 placeholder="0"
                 className="input-field flex-1 text-right tabular-nums"

@@ -52,14 +52,22 @@ function describeConcern(concern: ConcernSummaryWire | undefined): string {
   return [concern.primaryArea, concern.bodyAreaDetail].filter(Boolean).join(' ');
 }
 
-function toRow(proposal: ProposalDetailWire, concerns: ConcernSummaryWire[]): ProposalRow {
+function toRow(
+  proposal: ProposalDetailWire,
+  concerns: ConcernSummaryWire[],
+  locale: string,
+  t: (k: string) => string,
+): ProposalRow {
   const concern = concerns.find(c => c.id === proposal.concernId);
+  const budgetText = concern && (concern.budgetMin != null || concern.budgetMax != null)
+    ? `${formatBudget(concern.budgetMin, concern.budgetMax)}${t('common.man')}`
+    : '-';
   return {
     id: proposal.id,
-    sentAt: formatDateKR(proposal.sentAt),
+    sentAt: formatDateKR(proposal.sentAt, locale),
     concern: describeConcern(concern),
-    budget: concern ? formatBudget(concern.budgetMin, concern.budgetMax) : '-',
-    totalPrice: formatKrwAsMan(proposal.totalPrice),
+    budget: budgetText,
+    totalPrice: formatKrwAsMan(proposal.totalPrice, locale),
     itemNames: proposal.items.map(item => item.treatmentName).join(', ') || '-',
     statusEnum: proposal.status,
   };
@@ -69,6 +77,7 @@ export default function ProposalsPage() {
   const router = useRouter();
   const showToast = useToastStore(s => s.showToast);
   const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
   const dataGridLabels = useDataGridLabels();
   const [query, setQuery] = useState<MyProposalsQuery>(() => {
     const { from, to } = defaultMonthRange();
@@ -170,7 +179,7 @@ export default function ProposalsPage() {
       {hasInitialLoad && (
         <DataGrid<ProposalRow>
           columnDefs={columnDefs}
-          rowData={proposals.map(p => toRow(p, concerns))}
+          rowData={proposals.map(p => toRow(p, concerns, locale, t))}
           searchFields={searchFields}
           exportFileName={t('po.proposalExportFile')}
           title={t('po.myProposalSheetTitle')}

@@ -1197,7 +1197,8 @@
     "proposeSubmitSuccess": "提案已发送。已扣除 {credit} 积分。",
     "concernViewMyProposal": "查看详情",
     "concernProposalNotSentYet": "尚未发送提案",
-    "concernCreateProposal": "撰写提案"
+    "concernCreateProposal": "撰写提案",
+    "concernInfoCreatedAt": "登记"
   },
   "poLogin": {
     "emailInvalid": "请输入正确的邮箱格式。",

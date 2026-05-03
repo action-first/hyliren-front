@@ -70,6 +70,7 @@ export default function ConcernListPage() {
   const router = useRouter();
   const showToast = useToastStore(s => s.showToast);
   const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
   const dataGridLabels = useDataGridLabels();
 
   // 검색 필드 (locale 별 t() 적용)
@@ -176,13 +177,13 @@ export default function ConcernListPage() {
       primaryArea: c.primaryArea,
       bodyAreaDetail: c.bodyAreaDetail || '',
       description: c.description.length > 50 ? c.description.slice(0, 50) + '...' : c.description,
-      budget: formatBudget(c.budgetMin, c.budgetMax),
-      visitDate: formatDateRange(c.visitDateFrom, c.visitDateTo),
+      budget: (c.budgetMin == null && c.budgetMax == null) ? '-' : `${formatBudget(c.budgetMin, c.budgetMax)}${t('common.man')}`,
+      visitDate: c.visitDateFrom ? formatDateRange(c.visitDateFrom, c.visitDateTo) : t('common.tbd'),
       mySentStatus: c.mySentAt ? 'sent' : 'not_sent' as 'sent' | 'not_sent',
       mySentLabel: c.mySentAt ? t('po.concernMySentDone') : t('po.concernMySentNot'),
-      createdAt: formatDateKR(c.createdAt),
+      createdAt: formatDateKR(c.createdAt, locale),
       proposalCount: c.proposalCount,
-      mySentAt: c.mySentAt ? formatDateKR(c.mySentAt) : '-',
+      mySentAt: c.mySentAt ? formatDateKR(c.mySentAt, locale) : '-',
     }))
     .filter(r => !mySentFilter || r.mySentStatus === mySentFilter);
 

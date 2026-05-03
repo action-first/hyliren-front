@@ -1197,7 +1197,8 @@
     "proposeSubmitSuccess": "提案書が送信されました。クレジット {credit} 件差し引かれました。",
     "concernViewMyProposal": "詳細を見る",
     "concernProposalNotSentYet": "まだ提案書を送信していません",
-    "concernCreateProposal": "提案書を作成"
+    "concernCreateProposal": "提案書を作成",
+    "concernInfoCreatedAt": "登録"
   },
   "poLogin": {
     "emailInvalid": "正しいメールアドレス形式で入力してください。",

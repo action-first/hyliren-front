@@ -1197,7 +1197,8 @@
     "proposeSubmitSuccess": "Proposal sent. {credit} credits deducted.",
     "concernViewMyProposal": "View details",
     "concernProposalNotSentYet": "No proposal sent yet",
-    "concernCreateProposal": "Create proposal"
+    "concernCreateProposal": "Create proposal",
+    "concernInfoCreatedAt": "Registered"
   },
   "poLogin": {
     "emailInvalid": "Please enter a valid email format.",

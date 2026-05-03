@@ -1197,7 +1197,8 @@
     "proposeSubmitSuccess": "제안서가 발송되었습니다. 크레딧 {credit}개 차감.",
     "concernViewMyProposal": "상세 보기",
     "concernProposalNotSentYet": "아직 제안서를 발송하지 않았습니다",
-    "concernCreateProposal": "제안서 작성하기"
+    "concernCreateProposal": "제안서 작성하기",
+    "concernInfoCreatedAt": "등록"
   },
   "poLogin": {
     "emailInvalid": "올바른 이메일 형식으로 입력해주세요.",

@@ -159,20 +159,32 @@ export const ARTICLE_CATEGORY_KR: Record<string, string> = {
 };
 
 // ── 날짜 포맷 유틸 ──
-export function formatDateKR(dateStr: string | Date | undefined | null): string {
+/**
+ * Date 를 활성 locale 의 toLocaleDateString 으로 포맷.
+ * locale 인자: 'ko'/'zh-CN'/'ja'/'en' 등. 누락 시 'ko' default (BO 한국어 운영 backward-compat).
+ */
+export function formatDateKR(dateStr: string | Date | undefined | null, locale: string = 'ko'): string {
   if (!dateStr) return '-';
-  return new Date(dateStr).toLocaleDateString('ko');
+  return new Date(dateStr).toLocaleDateString(locale);
 }
 
+/**
+ * 'YYYY-MM-DD' 문자열에서 'MM-DD' 추출하여 'from ~ to' 형식 표시.
+ * from 미지정 시 '-' 반환 (호출처가 i18n 'undecided' 등으로 대체 가능 — 'undecided' 같은 한국어 fallback 제거).
+ */
 export function formatDateRange(from: string | undefined | null, to: string | undefined | null): string {
-  if (!from) return '미정';
+  if (!from) return '-';
   const f = from.slice(5);
   const t = to ? to.slice(5) : '';
   return t ? `${f} ~ ${t}` : f;
 }
 
 // ── 예산 포맷 ──
+/**
+ * 예산 범위 표시. 만 단위(원/10000) 입력값 그대로 'min~max' 표시.
+ * unit 라벨은 호출처가 t('common.man') 등으로 후행 추가 (한국어 raw '만' fallback 제거).
+ */
 export function formatBudget(min: number | null | undefined, max: number | null | undefined): string {
   if (min == null && max == null) return '-';
-  return `${min ?? 0}~${max ?? 0}만`;
+  return `${min ?? 0}~${max ?? 0}`;
 }
