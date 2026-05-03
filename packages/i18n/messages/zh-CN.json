@@ -1364,6 +1364,10 @@
     "ERR_PUBLISH_TITLE_TOO_SHORT": "发布前标题至少需 2 个字。",
     "ERR_PUBLISH_PRICE_REQUIRED": "发布前需设置基本价格。",
     "ERR_PUBLISH_HERO_REQUIRED": "发布前需上传主图。",
-    "ERR_PUBLISH_VARIANT_NAME_REQUIRED": "发布前所有选项均需填写名称。"
+    "ERR_PUBLISH_VARIANT_NAME_REQUIRED": "发布前所有选项均需填写名称。",
+    "ERR_DATE_FORMAT": "日期需采用 YYYY-MM-DD 格式。",
+    "ERR_BUDGET_MIN_GT_MAX": "最低预算不能高于最高预算。",
+    "ERR_VISIT_DATE_FROM_GT_TO": "访问开始日不能晚于结束日。",
+    "ERR_INVALID_PROPOSAL_ID": "无效的提案 ID。"
   }
 }

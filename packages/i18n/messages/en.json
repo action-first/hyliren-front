@@ -1364,6 +1364,10 @@
     "ERR_PUBLISH_TITLE_TOO_SHORT": "Title must be at least 2 characters to publish.",
     "ERR_PUBLISH_PRICE_REQUIRED": "A base price is required to publish.",
     "ERR_PUBLISH_HERO_REQUIRED": "A hero image is required to publish.",
-    "ERR_PUBLISH_VARIANT_NAME_REQUIRED": "Every variant needs a name to publish."
+    "ERR_PUBLISH_VARIANT_NAME_REQUIRED": "Every variant needs a name to publish.",
+    "ERR_DATE_FORMAT": "Date must be in YYYY-MM-DD format.",
+    "ERR_BUDGET_MIN_GT_MAX": "Minimum budget cannot exceed maximum budget.",
+    "ERR_VISIT_DATE_FROM_GT_TO": "Visit start date cannot be later than end date.",
+    "ERR_INVALID_PROPOSAL_ID": "Invalid proposal ID."
   }
 }
