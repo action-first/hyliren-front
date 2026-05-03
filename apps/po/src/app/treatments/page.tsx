@@ -53,7 +53,7 @@ export default function TreatmentsPage() {
   const { data, isLoading: loading, isError, error, refetch } = useProcedures(
     filter === 'all' ? undefined : filter,
   );
-  const loadError = isError ? (toUserMessage(error, t('po.treatmentsLoadError'))) : null;
+  const loadError = isError ? (toUserMessage(error, t('po.treatmentsLoadError'), t)) : null;
   // 목록에서 가리는 항목 (BE 가 향후 hard-delete 분리하면 제거 가능):
   // (a) draft — 작성 중. '+ 새 시술 등록' 모달로만 접근.
   // (b) 한 번도 공개된 적 없는 archived (publishedAt=null) — '새로 작성하기' 시 폐기된 draft.
@@ -86,7 +86,7 @@ export default function TreatmentsPage() {
   /* 에러 토스트 — RQ v5 onError 폐기 대응. */
   useEffect(() => {
     if (isError && error) {
-      showToast(toUserMessage(error, t('po.treatmentsLoadError')), 'error');
+      showToast(toUserMessage(error, t('po.treatmentsLoadError'), t), 'error');
     }
   }, [isError, error, showToast]);
 
@@ -125,7 +125,7 @@ export default function TreatmentsPage() {
       setDraftModalOpen(false);
       router.push('/treatments/new');
     } catch (e: unknown) {
-      const msg = toUserMessage(e, t('po.treatmentDraftDeleteFail'));
+      const msg = toUserMessage(e, t('po.treatmentDraftDeleteFail'), t);
       showToast(msg, 'error');
     }
   }
@@ -142,7 +142,7 @@ export default function TreatmentsPage() {
         showToast(t('po.treatmentArchivedSuccess'), 'success');
       },
       onError: (e) => {
-        showToast(toUserMessage(e, t('po.treatmentSwitchFail')), 'error');
+        showToast(toUserMessage(e, t('po.treatmentSwitchFail'), t), 'error');
       },
     });
   }
@@ -160,7 +160,7 @@ export default function TreatmentsPage() {
       },
       onError: (e) => {
         // BE publish-strict 검증 실패 시 — 사용자가 편집 후 재시도해야 함.
-        showToast(toUserMessage(e, t('po.treatmentSwitchFail')), 'error');
+        showToast(toUserMessage(e, t('po.treatmentSwitchFail'), t), 'error');
       },
     });
   }
@@ -177,7 +177,7 @@ export default function TreatmentsPage() {
         showToast(t('po.treatmentDeletedSuccess'), 'success');
       },
       onError: (e) => {
-        showToast(toUserMessage(e, t('po.treatmentDeleteFail')), 'error');
+        showToast(toUserMessage(e, t('po.treatmentDeleteFail'), t), 'error');
       },
     });
   }

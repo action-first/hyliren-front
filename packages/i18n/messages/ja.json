@@ -1380,6 +1380,21 @@
     "ERR_DATE_FORMAT": "日付は YYYY-MM-DD 形式である必要があります。",
     "ERR_BUDGET_MIN_GT_MAX": "最小予算は最大予算より大きくできません。",
     "ERR_VISIT_DATE_FROM_GT_TO": "訪問開始日は終了日より後にできません。",
-    "ERR_INVALID_PROPOSAL_ID": "有効な提案書 ID ではありません。"
+    "ERR_INVALID_PROPOSAL_ID": "有効な提案書 ID ではありません。",
+    "ERR_PROCEDURE_NOT_FOUND": "施術が見つかりません。",
+    "ERR_PROCEDURE_STALE": "施術情報の更新中にエラーが発生しました。再読み込みしてやり直してください。",
+    "ERR_VARIANT_NOT_FOUND": "オプションが見つかりません。",
+    "ERR_PARTNER_ACCESS_REQUIRED": "病院パートナー権限が必要です。",
+    "ERR_NETWORK": "インターネット接続を確認してください。",
+    "ERR_SESSION_EXPIRED": "ログインが切れました。再度ログインしてください。",
+    "ERR_FORBIDDEN": "この操作を行う権限がありません。",
+    "ERR_NOT_FOUND_GENERIC": "見つかりませんでした。再読み込みして確認してください。",
+    "ERR_CONFLICT_GENERIC": "すでに処理済み、または他のユーザーと競合しました。",
+    "ERR_FILE_TOO_LARGE": "ファイルが大きすぎます。",
+    "ERR_RATE_LIMITED": "リクエストが多すぎます。しばらくしてから再度お試しください。",
+    "ERR_SERVER": "サーバーエラーが発生しました。しばらくしてから再度お試しください。",
+    "ERR_SERVER_TEMP": "一時的なサーバー問題が発生しました。しばらくしてから再度お試しください。",
+    "ERR_SERVICE_UNAVAILABLE": "メンテナンス中です。しばらくしてから再度お試しください。",
+    "ERR_TIMEOUT": "レスポンス待ち時間を超過しました。再度お試しください。"
   }
 }

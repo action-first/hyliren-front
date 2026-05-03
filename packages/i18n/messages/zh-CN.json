@@ -1380,6 +1380,21 @@
     "ERR_DATE_FORMAT": "日期需采用 YYYY-MM-DD 格式。",
     "ERR_BUDGET_MIN_GT_MAX": "最低预算不能高于最高预算。",
     "ERR_VISIT_DATE_FROM_GT_TO": "访问开始日不能晚于结束日。",
-    "ERR_INVALID_PROPOSAL_ID": "无效的提案 ID。"
+    "ERR_INVALID_PROPOSAL_ID": "无效的提案 ID。",
+    "ERR_PROCEDURE_NOT_FOUND": "找不到该项目。",
+    "ERR_PROCEDURE_STALE": "更新项目信息时出错。请刷新后重试。",
+    "ERR_VARIANT_NOT_FOUND": "找不到选项。",
+    "ERR_PARTNER_ACCESS_REQUIRED": "需要医院合作伙伴权限。",
+    "ERR_NETWORK": "请检查网络连接。",
+    "ERR_SESSION_EXPIRED": "登录已过期,请重新登录。",
+    "ERR_FORBIDDEN": "没有执行此操作的权限。",
+    "ERR_NOT_FOUND_GENERIC": "找不到该项目。请刷新后再次确认。",
+    "ERR_CONFLICT_GENERIC": "操作已处理或与其他用户冲突。",
+    "ERR_FILE_TOO_LARGE": "文件过大。",
+    "ERR_RATE_LIMITED": "请求过于频繁,请稍后重试。",
+    "ERR_SERVER": "服务器错误,请稍后重试。",
+    "ERR_SERVER_TEMP": "服务器暂时出错,请稍后重试。",
+    "ERR_SERVICE_UNAVAILABLE": "服务维护中,请稍后再试。",
+    "ERR_TIMEOUT": "响应超时,请重试。"
   }
 }

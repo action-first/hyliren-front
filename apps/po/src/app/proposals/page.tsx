@@ -130,7 +130,7 @@ export default function ProposalsPage() {
   // 에러 토스트 (proposals 우선, concerns 는 silent fallback)
   useEffect(() => {
     if (proposalsQ.isError && proposalsQ.error) {
-      const msg = toUserMessage(proposalsQ.error, t('po.proposalListFail'));
+      const msg = toUserMessage(proposalsQ.error, t('po.proposalListFail'), t);
       showToast(msg, 'error');
     }
   }, [proposalsQ.isError, proposalsQ.error, showToast, t]);
@@ -166,7 +166,7 @@ export default function ProposalsPage() {
               {t('po.proposalListEmpty')}
             </p>
             <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
-              {toUserMessage(proposalsQ.error, t('po.unknownError'))}
+              {toUserMessage(proposalsQ.error, t('po.unknownError'), t)}
             </p>
             <Button variant="secondary" size="sm" onClick={() => proposalsQ.refetch()}>
               {t('po.proposalListRetry')}

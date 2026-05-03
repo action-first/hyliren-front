@@ -179,7 +179,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
           onClose();
         },
         onError: (err) => {
-          showToast(toUserMessage(err, t('po.proposalSendFail')), 'error');
+          showToast(toUserMessage(err, t('po.proposalSendFail'), t), 'error');
         },
       },
     );

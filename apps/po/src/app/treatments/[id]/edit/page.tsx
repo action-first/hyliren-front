@@ -110,7 +110,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       })
       .catch((e: unknown) => {
         if (cancelled) return;
-        setLoadError(toUserMessage(e, t('po.treatmentLoadFail')));
+        setLoadError(toUserMessage(e, t('po.treatmentLoadFail'), t));
       });
     return () => { cancelled = true; };
   }, [id, member]);
@@ -293,7 +293,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       // (auto-save 는 별도 경로로 silent 동작 — 이 redirect 와 무관.)
       router.push('/treatments');
     } catch (e: unknown) {
-      const msg = toUserMessage(e, t('po.treatmentSaveFail'));
+      const msg = toUserMessage(e, t('po.treatmentSaveFail'), t);
       track({
         eventType: 'treatment_wizard_save_fail',
         actorType: 'member',
@@ -322,7 +322,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       showToast(t('po.treatmentArchivedSuccess'), 'success');
       router.push('/treatments');
     } catch (e: unknown) {
-      showToast(toUserMessage(e, t('po.treatmentSwitchFail')), 'error');
+      showToast(toUserMessage(e, t('po.treatmentSwitchFail'), t), 'error');
       setArchiving(false);
       setArchiveOpen(false);
     }
@@ -340,7 +340,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       setUnarchiveOpen(false);
     } catch (e: unknown) {
       // BE publish-strict 검증 실패 시 — 사용자가 누락 항목 보완 후 재시도해야 함.
-      showToast(toUserMessage(e, t('po.treatmentSwitchFail')), 'error');
+      showToast(toUserMessage(e, t('po.treatmentSwitchFail'), t), 'error');
     } finally {
       setUnarchiving(false);
     }
@@ -355,7 +355,7 @@ export default function EditProcedurePage({ params }: { params: Promise<{ id: st
       router.push('/treatments');
     } catch (e: unknown) {
       // BE 가드 (archived 상태 아님) 위반 등 에러를 사용자에게 그대로 노출.
-      showToast(toUserMessage(e, t('po.treatmentDeleteFail')), 'error');
+      showToast(toUserMessage(e, t('po.treatmentDeleteFail'), t), 'error');
       setDeleting(false);
       setDeleteOpen(false);
     }

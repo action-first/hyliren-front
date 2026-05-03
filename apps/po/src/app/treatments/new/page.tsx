@@ -205,7 +205,7 @@ export default function NewProcedurePage() {
       // (form state 는 unmount 시 휘발 — 재진입 시 fresh form)
       router.push('/treatments');
     } catch (e: unknown) {
-      const msg = toUserMessage(e, t('po.treatmentSaveFail'));
+      const msg = toUserMessage(e, t('po.treatmentSaveFail'), t);
       track({
         eventType: 'treatment_wizard_save_fail',
         actorType: 'member',

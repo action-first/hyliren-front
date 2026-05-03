@@ -144,7 +144,7 @@ export default function ConcernListPage() {
   // 에러 토스트 — RQ v5 가 onError 콜백 제거됨, useEffect 로 효과 처리.
   useEffect(() => {
     if (isError && error) {
-      showToast(toUserMessage(error, t('po.concernsListLoadError')), 'error');
+      showToast(toUserMessage(error, t('po.concernsListLoadError'), t), 'error');
     }
   }, [isError, error, showToast]);
 
@@ -204,7 +204,7 @@ export default function ConcernListPage() {
               {t('po.concernsListLoadError')}
             </p>
             <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
-              {toUserMessage(error, t('po.unknownError'))}
+              {toUserMessage(error, t('po.unknownError'), t)}
             </p>
             <Button variant="secondary" size="sm" onClick={() => refetch()}>
               {t('common.retry')}
