@@ -67,7 +67,7 @@ function toRow(
     sentAt: formatDateKR(proposal.sentAt, locale),
     concern: describeConcern(concern),
     budget: budgetText,
-    totalPrice: formatKrwAsMan(proposal.totalPrice, locale),
+    totalPrice: formatKrwAsMan(proposal.totalPrice, locale, t('common.currency')),
     itemNames: proposal.items.map(item => item.treatmentName).join(', ') || '-',
     statusEnum: proposal.status,
   };

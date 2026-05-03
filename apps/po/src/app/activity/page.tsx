@@ -159,7 +159,7 @@ export default function ActivityPage() {
         date: formatDateKR(p.sentAt, locale),
         type: 'proposal',
         typeLabel: t('po.activityProposalSend'),
-        description: `${concern ? `${t(`common.bodyArea.${concern.primaryArea}`)} ${concern.bodyAreaDetail || ''}` : '-'} · ${budgetText} · ${formatKrwAsMan(p.totalPrice, locale)}`,
+        description: `${concern ? `${t(`common.bodyArea.${concern.primaryArea}`)} ${concern.bodyAreaDetail || ''}` : '-'} · ${budgetText} · ${formatKrwAsMan(p.totalPrice, locale, t('common.currency'))}`,
         credit: `-${CREDIT_COST}`,
         statusEnum: p.status,
         concernId: p.concernId,

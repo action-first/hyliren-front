@@ -246,7 +246,7 @@ export default function ConcernDetailPage() {
               <div className="flex items-center justify-between gap-4 mt-3">
                 <div className="flex-1 min-w-0">
                   <div className="text-[var(--text-md)] font-semibold text-[var(--text-default)] tabular-nums">
-                    {formatKrwAsMan(myProposal.totalPrice, locale)} · {t('common.recovery')} {t('po.proposalMetaDays', { days: myProposal.recoveryDays })}
+                    {formatKrwAsMan(myProposal.totalPrice, locale, t('common.currency'))} · {t('common.recovery')} {t('po.proposalMetaDays', { days: myProposal.recoveryDays })}
                   </div>
                   <div className="text-[var(--text-sm)] text-[var(--text-subdued)] mt-1 truncate">
                     {myProposal.items.map(item => item.treatmentName).join(', ') || t('po.concernNoItems')}

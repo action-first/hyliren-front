@@ -138,7 +138,7 @@ export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetail
                   )}
                 </div>
                 <span className="text-[var(--text-md)] font-bold text-[var(--text-default)]">
-                  {formatKrwAsMan(item.price, locale)}
+                  {formatKrwAsMan(item.price, locale, t("common.currency"))}
                 </span>
               </div>
             ))}
@@ -152,7 +152,7 @@ export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetail
             {t('po.proposeTotalEstimated')}
           </span>
           <span className="text-[var(--text-2xl)] font-bold text-[var(--text-default)]">
-            {formatKrwAsMan(proposal.totalPrice, locale)}
+            {formatKrwAsMan(proposal.totalPrice, locale, t("common.currency"))}
           </span>
         </div>
       </Card>
