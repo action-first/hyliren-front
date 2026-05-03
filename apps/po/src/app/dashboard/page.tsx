@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import type { ProposalStatus } from '@hyliren/shared';
 import {
-  CONCERN_STATUS_KR, PROPOSAL_STATUS_KR, BODY_AREA_BADGE,
+  BODY_AREA_BADGE,
   formatBudget, formatDateRange,
   isProposalAccepted,
 } from '@hyliren/shared';
@@ -50,14 +50,14 @@ const CHART_PALETTE = {
   neutralLight: '#CBD5E1',
 } as const;
 
-/** 제안서 상태 팔레트 — 차트 색상 + 라벨. */
-const PROPOSAL_PALETTE: Record<string, { hex: string; label: string }> = {
-  selected:    { hex: CHART_PALETTE.primary,      label: '선택됨' },
-  shortlisted: { hex: CHART_PALETTE.secondary,    label: '후보' },
-  viewed:      { hex: CHART_PALETTE.neutralLight, label: '열람' },
-  sent:        { hex: CHART_PALETTE.neutral,      label: '발송' },
-  rejected:    { hex: CHART_PALETTE.negative,     label: '거절' },
-  draft:       { hex: '#E2E8F0',                  label: '임시저장' },
+/** 제안서 상태 팔레트 — 차트 색상만. label 은 컴포넌트 내부에서 t() 매핑. */
+const PROPOSAL_HEX: Record<string, string> = {
+  selected:    CHART_PALETTE.primary,
+  shortlisted: CHART_PALETTE.secondary,
+  viewed:      CHART_PALETTE.neutralLight,
+  sent:        CHART_PALETTE.neutral,
+  rejected:    CHART_PALETTE.negative,
+  draft:       '#E2E8F0',
 };
 
 /** 부위 팔레트 — 차트 색상 (BodyArea enum key 기반, Stage 3 정렬). */
@@ -70,14 +70,28 @@ const AREA_CHART_HEX: Record<string, string> = {
   etc:     CHART_PALETTE.neutral,
 };
 
-/** 고민 상태 배지 — semantic 토큰 사용. */
+/** concern.status enum (snake_case) → i18n key (camelCase 네임스페이스 lifecycle.status.*). */
+const CONCERN_STATUS_I18N_KEY: Record<string, string> = {
+  draft:             'lifecycle.status.draft',
+  submitted:         'lifecycle.status.submitted',
+  proposal_received: 'lifecycle.status.proposalReceived',
+  comparing:         'lifecycle.status.comparing',
+  report_purchased:  'lifecycle.status.reportPurchased',
+  hospital_selected: 'lifecycle.status.hospitalSelected',
+  service_purchased: 'lifecycle.status.servicePurchased',
+  completed:         'lifecycle.status.completed',
+  cancelled:         'lifecycle.status.cancelled',
+};
+
+/** 고민 상태 배지 — concern.status enum key 기반 (한국어 키 매핑 폐기). */
 const CONCERN_STATUS_BADGE: Record<string, { bg: string; text: string; dot: string }> = {
-  '접수됨':    { bg: 'var(--surface-subdued)',     text: 'var(--text-subdued)', dot: CHART_PALETTE.neutral },
-  '제안 도착': { bg: 'var(--color-info-soft)',     text: 'var(--color-info)',   dot: CHART_PALETTE.primary },
-  '제안 수신': { bg: 'var(--color-info-soft)',     text: 'var(--color-info)',   dot: CHART_PALETTE.primary },
-  '비교 중':   { bg: 'var(--color-primary-soft)',  text: 'var(--color-primary)', dot: CHART_PALETTE.secondary },
-  '진행 중':   { bg: 'var(--color-primary-soft)',  text: 'var(--color-primary)', dot: CHART_PALETTE.secondary },
-  '완료':      { bg: 'var(--color-success-soft)',  text: 'var(--color-success)', dot: CHART_PALETTE.positive },
+  submitted:         { bg: 'var(--surface-subdued)',     text: 'var(--text-subdued)',  dot: CHART_PALETTE.neutral },
+  proposal_received: { bg: 'var(--color-info-soft)',     text: 'var(--color-info)',    dot: CHART_PALETTE.primary },
+  comparing:         { bg: 'var(--color-primary-soft)',  text: 'var(--color-primary)', dot: CHART_PALETTE.secondary },
+  report_purchased:  { bg: 'var(--color-primary-soft)',  text: 'var(--color-primary)', dot: CHART_PALETTE.secondary },
+  hospital_selected: { bg: 'var(--color-success-soft)',  text: 'var(--color-success)', dot: CHART_PALETTE.positive },
+  service_purchased: { bg: 'var(--color-success-soft)',  text: 'var(--color-success)', dot: CHART_PALETTE.positive },
+  completed:         { bg: 'var(--color-success-soft)',  text: 'var(--color-success)', dot: CHART_PALETTE.positive },
 };
 
 /** 부위 배지 — 모두 info 토큰으로 통일 (구분은 텍스트 자체로). */
@@ -362,14 +376,14 @@ export default function DashboardPage() {
   const selectedCount = myProposals.filter(p => isProposalAccepted({ status: p.status as ProposalStatus })).length;
   const selectedRate = myProposals.length > 0 ? Math.round((selectedCount / myProposals.length) * 100) : 0;
 
-  // 도넛 — 제안서 상태
+  // 도넛 — 제안서 상태. label 은 활성 locale 의 t() 매핑 (po.proposalStatus.<enum>).
   const statusGroups = myProposals.reduce<Record<string, number>>((acc, p) => {
     acc[p.status] = (acc[p.status] ?? 0) + 1; return acc;
   }, {});
   const pieData = Object.entries(statusGroups).map(([status, count]) => ({
-    name: PROPOSAL_PALETTE[status]?.label ?? status,
+    name: t(`po.proposalStatus.${status}`) || status,
     value: count,
-    color: PROPOSAL_PALETTE[status]?.hex ?? CHART_PALETTE.neutral,
+    color: PROPOSAL_HEX[status] ?? CHART_PALETTE.neutral,
   }));
 
   // 도넛 — 부위별 분포
@@ -383,22 +397,22 @@ export default function DashboardPage() {
     color: AREA_CHART_HEX[area] ?? CHART_PALETTE.neutral,
   }));
 
-  // 기간별 제안 추이
+  // 기간별 제안 추이 — dataKey 는 영문 enum (recharts Tooltip/Legend 의 name prop 으로 t() 매핑).
   const days = dateWindow.days;
   const trendData = days.map(date => {
     const sent = myProposals.filter(p => p.sentAt?.slice(0, 10) === date).length;
     const viewed = myProposals.filter(p => p.viewedAt?.slice(0, 10) === date).length;
-    return { date: shortDate(date), 발송: sent, 열람: viewed };
+    return { date: shortDate(date), sent, viewed };
   });
 
-  // 크레딧 일별 집계
+  // 크레딧 일별 집계 — 동일 패턴.
   const creditDailyData = days.map(date => {
     const txs = periodTransactions.filter(tx => tx.createdAt.slice(0, 10) === date);
     const charge = txs.filter(tx => tx.amount > 0).reduce((sum, tx) => sum + tx.amount, 0);
     const spend = txs.filter(tx => tx.amount < 0).reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
-    return { name: shortDate(date), 충전: charge, 사용: spend, 순증감: charge - spend };
+    return { name: shortDate(date), charge, spend, net: charge - spend };
   });
-  const hasCreditDailyData = creditDailyData.some(d => d.충전 > 0 || d.사용 > 0);
+  const hasCreditDailyData = creditDailyData.some(d => d.charge > 0 || d.spend > 0);
 
   // ── 로딩 ──
   if (loading) {
@@ -494,7 +508,7 @@ export default function DashboardPage() {
             iconBg="var(--color-warning-soft)"
             label={t('po.kpiCreditBalance')}
             value={balance}
-            sub={`${Math.floor(balance / 3)}건 발송 가능`}
+            sub={t('po.kpiCanSendCount', { count: Math.floor(balance / 3) })}
           />
         </div>
 
@@ -507,7 +521,7 @@ export default function DashboardPage() {
                   <Pie data={pieData} cx="50%" cy="44%" innerRadius={62} outerRadius={85} paddingAngle={3} dataKey="value" stroke="none" cornerRadius={4}>
                     {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
-                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value, name) => [`${Number(value)}건`, String(name)]} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value, name) => [t('po.chartUnitCount', { count: Number(value) }), String(name)]} />
                   <Legend content={<CustomLegend />} />
                   <text x="50%" y="42%" textAnchor="middle" style={{ fontSize: "var(--text-2xl)", fontWeight: "var(--font-bold)", fill: 'var(--text-default)' }}>{myProposals.length}</text>
                   <text x="50%" y="50%" textAnchor="middle" style={{ fontSize: "var(--text-xs)", fontWeight: "var(--font-medium)", fill: 'var(--text-disabled)' }}>{t('po.dashboardTotalProposals')}</text>
@@ -515,7 +529,7 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 240, color: 'var(--text-disabled)', fontSize: "var(--text-sm)" }}>
-                발송한 제안서가 없습니다.
+                {t('po.chartProposalEmpty')}
               </div>
             )}
           </ChartCard>
@@ -537,8 +551,8 @@ export default function DashboardPage() {
                 <XAxis dataKey="date" tick={{ fontSize: "var(--text-xs)", fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fontSize: "var(--text-xs)", fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Area type="monotone" dataKey="발송" stroke={CHART_PALETTE.primary} strokeWidth={2} fill="url(#gradSent)" dot={{ r: 3, fill: CHART_PALETTE.primary, strokeWidth: 0 }} activeDot={{ r: 5, fill: CHART_PALETTE.primary, stroke: '#fff', strokeWidth: 2 }} />
-                <Area type="monotone" dataKey="열람" stroke={CHART_PALETTE.positive} strokeWidth={2} fill="url(#gradViewed)" dot={{ r: 3, fill: CHART_PALETTE.positive, strokeWidth: 0 }} activeDot={{ r: 5, fill: CHART_PALETTE.positive, stroke: '#fff', strokeWidth: 2 }} />
+                <Area type="monotone" dataKey="sent" name={t('po.chartLegendSent')} stroke={CHART_PALETTE.primary} strokeWidth={2} fill="url(#gradSent)" dot={{ r: 3, fill: CHART_PALETTE.primary, strokeWidth: 0 }} activeDot={{ r: 5, fill: CHART_PALETTE.primary, stroke: '#fff', strokeWidth: 2 }} />
+                <Area type="monotone" dataKey="viewed" name={t('po.chartLegendViewed')} stroke={CHART_PALETTE.positive} strokeWidth={2} fill="url(#gradViewed)" dot={{ r: 3, fill: CHART_PALETTE.positive, strokeWidth: 0 }} activeDot={{ r: 5, fill: CHART_PALETTE.positive, stroke: '#fff', strokeWidth: 2 }} />
                 <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "var(--text-sm)", paddingTop: 8 }}
                   formatter={(value: string) => <span style={{ fontSize: "var(--text-sm)", color: 'var(--text-subdued)', marginLeft: 2 }}>{value}</span>}
                 />
@@ -554,7 +568,7 @@ export default function DashboardPage() {
               <AreaTreemap data={areaPieData} total={periodConcerns.length} />
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 220, color: 'var(--text-disabled)', fontSize: "var(--text-sm)" }}>
-                고민 데이터가 없습니다.
+                {t('po.chartConcernEmpty')}
               </div>
             )}
           </ChartCard>
@@ -567,13 +581,13 @@ export default function DashboardPage() {
                   <XAxis dataKey="name" tick={{ fontSize: "var(--text-xs)", fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} />
                   <YAxis tick={{ fontSize: "var(--text-xs)", fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} />
                   <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(79,70,229,0.04)' }}
-                    formatter={(value, name) => [`${Number(value)}크레딧`, String(name)]}
+                    formatter={(value, name) => [t('po.chartUnitCredit', { count: Number(value) }), String(name)]}
                   />
                   <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "var(--text-sm)", paddingTop: 8 }}
                     formatter={(value: string) => <span style={{ fontSize: "var(--text-sm)", color: 'var(--text-subdued)', marginLeft: 2 }}>{value}</span>}
                   />
-                  <Bar dataKey="충전" fill={CHART_PALETTE.primary} fillOpacity={0.85} radius={[6, 6, 0, 0]} maxBarSize={28} />
-                  <Bar dataKey="사용" fill={CHART_PALETTE.negative} fillOpacity={0.82} radius={[6, 6, 0, 0]} maxBarSize={28} />
+                  <Bar dataKey="charge" name={t('po.chartLegendCharge')} fill={CHART_PALETTE.primary} fillOpacity={0.85} radius={[6, 6, 0, 0]} maxBarSize={28} />
+                  <Bar dataKey="spend" name={t('po.chartLegendSpend')} fill={CHART_PALETTE.negative} fillOpacity={0.82} radius={[6, 6, 0, 0]} maxBarSize={28} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -639,8 +653,9 @@ export default function DashboardPage() {
                 </tr>
               )}
               {openConcerns.slice(0, 5).map(c => {
-                const statusLabel = CONCERN_STATUS_KR[c.status] ?? c.status;
-                const statusStyle = CONCERN_STATUS_BADGE[statusLabel] ?? {
+                const statusKey = CONCERN_STATUS_I18N_KEY[c.status];
+                const statusLabel = statusKey ? t(statusKey) : c.status;
+                const statusStyle = CONCERN_STATUS_BADGE[c.status] ?? {
                   bg: 'var(--surface-subdued)', text: 'var(--text-subdued)', dot: CHART_PALETTE.neutral,
                 };
                 const areaStyle = AREA_BADGE;

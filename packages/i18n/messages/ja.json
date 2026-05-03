@@ -1174,7 +1174,30 @@
       "diet_injection": "ダイエット · 脂肪溶解注射",
       "diet_body_contouring": "ダイエット · ボディ",
       "other": "その他"
-    }
+    },
+    "proposalStatus": {
+      "selected": "選択済み",
+      "shortlisted": "候補",
+      "viewed": "閲覧",
+      "sent": "送信",
+      "rejected": "却下",
+      "draft": "下書き",
+      "accepted": "選択済み",
+      "expired": "期限切れ"
+    },
+    "kpiCanSendCount": "{count}件 送信可能",
+    "chartProposalEmpty": "送信した提案書はありません。",
+    "chartConcernEmpty": "お悩みデータがありません。",
+    "chartUnitCount": "{count}件",
+    "chartUnitCredit": "{count}クレジット",
+    "chartLegendSent": "送信",
+    "chartLegendViewed": "閲覧",
+    "chartLegendSpend": "使用",
+    "myProposalEmpty": "まだ送信した提案書はありません。",
+    "proposeSubmitSuccess": "提案書が送信されました。クレジット {credit} 件差し引かれました。",
+    "concernViewMyProposal": "詳細を見る",
+    "concernProposalNotSentYet": "まだ提案書を送信していません",
+    "concernCreateProposal": "提案書を作成"
   },
   "poLogin": {
     "emailInvalid": "正しいメールアドレス形式で入力してください。",

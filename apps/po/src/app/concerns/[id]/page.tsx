@@ -239,16 +239,16 @@ export default function ConcernDetailPage() {
                   </div>
                 </div>
                 <Button variant="secondary" size="sm" onClick={() => setMyProposalOpen(true)}>
-                  상세 보기
+                  {t('po.concernViewMyProposal')}
                 </Button>
               </div>
             ) : (
               <div className="text-center py-8">
                 <p className="text-[var(--text-base)] text-[var(--text-subdued)] mb-4">
-                  아직 제안서를 발송하지 않았습니다
+                  {t('po.concernProposalNotSentYet')}
                 </p>
                 <Button variant="primary" size="sm" onClick={() => setProposeOpen(true)}>
-                  제안서 작성하기
+                  {t('po.concernCreateProposal')}
                 </Button>
               </div>
             )}

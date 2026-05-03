@@ -38,6 +38,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
   const balance = balanceQ.data?.balance ?? 0;
   const { showToast } = useToastStore();
   const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
 
   const ANESTHESIA_OPTIONS = [
     { value: 'local', label: t('common.anesthesiaLocal') },
@@ -103,9 +104,9 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
     setItems(prev => prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)));
   }
 
-  // 가격 input — 콤마 포맷 + non-digit 입력 제거
+  // 가격 input — 콤마 포맷 (활성 locale 따름) + non-digit 입력 제거
   function formatPrice(n: number): string {
-    return n > 0 ? n.toLocaleString('ko-KR') : '';
+    return n > 0 ? n.toLocaleString(locale) : '';
   }
   function parsePrice(s: string): number {
     const digits = s.replace(/[^\d]/g, '');
@@ -173,7 +174,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
       {
         onSuccess: () => {
           // BE 가 차감 + 거래기록 작성. mutation onSuccess 가 credits cache invalidate → 잔액 자동 갱신.
-          showToast(`제안서가 발송되었습니다. 크레딧 ${CREDIT_COST}개 차감.`, 'success');
+          showToast(t('po.proposeSubmitSuccess', { credit: CREDIT_COST }), 'success');
           onSuccess?.();
           onClose();
         },

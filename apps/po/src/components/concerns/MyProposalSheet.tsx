@@ -64,7 +64,7 @@ export function MyProposalSheet({ concernId, open, onClose }: MyProposalSheetPro
       {!loading && notFound && (
         <div className="text-center py-16">
           <p className="text-[var(--text-base)] text-[var(--text-subdued)]">
-            아직 발송한 제안서가 없습니다.
+            {t('po.myProposalEmpty')}
           </p>
         </div>
       )}
