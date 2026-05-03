@@ -60,9 +60,17 @@ function tryTranslate(t: TFn, key: string): string | null {
  */
 export function toUserMessage(err: unknown, fallback: string, t: TFn): string {
   if (err instanceof ApiError) {
-    // 1. ERR_* code 우선 매핑 (BE PR #53/#54 stable code)
+    // 1. ERR_* code 우선 매핑 (BE PR #53/#54/#55 stable code)
     if (err.code?.startsWith('ERR_')) {
       const translated = tryTranslate(t, `error.${err.code}`);
+      if (translated) return translated;
+    }
+
+    // 1b. envelope.message 가 ERR_* code 인 경우 (NestJS ValidationPipe — RegisterDto Matches 등)
+    //     BE PR action-first/hyliren-api#55 의 password rule 처럼 zod/class-validator
+    //     가 message 에 ERR_* 직접 넣는 경우.
+    if (err.message?.startsWith('ERR_')) {
+      const translated = tryTranslate(t, `error.${err.message}`);
       if (translated) return translated;
     }
 
