@@ -1395,6 +1395,15 @@
     "ERR_SERVER": "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
     "ERR_SERVER_TEMP": "일시적인 서버 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
     "ERR_SERVICE_UNAVAILABLE": "서비스 점검 중입니다. 잠시 후 다시 시도해주세요.",
-    "ERR_TIMEOUT": "응답 대기 시간이 초과됐어요. 다시 시도해주세요."
+    "ERR_TIMEOUT": "응답 대기 시간이 초과됐어요. 다시 시도해주세요.",
+    "ERR_CONCERN_NOT_PROPOSABLE": "제안 가능한 상태가 아닌 고민입니다.",
+    "ERR_PROPOSAL_ALREADY_SENT": "이미 이 고민에 대해 제안서를 보냈습니다 (수정은 PATCH 사용).",
+    "ERR_PROPOSAL_NOT_FOUND": "제안서를 찾을 수 없습니다.",
+    "ERR_PROPOSAL_NOT_OWNED": "본인 제안서만 수정할 수 있습니다.",
+    "ERR_PROPOSAL_NOT_EDITABLE": "수정 가능한 상태가 아닙니다.",
+    "ERR_INSUFFICIENT_CREDIT": "크레딧이 부족합니다. 충전 후 다시 시도해주세요.",
+    "ERR_PROCEDURE_DELETE_ARCHIVED_ONLY": "비공개 상태의 시술만 영구 삭제할 수 있습니다.",
+    "ERR_VARIANT_LAST_REQUIRED": "최소 1개의 옵션은 유지되어야 합니다.",
+    "ERR_VARIANT_REQUIRED": "최소 1개의 옵션이 필요합니다."
   }
 }
