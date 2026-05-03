@@ -1296,6 +1296,11 @@
     "ERR_USER_NOT_FOUND": "ユーザー情報が見つかりません。",
     "ERR_CONCERN_NOT_FOUND": "お悩みが見つかりません。",
     "ERR_CONCERN_NOT_SUBMITTABLE": "既に提出済み、または提出できない状態です。",
-    "unknown": "しばらくしてからもう一度お試しください。"
+    "unknown": "しばらくしてからもう一度お試しください。",
+    "ERR_INVALID_JSON": "有効な JSON リクエストが必要です。",
+    "ERR_VALIDATION_FAILED": "入力内容が正しくありません。",
+    "ERR_PHOTOS_TOO_MANY": "写真は最大 3 枚までです。",
+    "ERR_NARRATIVE_REQUIRED": "お悩みを入力してください。",
+    "ERR_NARRATIVE_TOO_SHORT": "どの部位がどのようにお悩みか、もう少し具体的にお聞かせください。"
   }
 }

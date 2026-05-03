@@ -1296,6 +1296,11 @@
     "ERR_USER_NOT_FOUND": "사용자 정보를 찾을 수 없습니다.",
     "ERR_CONCERN_NOT_FOUND": "고민을 찾을 수 없습니다.",
     "ERR_CONCERN_NOT_SUBMITTABLE": "이미 제출되었거나 제출할 수 없는 상태입니다.",
-    "unknown": "잠시 후 다시 시도해주세요."
+    "unknown": "잠시 후 다시 시도해주세요.",
+    "ERR_INVALID_JSON": "유효한 JSON 요청이 필요합니다.",
+    "ERR_VALIDATION_FAILED": "입력값이 올바르지 않습니다.",
+    "ERR_PHOTOS_TOO_MANY": "사진은 최대 3장까지 가능합니다.",
+    "ERR_NARRATIVE_REQUIRED": "고민을 입력해주세요.",
+    "ERR_NARRATIVE_TOO_SHORT": "어느 부위가 어떻게 고민이신지 조금 더 구체적으로 알려주세요."
   }
 }

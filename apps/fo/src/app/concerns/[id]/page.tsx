@@ -82,7 +82,7 @@ export default function ConcernDetailPage({ params }: Props) {
           {concern.budgetMin && concern.budgetMax && (
             <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)]">
               <Wallet size={12} className="text-[var(--color-text-dim)]" />
-              <span className="text-[11px] text-[var(--color-text-secondary)]">{concern.budgetMin}~{concern.budgetMax}{t('common.currency')}</span>
+              <span className="text-[11px] text-[var(--color-text-secondary)]">{t('decision.budgetRangeMan', { min: concern.budgetMin, max: concern.budgetMax })}</span>
             </div>
           )}
           {concern.visitDateFrom && (

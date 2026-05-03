@@ -1296,6 +1296,11 @@
     "ERR_USER_NOT_FOUND": "User information could not be found.",
     "ERR_CONCERN_NOT_FOUND": "Concern not found.",
     "ERR_CONCERN_NOT_SUBMITTABLE": "Already submitted or not in a submittable state.",
-    "unknown": "Please try again in a moment."
+    "unknown": "Please try again in a moment.",
+    "ERR_INVALID_JSON": "A valid JSON request is required.",
+    "ERR_VALIDATION_FAILED": "The input is invalid.",
+    "ERR_PHOTOS_TOO_MANY": "You can upload up to 3 photos.",
+    "ERR_NARRATIVE_REQUIRED": "Please describe your concern.",
+    "ERR_NARRATIVE_TOO_SHORT": "Please describe your concern and the area in a bit more detail."
   }
 }
