@@ -11,6 +11,7 @@ interface Props {
 
 export function AIAnalysisResultCard({ result, compact = false }: Props) {
   const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
   const { extractedSummary, options, disclaimer } = result;
 
   // bodyArea enum key (Stage 3) → t('common.bodyArea.${key}') 매핑.
@@ -23,7 +24,7 @@ export function AIAnalysisResultCard({ result, compact = false }: Props) {
     { label: t('consult.summaryArea'), value: areasLabel || (extractedSummary.primaryArea ? t(`common.bodyArea.${extractedSummary.primaryArea}`) : '') },
     { label: t('consult.summaryDetail'), value: extractedSummary.bodyAreaDetail },
     { label: t('consult.summaryDirection'), value: extractedSummary.desiredOutcome },
-    { label: t('consult.summaryBudget'), value: extractedSummary.budgetMax ? `${extractedSummary.budgetMax.toLocaleString()}${t('common.currency')}` : t('common.tbd') },
+    { label: t('consult.summaryBudget'), value: extractedSummary.budgetMax ? `${extractedSummary.budgetMax.toLocaleString(locale)}${t('common.currency')}` : t('common.tbd') },
     { label: t('consult.summaryTiming'), value: extractedSummary.visitDate || t('common.tbd') },
   ].filter(r => r.value);
 

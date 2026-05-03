@@ -13,13 +13,16 @@ import { log } from '@/lib/logger';
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
-  /* ── Parse body ── */
+  /* ── Parse body ──
+   * error 응답은 stable ERR_* code 만 반환 — FE 가 t('error.<code>') 매핑.
+   * (BE customer 도 동일 컨벤션, action-first/hyliren-api PR #53 참조)
+   */
   let body: unknown;
   try {
     body = await request.json();
   } catch {
     return NextResponse.json(
-      { error: '유효한 JSON 요청이 필요합니다.' },
+      { error: 'ERR_INVALID_JSON' },
       { status: 400 },
     );
   }
@@ -29,8 +32,10 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     const firstError = parsed.error.issues[0];
     log('warn', 'validation_failed', { path: firstError?.path, message: firstError?.message });
+    // schema 의 zod message 는 이미 ERR_* code 형태. fallback 도 generic code.
+    const code = firstError?.message?.startsWith('ERR_') ? firstError.message : 'ERR_VALIDATION_FAILED';
     return NextResponse.json(
-      { error: firstError?.message || '입력값이 올바르지 않습니다.' },
+      { error: code },
       { status: 400 },
     );
   }

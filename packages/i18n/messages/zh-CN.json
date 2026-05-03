@@ -1296,6 +1296,11 @@
     "ERR_USER_NOT_FOUND": "找不到用户信息。",
     "ERR_CONCERN_NOT_FOUND": "找不到该困扰。",
     "ERR_CONCERN_NOT_SUBMITTABLE": "已提交或无法提交的状态。",
-    "unknown": "请稍后重试。"
+    "unknown": "请稍后重试。",
+    "ERR_INVALID_JSON": "请提交有效的 JSON 请求。",
+    "ERR_VALIDATION_FAILED": "输入内容不正确。",
+    "ERR_PHOTOS_TOO_MANY": "照片最多可上传 3 张。",
+    "ERR_NARRATIVE_REQUIRED": "请输入您的困扰。",
+    "ERR_NARRATIVE_TOO_SHORT": "请更具体地说明部位与困扰。"
   }
 }
