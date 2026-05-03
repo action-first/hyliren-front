@@ -147,7 +147,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
   function handleSend() {
     if (sending) return;
     if (balance < CREDIT_COST) {
-      showToast(`크레딧이 부족합니다. 현재 잔액: ${balance}개`, 'error');
+      showToast(t('po.proposeInsufficientCreditBalance', { balance }), 'error');
       return;
     }
     createMutation.mutate(
@@ -415,7 +415,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
 
         {balance < CREDIT_COST && (
           <p className="text-right text-sm text-[var(--color-danger)]">
-            크레딧이 부족합니다. 현재 잔액: {balance}개
+            {t('po.proposeInsufficientCreditBalance', { balance })}
           </p>
         )}
       </div>

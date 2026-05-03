@@ -1209,7 +1209,10 @@
     "treatmentArchiveBody1": "Hidden procedures are not shown to customers.",
     "treatmentArchiveBody2": "You can republish anytime.",
     "treatmentUnarchiveBody": "Publishing will show this to customers again.",
-    "treatmentDraftSave": "Save draft"
+    "treatmentDraftSave": "Save draft",
+    "proposeInsufficientCreditBalance": "Insufficient credit. Current balance: {balance}",
+    "profileVerified": "Verified",
+    "profileUnverified": "Not verified"
   },
   "poLogin": {
     "emailInvalid": "Please enter a valid email format.",
