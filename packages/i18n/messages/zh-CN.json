@@ -1198,7 +1198,18 @@
     "concernViewMyProposal": "查看详情",
     "concernProposalNotSentYet": "尚未发送提案",
     "concernCreateProposal": "撰写提案",
-    "concernInfoCreatedAt": "登记"
+    "concernInfoCreatedAt": "登记",
+    "treatmentNewRegisterCta": "新增项目",
+    "treatmentsRegisteredCount": "已登记项目 ({count})",
+    "draftExistsBody": "正在编辑中的项目。",
+    "draftResume": "继续编辑",
+    "draftStartNew": "新建",
+    "draftDeleteConfirmBody": "草稿无法恢复。",
+    "draftDeleteAndStartNew": "删除并新建",
+    "treatmentArchiveBody1": "设为私密后客户将无法看到。",
+    "treatmentArchiveBody2": "可随时重新公开。",
+    "treatmentUnarchiveBody": "公开后客户将再次看到。",
+    "treatmentDraftSave": "保存为草稿"
   },
   "poLogin": {
     "emailInvalid": "请输入正确的邮箱格式。",

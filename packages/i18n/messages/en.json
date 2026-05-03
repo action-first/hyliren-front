@@ -1198,7 +1198,18 @@
     "concernViewMyProposal": "View details",
     "concernProposalNotSentYet": "No proposal sent yet",
     "concernCreateProposal": "Create proposal",
-    "concernInfoCreatedAt": "Registered"
+    "concernInfoCreatedAt": "Registered",
+    "treatmentNewRegisterCta": "Register new procedure",
+    "treatmentsRegisteredCount": "Registered procedures ({count})",
+    "draftExistsBody": "has an in-progress procedure draft.",
+    "draftResume": "Resume",
+    "draftStartNew": "Start new",
+    "draftDeleteConfirmBody": "draft cannot be recovered.",
+    "draftDeleteAndStartNew": "Delete and start new",
+    "treatmentArchiveBody1": "Hidden procedures are not shown to customers.",
+    "treatmentArchiveBody2": "You can republish anytime.",
+    "treatmentUnarchiveBody": "Publishing will show this to customers again.",
+    "treatmentDraftSave": "Save draft"
   },
   "poLogin": {
     "emailInvalid": "Please enter a valid email format.",

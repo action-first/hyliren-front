@@ -241,7 +241,7 @@ export default function NewProcedurePage() {
               onClick={() => submit('draft')}
               disabled={saving || !stepsValidForDraft(form)}
             >
-              임시저장
+              {t('po.treatmentDraftSave')}
             </Button>
           }
           primaryAction={{
