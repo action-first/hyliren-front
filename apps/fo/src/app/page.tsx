@@ -193,7 +193,7 @@ export default function HomePage() {
           ) : (
             <div className="flex flex-col gap-3">
               {popularProcedures.slice(0, 4).map((procedure, i) => (
-                <ProcedureFeatureCard key={procedure.id} procedure={procedure} featured={i === 0} t={t} />
+                <ProcedureFeatureCard key={procedure.id} procedure={procedure} featured={i === 0} t={t} locale={locale} />
               ))}
             </div>
           )}
@@ -240,12 +240,12 @@ export default function HomePage() {
   );
 }
 
-function formatProcedurePrice(min: number, max: number, manLabel: string): string {
-  const toMan = (value: number) => `${Math.round(value / 10000).toLocaleString()}${manLabel}`;
+function formatProcedurePrice(min: number, max: number, locale: string, manLabel: string): string {
+  const toMan = (value: number) => `${Math.round(value / 10000).toLocaleString(locale)}${manLabel}`;
   return min === max ? toMan(min) : `${toMan(min)}~${toMan(max)}`;
 }
 
-function ProcedureFeatureCard({ procedure, featured = false, t }: { procedure: ProcedureListItemWire; featured?: boolean; t: (k: string, p?: Record<string, string | number>) => string }) {
+function ProcedureFeatureCard({ procedure, featured = false, t, locale }: { procedure: ProcedureListItemWire; featured?: boolean; t: (k: string, p?: Record<string, string | number>) => string; locale: string }) {
   return (
     <Link href={`/procedures/${procedure.slug}`} className="no-underline block">
       <article
@@ -275,7 +275,7 @@ function ProcedureFeatureCard({ procedure, featured = false, t }: { procedure: P
           <div className="flex items-center justify-between">
             <div className="flex items-baseline gap-1.5">
               <span className="text-[15px] font-bold text-[var(--color-text)]">
-                {formatProcedurePrice(procedure.priceMin, procedure.priceMax, t('common.man'))}
+                {formatProcedurePrice(procedure.priceMin, procedure.priceMax, locale, t('common.man'))}
               </span>
               <span className="text-[11px] text-[var(--color-text-dim)]">· {t('landing.referencePrice')}</span>
             </div>

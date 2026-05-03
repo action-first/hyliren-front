@@ -18,16 +18,26 @@ export function krwToMan(value: number): number {
   return Math.round(value / PRICE_MAN_UNIT);
 }
 
-export function formatKrwAsMan(value: number): string {
-  return `${krwToMan(value).toLocaleString('ko-KR')}만원`;
+/**
+ * KRW 원 → 만원 표기 + 만원 라벨.
+ * 만원 라벨이 한국어 raw — 호출처가 다국어 라벨이 필요하면 별도 처리.
+ * (BO/PO 운영자 페이지 한국어 운영 한정 default. 다국어 페이지 확장 시 i18n key 사용 권장.)
+ *
+ * locale 인자: toLocaleString 의 콤마 포맷 로케일. 누락 시 'ko-KR' default (BO 한국어).
+ * PO 와 같이 다국어 운영자 화면에서는 활성 locale 명시.
+ */
+export function formatKrwAsMan(value: number, locale: string = 'ko-KR'): string {
+  return `${krwToMan(value).toLocaleString(locale)}만원`;
 }
 
 /**
  * 입력 콤마 포맷 — input 표시용.
  * 0 또는 음수면 빈 문자열 (placeholder 노출).
+ *
+ * locale 인자: 누락 시 'ko-KR' default. PO/FO 다국어 입력 필드는 활성 locale 명시.
  */
-export function formatNumberWithComma(value: number): string {
-  return value > 0 ? value.toLocaleString('ko-KR') : '';
+export function formatNumberWithComma(value: number, locale: string = 'ko-KR'): string {
+  return value > 0 ? value.toLocaleString(locale) : '';
 }
 
 /** 콤마/non-digit 제거 후 number. 빈 입력은 0. */
