@@ -1408,6 +1408,7 @@
     "ERR_INSUFFICIENT_CREDIT": "Insufficient credit. Please recharge and try again.",
     "ERR_PROCEDURE_DELETE_ARCHIVED_ONLY": "Only archived procedures can be permanently deleted.",
     "ERR_VARIANT_LAST_REQUIRED": "At least one variant must remain.",
-    "ERR_VARIANT_REQUIRED": "At least one variant is required."
+    "ERR_VARIANT_REQUIRED": "At least one variant is required.",
+    "ERR_PASSWORD_RULE": "Password must contain at least 1 letter and 1 number."
   }
 }

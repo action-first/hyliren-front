@@ -1408,6 +1408,7 @@
     "ERR_INSUFFICIENT_CREDIT": "积分不足,请充值后重试。",
     "ERR_PROCEDURE_DELETE_ARCHIVED_ONLY": "仅可永久删除已下架项目。",
     "ERR_VARIANT_LAST_REQUIRED": "至少需保留 1 个选项。",
-    "ERR_VARIANT_REQUIRED": "至少需要 1 个选项。"
+    "ERR_VARIANT_REQUIRED": "至少需要 1 个选项。",
+    "ERR_PASSWORD_RULE": "密码须至少包含 1 位字母和 1 位数字。"
   }
 }
