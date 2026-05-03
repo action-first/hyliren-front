@@ -1380,6 +1380,21 @@
     "ERR_DATE_FORMAT": "Date must be in YYYY-MM-DD format.",
     "ERR_BUDGET_MIN_GT_MAX": "Minimum budget cannot exceed maximum budget.",
     "ERR_VISIT_DATE_FROM_GT_TO": "Visit start date cannot be later than end date.",
-    "ERR_INVALID_PROPOSAL_ID": "Invalid proposal ID."
+    "ERR_INVALID_PROPOSAL_ID": "Invalid proposal ID.",
+    "ERR_PROCEDURE_NOT_FOUND": "Procedure not found.",
+    "ERR_PROCEDURE_STALE": "An error occurred while updating procedure info. Refresh and try again.",
+    "ERR_VARIANT_NOT_FOUND": "Variant not found.",
+    "ERR_PARTNER_ACCESS_REQUIRED": "Hospital partner access is required.",
+    "ERR_NETWORK": "Please check your internet connection.",
+    "ERR_SESSION_EXPIRED": "Your session has expired. Please log in again.",
+    "ERR_FORBIDDEN": "You don't have permission for this action.",
+    "ERR_NOT_FOUND_GENERIC": "Item not found. Please refresh and try again.",
+    "ERR_CONFLICT_GENERIC": "Already processed, or a conflict with another user occurred.",
+    "ERR_FILE_TOO_LARGE": "The file is too large.",
+    "ERR_RATE_LIMITED": "Too many requests. Please try again in a moment.",
+    "ERR_SERVER": "A server error occurred. Please try again in a moment.",
+    "ERR_SERVER_TEMP": "A temporary server issue occurred. Please try again in a moment.",
+    "ERR_SERVICE_UNAVAILABLE": "Service is under maintenance. Please try again later.",
+    "ERR_TIMEOUT": "Response timed out. Please try again."
   }
 }

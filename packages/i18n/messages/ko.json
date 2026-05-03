@@ -1380,6 +1380,21 @@
     "ERR_DATE_FORMAT": "날짜는 YYYY-MM-DD 형식이어야 합니다.",
     "ERR_BUDGET_MIN_GT_MAX": "최소 예산이 최대 예산보다 클 수 없습니다.",
     "ERR_VISIT_DATE_FROM_GT_TO": "방문 시작일이 종료일보다 늦을 수 없습니다.",
-    "ERR_INVALID_PROPOSAL_ID": "유효한 제안서 ID가 아닙니다."
+    "ERR_INVALID_PROPOSAL_ID": "유효한 제안서 ID가 아닙니다.",
+    "ERR_PROCEDURE_NOT_FOUND": "시술을 찾을 수 없습니다.",
+    "ERR_PROCEDURE_STALE": "시술 정보 갱신 중 오류가 발생했습니다. 새로고침 후 다시 시도해주세요.",
+    "ERR_VARIANT_NOT_FOUND": "시술 옵션을 찾을 수 없습니다.",
+    "ERR_PARTNER_ACCESS_REQUIRED": "병원 파트너 권한이 필요합니다.",
+    "ERR_NETWORK": "인터넷 연결을 확인해주세요.",
+    "ERR_SESSION_EXPIRED": "로그인이 만료되었어요. 다시 로그인해주세요.",
+    "ERR_FORBIDDEN": "이 작업을 수행할 권한이 없습니다.",
+    "ERR_NOT_FOUND_GENERIC": "찾을 수 없는 항목입니다. 새로고침 후 다시 확인해주세요.",
+    "ERR_CONFLICT_GENERIC": "이미 처리된 작업이거나 다른 사용자와 충돌이 발생했어요.",
+    "ERR_FILE_TOO_LARGE": "파일이 너무 큽니다.",
+    "ERR_RATE_LIMITED": "요청이 너무 많아요. 잠시 후 다시 시도해주세요.",
+    "ERR_SERVER": "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+    "ERR_SERVER_TEMP": "일시적인 서버 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
+    "ERR_SERVICE_UNAVAILABLE": "서비스 점검 중입니다. 잠시 후 다시 시도해주세요.",
+    "ERR_TIMEOUT": "응답 대기 시간이 초과됐어요. 다시 시도해주세요."
   }
 }

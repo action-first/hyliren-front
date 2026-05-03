@@ -123,7 +123,7 @@ export default function ActivityPage() {
   // 에러 토스트
   useEffect(() => {
     if (isError && errorObj) {
-      const msg = toUserMessage(errorObj, t('po.activityLoadError'));
+      const msg = toUserMessage(errorObj, t('po.activityLoadError'), t);
       showToast(msg, 'error');
     }
   }, [isError, errorObj, showToast]);
@@ -209,7 +209,7 @@ export default function ActivityPage() {
               {t('po.activityLoadError')}
             </p>
             <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
-              {toUserMessage(errorObj, t('po.unknownError'))}
+              {toUserMessage(errorObj, t('po.unknownError'), t)}
             </p>
             <Button variant="secondary" size="sm" onClick={refetchAll}>
               {t('common.retry')}

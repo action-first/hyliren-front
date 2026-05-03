@@ -350,7 +350,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (isError && errorObj) {
-      const msg = toUserMessage(errorObj, t('po.dashboardLoadError'));
+      const msg = toUserMessage(errorObj, t('po.dashboardLoadError'), t);
       showToast(msg, 'error');
     }
   }, [isError, errorObj, showToast]);
@@ -442,7 +442,7 @@ export default function DashboardPage() {
               {t('po.dashboardLoadError')}
             </p>
             <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
-              {toUserMessage(errorObj, t('po.unknownError'))}
+              {toUserMessage(errorObj, t('po.unknownError'), t)}
             </p>
             <Button variant="secondary" size="sm" onClick={refetchAll}>
               {t('common.retry')}

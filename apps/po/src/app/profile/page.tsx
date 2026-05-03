@@ -96,7 +96,7 @@ export default function ProfilePage() {
           showToast(t('po.profileSaveSuccess'), 'success');
         },
         onError: (e) => {
-          showToast(toUserMessage(e, t('po.profileSaveFail')), 'error');
+          showToast(toUserMessage(e, t('po.profileSaveFail'), t), 'error');
         },
       },
     );
@@ -128,7 +128,7 @@ export default function ProfilePage() {
               {t('po.profileLoadFail')}
             </p>
             <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
-              {toUserMessage(profileQ.error, t('po.unknownError'))}
+              {toUserMessage(profileQ.error, t('po.unknownError'), t)}
             </p>
             <Button variant="secondary" size="sm" onClick={() => profileQ.refetch()}>
               {t('common.retry')}

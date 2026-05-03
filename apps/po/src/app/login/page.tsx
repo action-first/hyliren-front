@@ -48,7 +48,7 @@ function PartnerLoginForm() {
       showToast(t('poLogin.loginSuccess'), 'success');
       router.replace(next);
     } catch (err) {
-      const message = toUserMessage(err, t('poLogin.loginFail'));
+      const message = toUserMessage(err, t('poLogin.loginFail'), t);
       showToast(message, 'error');
     } finally {
       setSubmitting(false);
