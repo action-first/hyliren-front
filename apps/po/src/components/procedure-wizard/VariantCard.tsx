@@ -164,7 +164,7 @@ export function VariantCard({
                 <input
                   type="text"
                   inputMode="numeric"
-                  value={variant.price !== null ? formatNumberWithComma(variant.price) : ''}
+                  value={variant.price !== null ? formatNumberWithComma(variant.price, locale) : ''}
                   onChange={e => {
                     const v = parseNumberFromInput(e.target.value);
                     onChange({ price: e.target.value ? v : null });

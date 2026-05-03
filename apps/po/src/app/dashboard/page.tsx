@@ -675,10 +675,10 @@ export default function DashboardPage() {
                       </div>
                     </td>
                     <td style={{ padding: '14px 24px', fontSize: "var(--text-sm)", color: 'var(--text-default)', fontVariantNumeric: 'tabular-nums' }}>
-                      {formatBudget(c.budgetMin, c.budgetMax)}
+                      {(c.budgetMin == null && c.budgetMax == null) ? '-' : `${formatBudget(c.budgetMin, c.budgetMax)}${t('common.man')}`}
                     </td>
                     <td style={{ padding: '14px 24px', fontSize: "var(--text-sm)", color: 'var(--text-subdued)' }}>
-                      {formatDateRange(c.visitDateFrom, c.visitDateTo)}
+                      {c.visitDateFrom ? formatDateRange(c.visitDateFrom, c.visitDateTo) : t('common.tbd')}
                     </td>
                     <td style={{ padding: '14px 24px' }}>
                       <span style={{

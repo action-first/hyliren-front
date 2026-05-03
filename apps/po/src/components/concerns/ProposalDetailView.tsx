@@ -69,6 +69,7 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
  */
 export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetailViewProps) {
   const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
   const statusLabel = t(`po.proposalStatus.${proposal.status}`) || proposal.status;
   const currentStep = getStepIndex(proposal.status);
 
@@ -137,7 +138,7 @@ export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetail
                   )}
                 </div>
                 <span className="text-[var(--text-md)] font-bold text-[var(--text-default)]">
-                  {formatKrwAsMan(item.price)}
+                  {formatKrwAsMan(item.price, locale)}
                 </span>
               </div>
             ))}
@@ -151,7 +152,7 @@ export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetail
             {t('po.proposeTotalEstimated')}
           </span>
           <span className="text-[var(--text-2xl)] font-bold text-[var(--text-default)]">
-            {formatKrwAsMan(proposal.totalPrice)}
+            {formatKrwAsMan(proposal.totalPrice, locale)}
           </span>
         </div>
       </Card>
@@ -167,7 +168,7 @@ export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetail
           <MetaRow label={t('po.proposalMetaStay')}>{t('po.proposalMetaDays', { days: proposal.hospitalStayDays })}</MetaRow>
           <hr className="border-0 border-t border-[var(--border-subdued)]" />
           <MetaRow label={t('po.proposalMetaAvailableRange')}>
-            {formatDateRange(proposal.availableDateFrom, proposal.availableDateTo)}
+            {proposal.availableDateFrom ? formatDateRange(proposal.availableDateFrom, proposal.availableDateTo) : t("common.tbd")}
           </MetaRow>
         </div>
 
@@ -186,9 +187,9 @@ export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetail
       {showMeta && (
         <Card padding="md">
           <div className="flex flex-col gap-3">
-            <MetaRow label={t('po.proposalMetaSentAt')}>{formatDateKR(proposal.sentAt)}</MetaRow>
+            <MetaRow label={t('po.proposalMetaSentAt')}>{formatDateKR(proposal.sentAt, locale)}</MetaRow>
             <MetaRow label={t('po.proposalMetaViewedAt')}>
-              {proposal.viewedAt ? formatDateKR(proposal.viewedAt) : t('po.proposalMetaUnviewed')}
+              {proposal.viewedAt ? formatDateKR(proposal.viewedAt, locale) : t('po.proposalMetaUnviewed')}
             </MetaRow>
             <MetaRow label={t('po.proposalMetaCreditDeduct')}>{t('po.proposalMetaCreditUnit', { count: CREDIT_COST })}</MetaRow>
           </div>
