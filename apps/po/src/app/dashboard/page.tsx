@@ -592,7 +592,7 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 220, color: 'var(--text-disabled)', fontSize: "var(--text-sm)" }}>
-                거래 내역이 없습니다.
+                {t('po.chartCreditsEmpty')}
               </div>
             )}
           </ChartCard>
@@ -621,7 +621,7 @@ export default function DashboardPage() {
               onMouseEnter={e => (e.currentTarget.style.background = '#eef2ff')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
-              전체보기 <ArrowRight size={14} />
+              {t('common.viewAll')} <ArrowRight size={14} />
             </Link>
           </div>
 
