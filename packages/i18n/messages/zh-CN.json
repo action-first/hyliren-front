@@ -1174,7 +1174,30 @@
       "diet_injection": "减重 · 溶脂针",
       "diet_body_contouring": "减重 · 身体塑形",
       "other": "其他"
-    }
+    },
+    "proposalStatus": {
+      "selected": "已选定",
+      "shortlisted": "候补",
+      "viewed": "已查看",
+      "sent": "已发送",
+      "rejected": "已拒绝",
+      "draft": "草稿",
+      "accepted": "已选定",
+      "expired": "已过期"
+    },
+    "kpiCanSendCount": "可发送 {count} 份",
+    "chartProposalEmpty": "尚未发送提案。",
+    "chartConcernEmpty": "暂无困扰数据。",
+    "chartUnitCount": "{count} 件",
+    "chartUnitCredit": "{count} 积分",
+    "chartLegendSent": "发送",
+    "chartLegendViewed": "查看",
+    "chartLegendSpend": "使用",
+    "myProposalEmpty": "尚未发送提案。",
+    "proposeSubmitSuccess": "提案已发送。已扣除 {credit} 积分。",
+    "concernViewMyProposal": "查看详情",
+    "concernProposalNotSentYet": "尚未发送提案",
+    "concernCreateProposal": "撰写提案"
   },
   "poLogin": {
     "emailInvalid": "请输入正确的邮箱格式。",

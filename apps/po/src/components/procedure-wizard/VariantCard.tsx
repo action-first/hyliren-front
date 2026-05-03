@@ -23,6 +23,7 @@ export function VariantCard({
   variant, sourceLocale, base, canDelete, onChange, onDelete, onSetDefault,
 }: VariantCardProps) {
   const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
   const ANESTHESIA_OPTIONS = [
     { value: 'local', label: t('po.wizardAnesthesiaLocal') },
     { value: 'sedation', label: t('po.wizardAnesthesiaSedation') },
@@ -168,7 +169,7 @@ export function VariantCard({
                     const v = parseNumberFromInput(e.target.value);
                     onChange({ price: e.target.value ? v : null });
                   }}
-                  placeholder={t('po.wizardBasePlaceholder', { value: base.basePrice.toLocaleString('ko-KR') })}
+                  placeholder={t('po.wizardBasePlaceholder', { value: base.basePrice.toLocaleString(locale) })}
                   className="input-field flex-1 text-right tabular-nums"
                 />
                 <span className="text-[var(--text-sm)] text-[var(--text-subdued)] flex-shrink-0">{t('po.wizardWonUnit')}</span>

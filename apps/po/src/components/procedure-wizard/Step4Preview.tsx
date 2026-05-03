@@ -246,8 +246,8 @@ export function Step4Preview({ form }: Step4Props) {
           <h1 className="text-[20px] font-bold text-[var(--text-default)] mb-1">{title}</h1>
           <p className="text-[var(--text-base)] text-[var(--text-subdued)] mb-4">
             {priceMin === priceMax
-              ? t('po.wizardWonAmount', { n: priceMin.toLocaleString() })
-              : t('po.wizardWonRange', { min: priceMin.toLocaleString(), max: priceMax.toLocaleString() })}
+              ? t('po.wizardWonAmount', { n: priceMin.toLocaleString(previewLocale) })
+              : t('po.wizardWonRange', { min: priceMin.toLocaleString(previewLocale), max: priceMax.toLocaleString(previewLocale) })}
           </p>
 
           {indications.length > 0 && (
@@ -282,7 +282,7 @@ export function Step4Preview({ form }: Step4Props) {
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[var(--text-sm)] font-semibold">{v.name}</span>
-                    <span className="text-[var(--text-sm)] font-bold">{t('po.wizardWonAmount', { n: v.price.toLocaleString() })}</span>
+                    <span className="text-[var(--text-sm)] font-bold">{t('po.wizardWonAmount', { n: v.price.toLocaleString(previewLocale) })}</span>
                   </div>
                   {v.description && (
                     <p className="text-[var(--text-xs)] text-[var(--text-subdued)] mb-1.5">{v.description}</p>

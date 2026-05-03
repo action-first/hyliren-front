@@ -1174,7 +1174,30 @@
       "diet_injection": "Diet · Lipolysis injection",
       "diet_body_contouring": "Diet · Body contouring",
       "other": "Other"
-    }
+    },
+    "proposalStatus": {
+      "selected": "Selected",
+      "shortlisted": "Shortlisted",
+      "viewed": "Viewed",
+      "sent": "Sent",
+      "rejected": "Rejected",
+      "draft": "Draft",
+      "accepted": "Selected",
+      "expired": "Expired"
+    },
+    "kpiCanSendCount": "{count} proposals available",
+    "chartProposalEmpty": "No proposals sent yet.",
+    "chartConcernEmpty": "No concern data yet.",
+    "chartUnitCount": "{count} items",
+    "chartUnitCredit": "{count} credits",
+    "chartLegendSent": "Sent",
+    "chartLegendViewed": "Viewed",
+    "chartLegendSpend": "Spend",
+    "myProposalEmpty": "No proposals sent yet.",
+    "proposeSubmitSuccess": "Proposal sent. {credit} credits deducted.",
+    "concernViewMyProposal": "View details",
+    "concernProposalNotSentYet": "No proposal sent yet",
+    "concernCreateProposal": "Create proposal"
   },
   "poLogin": {
     "emailInvalid": "Please enter a valid email format.",

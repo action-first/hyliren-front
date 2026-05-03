@@ -1174,7 +1174,30 @@
       "diet_injection": "다이어트 · 지방분해주사",
       "diet_body_contouring": "다이어트 · 바디 윤곽",
       "other": "기타"
-    }
+    },
+    "proposalStatus": {
+      "selected": "선택됨",
+      "shortlisted": "후보",
+      "viewed": "열람",
+      "sent": "발송",
+      "rejected": "거절",
+      "draft": "임시저장",
+      "accepted": "선택됨",
+      "expired": "만료"
+    },
+    "kpiCanSendCount": "{count}건 발송 가능",
+    "chartProposalEmpty": "발송한 제안서가 없습니다.",
+    "chartConcernEmpty": "고민 데이터가 없습니다.",
+    "chartUnitCount": "{count}건",
+    "chartUnitCredit": "{count}크레딧",
+    "chartLegendSent": "발송",
+    "chartLegendViewed": "열람",
+    "chartLegendSpend": "사용",
+    "myProposalEmpty": "아직 발송한 제안서가 없습니다.",
+    "proposeSubmitSuccess": "제안서가 발송되었습니다. 크레딧 {credit}개 차감.",
+    "concernViewMyProposal": "상세 보기",
+    "concernProposalNotSentYet": "아직 제안서를 발송하지 않았습니다",
+    "concernCreateProposal": "제안서 작성하기"
   },
   "poLogin": {
     "emailInvalid": "올바른 이메일 형식으로 입력해주세요.",
