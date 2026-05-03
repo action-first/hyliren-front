@@ -56,7 +56,10 @@
       "diet": "塑形",
       "etc": "其他",
       "all": "全部"
-    }
+    },
+    "unknownHospital": "医院信息暂无",
+    "untitled": "无标题",
+    "anonymous": "匿名"
   },
   "landing": {
     "heroEmpathy": "每次照镜子，总有些在意的地方吧？",
@@ -519,7 +522,8 @@
         }
       },
       "disclaimer": "实际是否适用需通过医院的咨询和诊断来决定。"
-    }
+    },
+    "aiMessageFallback": "您好,已充分理解您的困扰。"
   },
   "proposal": {
     "list": {
@@ -1410,5 +1414,10 @@
     "ERR_VARIANT_LAST_REQUIRED": "至少需保留 1 个选项。",
     "ERR_VARIANT_REQUIRED": "至少需要 1 个选项。",
     "ERR_PASSWORD_RULE": "密码须至少包含 1 位字母和 1 位数字。"
+  },
+  "home": {
+    "bannerTitle": "与 MIMYO 一起开始",
+    "bannerDesc": "获取经认证的韩国医院的定制方案",
+    "newProposalAlert": "收到 {count} 份新方案"
   }
 }
