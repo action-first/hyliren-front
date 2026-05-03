@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Input, Select } from '@hyliren/ui';
 import { BODY_AREAS, proceduresByArea, PROCEDURE_TYPE_AREAS } from '@hyliren/shared';
 import type { BodyArea, ProcedureType, Locale } from '@hyliren/shared';
@@ -13,50 +13,18 @@ interface Step1Props {
   onChange: (patch: Partial<WizardForm>) => void;
 }
 
-// BODY_AREA_OPTIONS — value 는 enum key, label 은 t() 로 활성 locale 기준 매핑.
-// 컴포넌트 안에서 useMemo 로 t 의존성 갱신.
+type TFn = (key: string, params?: Record<string, string | number>) => string;
 
-// procedureType 을 한국어 라벨로 표시 (enum value → 라벨)
-const PROCEDURE_TYPE_LABEL: Record<ProcedureType, string> = {
-  eye_double_eyelid: '눈 · 쌍꺼풀',
-  eye_ptosis_correction: '눈 · 눈매교정',
-  eye_under_eye_fat: '눈 · 눈밑지방 재배치',
-  eye_lower_blepharoplasty: '눈 · 하안검',
-  eye_epicanthoplasty: '눈 · 앞·뒤트임',
-  eye_canthoplasty: '눈 · 외안각',
-  eye_revision: '눈 · 재수술',
-  nose_augmentation: '코 · 융비 · 콧대',
-  nose_tip: '코 · 코끝',
-  nose_revision: '코 · 재수술',
-  nose_hump: '코 · 매부리',
-  nose_short_correction: '코 · 짧은 코',
-  nose_nostril: '코 · 콧볼 축소',
-  lift_thread: '리프팅 · 실리프팅',
-  lift_ulthera: '리프팅 · 울쎄라',
-  lift_hifu: '리프팅 · HIFU',
-  lift_face_lift: '리프팅 · 안면거상',
-  lift_fat_graft: '리프팅 · 지방이식',
-  contour_facial: '안면윤곽 · 광대',
-  contour_mandible: '안면윤곽 · 양악',
-  contour_chin: '안면윤곽 · 턱끝',
-  skin_laser: '피부 · 레이저',
-  skin_injection: '피부 · 주사 (보톡스·필러)',
-  skin_peeling: '피부 · 필링',
-  skin_acne: '피부 · 여드름',
-  skin_pigmentation: '피부 · 색소·잡티',
-  skin_scar: '피부 · 흉터',
-  diet_liposuction: '다이어트 · 지방흡입',
-  diet_injection: '다이어트 · 지방분해주사',
-  diet_body_contouring: '다이어트 · 바디 윤곽',
-  other: '기타',
-};
-
-/** 선택된 부위에 속하는 시술만 옵션으로. 부위 미선택 시 빈 목록. */
-function procedureOptionsForArea(area: BodyArea | ''): { value: string; label: string }[] {
+/**
+ * 선택된 부위에 속하는 시술만 옵션으로. 부위 미선택 시 빈 목록.
+ * label 은 t('po.procedureType.<enum>') 로 활성 locale 매핑 — 정적 한국어 dict 폐기.
+ * `^[^·]*·\s*` prefix 제거 (모든 로케일이 동일하게 `{area} · {detail}` 포맷 약속).
+ */
+function procedureOptionsForArea(area: BodyArea | '', t: TFn): { value: string; label: string }[] {
   if (!area) return [];
-  return proceduresByArea(area).map(t => ({
-    value: t,
-    label: PROCEDURE_TYPE_LABEL[t].replace(/^[^·]*·\s*/, ''), // 부위 prefix 제거
+  return proceduresByArea(area).map(type => ({
+    value: type,
+    label: t(`po.procedureType.${type}`).replace(/^[^·]*·\s*/, ''),
   }));
 }
 
@@ -92,11 +60,11 @@ export function Step1Basics({ form, onChange }: Step1Props) {
     });
   }
 
-  const typeOptions = procedureOptionsForArea(form.primaryArea || '');
+  const typeOptions = useMemo(() => procedureOptionsForArea(form.primaryArea || '', t), [form.primaryArea, t]);
 
-  // Smart default: procedureType 선택 시 title placeholder 에 해당 시술명 제안
+  // Smart default: procedureType 선택 시 title placeholder 에 해당 시술명 제안 (활성 locale 기준)
   const procedureTypeSuggestion = form.procedureType
-    ? PROCEDURE_TYPE_LABEL[form.procedureType as ProcedureType]?.replace(/^[^·]*·\s*/, '')
+    ? t(`po.procedureType.${form.procedureType}`).replace(/^[^·]*·\s*/, '')
     : '';
   const titlePlaceholder = activeLocale === 'ko'
     ? (procedureTypeSuggestion

@@ -1141,7 +1141,40 @@
     "wizardOverrideRecovery": "回復日数",
     "wizardOverrideHospitalStay": "入院日数",
     "wizardBasePlaceholder": "デフォルト: {value}",
-    "proposeWriteTitle": "提案書作成"
+    "proposeWriteTitle": "提案書作成",
+    "procedureType": {
+      "eye_double_eyelid": "目 · 二重",
+      "eye_ptosis_correction": "目 · 眼瞼下垂矯正",
+      "eye_under_eye_fat": "目 · 目元脂肪再配置",
+      "eye_lower_blepharoplasty": "目 · 下眼瞼",
+      "eye_epicanthoplasty": "目 · 目頭・目尻切開",
+      "eye_canthoplasty": "目 · 外眼角",
+      "eye_revision": "目 · 修正",
+      "nose_augmentation": "鼻 · 隆鼻 · 鼻筋",
+      "nose_tip": "鼻 · 鼻先",
+      "nose_revision": "鼻 · 修正",
+      "nose_hump": "鼻 · 鷲鼻",
+      "nose_short_correction": "鼻 · 短鼻修正",
+      "nose_nostril": "鼻 · 小鼻縮小",
+      "lift_thread": "リフト · 糸リフト",
+      "lift_ulthera": "リフト · ウルセラ",
+      "lift_hifu": "リフト · HIFU",
+      "lift_face_lift": "リフト · フェイスリフト",
+      "lift_fat_graft": "リフト · 脂肪移植",
+      "contour_facial": "輪郭 · 頬骨",
+      "contour_mandible": "輪郭 · エラ・下顎",
+      "contour_chin": "輪郭 · 顎",
+      "skin_laser": "肌 · レーザー",
+      "skin_injection": "肌 · 注射(ボトックス・フィラー)",
+      "skin_peeling": "肌 · ピーリング",
+      "skin_acne": "肌 · ニキビ",
+      "skin_pigmentation": "肌 · 色素 · シミ",
+      "skin_scar": "肌 · 傷跡",
+      "diet_liposuction": "ダイエット · 脂肪吸引",
+      "diet_injection": "ダイエット · 脂肪溶解注射",
+      "diet_body_contouring": "ダイエット · ボディ",
+      "other": "その他"
+    }
   },
   "poLogin": {
     "emailInvalid": "正しいメールアドレス形式で入力してください。",
@@ -1301,6 +1334,13 @@
     "ERR_VALIDATION_FAILED": "入力内容が正しくありません。",
     "ERR_PHOTOS_TOO_MANY": "写真は最大 3 枚までです。",
     "ERR_NARRATIVE_REQUIRED": "お悩みを入力してください。",
-    "ERR_NARRATIVE_TOO_SHORT": "どの部位がどのようにお悩みか、もう少し具体的にお聞かせください。"
+    "ERR_NARRATIVE_TOO_SHORT": "どの部位がどのようにお悩みか、もう少し具体的にお聞かせください。",
+    "ERR_AT_LEAST_ONE_LOCALE": "少なくとも1つの言語の翻訳が必要です",
+    "ERR_DEFAULT_VARIANT_REQUIRED": "代表 (default) オプションは 1 つだけ必要です。",
+    "ERR_SOURCE_TITLE_REQUIRED": "原本言語のタイトルは必須です。",
+    "ERR_PUBLISH_TITLE_TOO_SHORT": "公開には2文字以上のタイトルが必要です。",
+    "ERR_PUBLISH_PRICE_REQUIRED": "公開には基本価格が必要です。",
+    "ERR_PUBLISH_HERO_REQUIRED": "公開には代表画像が必要です。",
+    "ERR_PUBLISH_VARIANT_NAME_REQUIRED": "公開にはすべてのオプションに名前が必要です。"
   }
 }
