@@ -1198,7 +1198,18 @@
     "concernViewMyProposal": "詳細を見る",
     "concernProposalNotSentYet": "まだ提案書を送信していません",
     "concernCreateProposal": "提案書を作成",
-    "concernInfoCreatedAt": "登録"
+    "concernInfoCreatedAt": "登録",
+    "treatmentNewRegisterCta": "新しい施術を登録",
+    "treatmentsRegisteredCount": "登録済みの施術 ({count})",
+    "draftExistsBody": "で作成中の施術があります。",
+    "draftResume": "続けて作成",
+    "draftStartNew": "新規作成",
+    "draftDeleteConfirmBody": "の下書きは復元できません。",
+    "draftDeleteAndStartNew": "削除して新規作成",
+    "treatmentArchiveBody1": "非公開状態では顧客に表示されません。",
+    "treatmentArchiveBody2": "いつでも再度公開できます。",
+    "treatmentUnarchiveBody": "公開すると顧客に再度表示されます。",
+    "treatmentDraftSave": "下書き保存"
   },
   "poLogin": {
     "emailInvalid": "正しいメールアドレス形式で入力してください。",

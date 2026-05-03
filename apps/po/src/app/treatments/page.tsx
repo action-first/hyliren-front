@@ -45,6 +45,7 @@ export default function TreatmentsPage() {
   const router = useRouter();
   const showToast = useToastStore(s => s.showToast);
   const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
   const member = usePOAuthStore(s => s.member);
   const [filter, setFilter] = useState<StatusFilter>('all');
 
@@ -130,7 +131,7 @@ export default function TreatmentsPage() {
   }
 
   const draftTitle = existingDraft
-    ? pickI18n(existingDraft.i18n, 'ko', existingDraft.sourceLocale)?.content.title || '(제목 없음)'
+    ? pickI18n(existingDraft.i18n, locale, existingDraft.sourceLocale)?.content.title || t('po.treatmentNoTitle')
     : '';
 
   function handleConfirmArchive() {
@@ -147,7 +148,7 @@ export default function TreatmentsPage() {
   }
 
   const archiveTargetTitle = archiveTarget
-    ? pickI18n(archiveTarget.i18n, 'ko', archiveTarget.sourceLocale)?.content.title || '(제목 없음)'
+    ? pickI18n(archiveTarget.i18n, locale, archiveTarget.sourceLocale)?.content.title || t('po.treatmentNoTitle')
     : '';
 
   function handleConfirmUnarchive() {
@@ -165,7 +166,7 @@ export default function TreatmentsPage() {
   }
 
   const unarchiveTargetTitle = unarchiveTarget
-    ? pickI18n(unarchiveTarget.i18n, 'ko', unarchiveTarget.sourceLocale)?.content.title || '(제목 없음)'
+    ? pickI18n(unarchiveTarget.i18n, locale, unarchiveTarget.sourceLocale)?.content.title || t('po.treatmentNoTitle')
     : '';
 
   function handleConfirmDelete() {
@@ -182,7 +183,7 @@ export default function TreatmentsPage() {
   }
 
   const deleteTargetTitle = deleteTarget
-    ? pickI18n(deleteTarget.i18n, 'ko', deleteTarget.sourceLocale)?.content.title || '(제목 없음)'
+    ? pickI18n(deleteTarget.i18n, locale, deleteTarget.sourceLocale)?.content.title || t('po.treatmentNoTitle')
     : '';
 
   return (
@@ -192,7 +193,7 @@ export default function TreatmentsPage() {
       title={t('po.treatmentsTitle')}
       actions={
         <Button variant="primary" size="sm" onClick={handleNewClick} disabled={creatingNew}>
-          <Plus size={13} /> 새 시술 등록
+          <Plus size={13} /> {t('po.treatmentNewRegisterCta')}
         </Button>
       }
       prefix="po"
@@ -202,7 +203,7 @@ export default function TreatmentsPage() {
         title={
           loading || loadError || !procedures
             ? t('po.treatmentsRegistered')
-            : `등록한 시술 (${procedures.length})`
+            : t('po.treatmentsRegisteredCount', { count: procedures.length })
         }
       />
 
@@ -298,8 +299,8 @@ export default function TreatmentsPage() {
                       <span>·</span>
                       <span className="font-semibold text-[var(--text-default)]">
                         {p.priceMin === p.priceMax
-                          ? `${(p.priceMin / 10000).toFixed(0)}만`
-                          : `${(p.priceMin / 10000).toFixed(0)}~${(p.priceMax / 10000).toFixed(0)}만`}
+                          ? `${(p.priceMin / 10000).toFixed(0)}${t('common.man')}`
+                          : `${(p.priceMin / 10000).toFixed(0)}~${(p.priceMax / 10000).toFixed(0)}${t('common.man')}`}
                       </span>
                     </div>
                   </div>
@@ -315,7 +316,7 @@ export default function TreatmentsPage() {
                         onClick={() => setUnarchiveTarget(p)}
                         className="px-2.5 h-7 rounded-[var(--app-radius-sm)] text-[var(--text-xs)] font-medium text-[var(--text-default)] hover:bg-[var(--surface-subdued)] transition-colors cursor-pointer"
                       >
-                        다시 공개
+                        {t('po.treatmentUnarchive')}
                       </button>
                     ) : (
                       <button
@@ -323,7 +324,7 @@ export default function TreatmentsPage() {
                         onClick={() => setArchiveTarget(p)}
                         className="px-2.5 h-7 rounded-[var(--app-radius-sm)] text-[var(--text-xs)] font-medium text-[var(--text-default)] hover:bg-[var(--surface-subdued)] transition-colors cursor-pointer"
                       >
-                        비공개로 전환
+                        {t('po.treatmentArchive')}
                       </button>
                     )}
                     {p.status === 'archived' && (
@@ -356,14 +357,14 @@ export default function TreatmentsPage() {
       {draftModalStep === 'choose' && existingDraft && (
         <div className="flex flex-col gap-5">
           <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
-            <span className="font-semibold text-[var(--text-default)]">{draftTitle}</span> 으로 작성하던 시술이 있어요.
+            <span className="font-semibold text-[var(--text-default)]">{draftTitle}</span> {t('po.draftExistsBody')}
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Button variant="primary" onClick={handleResumeDraft}>
-              이어서 작성하기
+              {t('po.draftResume')}
             </Button>
             <Button variant="secondary" onClick={() => setDraftModalStep('confirm')}>
-              새로 작성하기
+              {t('po.draftStartNew')}
             </Button>
           </div>
         </div>
@@ -372,14 +373,14 @@ export default function TreatmentsPage() {
       {draftModalStep === 'confirm' && (
         <div className="flex flex-col gap-5">
           <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
-            <span className="font-semibold text-[var(--text-default)]">{draftTitle}</span> 임시저장은 복구할 수 없습니다.
+            <span className="font-semibold text-[var(--text-default)]">{draftTitle}</span> {t('po.draftDeleteConfirmBody')}
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Button variant="secondary" onClick={() => setDraftModalStep('choose')}>
-              뒤로
+              {t('common.back')}
             </Button>
             <Button variant="primary" onClick={handleConfirmNewWrite}>
-              삭제하고 새로 작성
+              {t('po.draftDeleteAndStartNew')}
             </Button>
           </div>
         </div>
@@ -397,13 +398,13 @@ export default function TreatmentsPage() {
           <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
             <span className="font-semibold text-[var(--text-default)]">{archiveTargetTitle}</span>
             <br />
-            비공개 상태에서는 고객에게 노출되지 않습니다.
+            {t('po.treatmentArchiveBody1')}
             <br />
-            언제든 다시 공개할 수 있어요.
+            {t('po.treatmentArchiveBody2')}
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Button variant="secondary" onClick={() => setArchiveTarget(null)} disabled={archiving}>
-              취소
+              {t('common.cancel')}
             </Button>
             <Button variant="primary" onClick={handleConfirmArchive} disabled={archiving}>
               {archiving ? t('po.treatmentSwitching') : t('po.treatmentArchive')}
@@ -424,11 +425,11 @@ export default function TreatmentsPage() {
           <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
             <span className="font-semibold text-[var(--text-default)]">{unarchiveTargetTitle}</span>
             <br />
-            공개 상태로 전환하면 고객에게 다시 노출됩니다.
+            {t('po.treatmentUnarchiveBody')}
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Button variant="secondary" onClick={() => setUnarchiveTarget(null)} disabled={unarchiving}>
-              취소
+              {t('common.cancel')}
             </Button>
             <Button variant="primary" onClick={handleConfirmUnarchive} disabled={unarchiving}>
               {unarchiving ? t('po.treatmentSwitching') : t('po.treatmentUnarchive')}

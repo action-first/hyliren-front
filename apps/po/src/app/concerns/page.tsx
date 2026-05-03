@@ -160,7 +160,7 @@ export default function ConcernListPage() {
     if (filters['createdAt_to']) newQuery.createdAtTo = filters['createdAt_to'];
     if (filters['primaryArea']) newQuery.primaryArea = filters['primaryArea'];
     if (filters['_keyword']) newQuery.keyword = filters['_keyword'];
-    setMySentFilter(filters['mySentLabel'] ?? '');
+    setMySentFilter(filters['mySentStatus'] ?? '');
     // 같은 BE 조건을 다시 누르는 경우 React Query 는 staleTime 동안 cache hit 한다.
     // FO 에서 새 고민 작성 직후 PO 에서 검색 버튼을 눌렀을 때 최신 목록을 보장한다.
     if (isSameQuery(query, newQuery)) {

@@ -1198,7 +1198,18 @@
     "concernViewMyProposal": "상세 보기",
     "concernProposalNotSentYet": "아직 제안서를 발송하지 않았습니다",
     "concernCreateProposal": "제안서 작성하기",
-    "concernInfoCreatedAt": "등록"
+    "concernInfoCreatedAt": "등록",
+    "treatmentNewRegisterCta": "새 시술 등록",
+    "treatmentsRegisteredCount": "등록한 시술 ({count})",
+    "draftExistsBody": "으로 작성하던 시술이 있어요.",
+    "draftResume": "이어서 작성하기",
+    "draftStartNew": "새로 작성하기",
+    "draftDeleteConfirmBody": "임시저장은 복구할 수 없습니다.",
+    "draftDeleteAndStartNew": "삭제하고 새로 작성",
+    "treatmentArchiveBody1": "비공개 상태에서는 고객에게 노출되지 않습니다.",
+    "treatmentArchiveBody2": "언제든 다시 공개할 수 있어요.",
+    "treatmentUnarchiveBody": "공개 상태로 전환하면 고객에게 다시 노출됩니다.",
+    "treatmentDraftSave": "임시저장"
   },
   "poLogin": {
     "emailInvalid": "올바른 이메일 형식으로 입력해주세요.",
