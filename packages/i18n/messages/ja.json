@@ -1209,7 +1209,10 @@
     "treatmentArchiveBody1": "非公開状態では顧客に表示されません。",
     "treatmentArchiveBody2": "いつでも再度公開できます。",
     "treatmentUnarchiveBody": "公開すると顧客に再度表示されます。",
-    "treatmentDraftSave": "下書き保存"
+    "treatmentDraftSave": "下書き保存",
+    "proposeInsufficientCreditBalance": "クレジットが不足しています。現在の残高: {balance} 件",
+    "profileVerified": "認証済み",
+    "profileUnverified": "未認証"
   },
   "poLogin": {
     "emailInvalid": "正しいメールアドレス形式で入力してください。",

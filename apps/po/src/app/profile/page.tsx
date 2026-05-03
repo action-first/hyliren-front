@@ -141,11 +141,11 @@ export default function ProfilePage() {
 
   const statusBadge = profile?.verified ? (
     <span className="flex items-center gap-1" style={{ fontSize: "var(--text-sm)", fontWeight: "var(--font-medium)", color: 'var(--color-success)' }}>
-      <ShieldCheck size={15} /> 인증 완료
+      <ShieldCheck size={15} /> {t('po.profileVerified')}
     </span>
   ) : (
     <span className="flex items-center gap-1" style={{ fontSize: "var(--text-sm)", color: 'var(--text-disabled)' }}>
-      <ShieldAlert size={15} /> 미인증
+      <ShieldAlert size={15} /> {t('po.profileUnverified')}
     </span>
   );
 

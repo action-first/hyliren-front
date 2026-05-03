@@ -1209,7 +1209,10 @@
     "treatmentArchiveBody1": "设为私密后客户将无法看到。",
     "treatmentArchiveBody2": "可随时重新公开。",
     "treatmentUnarchiveBody": "公开后客户将再次看到。",
-    "treatmentDraftSave": "保存为草稿"
+    "treatmentDraftSave": "保存为草稿",
+    "proposeInsufficientCreditBalance": "积分不足。当前余额: {balance} 个",
+    "profileVerified": "已认证",
+    "profileUnverified": "未认证"
   },
   "poLogin": {
     "emailInvalid": "请输入正确的邮箱格式。",
