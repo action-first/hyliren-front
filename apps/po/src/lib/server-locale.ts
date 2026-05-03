@@ -1,5 +1,5 @@
 import { cookies, headers } from 'next/headers';
-import { narrowLocale, type Locale } from '@hyliren/shared';
+import { narrowLocale, parseAcceptLanguage, type Locale } from '@hyliren/shared';
 
 export const LOCALE_COOKIE_NAME = 'mimyo-po-locale';
 
@@ -8,7 +8,8 @@ export const LOCALE_COOKIE_NAME = 'mimyo-po-locale';
  *
  * 우선순위:
  *   1. cookie `mimyo-po-locale` (FE 의 useLocaleStore.setLocale 이 동기화)
- *   2. `Accept-Language` 헤더 첫 매치
+ *   2. `Accept-Language` 헤더 — q-value 우선순위 다단 매칭 (BE 공통 resolver 와 동일)
+ *      예: `fr-FR, ja;q=0.9, en;q=0.8` → ja
  *   3. fallback `'ko'` (Partner 앱 주 사용자 = 한국 병원)
  */
 export async function getServerLocale(): Promise<Locale> {
@@ -20,11 +21,10 @@ export async function getServerLocale(): Promise<Locale> {
 
   const headerStore = await headers();
   const accept = headerStore.get('accept-language');
-  const first = accept?.split(',')[0]?.trim().toLowerCase();
-  if (first?.startsWith('ko')) return 'ko';
-  if (first?.startsWith('zh')) return 'zh-CN';
-  if (first?.startsWith('ja')) return 'ja';
-  if (first?.startsWith('en')) return 'en';
+  if (accept) {
+    const parsed = parseAcceptLanguage(accept);
+    if (parsed) return parsed;
+  }
 
   return 'ko';
 }
