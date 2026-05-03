@@ -19,15 +19,14 @@ export function krwToMan(value: number): number {
 }
 
 /**
- * KRW 원 → 만원 표기 + 만원 라벨.
- * 만원 라벨이 한국어 raw — 호출처가 다국어 라벨이 필요하면 별도 처리.
- * (BO/PO 운영자 페이지 한국어 운영 한정 default. 다국어 페이지 확장 시 i18n key 사용 권장.)
+ * KRW 원 → 만원 표기 + unit suffix.
  *
  * locale 인자: toLocaleString 의 콤마 포맷 로케일. 누락 시 'ko-KR' default (BO 한국어).
- * PO 와 같이 다국어 운영자 화면에서는 활성 locale 명시.
+ * unitSuffix 인자: 단위 라벨 (한국어 '만원' default — BO backward-compat).
+ *   PO 등 다국어 운영자 화면에서는 t('common.currency') 등으로 활성 locale 라벨 전달.
  */
-export function formatKrwAsMan(value: number, locale: string = 'ko-KR'): string {
-  return `${krwToMan(value).toLocaleString(locale)}만원`;
+export function formatKrwAsMan(value: number, locale: string = 'ko-KR', unitSuffix: string = '만원'): string {
+  return `${krwToMan(value).toLocaleString(locale)}${unitSuffix}`;
 }
 
 /**
