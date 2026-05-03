@@ -1289,5 +1289,13 @@
       "completed": "Completed",
       "cancelled": "Cancelled"
     }
+  },
+  "error": {
+    "ERR_DUPLICATE_EMAIL": "This email is already registered.",
+    "ERR_INVALID_CREDENTIALS": "Invalid email or password.",
+    "ERR_USER_NOT_FOUND": "User information could not be found.",
+    "ERR_CONCERN_NOT_FOUND": "Concern not found.",
+    "ERR_CONCERN_NOT_SUBMITTABLE": "Already submitted or not in a submittable state.",
+    "unknown": "Please try again in a moment."
   }
 }

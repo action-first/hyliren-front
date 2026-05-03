@@ -119,9 +119,19 @@ export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {
         onAuthRequired?.();
         return;
       }
-      const msg = err instanceof ApiError && err.isServerError()
-        ? t('consult.submitErrorServer')
-        : t('consult.submitErrorRetry');
+      // BE envelope.error 가 stable ERR_* code 면 i18n 매핑 우선.
+      let msg: string;
+      if (err instanceof ApiError && err.code?.startsWith('ERR_')) {
+        const key = `error.${err.code}`;
+        const translated = t(key);
+        msg = translated !== key
+          ? translated
+          : (err.isServerError() ? t('consult.submitErrorServer') : t('consult.submitErrorRetry'));
+      } else {
+        msg = err instanceof ApiError && err.isServerError()
+          ? t('consult.submitErrorServer')
+          : t('consult.submitErrorRetry');
+      }
       setApiError(msg);
       setSubmitting(false);
       return;
