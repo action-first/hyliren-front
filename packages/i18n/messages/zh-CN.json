@@ -1212,7 +1212,8 @@
     "treatmentDraftSave": "保存为草稿",
     "proposeInsufficientCreditBalance": "积分不足。当前余额: {balance} 个",
     "profileVerified": "已认证",
-    "profileUnverified": "未认证"
+    "profileUnverified": "未认证",
+    "chartCreditsEmpty": "暂无交易记录。"
   },
   "poLogin": {
     "emailInvalid": "请输入正确的邮箱格式。",

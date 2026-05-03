@@ -1212,7 +1212,8 @@
     "treatmentDraftSave": "Save draft",
     "proposeInsufficientCreditBalance": "Insufficient credit. Current balance: {balance}",
     "profileVerified": "Verified",
-    "profileUnverified": "Not verified"
+    "profileUnverified": "Not verified",
+    "chartCreditsEmpty": "No transaction history."
   },
   "poLogin": {
     "emailInvalid": "Please enter a valid email format.",

@@ -1212,7 +1212,8 @@
     "treatmentDraftSave": "下書き保存",
     "proposeInsufficientCreditBalance": "クレジットが不足しています。現在の残高: {balance} 件",
     "profileVerified": "認証済み",
-    "profileUnverified": "未認証"
+    "profileUnverified": "未認証",
+    "chartCreditsEmpty": "取引履歴がありません。"
   },
   "poLogin": {
     "emailInvalid": "正しいメールアドレス形式で入力してください。",

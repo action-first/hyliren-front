@@ -160,11 +160,11 @@ export default function ConcernDetailPage() {
         actions={
           myProposal ? (
             <Button variant="secondary" size="sm" onClick={() => setMyProposalOpen(true)}>
-              내 제안서 보기
+              {t('po.concernViewMyProposal')}
             </Button>
           ) : (
             <Button variant="primary" size="sm" onClick={() => setProposeOpen(true)}>
-              제안서 작성
+              {t('po.concernCreateProposal')}
             </Button>
           )
         }
