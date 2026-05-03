@@ -1364,6 +1364,10 @@
     "ERR_PUBLISH_TITLE_TOO_SHORT": "공개하려면 타이틀이 2자 이상이어야 합니다.",
     "ERR_PUBLISH_PRICE_REQUIRED": "공개하려면 기본 가격이 필요합니다.",
     "ERR_PUBLISH_HERO_REQUIRED": "공개하려면 대표 이미지가 필요합니다.",
-    "ERR_PUBLISH_VARIANT_NAME_REQUIRED": "공개하려면 모든 옵션에 이름이 필요합니다."
+    "ERR_PUBLISH_VARIANT_NAME_REQUIRED": "공개하려면 모든 옵션에 이름이 필요합니다.",
+    "ERR_DATE_FORMAT": "날짜는 YYYY-MM-DD 형식이어야 합니다.",
+    "ERR_BUDGET_MIN_GT_MAX": "최소 예산이 최대 예산보다 클 수 없습니다.",
+    "ERR_VISIT_DATE_FROM_GT_TO": "방문 시작일이 종료일보다 늦을 수 없습니다.",
+    "ERR_INVALID_PROPOSAL_ID": "유효한 제안서 ID가 아닙니다."
   }
 }

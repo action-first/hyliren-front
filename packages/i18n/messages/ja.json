@@ -1364,6 +1364,10 @@
     "ERR_PUBLISH_TITLE_TOO_SHORT": "公開には2文字以上のタイトルが必要です。",
     "ERR_PUBLISH_PRICE_REQUIRED": "公開には基本価格が必要です。",
     "ERR_PUBLISH_HERO_REQUIRED": "公開には代表画像が必要です。",
-    "ERR_PUBLISH_VARIANT_NAME_REQUIRED": "公開にはすべてのオプションに名前が必要です。"
+    "ERR_PUBLISH_VARIANT_NAME_REQUIRED": "公開にはすべてのオプションに名前が必要です。",
+    "ERR_DATE_FORMAT": "日付は YYYY-MM-DD 形式である必要があります。",
+    "ERR_BUDGET_MIN_GT_MAX": "最小予算は最大予算より大きくできません。",
+    "ERR_VISIT_DATE_FROM_GT_TO": "訪問開始日は終了日より後にできません。",
+    "ERR_INVALID_PROPOSAL_ID": "有効な提案書 ID ではありません。"
   }
 }
