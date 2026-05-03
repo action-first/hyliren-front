@@ -1141,7 +1141,40 @@
     "wizardOverrideRecovery": "회복일",
     "wizardOverrideHospitalStay": "입원일",
     "wizardBasePlaceholder": "기본: {value}",
-    "proposeWriteTitle": "제안서 작성"
+    "proposeWriteTitle": "제안서 작성",
+    "procedureType": {
+      "eye_double_eyelid": "눈 · 쌍꺼풀",
+      "eye_ptosis_correction": "눈 · 눈매교정",
+      "eye_under_eye_fat": "눈 · 눈밑지방 재배치",
+      "eye_lower_blepharoplasty": "눈 · 하안검",
+      "eye_epicanthoplasty": "눈 · 앞·뒤트임",
+      "eye_canthoplasty": "눈 · 외안각",
+      "eye_revision": "눈 · 재수술",
+      "nose_augmentation": "코 · 융비 · 콧대",
+      "nose_tip": "코 · 코끝",
+      "nose_revision": "코 · 재수술",
+      "nose_hump": "코 · 매부리",
+      "nose_short_correction": "코 · 짧은 코",
+      "nose_nostril": "코 · 콧볼 축소",
+      "lift_thread": "리프팅 · 실리프팅",
+      "lift_ulthera": "리프팅 · 울쎄라",
+      "lift_hifu": "리프팅 · HIFU",
+      "lift_face_lift": "리프팅 · 안면거상",
+      "lift_fat_graft": "리프팅 · 지방이식",
+      "contour_facial": "안면윤곽 · 광대",
+      "contour_mandible": "안면윤곽 · 양악",
+      "contour_chin": "안면윤곽 · 턱끝",
+      "skin_laser": "피부 · 레이저",
+      "skin_injection": "피부 · 주사 (보톡스·필러)",
+      "skin_peeling": "피부 · 필링",
+      "skin_acne": "피부 · 여드름",
+      "skin_pigmentation": "피부 · 색소·잡티",
+      "skin_scar": "피부 · 흉터",
+      "diet_liposuction": "다이어트 · 지방흡입",
+      "diet_injection": "다이어트 · 지방분해주사",
+      "diet_body_contouring": "다이어트 · 바디 윤곽",
+      "other": "기타"
+    }
   },
   "poLogin": {
     "emailInvalid": "올바른 이메일 형식으로 입력해주세요.",
@@ -1301,6 +1334,13 @@
     "ERR_VALIDATION_FAILED": "입력값이 올바르지 않습니다.",
     "ERR_PHOTOS_TOO_MANY": "사진은 최대 3장까지 가능합니다.",
     "ERR_NARRATIVE_REQUIRED": "고민을 입력해주세요.",
-    "ERR_NARRATIVE_TOO_SHORT": "어느 부위가 어떻게 고민이신지 조금 더 구체적으로 알려주세요."
+    "ERR_NARRATIVE_TOO_SHORT": "어느 부위가 어떻게 고민이신지 조금 더 구체적으로 알려주세요.",
+    "ERR_AT_LEAST_ONE_LOCALE": "최소 1개 언어 번역이 필요합니다",
+    "ERR_DEFAULT_VARIANT_REQUIRED": "대표(default) 옵션은 정확히 1개여야 합니다.",
+    "ERR_SOURCE_TITLE_REQUIRED": "원본 언어 타이틀은 필수입니다.",
+    "ERR_PUBLISH_TITLE_TOO_SHORT": "공개하려면 타이틀이 2자 이상이어야 합니다.",
+    "ERR_PUBLISH_PRICE_REQUIRED": "공개하려면 기본 가격이 필요합니다.",
+    "ERR_PUBLISH_HERO_REQUIRED": "공개하려면 대표 이미지가 필요합니다.",
+    "ERR_PUBLISH_VARIANT_NAME_REQUIRED": "공개하려면 모든 옵션에 이름이 필요합니다."
   }
 }

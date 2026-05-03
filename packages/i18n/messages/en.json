@@ -1141,7 +1141,40 @@
     "wizardOverrideRecovery": "Recovery (days)",
     "wizardOverrideHospitalStay": "Hospital stay (days)",
     "wizardBasePlaceholder": "Default: {value}",
-    "proposeWriteTitle": "Write proposal"
+    "proposeWriteTitle": "Write proposal",
+    "procedureType": {
+      "eye_double_eyelid": "Eye · Double eyelid",
+      "eye_ptosis_correction": "Eye · Ptosis correction",
+      "eye_under_eye_fat": "Eye · Under-eye fat repositioning",
+      "eye_lower_blepharoplasty": "Eye · Lower blepharoplasty",
+      "eye_epicanthoplasty": "Eye · Epi-/lateral canthoplasty",
+      "eye_canthoplasty": "Eye · Canthoplasty",
+      "eye_revision": "Eye · Revision",
+      "nose_augmentation": "Nose · Augmentation · Bridge",
+      "nose_tip": "Nose · Tip",
+      "nose_revision": "Nose · Revision",
+      "nose_hump": "Nose · Hump",
+      "nose_short_correction": "Nose · Short nose correction",
+      "nose_nostril": "Nose · Nostril reduction",
+      "lift_thread": "Lifting · Thread",
+      "lift_ulthera": "Lifting · Ulthera",
+      "lift_hifu": "Lifting · HIFU",
+      "lift_face_lift": "Lifting · Face lift",
+      "lift_fat_graft": "Lifting · Fat graft",
+      "contour_facial": "Contour · Cheekbone",
+      "contour_mandible": "Contour · Mandible",
+      "contour_chin": "Contour · Chin",
+      "skin_laser": "Skin · Laser",
+      "skin_injection": "Skin · Injection (Botox/Filler)",
+      "skin_peeling": "Skin · Peeling",
+      "skin_acne": "Skin · Acne",
+      "skin_pigmentation": "Skin · Pigmentation",
+      "skin_scar": "Skin · Scar",
+      "diet_liposuction": "Diet · Liposuction",
+      "diet_injection": "Diet · Lipolysis injection",
+      "diet_body_contouring": "Diet · Body contouring",
+      "other": "Other"
+    }
   },
   "poLogin": {
     "emailInvalid": "Please enter a valid email format.",
@@ -1301,6 +1334,13 @@
     "ERR_VALIDATION_FAILED": "The input is invalid.",
     "ERR_PHOTOS_TOO_MANY": "You can upload up to 3 photos.",
     "ERR_NARRATIVE_REQUIRED": "Please describe your concern.",
-    "ERR_NARRATIVE_TOO_SHORT": "Please describe your concern and the area in a bit more detail."
+    "ERR_NARRATIVE_TOO_SHORT": "Please describe your concern and the area in a bit more detail.",
+    "ERR_AT_LEAST_ONE_LOCALE": "At least one language translation is required",
+    "ERR_DEFAULT_VARIANT_REQUIRED": "Exactly one default variant is required.",
+    "ERR_SOURCE_TITLE_REQUIRED": "The title in the source language is required.",
+    "ERR_PUBLISH_TITLE_TOO_SHORT": "Title must be at least 2 characters to publish.",
+    "ERR_PUBLISH_PRICE_REQUIRED": "A base price is required to publish.",
+    "ERR_PUBLISH_HERO_REQUIRED": "A hero image is required to publish.",
+    "ERR_PUBLISH_VARIANT_NAME_REQUIRED": "Every variant needs a name to publish."
   }
 }

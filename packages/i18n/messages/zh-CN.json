@@ -1141,7 +1141,40 @@
     "wizardOverrideRecovery": "恢复天数",
     "wizardOverrideHospitalStay": "住院天数",
     "wizardBasePlaceholder": "默认: {value}",
-    "proposeWriteTitle": "撰写方案"
+    "proposeWriteTitle": "撰写方案",
+    "procedureType": {
+      "eye_double_eyelid": "眼 · 双眼皮",
+      "eye_ptosis_correction": "眼 · 眼睑下垂矫正",
+      "eye_under_eye_fat": "眼 · 眼下脂肪重置",
+      "eye_lower_blepharoplasty": "眼 · 下眼睑",
+      "eye_epicanthoplasty": "眼 · 开内·外眼角",
+      "eye_canthoplasty": "眼 · 外眼角",
+      "eye_revision": "眼 · 修复",
+      "nose_augmentation": "鼻 · 隆鼻 · 鼻梁",
+      "nose_tip": "鼻 · 鼻尖",
+      "nose_revision": "鼻 · 修复",
+      "nose_hump": "鼻 · 驼峰鼻",
+      "nose_short_correction": "鼻 · 短鼻矫正",
+      "nose_nostril": "鼻 · 鼻翼缩小",
+      "lift_thread": "提升 · 线雕",
+      "lift_ulthera": "提升 · Ulthera 优赛拉",
+      "lift_hifu": "提升 · HIFU",
+      "lift_face_lift": "提升 · 面部除皱",
+      "lift_fat_graft": "提升 · 脂肪移植",
+      "contour_facial": "面部轮廓 · 颧骨",
+      "contour_mandible": "面部轮廓 · 下颌",
+      "contour_chin": "面部轮廓 · 下巴",
+      "skin_laser": "皮肤 · 激光",
+      "skin_injection": "皮肤 · 注射(肉毒/玻尿酸)",
+      "skin_peeling": "皮肤 · 焕肤",
+      "skin_acne": "皮肤 · 痤疮",
+      "skin_pigmentation": "皮肤 · 色素 · 斑",
+      "skin_scar": "皮肤 · 疤痕",
+      "diet_liposuction": "减重 · 吸脂",
+      "diet_injection": "减重 · 溶脂针",
+      "diet_body_contouring": "减重 · 身体塑形",
+      "other": "其他"
+    }
   },
   "poLogin": {
     "emailInvalid": "请输入正确的邮箱格式。",
@@ -1301,6 +1334,13 @@
     "ERR_VALIDATION_FAILED": "输入内容不正确。",
     "ERR_PHOTOS_TOO_MANY": "照片最多可上传 3 张。",
     "ERR_NARRATIVE_REQUIRED": "请输入您的困扰。",
-    "ERR_NARRATIVE_TOO_SHORT": "请更具体地说明部位与困扰。"
+    "ERR_NARRATIVE_TOO_SHORT": "请更具体地说明部位与困扰。",
+    "ERR_AT_LEAST_ONE_LOCALE": "至少需要一种语言的翻译",
+    "ERR_DEFAULT_VARIANT_REQUIRED": "必须设置且仅有 1 个默认选项。",
+    "ERR_SOURCE_TITLE_REQUIRED": "请填写原始语言的标题。",
+    "ERR_PUBLISH_TITLE_TOO_SHORT": "发布前标题至少需 2 个字。",
+    "ERR_PUBLISH_PRICE_REQUIRED": "发布前需设置基本价格。",
+    "ERR_PUBLISH_HERO_REQUIRED": "发布前需上传主图。",
+    "ERR_PUBLISH_VARIANT_NAME_REQUIRED": "发布前所有选项均需填写名称。"
   }
 }

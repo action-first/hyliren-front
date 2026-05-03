@@ -37,13 +37,13 @@ const variantI18nBlock = z.object({
 const procedureI18nSchema = z.partialRecord(localeEnum, procedureI18nBlock)
   .refine(
     obj => Object.keys(obj).length >= 1,
-    { message: '최소 1개 언어 번역이 필요합니다' },
+    { message: 'ERR_AT_LEAST_ONE_LOCALE' },
   );
 
 const variantI18nSchema = z.partialRecord(localeEnum, variantI18nBlock)
   .refine(
     obj => Object.keys(obj).length >= 1,
-    { message: '최소 1개 언어 번역이 필요합니다' },
+    { message: 'ERR_AT_LEAST_ONE_LOCALE' },
   );
 
 /** Variant 입력 스키마 (생성/수정 공통). */
@@ -91,18 +91,19 @@ export const createProcedureSchema = z.object({
   /* Variants (최소 1개, isDefault 정확히 1개) */
   variants: z.array(variantSchema).min(1).refine(
     vs => vs.filter(v => v.isDefault).length === 1,
-    { message: '대표(default) 옵션은 정확히 1개여야 합니다' },
+    { message: 'ERR_DEFAULT_VARIANT_REQUIRED' },
   ),
 
   status: procedureStatusEnum.default('draft'),
 }).superRefine((data, ctx) => {
+  // Zod refine message 는 stable ERR_* code — caller (form) 가 t('error.<code>') 매핑.
   // draft/published 공통 — 원본 언어 타이틀 최소 1자
   const src = data.i18n[data.sourceLocale];
   if (!src || (src.title ?? '').trim().length < 1) {
     ctx.addIssue({
       code: 'custom',
       path: ['i18n', data.sourceLocale, 'title'],
-      message: '원본 언어 타이틀은 필수입니다',
+      message: 'ERR_SOURCE_TITLE_REQUIRED',
     });
     return;
   }
@@ -113,21 +114,21 @@ export const createProcedureSchema = z.object({
       ctx.addIssue({
         code: 'custom',
         path: ['i18n', data.sourceLocale, 'title'],
-        message: '공개하려면 타이틀이 2자 이상이어야 합니다',
+        message: 'ERR_PUBLISH_TITLE_TOO_SHORT',
       });
     }
     if (data.basePrice <= 0) {
       ctx.addIssue({
         code: 'custom',
         path: ['basePrice'],
-        message: '공개하려면 기본 가격이 필요합니다',
+        message: 'ERR_PUBLISH_PRICE_REQUIRED',
       });
     }
     if (!data.heroImageUrl) {
       ctx.addIssue({
         code: 'custom',
         path: ['heroImageUrl'],
-        message: '공개하려면 대표 이미지가 필요합니다',
+        message: 'ERR_PUBLISH_HERO_REQUIRED',
       });
     }
     data.variants.forEach((v, i) => {
@@ -136,7 +137,7 @@ export const createProcedureSchema = z.object({
         ctx.addIssue({
           code: 'custom',
           path: ['variants', i, 'i18n', data.sourceLocale, 'name'],
-          message: '공개하려면 모든 옵션에 이름이 필요합니다',
+          message: 'ERR_PUBLISH_VARIANT_NAME_REQUIRED',
         });
       }
     });
