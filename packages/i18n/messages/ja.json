@@ -1289,5 +1289,13 @@
       "completed": "完了",
       "cancelled": "キャンセル"
     }
+  },
+  "error": {
+    "ERR_DUPLICATE_EMAIL": "このメールアドレスは既に登録されています。",
+    "ERR_INVALID_CREDENTIALS": "メールアドレスまたはパスワードが正しくありません。",
+    "ERR_USER_NOT_FOUND": "ユーザー情報が見つかりません。",
+    "ERR_CONCERN_NOT_FOUND": "お悩みが見つかりません。",
+    "ERR_CONCERN_NOT_SUBMITTABLE": "既に提出済み、または提出できない状態です。",
+    "unknown": "しばらくしてからもう一度お試しください。"
   }
 }

@@ -1289,5 +1289,13 @@
       "completed": "已完成",
       "cancelled": "已取消"
     }
+  },
+  "error": {
+    "ERR_DUPLICATE_EMAIL": "该邮箱已注册。",
+    "ERR_INVALID_CREDENTIALS": "邮箱或密码不正确。",
+    "ERR_USER_NOT_FOUND": "找不到用户信息。",
+    "ERR_CONCERN_NOT_FOUND": "找不到该困扰。",
+    "ERR_CONCERN_NOT_SUBMITTABLE": "已提交或无法提交的状态。",
+    "unknown": "请稍后重试。"
   }
 }
