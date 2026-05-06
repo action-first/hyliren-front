@@ -75,24 +75,9 @@
   }
 
   .fo-header-logo {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
     text-decoration: none;
-  }
-
-  .fo-logo-mark {
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--color-primary);
-    line-height: 1;
-  }
-
-  .fo-logo-text {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--color-text);
-    letter-spacing: -0.3px;
   }
 
   .fo-header-actions {

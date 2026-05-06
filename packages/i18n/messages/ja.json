@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "ミミょ",
-    "appNameZh": "美妙",
+    "appName": "MIMYO",
+    "appNameZh": "MIMYO",
     "login": "ログイン",
     "signup": "新規登録",
     "next": "次へ",
@@ -682,9 +682,11 @@
     "categorySafety": "安全情報"
   },
   "metadata": {
-    "title": "ミミょ — あなたに合う施術、病院から先にご提案",
-    "poTitle": "ミミょ パートナーオフィス",
+    "title": "MIMYO — あなたに合う施術、病院から先にご提案",
+    "poTitle": "MIMYO パートナーオフィス",
     "poDescription": "病院管理システム",
+    "boTitle": "MIMYO ビジネスオフィス",
+    "boDescription": "内部管理システム",
     "description": "韓国美容医療マッチングプラットフォーム。ご要望を登録すると、認証された韓国の医院がカスタマイズされた提案書をお送りします。"
   },
   "dateFilter": {

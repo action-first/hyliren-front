@@ -214,7 +214,7 @@ submit 시 해당 region·specialty 병원들에게 실시간 notification. 이�
 ## 리뷰 미팅 아젠다 템플릿 (yj.jung 공유용)
 
 ```
-## 한옌리런 Customer API Contract 리뷰 — Wave 1 킥오프
+## MIMYO Customer API Contract 리뷰 — Wave 1 킥오프
 
 ### 1. 문서 리뷰
   - apps/fo/docs/api-contract/ 전체 훑어보기 (15분)

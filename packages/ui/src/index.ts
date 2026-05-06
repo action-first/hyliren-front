@@ -22,6 +22,31 @@ export type { BadgeProps } from './primitives/Badge';
 export { Avatar } from './primitives/Avatar';
 export type { AvatarProps } from './primitives/Avatar';
 
+// MIMYO Brand — wordmark · symbol · lockup (brand book port)
+export {
+  Wordmark,
+  MimyoSymbol,
+  MimyoLogo,
+  pickWordmarkLocale,
+  MIMYO_ACCENT,
+  MIMYO_INK_LIGHT,
+  MIMYO_INK_DARK,
+  MIMYO_CURL_PATH,
+  MIMYO_CURL_STROKE,
+  ink,
+  paper,
+} from './primitives/MimyoBrand';
+export type {
+  WordmarkProps,
+  WordmarkTone,
+  WordmarkLocale,
+  SymbolProps,
+  SymbolVariant,
+  MimyoLogoProps,
+  ThemeMode,
+  MimyoState,
+} from './primitives/MimyoBrand';
+
 export { SectionHeader } from './primitives/SectionHeader';
 export type { SectionHeaderProps } from './primitives/SectionHeader';
 

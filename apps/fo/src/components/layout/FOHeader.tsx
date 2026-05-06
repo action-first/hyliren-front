@@ -3,13 +3,15 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Bell, User } from 'lucide-react';
+import { Wordmark, pickWordmarkLocale } from '@hyliren/ui';
 import { useAuthStore } from '@/store/auth';
 import { useLocaleStore } from '@/store/locale';
 import { AuthModal } from '@/components/auth/AuthModal';
 
 export function FOHeader() {
   const { isLoggedIn, user } = useAuthStore();
-  const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
+  const wordmarkLocale = pickWordmarkLocale(locale);
   const [showAuth, setShowAuth] = useState(false);
   // 미읽은 제안서 카운트는 customer backend 의 "내 모든 제안" 집계 엔드포인트
   // 추가 후 연결 (현재 customer API 는 concernId 별 listProposals 만 제공).
@@ -19,9 +21,8 @@ export function FOHeader() {
   return (
     <>
       <header className="fo-header">
-        <Link href="/" className="fo-header-logo">
-          <span className="fo-logo-mark">美</span>
-          <span className="fo-logo-text">{t('common.appName')}</span>
+        <Link href="/" className="fo-header-logo" aria-label={wordmarkLocale === 'zh' ? 'meimiao' : 'mimyo'}>
+          <Wordmark locale={wordmarkLocale} fontSize={22} color="var(--color-ink, #0A0A0A)" />
         </Link>
         <div className="fo-header-actions">
           <Link href="/decision" className="fo-header-icon-btn relative">

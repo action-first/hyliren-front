@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "美妙",
-    "appNameZh": "美妙",
+    "appName": "meimiao",
+    "appNameZh": "meimiao",
     "login": "登录",
     "signup": "注册",
     "next": "下一步",
@@ -682,9 +682,11 @@
     "categorySafety": "安全信息"
   },
   "metadata": {
-    "title": "美妙 — 适合您的手术,医院主动提供方案",
-    "poTitle": "美妙合作伙伴办公室",
+    "title": "meimiao — 适合您的手术,医院主动提供方案",
+    "poTitle": "meimiao 合作伙伴办公室",
     "poDescription": "医院管理系统",
+    "boTitle": "meimiao 业务管理后台",
+    "boDescription": "内部管理系统",
     "description": "韩国整形决策平台。提交您的诉求，经过认证的韩国医院将为您发送定制方案。"
   },
   "dateFilter": {
@@ -1416,7 +1418,7 @@
     "ERR_PASSWORD_RULE": "密码须至少包含 1 位字母和 1 位数字。"
   },
   "home": {
-    "bannerTitle": "与 MIMYO 一起开始",
+    "bannerTitle": "与 meimiao 一起开始",
     "bannerDesc": "获取经认证的韩国医院的定制方案",
     "newProposalAlert": "收到 {count} 份新方案"
   }

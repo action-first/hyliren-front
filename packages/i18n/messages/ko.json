@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "미묘",
-    "appNameZh": "美妙",
+    "appName": "MIMYO",
+    "appNameZh": "MIMYO",
     "login": "로그인",
     "signup": "회원가입",
     "next": "다음",
@@ -682,9 +682,11 @@
     "categorySafety": "안전 정보"
   },
   "metadata": {
-    "title": "미묘 — 나에게 맞는 시술, 병원이 먼저 제안합니다",
-    "poTitle": "미묘 파트너 오피스",
+    "title": "MIMYO — 나에게 맞는 시술, 병원이 먼저 제안합니다",
+    "poTitle": "MIMYO 파트너 오피스",
     "poDescription": "병원 관리 시스템",
+    "boTitle": "MIMYO 비즈니스 오피스",
+    "boDescription": "내부 관리 시스템",
     "description": "K-성형 의사결정 플랫폼. 고민을 등록하면 검증된 한국 병원이 맞춤 제안서를 보내드립니다."
   },
   "dateFilter": {
@@ -1416,7 +1418,7 @@
     "ERR_PASSWORD_RULE": "비밀번호는 영문과 숫자를 각각 1자 이상 포함해야 합니다."
   },
   "home": {
-    "bannerTitle": "미묘와 함께 시작하세요",
+    "bannerTitle": "MIMYO와 함께 시작하세요",
     "bannerDesc": "검증된 한국 병원들의 맞춤 제안서를 받아보세요",
     "newProposalAlert": "{count}개의 새로운 제안서가 도착했습니다"
   }
