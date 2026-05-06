@@ -15,6 +15,15 @@
   "engines": {
     "node": ">=20.0.0"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "bcrypt",
+      "esbuild",
+      "prisma"
+    ]
+  },
   "dependencies": {
     "ag-grid-community": "^35.2.1",
     "ag-grid-react": "^35.2.1",

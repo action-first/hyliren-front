@@ -1,0 +1,115 @@
+// MIMYO Database Schema
+//
+// 정본은 docs/schema/final.sql (Postgres-native, 21 tables 전체).
+// 본 Prisma schema 는 launch scope 인증·핵심 도메인만 우선 반영.
+// 다른 테이블은 추후 `prisma db pull` 또는 명시적 모델 추가로 합류.
+//
+// 마이그레이션:
+//   pnpm --filter @hyliren/db prisma:migrate
+//
+// 시드:
+//   pnpm --filter @hyliren/db prisma:seed
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────
+
+enum UserRole {
+  buyer
+  admin
+
+  @@map("user_role")
+}
+
+enum MemberRole {
+  partner
+  admin
+
+  @@map("member_role")
+}
+
+// ─── Auth: Users (FO 고객 — 향후 FO auth 작업 시 사용) ───────────────
+
+model User {
+  userId       String   @id @map("user_id") @db.VarChar(28)
+  role         UserRole
+  email        String?  @unique @db.VarChar(255)
+  phone        String?  @unique @db.VarChar(20)
+  passwordHash String?  @map("password_hash") @db.VarChar(72)
+  name         String   @db.VarChar(100)
+  locale       String   @default("zh-CN") @db.VarChar(10)
+  avatarUrl    String?  @map("avatar_url") @db.Text
+  referralCode String?  @unique @map("referral_code") @db.VarChar(32)
+  referredBy   String?  @map("referred_by") @db.VarChar(28)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  referrer  User?  @relation("UserReferral", fields: [referredBy], references: [userId], onDelete: SetNull)
+  referrals User[] @relation("UserReferral")
+
+  @@map("users")
+}
+
+// ─── Auth: Members (PO 병원 + BO admin) ─────────────────────────────
+
+model Member {
+  memberId     String     @id @map("member_id") @db.VarChar(28)
+  role         MemberRole
+  email        String     @unique @db.VarChar(255)
+  passwordHash String?    @map("password_hash") @db.VarChar(72)
+  name         String     @db.VarChar(100)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  partnerProfile  PartnerProfile?
+  adminAuditLogs  AdminAuditLog[]
+
+  @@map("members")
+}
+
+model PartnerProfile {
+  memberId        String   @id @map("member_id") @db.VarChar(28)
+  hospitalName    String   @map("hospital_name") @db.VarChar(200)
+  hospitalNameZh  String?  @map("hospital_name_zh") @db.VarChar(200)
+  description     String?  @db.Text
+  descriptionZh   String?  @map("description_zh") @db.Text
+  address         String?  @db.VarChar(500)
+  phone           String?  @db.VarChar(20)
+  website         String?  @db.VarChar(512)
+  logoUrl         String?  @map("logo_url") @db.Text
+  coverImageUrl   String?  @map("cover_image_url") @db.Text
+  specialties     Json     @default("[]")
+  verified        Boolean  @default(false)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  member Member @relation(fields: [memberId], references: [memberId], onDelete: Cascade)
+
+  @@map("partner_profiles")
+}
+
+// ─── Audit: BO admin 행위 기록 (감사 추적) ────────────────────────────
+
+model AdminAuditLog {
+  id         BigInt   @id @default(autoincrement())
+  memberId   String   @map("member_id") @db.VarChar(28)
+  action     String   @db.VarChar(64)        // "login" | "logout" | "credit_grant" | "user_suspend" | ...
+  targetType String?  @map("target_type") @db.VarChar(32)  // "user" | "member" | "concern" | ...
+  targetId   String?  @map("target_id") @db.VarChar(28)
+  detail     Json?    // 액션별 추가 메타 (예: { reason, amount, before, after })
+  ip         String?  @db.VarChar(64)
+  userAgent  String?  @map("user_agent") @db.Text
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  member Member @relation(fields: [memberId], references: [memberId], onDelete: Restrict)
+
+  @@index([memberId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+  @@map("admin_audit_log")
+}
