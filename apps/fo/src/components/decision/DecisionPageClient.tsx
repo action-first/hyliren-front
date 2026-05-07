@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
+import { Link } from '@/components/i18n/Link';
 import type { Concern, Proposal, PartnerProfile, ProposalItem } from '@hyliren/shared';
 import { track } from '@hyliren/shared';
 import { Button } from '@hyliren/ui';

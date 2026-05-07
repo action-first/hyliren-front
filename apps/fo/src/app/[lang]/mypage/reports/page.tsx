@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { Link } from '@/components/i18n/Link';
 import { Button, Spinner } from '@hyliren/ui';
 import { ArrowLeft, ArrowRight, FileCheck, ShieldCheck, Star, Inbox } from 'lucide-react';
 import { useReportStore } from '@/store/report';

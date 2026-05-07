@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { Link } from '@/components/i18n/Link';
 import { Badge, Button, Spinner } from '@hyliren/ui';
 import { Clock, Eye, ChevronRight } from 'lucide-react';
 import { useLocaleStore } from '@/store/locale';

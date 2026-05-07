@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useLocalizedRouter } from '@/hooks/use-localized-router';
 import { Button } from '@hyliren/ui';
 import { ArrowRight, Edit3, Sparkles, Clock, Loader2 } from 'lucide-react';
 import { useConcernFlowStore, BUDGET_LABEL_KEYS, VISIT_TIMING_LABEL_KEYS, STAY_DURATION_LABEL_KEYS } from '@/store/concern-flow';
@@ -49,7 +49,7 @@ interface Props {
 
 export function StepConfirm({ onAuthRequired, retrySubmitSignal = 0 }: Props = {}) {
   const t = useLocaleStore(s => s.t);
-  const router = useRouter();
+  const router = useLocalizedRouter();
   const {
     analysisResult, photos, narrativeInput, analysisCount,
     selectedBodyArea, budgetRange, visitTiming, stayDuration,

@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { getServerLocale } from '@/lib/server-locale';
+import { narrowLangParam } from '@/lib/server-locale';
 
 /**
  * MIMYO Open Graph 이미지 (1200×630).
@@ -28,8 +28,13 @@ const TAGLINE: Record<'ko' | 'zh-CN' | 'ja' | 'en', { line1: string; line2: stri
   'en':    { line1: "It's OK",       line2: 'to start with worries.' },
 };
 
-export default async function Image() {
-  const locale = await getServerLocale();
+export default async function Image({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  const locale = narrowLangParam(lang);
   const text = locale === 'zh-CN' ? 'meimiao' : 'mimyo';
   const copy = TAGLINE[locale];
 
