@@ -1,0 +1,51 @@
+// MIMYO Database Schema (Prisma)
+//
+// SOURCE OF TRUTH : hyliren-api/docker/init.sql (정본)
+//                   ↓ 동기화 사본
+// LOCAL MIRROR    : docs/schema/final.sql
+//                   ↓ Prisma 가 따라감
+// 본 파일         : packages/db/prisma/schema.prisma
+//
+// 본 schema 가 모델링하는 범위 = BO admin 인증에 필요한 최소 (Member 1개).
+// 이 외 테이블 (concerns / proposals / procedures 등) 은 정본에 정의돼 있고
+// FO/PO 가 사용할 때 점진적으로 `prisma db pull` 또는 명시적 model 추가.
+//
+// 규칙:
+//   - 본 Prisma schema 가 정본 init.sql 을 변경하지 않는다 (단방향 follower).
+//   - 새 테이블·컬럼 필요 시 hyliren-api 측 init.sql/migration 먼저 추가 → 동기화.
+//   - BO 관련 audit 도 별도 admin_audit_log 신설하지 않고 기존 events 테이블에 적재.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enum: member_role ──────────────────────────────────────────────
+// 정본 docker/init.sql 의 ENUM 'partner' | 'admin' 그대로.
+
+enum MemberRole {
+  partner
+  admin
+
+  @@map("member_role")
+}
+
+// ─── Member ─────────────────────────────────────────────────────────
+// PO 병원 (role='partner') + BO admin (role='admin') 양쪽이 같은 테이블.
+// BO 인증 시 role='admin' + password_hash 매칭으로만 로그인 허용.
+
+model Member {
+  memberId     String     @id @map("member_id") @db.VarChar(28)
+  role         MemberRole
+  email        String     @unique @db.VarChar(255)
+  passwordHash String?    @map("password_hash") @db.VarChar(72)
+  name         String     @db.VarChar(100)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("members")
+}
