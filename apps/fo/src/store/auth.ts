@@ -1,25 +1,21 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { User } from '@hyliren/shared';
 import { authApi, onForcedLogout } from '@/lib/api';
+import type { User } from '@hyliren/shared';
 import type { LoginInput, RegisterInput } from '@/lib/api';
 import { tokenStore } from '@/lib/auth/token-store';
-import { useLocaleStore } from './locale';
 
 /**
- * user.locale 을 UI locale store 와 동기화.
+ * TODO(i18n PR follow-up): user.locale 기반 redirect 로 재구현.
  *
- * 다른 디바이스에서 ja 로 설정한 사용자가 새 디바이스에서 로그인 시 user.locale=ja 가
- * 반환되며, 이 함수가 useLocaleStore 를 ja 로 즉시 전환하여 디바이스 간 일관성 유지.
+ * 이전 구현은 `useLocaleStore.getState().setLocale(user.locale)` 로 store 만 갱신했으나,
+ * path SSOT (`/{lang}/...`) 정책 도입 후엔 store 만 바꿔도 URL/path 와 어긋나며 다음
+ * navigation 시 path lang 으로 다시 덮임. 또한 Provider 패턴 도입으로 외부 모듈에서
+ * `.getState()` 글로벌 접근이 불가.
  *
- * 동일 locale 이면 set 호출 생략 — 불필요한 t 함수 reference 갱신/리렌더 회피.
+ * 정상 패턴: 로그인 직후 client component 에서 useLocalizedRouter 로
+ * `router.push('/{user.locale}{rest}')` redirect. 해당 작업은 후속 PR 처리.
  */
-function syncUiLocale(user: User): void {
-  const current = useLocaleStore.getState().locale;
-  if (user.locale !== current) {
-    useLocaleStore.getState().setLocale(user.locale);
-  }
-}
 
 export type AuthStatus = 'idle' | 'authenticating' | 'authenticated' | 'guest';
 
@@ -58,9 +54,7 @@ export const useAuthStore = create<AuthState>()(
           isLoggedIn: !!user,
           isGuest: !user,
         });
-        // 로그인 사용자의 user.locale 을 UI store 와 동기화 (디바이스 간 일관성).
-        // logout 시(user=null) 에는 마지막 locale 유지 — 비로그인 상태에서도 UX 연속성.
-        if (user) syncUiLocale(user);
+        // 디바이스 간 user.locale 동기화는 후속 PR 에서 router redirect 로 재구현 (위 TODO 참조).
       },
 
       loginWithPassword: async (input) => {
@@ -121,9 +115,7 @@ export const useAuthStore = create<AuthState>()(
           state.status = 'authenticated';
           state.isLoggedIn = true;
           state.isGuest = false;
-          // 페이지 새로고침 후 복원 시점에도 user.locale ↔ UI store 정렬.
-          // useLocaleStore 도 자체 persist 가 있어 어긋날 가능성 (디바이스 간) → user 우선.
-          syncUiLocale(state.user);
+          // user.locale ↔ path 정합은 후속 PR (위 TODO 참조).
         } else {
           state.status = 'guest';
           state.isLoggedIn = false;
