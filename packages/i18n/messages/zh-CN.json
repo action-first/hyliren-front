@@ -687,7 +687,8 @@
     "poDescription": "医院管理系统",
     "boTitle": "meimiao 业务管理后台",
     "boDescription": "内部管理系统",
-    "description": "韩国整形决策平台。提交您的诉求，经过认证的韩国医院将为您发送定制方案。"
+    "description": "韩国整形决策平台。提交您的诉求，经过认证的韩国医院将为您发送定制方案。",
+    "ogImageAlt": "meimiao — 先聊聊也没关系。"
   },
   "dateFilter": {
     "today": "今天",
