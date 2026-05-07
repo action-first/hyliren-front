@@ -6,6 +6,7 @@ import { FOTabBar } from '@/components/layout/FOTabBar';
 
 import Toast from '@/components/common/Toast';
 import { SessionBootstrap } from '@/components/auth/SessionBootstrap';
+import { LocaleHydrator } from '@/components/i18n/LocaleHydrator';
 import { getServerLocale } from '@/lib/server-locale';
 
 /**
@@ -34,6 +35,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={locale} data-theme="fo">
       <body>
+        <LocaleHydrator initialLocale={locale} />
         <SessionBootstrap />
         <div className="fo-shell">
           <div className="fo-frame">
