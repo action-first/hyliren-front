@@ -40,7 +40,13 @@ export function middleware(request: NextRequest) {
 
   // path 가 valid lang prefix 를 가진 경우 → 통과 + cookie 동기화
   if (first && isLocale(first)) {
-    const response = NextResponse.next();
+    // RSC layout 이 pathname 을 알도록 헤더 주입 (canonical/hreflang 메타 생성용).
+    // Next 15 의 generateMetadata 는 dynamic params 만 받고 children path 는 모르므로
+    // middleware 가 명시 주입.
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-pathname', pathname);
+
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
     // cookie 가 path lang 과 다르면 동기화
     // (사용자가 직접 다른 lang URL 로 진입했거나, 명시 선택 후 redirect 된 경우 일관성 보장)
     const currentCookie = request.cookies.get(COOKIE_NAME)?.value;
