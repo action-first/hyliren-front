@@ -7,7 +7,6 @@ import { Wordmark, pickWordmarkLocale } from '@hyliren/ui';
 import { useAuthStore } from '@/store/auth';
 import { useLocaleStore } from '@/store/locale';
 import { AuthModal } from '@/components/auth/AuthModal';
-import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 
 export function FOHeader() {
   const { isLoggedIn, user } = useAuthStore();
@@ -26,7 +25,6 @@ export function FOHeader() {
           <Wordmark locale={wordmarkLocale} fontSize={22} color="var(--color-ink, #0A0A0A)" />
         </Link>
         <div className="fo-header-actions">
-          <LanguageSwitcher />
           <Link href="/decision" className="fo-header-icon-btn relative">
             <Bell size={20} strokeWidth={1.5} />
             {unreadCount > 0 && (

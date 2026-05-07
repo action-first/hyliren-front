@@ -1,21 +1,18 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { usePathname, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { Check, Globe } from 'lucide-react';
 import { isLocale, LOCALES, type Locale } from '@hyliren/shared';
-import { useLocalizedRouter } from '@/hooks/use-localized-router';
-import { useAuthStore } from '@/store/auth';
-import { updateLocale } from '@/lib/api/auth';
+import { useLocaleSwitch } from '@/hooks/use-locale-switch';
 
 /**
  * 사용자 명시 언어 선택 — 드롭다운 형태.
  *
- * 클릭 시:
- *   1. router.replace(`/${newLang}${restPath}`) — middleware 가 cookie 동기화
- *   2. 로그인 사용자면 PATCH /auth/locale fire-and-forget (디바이스 간 일관성)
+ * Note: 마이페이지에 동일 기능의 BottomSheet 가 있어 FOHeader 에선 사용하지 않음.
+ * 본 컴포넌트는 추후 다른 위치(랜딩, footer 등) 에서 활용 가능하도록 유지.
  *
- * cookie 우선순위: 사용자 명시 선택은 path navigation 자체가 SSOT 변경.
+ * path navigation + DB 동기화는 `useLocaleSwitch` hook 에 위임 (DRY).
  */
 
 const LABELS: Record<Locale, string> = {
@@ -26,12 +23,10 @@ const LABELS: Record<Locale, string> = {
 };
 
 export function LanguageSwitcher() {
-  const router = useLocalizedRouter();
-  const pathname = usePathname() ?? '/';
   const params = useParams();
   const currentLang =
     typeof params?.lang === 'string' && isLocale(params.lang) ? params.lang : 'zh-CN';
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const switchLocale = useLocaleSwitch();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -50,26 +45,7 @@ export function LanguageSwitcher() {
   function selectLocale(next: Locale) {
     setOpen(false);
     if (next === currentLang) return;
-
-    // 현재 path 에서 lang prefix 제거 → 새 lang 으로 navigation
-    // useLocalizedRouter 는 lang 자동 prefix 하므로, lang-stripped path 만 전달.
-    // 다만 useLocalizedRouter 는 *현재* lang 기준으로 prefix 함 → 직접 raw path 사용.
-    const stripped = pathname.replace(/^\/[a-z-]+(\/|$)/, '/');
-    const newPath = `/${next}${stripped === '/' ? '' : stripped}`;
-
-    // window.location 보단 router 가 RSC streaming + scroll 보존 — 단 useLocalizedRouter 는
-    // 현재 lang prefix 를 자동 추가하므로 raw replace 는 next/navigation 의 useRouter 사용해야 함.
-    // 우회: full navigation 으로 처리 (lang 변경은 layout 자체 재생성이 더 깔끔).
-    if (typeof window !== 'undefined') {
-      window.location.assign(newPath);
-    }
-
-    // 로그인 사용자: DB 동기화 (디바이스 간 일관성). 실패해도 UI 영향 없음.
-    if (isLoggedIn) {
-      void updateLocale(next).catch(() => {
-        /* silent — locale 동기화 실패는 사용자 경험에 무관 */
-      });
-    }
+    switchLocale(next);
   }
 
   return (
