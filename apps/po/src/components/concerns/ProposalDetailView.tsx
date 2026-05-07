@@ -1,16 +1,15 @@
 'use client';
 
 import {
-  ANESTHESIA_KR,
   CREDIT_COST,
   formatDateKR,
   formatDateRange,
   PROPOSAL_STATUS_BADGE,
-  PROPOSAL_STATUS_KR,
 } from '@hyliren/shared';
 import { Badge, Card, SectionHeader } from '@hyliren/ui';
 
 import { formatKrwAsMan, type ProposalDetailWire } from '@/lib/api/proposal';
+import { useLocaleStore } from '@/store/locale';
 
 interface ProposalDetailViewProps {
   proposal: ProposalDetailWire;
@@ -19,11 +18,11 @@ interface ProposalDetailViewProps {
 }
 
 const TIMELINE_STEPS = ['sent', 'viewed', 'shortlisted', 'selected'] as const;
-const TIMELINE_LABELS: Record<string, string> = {
-  sent: '발송',
-  viewed: '열람',
-  shortlisted: '후보',
-  selected: '선택',
+const TIMELINE_LABEL_KEYS: Record<string, string> = {
+  sent: 'po.proposalStatusSent',
+  viewed: 'po.proposalStatusViewed',
+  shortlisted: 'po.proposalStatusShortlisted',
+  selected: 'po.proposalStatusSelected',
 };
 
 function getStepIndex(status: string): number {
@@ -31,8 +30,8 @@ function getStepIndex(status: string): number {
   return idx >= 0 ? idx : 0;
 }
 
-function StatusBadge({ label }: { label: string }) {
-  const c = PROPOSAL_STATUS_BADGE[label];
+function StatusBadge({ status, label }: { status: string; label: string }) {
+  const c = PROPOSAL_STATUS_BADGE[status];
   if (!c) return <Badge>{label}</Badge>;
   return (
     <span
@@ -43,6 +42,16 @@ function StatusBadge({ label }: { label: string }) {
       {label}
     </span>
   );
+}
+
+/**
+ * AnesthesiaType enum → 'common.anesthesia*' i18n key 매핑.
+ */
+function anesthesiaLabel(key: string, t: (k: string) => string): string {
+  if (key === 'local') return t('common.anesthesiaLocal');
+  if (key === 'sedation') return t('common.anesthesiaSedation');
+  if (key === 'general') return t('common.anesthesiaGeneral');
+  return key;
 }
 
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -59,7 +68,9 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
  * 외부 wrapper 가 width / 헤더 / 사이드바 등을 결정.
  */
 export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetailViewProps) {
-  const statusLabel = PROPOSAL_STATUS_KR[proposal.status] ?? proposal.status;
+  const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
+  const statusLabel = t(`po.proposalStatus.${proposal.status}`) || proposal.status;
   const currentStep = getStepIndex(proposal.status);
 
   return (
@@ -67,8 +78,8 @@ export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetail
       {/* 상태 + 타임라인 */}
       <Card padding="md">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[var(--text-sm)] text-[var(--text-subdued)]">진행 상태</span>
-          <StatusBadge label={statusLabel} />
+          <span className="text-[var(--text-sm)] text-[var(--text-subdued)]">{t('po.proposalProgressStatus')}</span>
+          <StatusBadge status={proposal.status} label={statusLabel} />
         </div>
         <div className="flex items-center gap-1">
           {TIMELINE_STEPS.map((step, i) => {
@@ -90,7 +101,7 @@ export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetail
                     {i + 1}
                   </div>
                   <span className={`text-[var(--text-xs)] ${reached ? 'font-semibold' : ''}`}>
-                    {TIMELINE_LABELS[step]}
+                    {t(TIMELINE_LABEL_KEYS[step])}
                   </span>
                 </div>
                 {i < TIMELINE_STEPS.length - 1 && (
@@ -108,7 +119,7 @@ export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetail
 
       {/* 시술 항목 + 총 비용 */}
       <Card padding="md">
-        <SectionHeader title="시술 항목" />
+        <SectionHeader title={t('po.proposalSectionItems')} />
         {proposal.items.length > 0 ? (
           <div className="flex flex-col gap-2 mt-3">
             {proposal.items.map((item, i) => (
@@ -127,44 +138,44 @@ export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetail
                   )}
                 </div>
                 <span className="text-[var(--text-md)] font-bold text-[var(--text-default)]">
-                  {formatKrwAsMan(item.price)}
+                  {formatKrwAsMan(item.price, locale, t("common.currency"))}
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-[var(--text-sm)] text-[var(--text-subdued)] mt-3">항목 정보 없음</p>
+          <p className="text-[var(--text-sm)] text-[var(--text-subdued)] mt-3">{t('po.proposalNoItems')}</p>
         )}
 
         <div className="flex justify-between items-center mt-4 pt-4 border-t border-[var(--border-subdued)]">
           <span className="text-[var(--text-base)] font-semibold text-[var(--text-subdued)]">
-            총 예상 비용
+            {t('po.proposeTotalEstimated')}
           </span>
           <span className="text-[var(--text-2xl)] font-bold text-[var(--text-default)]">
-            {formatKrwAsMan(proposal.totalPrice)}
+            {formatKrwAsMan(proposal.totalPrice, locale, t("common.currency"))}
           </span>
         </div>
       </Card>
 
       {/* 시술 정보 */}
       <Card padding="md">
-        <SectionHeader title="시술 정보" />
+        <SectionHeader title={t('po.proposalSectionInfo')} />
         <div className="flex flex-col gap-3 mt-3">
-          <MetaRow label="회복 기간">{proposal.recoveryDays}일</MetaRow>
+          <MetaRow label={t('po.proposalMetaRecovery')}>{t('po.proposalMetaDays', { days: proposal.recoveryDays })}</MetaRow>
           <hr className="border-0 border-t border-[var(--border-subdued)]" />
-          <MetaRow label="마취 유형">{ANESTHESIA_KR[proposal.anesthesiaType] ?? proposal.anesthesiaType}</MetaRow>
+          <MetaRow label={t('po.proposalMetaAnesthesia')}>{anesthesiaLabel(proposal.anesthesiaType, t)}</MetaRow>
           <hr className="border-0 border-t border-[var(--border-subdued)]" />
-          <MetaRow label="입원 기간">{proposal.hospitalStayDays}일</MetaRow>
+          <MetaRow label={t('po.proposalMetaStay')}>{t('po.proposalMetaDays', { days: proposal.hospitalStayDays })}</MetaRow>
           <hr className="border-0 border-t border-[var(--border-subdued)]" />
-          <MetaRow label="시술 가능 기간">
-            {formatDateRange(proposal.availableDateFrom, proposal.availableDateTo)}
+          <MetaRow label={t('po.proposalMetaAvailableRange')}>
+            {proposal.availableDateFrom ? formatDateRange(proposal.availableDateFrom, proposal.availableDateTo) : t("common.tbd")}
           </MetaRow>
         </div>
 
         {proposal.consultationNote && (
           <>
             <hr className="border-0 border-t border-[var(--border-subdued)] my-4" />
-            <SectionHeader title="부연 설명" />
+            <SectionHeader title={t('po.proposalSectionExtra')} />
             <p className="text-[var(--text-base)] text-[var(--text-default)] leading-relaxed mt-3">
               {proposal.consultationNote}
             </p>
@@ -176,11 +187,11 @@ export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetail
       {showMeta && (
         <Card padding="md">
           <div className="flex flex-col gap-3">
-            <MetaRow label="발송일">{formatDateKR(proposal.sentAt)}</MetaRow>
-            <MetaRow label="열람일">
-              {proposal.viewedAt ? formatDateKR(proposal.viewedAt) : '미열람'}
+            <MetaRow label={t('po.proposalMetaSentAt')}>{formatDateKR(proposal.sentAt, locale)}</MetaRow>
+            <MetaRow label={t('po.proposalMetaViewedAt')}>
+              {proposal.viewedAt ? formatDateKR(proposal.viewedAt, locale) : t('po.proposalMetaUnviewed')}
             </MetaRow>
-            <MetaRow label="크레딧 차감">{CREDIT_COST}개</MetaRow>
+            <MetaRow label={t('po.proposalMetaCreditDeduct')}>{t('po.proposalMetaCreditUnit', { count: CREDIT_COST })}</MetaRow>
           </div>
         </Card>
       )}

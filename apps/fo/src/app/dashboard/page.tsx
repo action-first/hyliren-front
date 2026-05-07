@@ -11,13 +11,13 @@ import {
   ArrowRight, Plus, FileText, Clock, ChevronRight,
   BookOpen, MessageCircle, Inbox, Scale, Banknote, Calendar,
 } from 'lucide-react';
-import { ARTICLES } from '@/lib/articles-data';
+import { listArticles, listRelatedArticles, mapArticleListItem, type ArticleListItem } from '@/lib/api/article';
 
 import { AREA_ACCENT, getAreaBar } from '@/lib/area-styles';
 import {
   type DashboardState,
   computeDashboardState, computeConcernActions,
-  getRecommendedArticles, STATUS_LABELS, STATUS_COLORS,
+  STATUS_LABELS, STATUS_COLORS,
 } from '@/domain/lifecycle';
 import { useLocaleStore } from '@/store/locale';
 import { useAuthStore } from '@/store/auth';
@@ -57,7 +57,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!dashboardPhase || !userId) return;
     // targetType 'user' 는 DB event_target_type enum (concern/proposal/order/member) 에 없음 → userId 는 metadata 로 이관.
-    track({ eventType: 'dashboard_viewed', actorType: 'user', metadata: { source: 'fo', locale: 'ko', value: dashboardPhase, userId } });
+    track({ eventType: 'dashboard_viewed', actorType: 'user', metadata: { source: 'fo', value: dashboardPhase, userId } });
   }, [dashboardPhase, userId]);
 
   if (!ready) {
@@ -115,7 +115,7 @@ export default function DashboardPage() {
 
       {/* ═══ 대기 중 패널 ═══ */}
       {dashboard.phase === 'waiting' && (
-        <WaitingStatePanel bodyArea={dashboard.primaryConcern?.primaryArea || t('bodyArea.기타')} />
+        <WaitingStatePanel bodyArea={dashboard.primaryConcern?.primaryArea || 'etc'} />
       )}
 
       {/* ═══ 맞춤 추천 정보 ═══ */}
@@ -237,7 +237,7 @@ function ConcernStatusCard({
           <div className="flex items-center gap-1.5">
             {bodyAreas.map(area => (
               <span key={area} className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${AREA_ACCENT[area] || 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}`}>
-                {area}
+                {t(`common.bodyArea.${area}`)}
               </span>
             ))}
           </div>
@@ -248,7 +248,7 @@ function ConcernStatusCard({
               </span>
             )}
             <Badge variant={STATUS_COLORS[status] || 'default'} size="sm">
-              {STATUS_LABELS[status] || status}
+              {STATUS_LABELS[status] ? t(STATUS_LABELS[status]) : status}
             </Badge>
           </div>
         </div>
@@ -263,7 +263,7 @@ function ConcernStatusCard({
           <div className="flex items-center gap-2 mb-2.5">
             {budgetMin && budgetMax && (
               <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)]">
-                <Banknote size={10} /> {budgetMin}~{budgetMax}만
+                <Banknote size={10} /> {t('decision.budgetRangeMan', { min: budgetMin, max: budgetMax })}
               </span>
             )}
             {visitDateFrom && (
@@ -300,7 +300,7 @@ function WaitingStatePanel({ bodyArea }: { bodyArea: string }) {
   const waitUserId = useAuthStore(s => s.user?.id);
   useEffect(() => {
     if (!waitUserId) return;
-    track({ eventType: 'waiting_panel_viewed', actorType: 'user', metadata: { source: 'fo', locale: 'ko', userId: waitUserId } });
+    track({ eventType: 'waiting_panel_viewed', actorType: 'user', metadata: { source: 'fo', userId: waitUserId } });
   }, [waitUserId]);
 
   return (
@@ -331,12 +331,36 @@ function WaitingStatePanel({ bodyArea }: { bodyArea: string }) {
   );
 }
 
-function RecommendedArticlesSection({ bodyArea, status }: { bodyArea: string; status: string }) {
+function RecommendedArticlesSection({ bodyArea }: { bodyArea: string; status: string }) {
   const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
+  const [articles, setArticles] = useState<ArticleListItem[]>([]);
 
-  // 실제 아티클 데이터에서 bodyArea 매칭 우선, 없으면 전체에서 3개
-  const matched = ARTICLES.filter(a => a.bodyArea === bodyArea || a.bodyArea === '전체').slice(0, 3);
-  const displayArticles = matched.length > 0 ? matched : ARTICLES.slice(0, 3);
+  // BE related endpoint — bodyArea (BodyArea enum key) 기반 추천.
+  // related 가 빈 결과면 list 의 view_count 정렬 첫 3건으로 fallback.
+  useEffect(() => {
+    let cancelled = false;
+    const handle = async () => {
+      try {
+        const related = await listRelatedArticles({ area: bodyArea });
+        if (cancelled) return;
+        if (related.articles.length > 0) {
+          setArticles(related.articles.slice(0, 3).map(mapArticleListItem));
+          return;
+        }
+      } catch { /* fallback to list */ }
+      try {
+        const all = await listArticles({ limit: 3 });
+        if (!cancelled) setArticles(all.articles.map(mapArticleListItem));
+      } catch {
+        if (!cancelled) setArticles([]);
+      }
+    };
+    void handle();
+    return () => { cancelled = true; };
+  }, [bodyArea, locale]);
+
+  if (articles.length === 0) return null;
 
   return (
     <section className="mt-7">
@@ -347,14 +371,14 @@ function RecommendedArticlesSection({ bodyArea, status }: { bodyArea: string; st
         </Link>
       </div>
       <div className="flex flex-col gap-2.5">
-        {displayArticles.map(a => (
+        {articles.map(a => (
           <Link key={a.id} href={`/articles/${a.slug}`} className="flex gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
             style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
             <div className="w-14 h-14 rounded-[var(--app-radius-sm)] overflow-hidden shrink-0 relative">
-              <img src={a.heroImage} alt={a.title} className="w-full h-full object-cover" />
-              <div className={`absolute bottom-0 left-0 right-0 h-1 ${
-                getAreaBar(a.bodyArea)
-              }`} />
+              {a.coverImageUrl && (
+                <img src={a.coverImageUrl} alt={a.title} className="w-full h-full object-cover" />
+              )}
+              <div className={`absolute bottom-0 left-0 right-0 h-1 ${getAreaBar(a.primaryArea)}`} />
             </div>
             <div className="flex flex-col gap-1 justify-center min-w-0">
               <Badge variant={a.tagColor} size="sm">{a.category}</Badge>

@@ -84,12 +84,12 @@ export function CompareReport({ proposals, items, concernId, onClose }: Props) {
 
   useEffect(() => {
     track({ eventType: 'compare_report_viewed', actorType: 'user', targetType: 'concern', targetId: concernId,
-      metadata: { source: 'fo', locale: 'ko', value: String(proposals.length) } });
+      metadata: { source: 'fo', value: String(proposals.length) } });
   }, [concernId, proposals.length]);
 
   function handlePurchase() {
     track({ eventType: 'report_purchased', actorType: 'user', targetType: 'concern', targetId: concernId,
-      metadata: { source: 'fo', locale: 'ko', value: '6900', label: 'compare_report' } });
+      metadata: { source: 'fo', value: '6900', label: 'compare_report' } });
     markPurchased(`compare-${concernId}`);
   }
 
@@ -240,13 +240,13 @@ export function CompareReport({ proposals, items, concernId, onClose }: Props) {
                 <div className="rounded-[var(--app-radius-md)] fo-gradient-accent-br px-4 py-4 mb-3">
                   <span className="text-[12px] font-semibold text-[var(--color-primary)] block mb-2">{t('report.overallOpinion')}</span>
                   <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
-                    {proposals.length}개 제안을 종합 분석한 결과, {winner.hospitalName}이 가격과 리스크 면에서 가장 균형 잡힌 제안입니다.
-                    최종 결정 전 병원 상담을 통해 개인 상태에 맞는 정밀 진단을 받으시기를 권합니다.
+                    {t('report.compareWinnerOpinion', { count: proposals.length, hospitalName: winner.hospitalName })}
+                    {t('report.compareWinnerAdvice')}
                   </p>
                 </div>
 
                 <p className="text-[10px] text-[var(--color-text-dim)] leading-relaxed px-1 mb-4">
-                  이 리포트는 일반적인 시장 데이터와 시술 정보를 기반으로 작성되었으며, 개인의 의료 상태에 따라 결과가 달라질 수 있습니다.
+                  {t('report.compareDisclaimer')}
                 </p>
               </>
             ) : (

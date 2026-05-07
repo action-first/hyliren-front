@@ -106,7 +106,7 @@
     "updatedAt": "2026-03-15T00:00:00Z",
     "viewCount": 1234,
     "seo": {
-      "metaTitle": "자연쌍꺼풀 매몰법 가이드 | 한옌리런",
+      "metaTitle": "자연쌍꺼풀 매몰법 가이드 | MIMYO",
       "metaDescription": "...",
       "ogImage": "https://..."
     }

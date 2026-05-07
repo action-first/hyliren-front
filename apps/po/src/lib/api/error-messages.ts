@@ -1,89 +1,105 @@
 import { ApiError } from './errors';
 
+type TFn = (key: string, params?: Record<string, string | number>) => string;
+
 /**
- * BE 에러 → 사용자 친화 한글 문구 매핑.
+ * BE 에러 → 사용자 친화 다국어 메시지 변환.
  *
  * 우선순위 (높음 → 낮음):
- * 1. ENGLISH_MSG_TO_KR — BE 영문 메시지 직접 매핑
- * 2. CODE_TO_KR — error.code (BE 가 코드 보낼 때)
- * 3. 한글 감지 — BE 메시지가 이미 한글이면 그대로 노출
- * 4. STATUS_TO_KR — HTTP status 별 일반 안내
+ * 1. ApiError.code 가 ERR_* prefix → t('error.<code>') 매핑
+ * 2. ENGLISH_MSG_TO_I18N — BE 영문 메시지 → i18n key 매핑
+ * 3. STATUS_TO_I18N — HTTP status 별 일반 안내
+ * 4. 한글 감지 — BE 메시지가 이미 한글이면 (legacy) 그대로 노출
  * 5. fallback — 호출자가 지정한 컨텍스트 메시지
  *
  * 사용:
- *   catch (e) { showToast(toUserMessage(e, '저장에 실패했습니다'), 'error'); }
+ *   catch (e) { showToast(toUserMessage(e, t('po.saveFailFallback'), t), 'error'); }
  */
 
-/** BE 가 throw 한 영문 메시지 직접 매핑. 발견 시 추가. */
-const ENGLISH_MSG_TO_KR: Record<string, string> = {
-  // Concern
-  'Concern not found': '고민을 찾을 수 없습니다.',
-  // Procedure
-  'Procedure not found': '시술을 찾을 수 없습니다.',
-  'Procedure disappeared after update': '시술 정보 갱신 중 오류가 발생했습니다. 새로고침 후 다시 시도해주세요.',
-  'Variant not found': '시술 옵션을 찾을 수 없습니다.',
-  // Auth
-  'Partner access required': '병원 파트너 권한이 필요합니다.',
-  // Network / 일반
-  'Network error': '인터넷 연결을 확인해주세요.',
-  'UNAUTHORIZED': '로그인이 만료되었어요. 다시 로그인해주세요.',
-  'Session expired': '세션이 만료되었습니다. 다시 로그인해주세요.',
+/** BE 가 throw 한 영문 메시지 → i18n key. ERR_* code 미적용 legacy. */
+const ENGLISH_MSG_TO_I18N: Record<string, string> = {
+  'Concern not found': 'error.ERR_CONCERN_NOT_FOUND',
+  'Procedure not found': 'error.ERR_PROCEDURE_NOT_FOUND',
+  'Procedure disappeared after update': 'error.ERR_PROCEDURE_STALE',
+  'Variant not found': 'error.ERR_VARIANT_NOT_FOUND',
+  'Partner access required': 'error.ERR_PARTNER_ACCESS_REQUIRED',
+  'Network error': 'error.ERR_NETWORK',
+  'UNAUTHORIZED': 'error.ERR_SESSION_EXPIRED',
+  'Session expired': 'error.ERR_SESSION_EXPIRED',
 };
 
-/** BE 가 error.code 보낼 때 매핑. 현재 backend 가 status code 만 사용해 사용 빈도 낮음. */
-const CODE_TO_KR: Record<string, string> = {
-  NETWORK: '인터넷 연결을 확인해주세요.',
-  UNAUTHORIZED: '로그인이 만료되었어요. 다시 로그인해주세요.',
-  CREDIT_INSUFFICIENT: '크레딧이 부족합니다. 충전 후 다시 시도해주세요.',
-};
-
-/** HTTP status 별 일반 안내 — BE 메시지 매핑 없을 때 fallback. */
-const STATUS_TO_KR: Record<number, string> = {
-  0: '인터넷 연결을 확인해주세요.',
-  401: '로그인이 만료되었어요. 다시 로그인해주세요.',
-  403: '이 작업을 수행할 권한이 없습니다.',
-  404: '찾을 수 없는 항목입니다. 새로고침 후 다시 확인해주세요.',
-  409: '이미 처리된 작업이거나 다른 사용자와 충돌이 발생했어요.',
-  413: '파일이 너무 큽니다.',
-  429: '요청이 너무 많아요. 잠시 후 다시 시도해주세요.',
-  500: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
-  502: '일시적인 서버 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
-  503: '서비스 점검 중입니다. 잠시 후 다시 시도해주세요.',
-  504: '응답 대기 시간이 초과됐어요. 다시 시도해주세요.',
+/** HTTP status 별 일반 안내 i18n key — BE 메시지 매핑 없을 때 fallback. */
+const STATUS_TO_I18N: Record<number, string> = {
+  0: 'error.ERR_NETWORK',
+  401: 'error.ERR_SESSION_EXPIRED',
+  403: 'error.ERR_FORBIDDEN',
+  404: 'error.ERR_NOT_FOUND_GENERIC',
+  409: 'error.ERR_CONFLICT_GENERIC',
+  413: 'error.ERR_FILE_TOO_LARGE',
+  429: 'error.ERR_RATE_LIMITED',
+  500: 'error.ERR_SERVER',
+  502: 'error.ERR_SERVER_TEMP',
+  503: 'error.ERR_SERVICE_UNAVAILABLE',
+  504: 'error.ERR_TIMEOUT',
 };
 
 const HANGUL_REGEX = /[ㄱ-힝]/;
 
+/** i18n key 매핑 시도 — 미존재 시 null. */
+function tryTranslate(t: TFn, key: string): string | null {
+  const translated = t(key);
+  return translated && translated !== key ? translated : null;
+}
+
 /**
- * 에러 → 사용자 친화 한글 메시지 변환.
+ * 에러 → 사용자 친화 다국어 메시지 변환.
  *
  * @param err catch 블록의 unknown 에러
- * @param fallback 컨텍스트 안내 문구 (예: '저장에 실패했습니다')
+ * @param fallback 컨텍스트 안내 문구 (호출자가 t() 한 결과)
+ * @param t i18n 함수 — useLocaleStore(s => s.t)
  */
-export function toUserMessage(err: unknown, fallback = '오류가 발생했습니다.'): string {
+export function toUserMessage(err: unknown, fallback: string, t: TFn): string {
   if (err instanceof ApiError) {
-    // 1. 영문 메시지 직접 매핑
-    const mapped = ENGLISH_MSG_TO_KR[err.message];
-    if (mapped) return mapped;
+    // 1. ERR_* code 우선 매핑 (BE PR #53/#54/#55 stable code)
+    if (err.code?.startsWith('ERR_')) {
+      const translated = tryTranslate(t, `error.${err.code}`);
+      if (translated) return translated;
+    }
 
-    // 2. code 매핑
-    const codeMapped = CODE_TO_KR[err.code];
-    if (codeMapped) return codeMapped;
+    // 1b. envelope.message 가 ERR_* code 인 경우 (NestJS ValidationPipe — RegisterDto Matches 등)
+    //     BE PR action-first/hyliren-api#55 의 password rule 처럼 zod/class-validator
+    //     가 message 에 ERR_* 직접 넣는 경우.
+    if (err.message?.startsWith('ERR_')) {
+      const translated = tryTranslate(t, `error.${err.message}`);
+      if (translated) return translated;
+    }
 
-    // 3. 한글 메시지면 그대로 (BE 가 이미 친화 문구 직접 노출)
+    // 2. 영문 메시지 매핑 (legacy BE)
+    const msgKey = ENGLISH_MSG_TO_I18N[err.message];
+    if (msgKey) {
+      const translated = tryTranslate(t, msgKey);
+      if (translated) return translated;
+    }
+
+    // 3. status 별 fallback
+    const statusKey = STATUS_TO_I18N[err.status];
+    if (statusKey) {
+      const translated = tryTranslate(t, statusKey);
+      if (translated) return translated;
+    }
+
+    // 4. 한글 메시지면 그대로 (BE 가 legacy 한국어 직접 노출)
     if (HANGUL_REGEX.test(err.message)) return err.message;
 
-    // 4. status 별 fallback
-    const statusMapped = STATUS_TO_KR[err.status];
-    if (statusMapped) return statusMapped;
-
-    // 5. 어떤 매핑도 안되면 BE 메시지 그대로 (있으면) / fallback
     return err.message || fallback;
   }
 
   if (err instanceof Error) {
-    const mapped = ENGLISH_MSG_TO_KR[err.message];
-    if (mapped) return mapped;
+    const msgKey = ENGLISH_MSG_TO_I18N[err.message];
+    if (msgKey) {
+      const translated = tryTranslate(t, msgKey);
+      if (translated) return translated;
+    }
     if (HANGUL_REGEX.test(err.message)) return err.message;
     return fallback;
   }

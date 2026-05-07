@@ -4,19 +4,19 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   PROPOSAL_STATUS_BADGE,
-  PROPOSAL_STATUS_KR,
   formatDateKR,
   formatBudget,
 } from '@hyliren/shared';
 import {
   AdminPage, Card, Spinner, Button, DataGrid,
-  badgeCellRenderer,
 } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
 import { AlertTriangle } from 'lucide-react';
 import type { ColDef } from 'ag-grid-community';
 import { POSidebar } from '@/components/POSidebar';
 import { useToastStore } from '@/store/toast';
+import { useLocaleStore } from '@/store/locale';
+import { useDataGridLabels } from '@/hooks/useDataGridLabels';
 import { toUserMessage } from '@/lib/api/error-messages';
 import { useConcerns } from '@/hooks/queries/concerns';
 import { useMyProposals } from '@/hooks/queries/proposals';
@@ -34,15 +34,9 @@ interface ProposalRow {
   budget: string;
   totalPrice: string;
   itemNames: string;
-  statusLabel: string;
+  /** proposal.status enum (sent/viewed/...) — cellRenderer 가 t() 매핑. */
+  statusEnum: string;
 }
-
-// 한국어 라벨 → backend ProposalStatus 매핑 (역매핑은 lossy 한 항목 제외)
-const STATUS_LABEL_TO_RAW: Record<string, string> = {
-  '발송': 'sent',
-  '선택됨': 'accepted',
-  '거절': 'rejected',
-};
 
 // 디폴트 — 최근 한달
 function defaultMonthRange(): { from: string; to: string } {
@@ -53,58 +47,81 @@ function defaultMonthRange(): { from: string; to: string } {
   return { from: fmt(monthAgo), to: fmt(today) };
 }
 
-const searchFields: SearchField[] = [
-  { key: 'sentAt', label: '기간', type: 'dateRange', row: 1 },
-  { key: 'statusLabel', label: '상태', type: 'select', row: 1, options: [
-    { value: '발송', label: '발송' },
-    { value: '선택됨', label: '선택됨' },
-    { value: '거절', label: '거절' },
-  ]},
-  { key: '_keyword', label: '키워드', placeholder: '시술명 통합 검색', row: 2 },
-];
-
-const columnDefs: ColDef<ProposalRow>[] = [
-  { field: 'sentAt', headerName: '발송일', flex: 0.7, minWidth: 90, filter: false,
-    cellStyle: { color: 'var(--text-disabled)', fontVariantNumeric: 'tabular-nums' },
-  },
-  { field: 'concern', headerName: '고민', flex: 1.2, minWidth: 150, filter: true },
-  { field: 'itemNames', headerName: '시술 항목', flex: 1.3, minWidth: 180, filter: true,
-    cellStyle: { color: 'var(--text-subdued)' },
-  },
-  { field: 'budget', headerName: '고객 예산', flex: 0.8, minWidth: 100, filter: false },
-  { field: 'totalPrice', headerName: '제안 금액', flex: 0.7, minWidth: 100, filter: false,
-    cellStyle: { fontWeight: 700, color: 'var(--text-default)', fontVariantNumeric: 'tabular-nums' },
-  },
-  { field: 'statusLabel', headerName: '상태', flex: 0.6, minWidth: 80, filter: true,
-    cellRenderer: badgeCellRenderer(PROPOSAL_STATUS_BADGE),
-  },
-];
-
 function describeConcern(concern: ConcernSummaryWire | undefined): string {
   if (!concern) return '-';
   return [concern.primaryArea, concern.bodyAreaDetail].filter(Boolean).join(' ');
 }
 
-function toRow(proposal: ProposalDetailWire, concerns: ConcernSummaryWire[]): ProposalRow {
+function toRow(
+  proposal: ProposalDetailWire,
+  concerns: ConcernSummaryWire[],
+  locale: string,
+  t: (k: string) => string,
+): ProposalRow {
   const concern = concerns.find(c => c.id === proposal.concernId);
+  const budgetText = concern && (concern.budgetMin != null || concern.budgetMax != null)
+    ? `${formatBudget(concern.budgetMin, concern.budgetMax)}${t('common.man')}`
+    : '-';
   return {
     id: proposal.id,
-    sentAt: formatDateKR(proposal.sentAt),
+    sentAt: formatDateKR(proposal.sentAt, locale),
     concern: describeConcern(concern),
-    budget: concern ? formatBudget(concern.budgetMin, concern.budgetMax) : '-',
-    totalPrice: formatKrwAsMan(proposal.totalPrice),
+    budget: budgetText,
+    totalPrice: formatKrwAsMan(proposal.totalPrice, locale, t('common.currency')),
     itemNames: proposal.items.map(item => item.treatmentName).join(', ') || '-',
-    statusLabel: PROPOSAL_STATUS_KR[proposal.status] || proposal.status,
+    statusEnum: proposal.status,
   };
 }
 
 export default function ProposalsPage() {
   const router = useRouter();
   const showToast = useToastStore(s => s.showToast);
+  const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
+  const dataGridLabels = useDataGridLabels();
   const [query, setQuery] = useState<MyProposalsQuery>(() => {
     const { from, to } = defaultMonthRange();
     return { sentAtFrom: from, sentAtTo: to };
   });
+
+  const searchFields: SearchField[] = [
+    { key: 'sentAt', label: t('po.proposalSearchPeriod'), type: 'dateRange', row: 1 },
+    { key: 'statusEnum', label: t('po.proposalSearchStatus'), type: 'select', row: 1, options: [
+      { value: 'sent', label: t('po.proposalStatusFilterSent') },
+      { value: 'accepted', label: t('po.proposalStatusFilterAccepted') },
+      { value: 'rejected', label: t('po.proposalStatusFilterRejected') },
+    ]},
+    { key: '_keyword', label: t('po.proposalSearchKeyword'), placeholder: t('po.proposalSearchKeywordPlaceholder'), row: 2 },
+  ];
+
+  const columnDefs: ColDef<ProposalRow>[] = [
+    { field: 'sentAt', headerName: t('po.proposalColSentAt'), flex: 0.7, minWidth: 90, filter: false,
+      cellStyle: { color: 'var(--text-disabled)', fontVariantNumeric: 'tabular-nums' },
+    },
+    { field: 'concern', headerName: t('po.proposalColConcern'), flex: 1.2, minWidth: 150, filter: true },
+    { field: 'itemNames', headerName: t('po.proposalColItems'), flex: 1.3, minWidth: 180, filter: true,
+      cellStyle: { color: 'var(--text-subdued)' },
+    },
+    { field: 'budget', headerName: t('po.proposalColBudget'), flex: 0.8, minWidth: 100, filter: false },
+    { field: 'totalPrice', headerName: t('po.proposalColTotal'), flex: 0.7, minWidth: 100, filter: false,
+      cellStyle: { fontWeight: 700, color: 'var(--text-default)', fontVariantNumeric: 'tabular-nums' },
+    },
+    { field: 'statusEnum', headerName: t('po.proposalColStatus'), flex: 0.6, minWidth: 80, filter: true,
+      cellRenderer: (p: { value: string }) => {
+        if (!p.value) return null;
+        const c = PROPOSAL_STATUS_BADGE[p.value] || { bg: '#f3f4f6', text: '#374151' };
+        const label = t(`po.proposalStatus.${p.value}`) || p.value;
+        return (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', height: 22,
+            padding: '0 8px', borderRadius: 4,
+            fontSize: 12, fontWeight: 500, lineHeight: 1,
+            background: c.bg, color: c.text,
+          }}>{label}</span>
+        );
+      },
+    },
+  ];
 
   // React Query — 캐시 5분 + keepPreviousData. /activity, /dashboard 와 cache 공유.
   const proposalsQ = useMyProposals(query);
@@ -113,10 +130,10 @@ export default function ProposalsPage() {
   // 에러 토스트 (proposals 우선, concerns 는 silent fallback)
   useEffect(() => {
     if (proposalsQ.isError && proposalsQ.error) {
-      const msg = toUserMessage(proposalsQ.error, '제안서 목록을 불러올 수 없습니다');
+      const msg = toUserMessage(proposalsQ.error, t('po.proposalListFail'), t);
       showToast(msg, 'error');
     }
-  }, [proposalsQ.isError, proposalsQ.error, showToast]);
+  }, [proposalsQ.isError, proposalsQ.error, showToast, t]);
 
   // 초기 load 완료 = proposals 데이터 한 번이라도 채워졌을 때.
   const hasInitialLoad = proposalsQ.data !== undefined;
@@ -127,14 +144,13 @@ export default function ProposalsPage() {
     const newQuery: MyProposalsQuery = {};
     if (filters['sentAt_from']) newQuery.sentAtFrom = filters['sentAt_from'];
     if (filters['sentAt_to']) newQuery.sentAtTo = filters['sentAt_to'];
-    const rawStatus = filters['statusLabel'] ? STATUS_LABEL_TO_RAW[filters['statusLabel']] : undefined;
-    if (rawStatus) newQuery.status = rawStatus;
+    if (filters['statusEnum']) newQuery.status = filters['statusEnum'];
     if (filters['_keyword']) newQuery.keyword = filters['_keyword'];
     setQuery(newQuery);
   }
 
   return (
-    <AdminPage sidebar={<POSidebar active="/activity" />} title="제안서 목록" prefix="po">
+    <AdminPage sidebar={<POSidebar active="/activity" />} title={t('po.proposalListTitle')} prefix="po">
       {/* 초기 1회 load 전 spinner / error */}
       {!hasInitialLoad && proposalsQ.isLoading && (
         <Card padding="md">
@@ -147,13 +163,13 @@ export default function ProposalsPage() {
           <div className="text-center py-10">
             <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
             <p className="text-[var(--text-sm)] font-medium text-[var(--text-default)] mb-1">
-              제안서 목록을 불러오지 못했어요
+              {t('po.proposalListEmpty')}
             </p>
             <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
-              {toUserMessage(proposalsQ.error, '알 수 없는 오류')}
+              {toUserMessage(proposalsQ.error, t('po.unknownError'), t)}
             </p>
             <Button variant="secondary" size="sm" onClick={() => proposalsQ.refetch()}>
-              다시 시도
+              {t('po.proposalListRetry')}
             </Button>
           </div>
         </Card>
@@ -163,10 +179,11 @@ export default function ProposalsPage() {
       {hasInitialLoad && (
         <DataGrid<ProposalRow>
           columnDefs={columnDefs}
-          rowData={proposals.map(p => toRow(p, concerns))}
+          rowData={proposals.map(p => toRow(p, concerns, locale, t))}
           searchFields={searchFields}
-          exportFileName="제안서목록"
-          title="내 제안서"
+          exportFileName={t('po.proposalExportFile')}
+          title={t('po.myProposalSheetTitle')}
+          labels={dataGridLabels}
           onRowClick={(data) => router.push(`/proposals/${data.id}`)}
           onSearch={handleSearch}
         />

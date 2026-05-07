@@ -4,22 +4,28 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button, Badge, BottomSheet } from '@hyliren/ui';
 import { ArrowRight, Camera, MessageCircle, FileText, ChevronRight, ShieldCheck, Clock } from 'lucide-react';
-import { ARTICLES } from '@/lib/articles-data';
 import { getAreaBar } from '@/lib/area-styles';
 import { useLocaleStore } from '@/store/locale';
 import { useMyConcerns } from '@/lib/hooks/concern';
 import { listProcedures } from '@/lib/api/procedure';
 import type { ProcedureListItemWire } from '@/lib/api/procedure';
+import { listArticles, mapArticleListItem, type ArticleListItem } from '@/lib/api/article';
 
 type UserPhase = 'idle' | 'waiting' | 'proposals_ready';
 
+/**
+ * 랜딩 카드 → 상담 prefill 정의.
+ * area: BodyArea enum key — non-ko 사용자도 동일 enum 사용 (BE 정책: enum 직접 저장)
+ * detailKey: i18n key — StepNarrative 가 사용자 로케일로 t() 매핑하여 store 에 저장
+ *   (한국어 raw 를 query 로 흘려보내 textarea 에 자동 주입하던 문제 차단)
+ */
 const CONCERN_DEFS = [
-  { key: 'landing.pain1', area: '눈', detail: '쌍꺼풀' },
-  { key: 'landing.pain2', area: '코', detail: '코끝 성형' },
-  { key: 'landing.pain3', area: '리프팅', detail: '리프팅' },
-  { key: 'landing.pain4', area: '피부', detail: '피부관리' },
-  { key: 'landing.pain5', area: '리프팅', detail: '안면윤곽' },
-  { key: 'landing.pain6', area: '눈', detail: '눈밑지방' },
+  { key: 'landing.pain1', area: 'eyes',    detailKey: 'landing.painDetail.doubleEyelid' },
+  { key: 'landing.pain2', area: 'nose',    detailKey: 'landing.painDetail.noseTip' },
+  { key: 'landing.pain3', area: 'lifting', detailKey: 'landing.painDetail.lifting' },
+  { key: 'landing.pain4', area: 'skin',    detailKey: 'landing.painDetail.skincare' },
+  { key: 'landing.pain5', area: 'lifting', detailKey: 'landing.painDetail.facialContour' },
+  { key: 'landing.pain6', area: 'eyes',    detailKey: 'landing.painDetail.underEyeFat' },
 ];
 
 export default function HomePage() {
@@ -29,6 +35,8 @@ export default function HomePage() {
 
   const [popularProcedures, setPopularProcedures] = useState<ProcedureListItemWire[]>([]);
   const [proceduresLoading, setProceduresLoading] = useState(true);
+  const [recentArticles, setRecentArticles] = useState<ArticleListItem[]>([]);
+  const locale = useLocaleStore(s => s.locale);
 
   useEffect(() => {
     listProcedures({ sort: 'popular', limit: 6 })
@@ -36,6 +44,13 @@ export default function HomePage() {
       .catch(() => setPopularProcedures([]))
       .finally(() => setProceduresLoading(false));
   }, []);
+
+  // 랜딩 article 3건 — locale 변경 시 재호출 (Accept-Language 자동 주입).
+  useEffect(() => {
+    listArticles({ limit: 3 })
+      .then(w => setRecentArticles(w.articles.map(mapArticleListItem)))
+      .catch(() => setRecentArticles([]));
+  }, [locale]);
 
   // TODO: 백엔드에 unread proposal 집계 endpoint 추가되면 연결 (현재는 진입 시점에 도착 알림 미노출)
   const userProposalCount = 0;
@@ -148,7 +163,7 @@ export default function HomePage() {
         <h2 className="text-[1.0625rem] font-bold text-[var(--color-text)] tracking-[-0.18px] mb-3">{t('landing.concernsTitle')}</h2>
         <div className="flex flex-col gap-2">
           {CONCERN_DEFS.map((c, i) => (
-            <Link key={i} href={`/consult?area=${c.area}&detail=${c.detail}`}
+            <Link key={i} href={`/consult?area=${c.area}&detailKey=${c.detailKey}`}
               className="flex items-center justify-between px-4 py-3.5 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
               style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
               <span className="text-[14px] text-[var(--color-text)]">{t(c.key)}</span>
@@ -178,7 +193,7 @@ export default function HomePage() {
           ) : (
             <div className="flex flex-col gap-3">
               {popularProcedures.slice(0, 4).map((procedure, i) => (
-                <ProcedureFeatureCard key={procedure.id} procedure={procedure} featured={i === 0} t={t} />
+                <ProcedureFeatureCard key={procedure.id} procedure={procedure} featured={i === 0} t={t} locale={locale} />
               ))}
             </div>
           )}
@@ -196,20 +211,19 @@ export default function HomePage() {
           </Link>
         </div>
         <div className="flex flex-col gap-2.5">
-          {ARTICLES.slice(0, 3).map(a => (
+          {recentArticles.map(a => (
             <Link key={a.id} href={`/articles/${a.slug}`}
               className="flex gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
               style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
               <div className="w-14 h-14 rounded-[var(--app-radius-sm)] overflow-hidden shrink-0 relative">
-                <img src={a.heroImage} alt={a.title} className="w-full h-full object-cover" />
-                <div className={`absolute bottom-0 left-0 right-0 h-1 ${getAreaBar(a.bodyArea)}`} />
+                {a.coverImageUrl && (
+                  <img src={a.coverImageUrl} alt={a.title} className="w-full h-full object-cover" />
+                )}
+                <div className={`absolute bottom-0 left-0 right-0 h-1 ${getAreaBar(a.primaryArea)}`} />
               </div>
               <div className="flex flex-col gap-1 justify-center min-w-0">
                 <div className="flex items-center gap-1.5">
                   <Badge variant={a.tagColor} size="sm">{a.category}</Badge>
-                  <span className="flex items-center gap-0.5 text-[10px] text-[var(--color-text-dim)]">
-                    <Clock size={9} /> {t('landing.minutesRead', { min: a.readTime })}
-                  </span>
                 </div>
                 <span className="text-[13px] font-medium text-[var(--color-text)] leading-snug line-clamp-2">{a.title}</span>
               </div>
@@ -226,12 +240,12 @@ export default function HomePage() {
   );
 }
 
-function formatProcedurePrice(min: number, max: number, manLabel: string): string {
-  const toMan = (value: number) => `${Math.round(value / 10000).toLocaleString()}${manLabel}`;
+function formatProcedurePrice(min: number, max: number, locale: string, manLabel: string): string {
+  const toMan = (value: number) => `${Math.round(value / 10000).toLocaleString(locale)}${manLabel}`;
   return min === max ? toMan(min) : `${toMan(min)}~${toMan(max)}`;
 }
 
-function ProcedureFeatureCard({ procedure, featured = false, t }: { procedure: ProcedureListItemWire; featured?: boolean; t: (k: string, p?: Record<string, string | number>) => string }) {
+function ProcedureFeatureCard({ procedure, featured = false, t, locale }: { procedure: ProcedureListItemWire; featured?: boolean; t: (k: string, p?: Record<string, string | number>) => string; locale: string }) {
   return (
     <Link href={`/procedures/${procedure.slug}`} className="no-underline block">
       <article
@@ -245,7 +259,7 @@ function ProcedureFeatureCard({ procedure, featured = false, t }: { procedure: P
           <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
           <div className="absolute left-3 top-3 flex gap-1.5">
             {featured && <Badge variant="primary" size="sm">{t('landing.thisWeekPopular')}</Badge>}
-            <Badge variant="default" size="sm">{procedure.primaryArea}</Badge>
+            <Badge variant="default" size="sm">{t(`common.bodyArea.${procedure.primaryArea}`)}</Badge>
           </div>
           <div className="absolute left-4 right-4 bottom-4">
             <h3 className="font-bold text-white text-[1.05rem] leading-tight drop-shadow-sm">
@@ -261,7 +275,7 @@ function ProcedureFeatureCard({ procedure, featured = false, t }: { procedure: P
           <div className="flex items-center justify-between">
             <div className="flex items-baseline gap-1.5">
               <span className="text-[15px] font-bold text-[var(--color-text)]">
-                {formatProcedurePrice(procedure.priceMin, procedure.priceMax, t('common.man'))}
+                {formatProcedurePrice(procedure.priceMin, procedure.priceMax, locale, t('common.man'))}
               </span>
               <span className="text-[11px] text-[var(--color-text-dim)]">· {t('landing.referencePrice')}</span>
             </div>

@@ -39,8 +39,8 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-function StatusBadge({ label, map }: { label: string; map: Record<string, { bg: string; text: string }> }) {
-  const c = map[label];
+function StatusBadge({ statusKey, label, map }: { statusKey: string; label: string; map: Record<string, { bg: string; text: string }> }) {
+  const c = map[statusKey];
   if (!c) return <Badge>{label}</Badge>;
   return (
     <span style={{
@@ -142,7 +142,7 @@ export default async function BuyerDetailPage({ params }: Props) {
                               {c.bodyAreaDetail || c.bodyArea}
                             </span>
                           </div>
-                          <StatusBadge label={statusLabel} map={CONCERN_STATUS_BADGE} />
+                          <StatusBadge statusKey={c.status} label={statusLabel} map={CONCERN_STATUS_BADGE} />
                         </div>
                         <div style={{ display: 'flex', gap: 16, fontSize: 13, color: 'var(--text-subdued)' }}>
                           <span>예산: {formatBudget(c.budgetMin, c.budgetMax)}</span>
@@ -202,7 +202,7 @@ export default async function BuyerDetailPage({ params }: Props) {
                             {p.totalPrice}만원
                           </td>
                           <td>
-                            <StatusBadge label={statusLabel} map={PROPOSAL_STATUS_BADGE} />
+                            <StatusBadge statusKey={p.status} label={statusLabel} map={PROPOSAL_STATUS_BADGE} />
                           </td>
                           <td style={{ fontSize: 13, color: 'var(--text-subdued)', fontVariantNumeric: 'tabular-nums' }}>
                             {formatDateKR(p.sentAt)}

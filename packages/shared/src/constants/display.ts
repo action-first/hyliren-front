@@ -18,16 +18,25 @@ export function krwToMan(value: number): number {
   return Math.round(value / PRICE_MAN_UNIT);
 }
 
-export function formatKrwAsMan(value: number): string {
-  return `${krwToMan(value).toLocaleString('ko-KR')}만원`;
+/**
+ * KRW 원 → 만원 표기 + unit suffix.
+ *
+ * locale 인자: toLocaleString 의 콤마 포맷 로케일. 누락 시 'ko-KR' default (BO 한국어).
+ * unitSuffix 인자: 단위 라벨 (한국어 '만원' default — BO backward-compat).
+ *   PO 등 다국어 운영자 화면에서는 t('common.currency') 등으로 활성 locale 라벨 전달.
+ */
+export function formatKrwAsMan(value: number, locale: string = 'ko-KR', unitSuffix: string = '만원'): string {
+  return `${krwToMan(value).toLocaleString(locale)}${unitSuffix}`;
 }
 
 /**
  * 입력 콤마 포맷 — input 표시용.
  * 0 또는 음수면 빈 문자열 (placeholder 노출).
+ *
+ * locale 인자: 누락 시 'ko-KR' default. PO/FO 다국어 입력 필드는 활성 locale 명시.
  */
-export function formatNumberWithComma(value: number): string {
-  return value > 0 ? value.toLocaleString('ko-KR') : '';
+export function formatNumberWithComma(value: number, locale: string = 'ko-KR'): string {
+  return value > 0 ? value.toLocaleString(locale) : '';
 }
 
 /** 콤마/non-digit 제거 후 number. 빈 입력은 0. */
@@ -56,17 +65,17 @@ export const CONCERN_STATUS_KR: Record<string, string> = {
 };
 
 // ── 고민 상태 뱃지 색상 ──
+// concern.status enum key 기반 (한국어 키 매핑 폐기 — 다국어 사용처 호환).
 export const CONCERN_STATUS_BADGE: Record<string, BadgeColor> = {
-  '임시저장':     { bg: '#f3f4f6', text: '#6b7280' },
-  '접수됨':       { bg: '#f3f4f6', text: '#374151' },
-  '제안 대기':    { bg: '#fef9c3', text: '#854d0e' },
-  '제안 도착':    { bg: '#dbeafe', text: '#1e40af' },
-  '비교 중':      { bg: '#e0e7ff', text: '#3730a3' },
-  '리포트 구매':  { bg: '#fce7f3', text: '#9d174d' },
-  '병원 선택':    { bg: '#dcfce7', text: '#166534' },
-  '서비스 구매':  { bg: '#d1fae5', text: '#047857' },
-  '완료':         { bg: '#f0fdf4', text: '#15803d' },
-  '취소':         { bg: '#fef2f2', text: '#991b1b' },
+  draft:             { bg: '#f3f4f6', text: '#6b7280' },
+  submitted:         { bg: '#f3f4f6', text: '#374151' },
+  proposal_received: { bg: '#dbeafe', text: '#1e40af' },
+  comparing:         { bg: '#e0e7ff', text: '#3730a3' },
+  report_purchased:  { bg: '#fce7f3', text: '#9d174d' },
+  hospital_selected: { bg: '#dcfce7', text: '#166534' },
+  service_purchased: { bg: '#d1fae5', text: '#047857' },
+  completed:         { bg: '#f0fdf4', text: '#15803d' },
+  cancelled:         { bg: '#fef2f2', text: '#991b1b' },
 };
 
 // ── 제안서 상태 한글 라벨 ──
@@ -83,15 +92,16 @@ export const PROPOSAL_STATUS_KR: Record<string, string> = {
   expired: '만료',
 };
 
-// ── 제안서 상태 뱃지 색상 ──
+// ── 제안서 상태 뱃지 색상 (proposal.status enum key 기반) ──
 export const PROPOSAL_STATUS_BADGE: Record<string, BadgeColor> = {
-  '임시저장': { bg: '#f3f4f6', text: '#6b7280' },
-  '발송':     { bg: '#f3f4f6', text: '#374151' },
-  '열람':     { bg: '#fef9c3', text: '#854d0e' },
-  '후보':     { bg: '#dbeafe', text: '#1e40af' },
-  '선택됨':   { bg: '#dcfce7', text: '#166534' },
-  '거절':     { bg: '#fef2f2', text: '#991b1b' },
-  '만료':     { bg: '#f3f4f6', text: '#6b7280' },
+  draft:       { bg: '#f3f4f6', text: '#6b7280' },
+  sent:        { bg: '#f3f4f6', text: '#374151' },
+  viewed:      { bg: '#fef9c3', text: '#854d0e' },
+  shortlisted: { bg: '#dbeafe', text: '#1e40af' },
+  selected:    { bg: '#dcfce7', text: '#166534' },
+  accepted:    { bg: '#dcfce7', text: '#166534' },
+  rejected:    { bg: '#fef2f2', text: '#991b1b' },
+  expired:     { bg: '#f3f4f6', text: '#6b7280' },
 };
 
 // ── 마취 유형 한글 라벨 ──
@@ -102,20 +112,21 @@ export const ANESTHESIA_KR: Record<string, string> = {
 };
 
 // ── 부위 dot 색상 (AG Grid 경량 표시용) ──
+// key 는 BodyArea enum (eyes/nose/...) — i18n QA Stage 3 정렬.
 export const BODY_AREA_DOT: Record<string, string> = {
-  '눈': '#3b82f6', '코': '#ec4899', '리프팅': '#8b5cf6',
-  '피부': '#10b981', '다이어트': '#f59e0b', '기타': '#94a3b8',
-  '전체': '#64748b',
+  eyes: '#3b82f6', nose: '#ec4899', lifting: '#8b5cf6',
+  skin: '#10b981', diet: '#f59e0b', etc: '#94a3b8',
+  all: '#64748b',
 };
 
 // ── 부위 뱃지 색상 (상세 페이지용) ──
 export const BODY_AREA_BADGE: Record<string, BadgeColor> = {
-  '눈':       { bg: '#dbeafe', text: '#1d4ed8' },
-  '코':       { bg: '#fce7f3', text: '#be185d' },
-  '리프팅':   { bg: '#ede9fe', text: '#6d28d9' },
-  '피부':     { bg: '#d1fae5', text: '#047857' },
-  '다이어트': { bg: '#fef3c7', text: '#b45309' },
-  '기타':     { bg: '#f3f4f6', text: '#4b5563' },
+  eyes:    { bg: '#dbeafe', text: '#1d4ed8' },
+  nose:    { bg: '#fce7f3', text: '#be185d' },
+  lifting: { bg: '#ede9fe', text: '#6d28d9' },
+  skin:    { bg: '#d1fae5', text: '#047857' },
+  diet:    { bg: '#fef3c7', text: '#b45309' },
+  etc:     { bg: '#f3f4f6', text: '#4b5563' },
 };
 
 // ── 주문 상태 한글 라벨 ──
@@ -147,20 +158,32 @@ export const ARTICLE_CATEGORY_KR: Record<string, string> = {
 };
 
 // ── 날짜 포맷 유틸 ──
-export function formatDateKR(dateStr: string | Date | undefined | null): string {
+/**
+ * Date 를 활성 locale 의 toLocaleDateString 으로 포맷.
+ * locale 인자: 'ko'/'zh-CN'/'ja'/'en' 등. 누락 시 'ko' default (BO 한국어 운영 backward-compat).
+ */
+export function formatDateKR(dateStr: string | Date | undefined | null, locale: string = 'ko'): string {
   if (!dateStr) return '-';
-  return new Date(dateStr).toLocaleDateString('ko');
+  return new Date(dateStr).toLocaleDateString(locale);
 }
 
+/**
+ * 'YYYY-MM-DD' 문자열에서 'MM-DD' 추출하여 'from ~ to' 형식 표시.
+ * from 미지정 시 '-' 반환 (호출처가 i18n 'undecided' 등으로 대체 가능 — 'undecided' 같은 한국어 fallback 제거).
+ */
 export function formatDateRange(from: string | undefined | null, to: string | undefined | null): string {
-  if (!from) return '미정';
+  if (!from) return '-';
   const f = from.slice(5);
   const t = to ? to.slice(5) : '';
   return t ? `${f} ~ ${t}` : f;
 }
 
 // ── 예산 포맷 ──
+/**
+ * 예산 범위 표시. 만 단위(원/10000) 입력값 그대로 'min~max' 표시.
+ * unit 라벨은 호출처가 t('common.man') 등으로 후행 추가 (한국어 raw '만' fallback 제거).
+ */
 export function formatBudget(min: number | null | undefined, max: number | null | undefined): string {
   if (min == null && max == null) return '-';
-  return `${min ?? 0}~${max ?? 0}만`;
+  return `${min ?? 0}~${max ?? 0}`;
 }

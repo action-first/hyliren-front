@@ -12,7 +12,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 /*
-  한옌리런 Button variant 가이드 (2026-04-26 컨벤션 정리)
+  MIMYO Button variant 가이드 (2026-04-26 컨벤션 정리)
 
   일반 컨벤션 (Material/Polaris/Shopify) 과 일치하도록 명명 조정:
 

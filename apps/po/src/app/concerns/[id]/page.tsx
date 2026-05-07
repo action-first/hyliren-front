@@ -5,7 +5,6 @@ import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation
 import {
   BODY_AREA_BADGE,
   CONCERN_STATUS_BADGE,
-  CONCERN_STATUS_KR,
   formatBudget,
   formatDateKR,
   formatDateRange,
@@ -18,18 +17,25 @@ import { ProposeFormSheet } from '@/components/concerns/ProposeFormSheet';
 import { findMyProposalByConcern, formatKrwAsMan, type ProposalDetailWire } from '@/lib/api/proposal';
 import { getConcern, type ConcernDetailWire } from '@/lib/api/concern';
 import { ApiError } from '@/lib/api/errors';
-
-const SOURCE_KR: Record<string, string> = {
-  organic: '직접 유입',
-  referral: '추천',
-  article: '아티클',
-  ad: '광고',
-  direct: '다이렉트',
-};
+import { useLocaleStore } from '@/store/locale';
 
 // ── 작은 표시 컴포넌트 ──
-function StatusBadge({ label, map }: { label: string; map: Record<string, { bg: string; text: string }> }) {
-  const c = map[label];
+
+/** concern.status enum (snake_case) → lifecycle.status i18n key suffix (camelCase). */
+const CONCERN_STATUS_I18N_SUFFIX: Record<string, string> = {
+  draft: 'draft',
+  submitted: 'submitted',
+  proposal_received: 'proposalReceived',
+  comparing: 'comparing',
+  report_purchased: 'reportPurchased',
+  hospital_selected: 'hospitalSelected',
+  service_purchased: 'servicePurchased',
+  completed: 'completed',
+  cancelled: 'cancelled',
+};
+
+function StatusBadge({ statusKey, label, map }: { statusKey: string; label: string; map: Record<string, { bg: string; text: string }> }) {
+  const c = map[statusKey];
   if (!c) return <Badge>{label}</Badge>;
   return (
     <span
@@ -43,14 +49,16 @@ function StatusBadge({ label, map }: { label: string; map: Record<string, { bg: 
 }
 
 function AreaBadge({ name }: { name: string }) {
+  const t = useLocaleStore(s => s.t);
+  const label = t(`common.bodyArea.${name}`);
   const c = BODY_AREA_BADGE[name];
-  if (!c) return <Badge>{name}</Badge>;
+  if (!c) return <Badge>{label}</Badge>;
   return (
     <span
       className="inline-flex items-center px-2 py-0.5 rounded-[var(--app-radius-sm)] text-[var(--text-xs)] font-medium"
       style={{ backgroundColor: c.bg, color: c.text }}
     >
-      {name}
+      {label}
     </span>
   );
 }
@@ -76,6 +84,15 @@ export default function ConcernDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { id } = useParams<{ id: string }>();
+  const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
+  const SOURCE_LABELS: Record<string, string> = {
+    organic: t('po.concernSourceOrganic'),
+    referral: t('po.concernSourceReferral'),
+    article: t('po.concernSourceArticle'),
+    ad: t('po.concernSourceAd'),
+    direct: t('po.concernSourceDirect'),
+  };
   const [concern, setConcern] = useState<ConcernDetailWire | null>(null);
   const [myProposal, setMyProposal] = useState<ProposalDetailWire | null>(null);
   const [loading, setLoading] = useState(true);
@@ -116,7 +133,7 @@ export default function ConcernDetailPage() {
     return (
       <AdminPage
         sidebar={<POSidebar active="/concerns" />}
-        title="고민 상세"
+        title={t('po.concernDetailTitle')}
         prefix="po"
         onBack={() => router.back()}
       >
@@ -131,23 +148,23 @@ export default function ConcernDetailPage() {
     notFound();
   }
 
-  const statusLabel = CONCERN_STATUS_KR[concern.status] ?? concern.status;
+  const statusLabel = t(`lifecycle.status.${CONCERN_STATUS_I18N_SUFFIX[concern.status] ?? concern.status}`) || concern.status;
 
   return (
     <>
       <AdminPage
         sidebar={<POSidebar active="/concerns" />}
-        title="고민 상세"
+        title={t('po.concernDetailTitle')}
         prefix="po"
         onBack={() => router.back()}
         actions={
           myProposal ? (
             <Button variant="secondary" size="sm" onClick={() => setMyProposalOpen(true)}>
-              내 제안서 보기
+              {t('po.concernViewMyProposal')}
             </Button>
           ) : (
             <Button variant="primary" size="sm" onClick={() => setProposeOpen(true)}>
-              제안서 작성
+              {t('po.concernCreateProposal')}
             </Button>
           )
         }
@@ -172,18 +189,18 @@ export default function ConcernDetailPage() {
                   )}
                 </div>
                 <div className="text-[var(--text-sm)] text-[var(--text-subdued)] mt-2 tabular-nums">
-                  등록 {formatDateKR(concern.createdAt)}
+                  {t('po.concernInfoCreatedAt')} {formatDateKR(concern.createdAt, locale)}
                 </div>
               </div>
               <div className="flex-shrink-0">
-                <StatusBadge label={statusLabel} map={CONCERN_STATUS_BADGE} />
+                <StatusBadge statusKey={concern.status} label={statusLabel} map={CONCERN_STATUS_BADGE} />
               </div>
             </div>
           </Card>
 
           {/* 2. 고민 내용 */}
           <Card padding="md">
-            <SectionHeader title="고민 내용" />
+            <SectionHeader title={t('po.concernSectionContent')} />
             <p className="text-[var(--text-base)] text-[var(--text-default)] leading-relaxed mt-3 whitespace-pre-wrap">
               {concern.description}
             </p>
@@ -191,19 +208,19 @@ export default function ConcernDetailPage() {
 
           {/* 3. 핵심 정보 grid */}
           <Card padding="md">
-            <SectionHeader title="요청 정보" />
+            <SectionHeader title={t('po.concernSectionInfo')} />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 mt-3">
-              <InfoBlock label="예산" value={formatBudget(concern.budgetMin, concern.budgetMax)} emphasis />
-              <InfoBlock label="방문 시기" value={formatDateRange(concern.visitDateFrom, concern.visitDateTo)} />
-              <InfoBlock label="유입 경로" value={SOURCE_KR[concern.source] || concern.source} />
-              <InfoBlock label="접수 제안서" value={`${concern.proposalCount}건`} />
+              <InfoBlock label={t('po.concernInfoBudget')} value={(concern.budgetMin == null && concern.budgetMax == null) ? '-' : `${formatBudget(concern.budgetMin, concern.budgetMax)}${t('common.man')}`} emphasis />
+              <InfoBlock label={t('po.concernInfoVisitDate')} value={concern.visitDateFrom ? formatDateRange(concern.visitDateFrom, concern.visitDateTo) : t('common.tbd')} />
+              <InfoBlock label={t('po.concernInfoSource')} value={SOURCE_LABELS[concern.source] || concern.source} />
+              <InfoBlock label={t('po.concernInfoProposalCount')} value={`${concern.proposalCount}${t('po.concernCountUnit')}`} />
             </div>
           </Card>
 
           {/* 4. 첨부 사진 */}
           {concern.photos.length > 0 && (
             <Card padding="md">
-              <SectionHeader title={`첨부 사진 (${concern.photos.length}장)`} />
+              <SectionHeader title={`${t('po.concernPhotoAlt')} (${t('po.proposalMetaCreditUnit', { count: concern.photos.length })})`} />
               <div className="grid grid-cols-3 gap-2 mt-3">
                 {concern.photos.map(p => (
                   <div
@@ -212,9 +229,9 @@ export default function ConcernDetailPage() {
                   >
                     {p.url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.url} alt="첨부 사진" className="w-full h-full object-cover" />
+                      <img src={p.url} alt={t('po.concernPhotoAlt')} className="w-full h-full object-cover" />
                     ) : (
-                      '사진'
+                      t('po.concernPhotoPlaceholder')
                     )}
                   </div>
                 ))}
@@ -224,28 +241,28 @@ export default function ConcernDetailPage() {
 
           {/* 5. 내 제안서 */}
           <Card padding="md">
-            <SectionHeader title="내 제안서" />
+            <SectionHeader title={t('po.concernSectionMyProposal')} />
             {myProposal ? (
               <div className="flex items-center justify-between gap-4 mt-3">
                 <div className="flex-1 min-w-0">
                   <div className="text-[var(--text-md)] font-semibold text-[var(--text-default)] tabular-nums">
-                    {formatKrwAsMan(myProposal.totalPrice)} · 회복 {myProposal.recoveryDays}일
+                    {formatKrwAsMan(myProposal.totalPrice, locale, t('common.currency'))} · {t('common.recovery')} {t('po.proposalMetaDays', { days: myProposal.recoveryDays })}
                   </div>
                   <div className="text-[var(--text-sm)] text-[var(--text-subdued)] mt-1 truncate">
-                    {myProposal.items.map(item => item.treatmentName).join(', ') || '항목 없음'}
+                    {myProposal.items.map(item => item.treatmentName).join(', ') || t('po.concernNoItems')}
                   </div>
                 </div>
                 <Button variant="secondary" size="sm" onClick={() => setMyProposalOpen(true)}>
-                  상세 보기
+                  {t('po.concernViewMyProposal')}
                 </Button>
               </div>
             ) : (
               <div className="text-center py-8">
                 <p className="text-[var(--text-base)] text-[var(--text-subdued)] mb-4">
-                  아직 제안서를 발송하지 않았습니다
+                  {t('po.concernProposalNotSentYet')}
                 </p>
                 <Button variant="primary" size="sm" onClick={() => setProposeOpen(true)}>
-                  제안서 작성하기
+                  {t('po.concernCreateProposal')}
                 </Button>
               </div>
             )}

@@ -33,9 +33,9 @@ export default function ProposalListPage({ params }: Props) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-8 text-center gap-3">
         <Inbox size={40} className="text-[var(--color-text-dim)]" />
-        <h2 className="text-[1.125rem] font-bold text-[var(--color-text)]">아직 받은 제안서가 없어요</h2>
-        <p className="text-[13px] text-[var(--color-text-dim)] leading-relaxed">
-          병원들이 검토 중입니다.<br />보통 1–2 영업일 내에 제안서가 도착해요.
+        <h2 className="text-[1.125rem] font-bold text-[var(--color-text)]">{t('mypage.proposalsEmptyTitle')}</h2>
+        <p className="text-[13px] text-[var(--color-text-dim)] leading-relaxed whitespace-pre-line">
+          {t('mypage.proposalsEmptyDesc')}
         </p>
       </div>
     );
@@ -47,7 +47,7 @@ export default function ProposalListPage({ params }: Props) {
         {/* ── Header ── */}
         <div className="px-5 pt-7 pb-5">
           <div className="flex items-center gap-2 mb-2">
-            <Badge variant="info" size="sm">{concern.primaryArea}</Badge>
+            <Badge variant="info" size="sm">{t(`common.bodyArea.${concern.primaryArea}`)}</Badge>
             {concern.bodyAreaDetail && (
               <span className="text-[13px] text-[var(--color-text-secondary)]">{concern.bodyAreaDetail}</span>
             )}
@@ -99,7 +99,7 @@ export default function ProposalListPage({ params }: Props) {
 
         {/* Analysis nudge */}
         <Link href={`/concerns/${concern.id}/compare`} className="no-underline block mt-5 px-5"
-          onClick={() => track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: 'proposal_list' } })}>
+          onClick={() => track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', label: 'proposal_list' } })}>
           <div className="flex items-center gap-3 px-4 py-3.5 rounded-[var(--app-radius-md)] fo-gradient-accent">
             <Sparkles size={18} className="text-[var(--color-primary)] shrink-0" />
             <div className="flex-1">

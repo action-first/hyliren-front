@@ -41,7 +41,7 @@ export default function ComparePage({ params }: Props) {
 
   useEffect(() => {
     if (!concern) return;
-    track({ eventType: 'compare_entered', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', value: String(proposals.length) } });
+    track({ eventType: 'compare_entered', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', value: String(proposals.length) } });
   }, [concern?.id, proposals.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Early returns — 모든 hook 호출 이후에만 배치. ──
@@ -64,7 +64,7 @@ export default function ComparePage({ params }: Props) {
         {/* ── Header ── */}
         <div className="px-5 pt-7 pb-4">
           <div className="flex items-center gap-2 mb-1">
-            {concern.bodyAreas.map(a => <Badge key={a} variant="info" size="sm">{a}</Badge>)}
+            {concern.bodyAreas.map(a => <Badge key={a} variant="info" size="sm">{t(`common.bodyArea.${a}`)}</Badge>)}
           </div>
           <h1 className="text-[1.5rem] font-bold text-[var(--color-text)] leading-tight">
             {t('proposal.compare.title', { count: proposals.length })}
@@ -253,7 +253,7 @@ export default function ComparePage({ params }: Props) {
             </p>
             <Button variant="primary" size="md" fullWidth
               onClick={() => {
-                track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: 'compare_page' } });
+                track({ eventType: 'report_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', label: 'compare_page' } });
                 setShowCompareReport(true);
               }}>
               {t('proposal.compare.analysisAction')}
@@ -270,7 +270,7 @@ export default function ComparePage({ params }: Props) {
         {selectedId ? (
           <Button variant="neutral" fullWidth size="xl"
             onClick={async () => {
-              track({ eventType: 'hospital_selected', actorType: 'user', targetType: 'proposal', targetId: selectedId, metadata: { source: 'fo', locale: 'ko', label: concern.primaryArea } });
+              track({ eventType: 'hospital_selected', actorType: 'user', targetType: 'proposal', targetId: selectedId, metadata: { source: 'fo', label: concern.primaryArea } });
               await useDecisionStore.getState().selectHospital(concern.id, selectedId);
               router.push(`/concerns/${concern.id}`);
             }}>

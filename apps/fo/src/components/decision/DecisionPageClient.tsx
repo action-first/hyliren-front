@@ -40,7 +40,7 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
   const myGroups = groups;
 
   useEffect(() => {
-    track({ eventType: 'decision_page_viewed', actorType: 'user', metadata: { source: 'fo', locale: 'ko', value: String(totalProposalCount) } });
+    track({ eventType: 'decision_page_viewed', actorType: 'user', metadata: { source: 'fo', value: String(totalProposalCount) } });
   }, [totalProposalCount]);
 
   // URL hash(#concern-xxx) 기반 자동 스크롤 — Dashboard 의 concern 카드에서 넘어올 때 해당 섹션으로 이동.
@@ -82,7 +82,7 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
     setCompareIntentProposalId(proposalId);
     setShowCompareIntent(true);
     track({ eventType: 'compare_intent_clicked', actorType: 'user', targetType: 'proposal', targetId: proposalId,
-      metadata: { source: 'fo', locale: 'ko' } });
+      metadata: { source: 'fo' } });
   }
 
   function handleCompareIntentProceed() {
@@ -99,7 +99,7 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
     setShowCompareIntent(false);
     setAnalysisProposalId(proposalId);
     track({ eventType: 'analysis_clicked', actorType: 'user', targetType: 'proposal', targetId: proposalId,
-      metadata: { source: 'fo', locale: 'ko' } });
+      metadata: { source: 'fo' } });
   }
 
   // Empty state
@@ -155,8 +155,8 @@ export function DecisionPageClient({ groups, profiles, items, totalProposalCount
               <Plus size={16} className="text-[var(--color-primary)]" />
             </div>
             <div className="flex-1">
-              <span className="text-[13px] font-semibold text-[var(--color-text)] block">{t('decision.addConcern')}</span>
-              <span className="text-[11px] text-[var(--color-text-dim)]">다른 부위도 함께 상담받아보세요</span>
+              <span className="text-[13px] font-semibold text-[var(--color-text)] block">{t('decision.addConcernTitle')}</span>
+              <span className="text-[11px] text-[var(--color-text-dim)]">{t('decision.addConcernSubtitle')}</span>
             </div>
             <ArrowRight size={16} className="text-[var(--color-text-dim)]" />
           </div>

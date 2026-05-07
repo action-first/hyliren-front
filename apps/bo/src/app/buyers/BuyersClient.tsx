@@ -19,7 +19,8 @@ interface BuyerRow {
   contact: string;
   locale: string;
   concernCount: number;
-  latestStatusLabel: string;
+  /** concern.status enum — cellRenderer 가 KR 라벨 매핑. */
+  latestStatusEnum: string;
   createdAt: string;
 }
 
@@ -40,8 +41,20 @@ const columnDefs: ColDef<BuyerRow>[] = [
   { field: 'concernCount', headerName: '고민 수', flex: 0.5, minWidth: 70, filter: false,
     cellStyle: { fontVariantNumeric: 'tabular-nums' },
   },
-  { field: 'latestStatusLabel', headerName: '최신 상태', flex: 0.7, minWidth: 90, filter: true,
-    cellRenderer: badgeCellRenderer(CONCERN_STATUS_BADGE),
+  { field: 'latestStatusEnum', headerName: '최신 상태', flex: 0.7, minWidth: 90, filter: true,
+    cellRenderer: (p: { value: string }) => {
+      if (!p.value) return null;
+      const c = CONCERN_STATUS_BADGE[p.value] || { bg: '#f3f4f6', text: '#374151' };
+      const label = CONCERN_STATUS_KR[p.value] || p.value;
+      return (
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', height: 22,
+          padding: '0 8px', borderRadius: 4,
+          fontSize: 12, fontWeight: 500, lineHeight: 1,
+          background: c.bg, color: c.text,
+        }}>{label}</span>
+      );
+    },
   },
   { field: 'createdAt', headerName: '가입일', flex: 0.7, minWidth: 90, filter: false,
     cellStyle: { color: '#9ca3af', fontVariantNumeric: 'tabular-nums' },
@@ -66,7 +79,7 @@ export function BuyersClient({ concerns }: { concerns: Concern[] }) {
       contact: u.phone || u.email || '',
       locale: u.locale,
       concernCount: userConcerns.length,
-      latestStatusLabel: latest ? (CONCERN_STATUS_KR[latest.status] || latest.status) : '-',
+      latestStatusEnum: latest?.status ?? '',
       createdAt: formatDateKR(u.createdAt),
     };
   });

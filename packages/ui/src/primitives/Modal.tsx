@@ -7,9 +7,11 @@ interface ModalProps {
   onClose: () => void;
   children: ReactNode;
   title?: string;
+  /** Close button aria-label (스크린 리더). 미지정 시 한국어 기본값. */
+  closeLabel?: string;
 }
 
-function Modal({ open, onClose, children, title }: ModalProps) {
+function Modal({ open, onClose, children, title, closeLabel = '닫기' }: ModalProps) {
   useEffect(() => {
     if (open) {
       document.body.style.overflow = 'hidden';
@@ -33,7 +35,7 @@ function Modal({ open, onClose, children, title }: ModalProps) {
         {title && (
           <div className="flex items-center justify-between px-[var(--spacing-5)] py-[var(--spacing-4)] border-b border-[var(--color-border-light)]">
             <h2 className="text-[var(--text-md)] font-semibold text-[var(--color-text)]">{title}</h2>
-            <button onClick={onClose} aria-label="닫기" className="w-8 h-8 flex items-center justify-center rounded-[var(--app-radius-sm)] hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-dim)] cursor-pointer">
+            <button onClick={onClose} aria-label={closeLabel} className="w-8 h-8 flex items-center justify-center rounded-[var(--app-radius-sm)] hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-dim)] cursor-pointer">
               ✕
             </button>
           </div>

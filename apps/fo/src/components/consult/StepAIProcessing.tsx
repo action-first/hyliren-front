@@ -93,13 +93,21 @@ export function StepAIProcessing() {
         if (cancelled) return;
         // 서버 장애·네트워크 오류만 fallback — 사용자 입력 탓은 아니므로 진행 허용
         showToast(t('consult.processingFallback'), 'error');
+        // BodyArea enum key (Stage 3) — '기타' → 'etc'.
+        // options name/description: i18n key 그대로 — ConcernSummaryCard 가 t() 매핑.
+        // bodyAreaDetail: 빈 문자열 — FE 가 빈 detail 라벨 미노출.
         analysis = {
-          empathy: t('consult.fallbackEmpathy'),
-          education: t('consult.fallbackEducation'),
-          options: [{ key: 'generic', name: t('consult.fallbackOptionGenericName'), description: t('consult.fallbackOptionGenericDesc'), bodyArea: '기타' }],
+          empathy: { key: 'concern.analysis.empathy.fallback' },
+          education: { key: 'concern.analysis.education.fallback' },
+          options: [{
+            key: 'generic',
+            name: 'consult.fallbackOptionGenericName',
+            description: 'consult.fallbackOptionGenericDesc',
+            bodyArea: 'etc',
+          }],
           extractedTags: { symptoms: [], preferences: [], budget: [], timing: [] },
-          extractedSummary: { bodyAreas: ['기타'], primaryArea: '기타', bodyAreaDetail: t('consult.fallbackBodyAreaDetail') },
-          disclaimer: t('consult.fallbackDisclaimer'),
+          extractedSummary: { bodyAreas: ['etc'], primaryArea: 'etc', bodyAreaDetail: '' },
+          disclaimer: { key: 'concern.analysis.disclaimer' },
           ruleVersion: 'fallback',
         };
       }

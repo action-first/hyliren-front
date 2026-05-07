@@ -4,6 +4,22 @@ import type { User } from '@hyliren/shared';
 import { authApi, onForcedLogout } from '@/lib/api';
 import type { LoginInput, RegisterInput } from '@/lib/api';
 import { tokenStore } from '@/lib/auth/token-store';
+import { useLocaleStore } from './locale';
+
+/**
+ * user.locale 을 UI locale store 와 동기화.
+ *
+ * 다른 디바이스에서 ja 로 설정한 사용자가 새 디바이스에서 로그인 시 user.locale=ja 가
+ * 반환되며, 이 함수가 useLocaleStore 를 ja 로 즉시 전환하여 디바이스 간 일관성 유지.
+ *
+ * 동일 locale 이면 set 호출 생략 — 불필요한 t 함수 reference 갱신/리렌더 회피.
+ */
+function syncUiLocale(user: User): void {
+  const current = useLocaleStore.getState().locale;
+  if (user.locale !== current) {
+    useLocaleStore.getState().setLocale(user.locale);
+  }
+}
 
 export type AuthStatus = 'idle' | 'authenticating' | 'authenticated' | 'guest';
 
@@ -35,12 +51,17 @@ export const useAuthStore = create<AuthState>()(
       isLoggedIn: false,
       isGuest: true,
 
-      setUser: (user) => set({
-        user,
-        status: user ? 'authenticated' : 'guest',
-        isLoggedIn: !!user,
-        isGuest: !user,
-      }),
+      setUser: (user) => {
+        set({
+          user,
+          status: user ? 'authenticated' : 'guest',
+          isLoggedIn: !!user,
+          isGuest: !user,
+        });
+        // 로그인 사용자의 user.locale 을 UI store 와 동기화 (디바이스 간 일관성).
+        // logout 시(user=null) 에는 마지막 locale 유지 — 비로그인 상태에서도 UX 연속성.
+        if (user) syncUiLocale(user);
+      },
 
       loginWithPassword: async (input) => {
         set({ status: 'authenticating' });
@@ -100,6 +121,9 @@ export const useAuthStore = create<AuthState>()(
           state.status = 'authenticated';
           state.isLoggedIn = true;
           state.isGuest = false;
+          // 페이지 새로고침 후 복원 시점에도 user.locale ↔ UI store 정렬.
+          // useLocaleStore 도 자체 persist 가 있어 어긋날 가능성 (디바이스 간) → user 우선.
+          syncUiLocale(state.user);
         } else {
           state.status = 'guest';
           state.isLoggedIn = false;

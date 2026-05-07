@@ -86,23 +86,47 @@ export function pickI18n<T>(
    ══════════════════════════════════════════════════════════════ */
 
 /**
- * "ko-KR,ko;q=0.9,en-US;q=0.8,zh-CN;q=0.6" 같은 헤더에서 LOCALES 매칭 언어 찾기.
- * 베이스 언어(en-US → en) 까지 fallback 검색. 단 zh-CN ↔ zh-TW 는 매칭 안 함 (간체·번체 구분).
+ * Accept-Language 헤더 파서. RFC 7231 §5.3.5 부분 구현.
+ * BE `libs/common/src/i18n/resolve-locale.util.ts` 와 동일한 정책으로 일치:
+ *   - q-value 우선순위 정렬 (동률은 입력 순서 유지)
+ *   - q=0 항목은 명시적 비선호 → skip
+ *   - 매칭 순서: exact LOCALE → base lang → prefix family
+ *     prefix family: zh-* → zh-CN, ja-* → ja, en-* → en, ko-* → ko
+ *   - 예: `Accept-Language: zh;q=1, en;q=0.9` → zh-CN
+ *   - 예: `ko-KR,ko;q=0.9,en-US;q=0.8,zh-CN;q=0.6` → ko
  */
 export function parseAcceptLanguage(header: string): Locale | null {
-  const parts = header.split(',').map(p => {
-    const [tag, ...params] = p.trim().split(';');
-    const qParam = params.find(x => x.trim().startsWith('q='));
-    const q = qParam ? parseFloat(qParam.split('=')[1]) : 1.0;
-    return { tag: tag.trim(), q };
+  const items: { tag: string; q: number; idx: number }[] = [];
+  header.split(',').forEach((raw, idx) => {
+    const [tag, ...params] = raw.trim().split(';').map(s => s.trim());
+    if (!tag) return;
+    let q = 1;
+    for (const p of params) {
+      const m = /^q\s*=\s*([0-9.]+)$/i.exec(p);
+      if (m) {
+        const parsed = Number(m[1]);
+        if (Number.isFinite(parsed)) q = parsed;
+      }
+    }
+    if (q <= 0) return; // q=0 명시적 비선호
+    items.push({ tag: tag.toLowerCase(), q, idx });
   });
-  parts.sort((a, b) => b.q - a.q);
+  items.sort((a, b) => (b.q - a.q) || (a.idx - b.idx));
 
   const locales = LOCALES as readonly string[];
-  for (const { tag } of parts) {
-    if (locales.includes(tag)) return tag as Locale;
+  for (const { tag } of items) {
+    // 1) exact LOCALE 매칭 ('zh-cn' → 'zh-CN' lower-case 비교 위해 normalize)
+    const exactMatch = locales.find(l => l.toLowerCase() === tag);
+    if (exactMatch) return exactMatch as Locale;
+    // 2) base lang 매칭 (en-us → en, ja-jp → ja, ko-kr → ko)
     const base = tag.split('-')[0];
-    if (base !== tag && locales.includes(base)) return base as Locale;
+    const baseMatch = locales.find(l => l.toLowerCase() === base);
+    if (baseMatch) return baseMatch as Locale;
+    // 3) prefix family — BE resolveLocale 와 동일한 zh-* → zh-CN 매핑
+    if (base === 'zh') return 'zh-CN' as Locale;
+    if (base === 'ja') return 'ja' as Locale;
+    if (base === 'en') return 'en' as Locale;
+    if (base === 'ko') return 'ko' as Locale;
   }
   return null;
 }

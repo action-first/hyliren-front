@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import type { ProposalStatus } from '@hyliren/shared';
 import {
-  CONCERN_STATUS_KR, PROPOSAL_STATUS_KR, BODY_AREA_BADGE,
+  BODY_AREA_BADGE,
   formatBudget, formatDateRange,
   isProposalAccepted,
 } from '@hyliren/shared';
@@ -13,6 +13,8 @@ import type { DateRange } from '@hyliren/ui';
 import { POSidebar } from '@/components/POSidebar';
 import { useCreditBalance, useCreditTransactions } from '@/hooks/queries/credits';
 import { useToastStore } from '@/store/toast';
+import { useLocaleStore } from '@/store/locale';
+import { useDateFilterLabels } from '@/hooks/useDateFilterLabels';
 import { toUserMessage } from '@/lib/api/error-messages';
 import { useConcerns } from '@/hooks/queries/concerns';
 import { useMyProposals } from '@/hooks/queries/proposals';
@@ -48,34 +50,48 @@ const CHART_PALETTE = {
   neutralLight: '#CBD5E1',
 } as const;
 
-/** 제안서 상태 팔레트 — 차트 색상 + 라벨. */
-const PROPOSAL_PALETTE: Record<string, { hex: string; label: string }> = {
-  selected:    { hex: CHART_PALETTE.primary,      label: '선택됨' },
-  shortlisted: { hex: CHART_PALETTE.secondary,    label: '후보' },
-  viewed:      { hex: CHART_PALETTE.neutralLight, label: '열람' },
-  sent:        { hex: CHART_PALETTE.neutral,      label: '발송' },
-  rejected:    { hex: CHART_PALETTE.negative,     label: '거절' },
-  draft:       { hex: '#E2E8F0',                  label: '임시저장' },
+/** 제안서 상태 팔레트 — 차트 색상만. label 은 컴포넌트 내부에서 t() 매핑. */
+const PROPOSAL_HEX: Record<string, string> = {
+  selected:    CHART_PALETTE.primary,
+  shortlisted: CHART_PALETTE.secondary,
+  viewed:      CHART_PALETTE.neutralLight,
+  sent:        CHART_PALETTE.neutral,
+  rejected:    CHART_PALETTE.negative,
+  draft:       '#E2E8F0',
 };
 
-/** 부위 팔레트 — 차트 색상 (배지는 공통 info 토큰 사용). */
+/** 부위 팔레트 — 차트 색상 (BodyArea enum key 기반, Stage 3 정렬). */
 const AREA_CHART_HEX: Record<string, string> = {
-  '눈':       CHART_PALETTE.primary,
-  '코':       '#818CF8',
-  '리프팅':   CHART_PALETTE.secondary,
-  '피부':     '#A78BFA',
-  '다이어트': '#6366F1',
-  '기타':     CHART_PALETTE.neutral,
+  eyes:    CHART_PALETTE.primary,
+  nose:    '#818CF8',
+  lifting: CHART_PALETTE.secondary,
+  skin:    '#A78BFA',
+  diet:    '#6366F1',
+  etc:     CHART_PALETTE.neutral,
 };
 
-/** 고민 상태 배지 — semantic 토큰 사용. */
+/** concern.status enum (snake_case) → i18n key (camelCase 네임스페이스 lifecycle.status.*). */
+const CONCERN_STATUS_I18N_KEY: Record<string, string> = {
+  draft:             'lifecycle.status.draft',
+  submitted:         'lifecycle.status.submitted',
+  proposal_received: 'lifecycle.status.proposalReceived',
+  comparing:         'lifecycle.status.comparing',
+  report_purchased:  'lifecycle.status.reportPurchased',
+  hospital_selected: 'lifecycle.status.hospitalSelected',
+  service_purchased: 'lifecycle.status.servicePurchased',
+  completed:         'lifecycle.status.completed',
+  cancelled:         'lifecycle.status.cancelled',
+};
+
+/** 고민 상태 배지 — concern.status enum key 기반 (한국어 키 매핑 폐기). */
 const CONCERN_STATUS_BADGE: Record<string, { bg: string; text: string; dot: string }> = {
-  '접수됨':    { bg: 'var(--surface-subdued)',     text: 'var(--text-subdued)', dot: CHART_PALETTE.neutral },
-  '제안 도착': { bg: 'var(--color-info-soft)',     text: 'var(--color-info)',   dot: CHART_PALETTE.primary },
-  '제안 수신': { bg: 'var(--color-info-soft)',     text: 'var(--color-info)',   dot: CHART_PALETTE.primary },
-  '비교 중':   { bg: 'var(--color-primary-soft)',  text: 'var(--color-primary)', dot: CHART_PALETTE.secondary },
-  '진행 중':   { bg: 'var(--color-primary-soft)',  text: 'var(--color-primary)', dot: CHART_PALETTE.secondary },
-  '완료':      { bg: 'var(--color-success-soft)',  text: 'var(--color-success)', dot: CHART_PALETTE.positive },
+  submitted:         { bg: 'var(--surface-subdued)',     text: 'var(--text-subdued)',  dot: CHART_PALETTE.neutral },
+  proposal_received: { bg: 'var(--color-info-soft)',     text: 'var(--color-info)',    dot: CHART_PALETTE.primary },
+  comparing:         { bg: 'var(--color-primary-soft)',  text: 'var(--color-primary)', dot: CHART_PALETTE.secondary },
+  report_purchased:  { bg: 'var(--color-primary-soft)',  text: 'var(--color-primary)', dot: CHART_PALETTE.secondary },
+  hospital_selected: { bg: 'var(--color-success-soft)',  text: 'var(--color-success)', dot: CHART_PALETTE.positive },
+  service_purchased: { bg: 'var(--color-success-soft)',  text: 'var(--color-success)', dot: CHART_PALETTE.positive },
+  completed:         { bg: 'var(--color-success-soft)',  text: 'var(--color-success)', dot: CHART_PALETTE.positive },
 };
 
 /** 부위 배지 — 모두 info 토큰으로 통일 (구분은 텍스트 자체로). */
@@ -127,23 +143,28 @@ function daysBetween(from: Date, to: Date): string[] {
   return dates;
 }
 
-function resolveDateWindow(range: DateRange, customFrom?: Date | null, customTo?: Date | null): { from: string; to: string; days: string[]; label: string } {
+function resolveDateWindow(
+  range: DateRange,
+  t: (k: string) => string,
+  customFrom?: Date | null,
+  customTo?: Date | null,
+): { from: string; to: string; days: string[]; label: string } {
   const today = new Date();
   if (range === 'today') {
     const day = formatLocalDate(today);
-    return { from: day, to: day, days: [day], label: '오늘' };
+    return { from: day, to: day, days: [day], label: t('po.dateLabelToday') };
   }
   if (range === '7d') {
     const days = recentDays(7, today);
-    return { from: days[0], to: days[days.length - 1], days, label: '최근 7일' };
+    return { from: days[0], to: days[days.length - 1], days, label: t('po.dateLabelLast7Days') };
   }
   if (range === 'custom' && customFrom) {
     const to = customTo ?? customFrom;
     const days = daysBetween(customFrom, to);
-    return { from: days[0], to: days[days.length - 1], days, label: '사용자 지정 기간' };
+    return { from: days[0], to: days[days.length - 1], days, label: t('po.dateLabelCustom') };
   }
   const days = recentDays(30, today);
-  return { from: days[0], to: days[days.length - 1], days, label: '최근 30일' };
+  return { from: days[0], to: days[days.length - 1], days, label: t('po.dateLabelLast30Days') };
 }
 
 function isDateInWindow(value: string | null | undefined, from: string, to: string): boolean {
@@ -313,6 +334,8 @@ export default function DashboardPage() {
   const balance = balanceQ.data?.balance ?? 0;
   const transactions = transactionsQ.data?.transactions ?? [];
   const showToast = useToastStore(s => s.showToast);
+  const t = useLocaleStore(s => s.t);
+  const dateFilterLabels = useDateFilterLabels();
 
   const [dateRange, setDateRange] = useState<DateRange>('7d');
   const [customFrom, setCustomFrom] = useState<Date | null>(null);
@@ -327,7 +350,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (isError && errorObj) {
-      const msg = toUserMessage(errorObj, '대시보드 데이터를 불러올 수 없습니다');
+      const msg = toUserMessage(errorObj, t('po.dashboardLoadError'), t);
       showToast(msg, 'error');
     }
   }, [isError, errorObj, showToast]);
@@ -340,7 +363,7 @@ export default function DashboardPage() {
     void proposalsQ.refetch();
   };
 
-  const dateWindow = resolveDateWindow(dateRange, customFrom, customTo);
+  const dateWindow = resolveDateWindow(dateRange, t, customFrom, customTo);
   const periodConcerns = concerns.filter(c => isDateInWindow(c.createdAt, dateWindow.from, dateWindow.to));
   const periodProposals = proposals.filter(p => isDateInWindow(p.sentAt ?? p.createdAt, dateWindow.from, dateWindow.to));
   const periodTransactions = transactions.filter(tx => isDateInWindow(tx.createdAt, dateWindow.from, dateWindow.to));
@@ -353,14 +376,14 @@ export default function DashboardPage() {
   const selectedCount = myProposals.filter(p => isProposalAccepted({ status: p.status as ProposalStatus })).length;
   const selectedRate = myProposals.length > 0 ? Math.round((selectedCount / myProposals.length) * 100) : 0;
 
-  // 도넛 — 제안서 상태
+  // 도넛 — 제안서 상태. label 은 활성 locale 의 t() 매핑 (po.proposalStatus.<enum>).
   const statusGroups = myProposals.reduce<Record<string, number>>((acc, p) => {
     acc[p.status] = (acc[p.status] ?? 0) + 1; return acc;
   }, {});
   const pieData = Object.entries(statusGroups).map(([status, count]) => ({
-    name: PROPOSAL_PALETTE[status]?.label ?? status,
+    name: t(`po.proposalStatus.${status}`) || status,
     value: count,
-    color: PROPOSAL_PALETTE[status]?.hex ?? CHART_PALETTE.neutral,
+    color: PROPOSAL_HEX[status] ?? CHART_PALETTE.neutral,
   }));
 
   // 도넛 — 부위별 분포
@@ -368,30 +391,33 @@ export default function DashboardPage() {
     acc[c.primaryArea] = (acc[c.primaryArea] ?? 0) + 1; return acc;
   }, {});
   const areaPieData = Object.entries(areaGroups).map(([area, count]) => ({
-    name: area, value: count, color: AREA_CHART_HEX[area] ?? CHART_PALETTE.neutral,
+    // BodyArea enum key → viewerLocale 라벨 매핑 (Stage 3).
+    name: t(`common.bodyArea.${area}`) || area,
+    value: count,
+    color: AREA_CHART_HEX[area] ?? CHART_PALETTE.neutral,
   }));
 
-  // 기간별 제안 추이
+  // 기간별 제안 추이 — dataKey 는 영문 enum (recharts Tooltip/Legend 의 name prop 으로 t() 매핑).
   const days = dateWindow.days;
   const trendData = days.map(date => {
     const sent = myProposals.filter(p => p.sentAt?.slice(0, 10) === date).length;
     const viewed = myProposals.filter(p => p.viewedAt?.slice(0, 10) === date).length;
-    return { date: shortDate(date), 발송: sent, 열람: viewed };
+    return { date: shortDate(date), sent, viewed };
   });
 
-  // 크레딧 일별 집계
+  // 크레딧 일별 집계 — 동일 패턴.
   const creditDailyData = days.map(date => {
     const txs = periodTransactions.filter(tx => tx.createdAt.slice(0, 10) === date);
     const charge = txs.filter(tx => tx.amount > 0).reduce((sum, tx) => sum + tx.amount, 0);
     const spend = txs.filter(tx => tx.amount < 0).reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
-    return { name: shortDate(date), 충전: charge, 사용: spend, 순증감: charge - spend };
+    return { name: shortDate(date), charge, spend, net: charge - spend };
   });
-  const hasCreditDailyData = creditDailyData.some(d => d.충전 > 0 || d.사용 > 0);
+  const hasCreditDailyData = creditDailyData.some(d => d.charge > 0 || d.spend > 0);
 
   // ── 로딩 ──
   if (loading) {
     return (
-      <AdminPage sidebar={<POSidebar active="/dashboard" />} title="대시보드" prefix="po">
+      <AdminPage sidebar={<POSidebar active="/dashboard" />} title={t('po.dashboardTitle')} prefix="po">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
           {[1,2,3,4].map(i => (
             <div key={i} style={{ background: 'var(--surface-default)', borderRadius: 16, padding: 24, border: '1px solid var(--border-subdued)' }}>
@@ -408,18 +434,18 @@ export default function DashboardPage() {
   // ── 에러 ── (treatments 패턴 일관: AlertTriangle + msg + 다시 시도)
   if (isError && !concernsQ.data && !proposalsQ.data) {
     return (
-      <AdminPage sidebar={<POSidebar active="/dashboard" />} title="대시보드" prefix="po">
+      <AdminPage sidebar={<POSidebar active="/dashboard" />} title={t('po.dashboardTitle')} prefix="po">
         <Card padding="md">
           <div className="text-center py-10">
             <AlertTriangle size={28} className="mx-auto mb-2 text-[var(--color-danger)]" />
             <p className="text-[var(--text-sm)] font-medium text-[var(--text-default)] mb-1">
-              대시보드를 불러오지 못했어요
+              {t('po.dashboardLoadError')}
             </p>
             <p className="text-[var(--text-xs)] text-[var(--text-disabled)] mb-4">
-              {toUserMessage(errorObj, '알 수 없는 오류')}
+              {toUserMessage(errorObj, t('po.unknownError'), t)}
             </p>
             <Button variant="secondary" size="sm" onClick={refetchAll}>
-              다시 시도
+              {t('common.retry')}
             </Button>
           </div>
         </Card>
@@ -428,19 +454,20 @@ export default function DashboardPage() {
   }
 
   return (
-    <AdminPage sidebar={<POSidebar active="/dashboard" />} title="대시보드" prefix="po">
+    <AdminPage sidebar={<POSidebar active="/dashboard" />} title={t('po.dashboardTitle')} prefix="po">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         {/* ═══ 기간 필터 ═══ */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h2 style={{ fontSize: "var(--text-lg)", fontWeight: "var(--font-bold)", color: 'var(--text-default)', margin: 0 }}>운영 현황</h2>
+            <h2 style={{ fontSize: "var(--text-lg)", fontWeight: "var(--font-bold)", color: 'var(--text-default)', margin: 0 }}>{t('po.operationStatus')}</h2>
             <p style={{ fontSize: "var(--text-sm)", color: 'var(--text-disabled)', marginTop: 2 }}>
-              {dateWindow.label} 기준
+              {t('po.basedOn', { label: dateWindow.label })}
             </p>
           </div>
           <DateFilter
             value={dateRange}
+            labels={dateFilterLabels}
             onChange={(range, from, to) => {
               setDateRange(range);
               setCustomFrom(from ?? null);
@@ -454,60 +481,60 @@ export default function DashboardPage() {
           <KPICard
             icon={<Sparkles size={20} color={CHART_PALETTE.primary} />}
             iconBg="var(--color-info-soft)"
-            label="새 고민"
+            label={t('po.kpiNewConcerns')}
             value={openConcerns.length}
-            sub="제안 가능한 고민"
-            trend="+2건" trendUp
+            sub={t('po.kpiNewConcernsSub')}
+            trend="+2" trendUp
           />
           <KPICard
             icon={<FileText size={20} color={CHART_PALETTE.secondary} />}
             iconBg="var(--color-primary-soft)"
-            label="발송 제안서"
+            label={t('po.kpiSentProposals')}
             value={myProposals.length}
-            sub={`열람률 ${viewRate}%`}
+            sub={`${viewRate}%`}
             trend={`${viewRate}%`} trendUp={viewRate > 50}
           />
           <KPICard
             icon={<CheckCircle2 size={20} color="var(--color-success)" />}
             iconBg="var(--color-success-soft)"
-            label="선택률"
+            label={t('po.kpiSelectionRate')}
             value={`${selectedRate}%`}
-            sub={`${selectedCount}건 선택`}
+            sub={`${selectedCount}`}
             trend={selectedRate > 0 ? `${selectedRate}%` : undefined}
             trendUp={selectedRate > 30}
           />
           <KPICard
             icon={<Coins size={20} color="var(--color-warning)" />}
             iconBg="var(--color-warning-soft)"
-            label="크레딧 잔액"
+            label={t('po.kpiCreditBalance')}
             value={balance}
-            sub={`${Math.floor(balance / 3)}건 발송 가능`}
+            sub={t('po.kpiCanSendCount', { count: Math.floor(balance / 3) })}
           />
         </div>
 
         {/* ═══ 차트 1행: 제안서 현황(도넛) + 주간 제안 추이(에어리어) ═══ */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <ChartCard title="제안서 현황" subtitle={`총 ${myProposals.length}건`}>
+          <ChartCard title={t('po.chartProposalStatus')} subtitle={t('po.totalCount', { count: myProposals.length })}>
             {pieData.length > 0 ? (
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
                   <Pie data={pieData} cx="50%" cy="44%" innerRadius={62} outerRadius={85} paddingAngle={3} dataKey="value" stroke="none" cornerRadius={4}>
                     {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
-                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value, name) => [`${Number(value)}건`, String(name)]} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value, name) => [t('po.chartUnitCount', { count: Number(value) }), String(name)]} />
                   <Legend content={<CustomLegend />} />
                   <text x="50%" y="42%" textAnchor="middle" style={{ fontSize: "var(--text-2xl)", fontWeight: "var(--font-bold)", fill: 'var(--text-default)' }}>{myProposals.length}</text>
-                  <text x="50%" y="50%" textAnchor="middle" style={{ fontSize: "var(--text-xs)", fontWeight: "var(--font-medium)", fill: 'var(--text-disabled)' }}>총 제안</text>
+                  <text x="50%" y="50%" textAnchor="middle" style={{ fontSize: "var(--text-xs)", fontWeight: "var(--font-medium)", fill: 'var(--text-disabled)' }}>{t('po.dashboardTotalProposals')}</text>
                 </PieChart>
               </ResponsiveContainer>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 240, color: 'var(--text-disabled)', fontSize: "var(--text-sm)" }}>
-                발송한 제안서가 없습니다.
+                {t('po.chartProposalEmpty')}
               </div>
             )}
           </ChartCard>
 
-          <ChartCard title="제안 추이" subtitle={dateWindow.label}>
+          <ChartCard title={t('po.chartProposalTrend')} subtitle={dateWindow.label}>
             <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={trendData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
                 <defs>
@@ -524,8 +551,8 @@ export default function DashboardPage() {
                 <XAxis dataKey="date" tick={{ fontSize: "var(--text-xs)", fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fontSize: "var(--text-xs)", fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Area type="monotone" dataKey="발송" stroke={CHART_PALETTE.primary} strokeWidth={2} fill="url(#gradSent)" dot={{ r: 3, fill: CHART_PALETTE.primary, strokeWidth: 0 }} activeDot={{ r: 5, fill: CHART_PALETTE.primary, stroke: '#fff', strokeWidth: 2 }} />
-                <Area type="monotone" dataKey="열람" stroke={CHART_PALETTE.positive} strokeWidth={2} fill="url(#gradViewed)" dot={{ r: 3, fill: CHART_PALETTE.positive, strokeWidth: 0 }} activeDot={{ r: 5, fill: CHART_PALETTE.positive, stroke: '#fff', strokeWidth: 2 }} />
+                <Area type="monotone" dataKey="sent" name={t('po.chartLegendSent')} stroke={CHART_PALETTE.primary} strokeWidth={2} fill="url(#gradSent)" dot={{ r: 3, fill: CHART_PALETTE.primary, strokeWidth: 0 }} activeDot={{ r: 5, fill: CHART_PALETTE.primary, stroke: '#fff', strokeWidth: 2 }} />
+                <Area type="monotone" dataKey="viewed" name={t('po.chartLegendViewed')} stroke={CHART_PALETTE.positive} strokeWidth={2} fill="url(#gradViewed)" dot={{ r: 3, fill: CHART_PALETTE.positive, strokeWidth: 0 }} activeDot={{ r: 5, fill: CHART_PALETTE.positive, stroke: '#fff', strokeWidth: 2 }} />
                 <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "var(--text-sm)", paddingTop: 8 }}
                   formatter={(value: string) => <span style={{ fontSize: "var(--text-sm)", color: 'var(--text-subdued)', marginLeft: 2 }}>{value}</span>}
                 />
@@ -536,17 +563,17 @@ export default function DashboardPage() {
 
         {/* ═══ 차트 2행: 부위별 고민 분포(바) + 크레딧 내역(바) ═══ */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <ChartCard title="부위별 고민 분포" subtitle={`총 ${periodConcerns.length}건`}>
+          <ChartCard title={t('po.chartConcernByArea')} subtitle={t('po.totalCount', { count: periodConcerns.length })}>
             {areaPieData.length > 0 ? (
               <AreaTreemap data={areaPieData} total={periodConcerns.length} />
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 220, color: 'var(--text-disabled)', fontSize: "var(--text-sm)" }}>
-                고민 데이터가 없습니다.
+                {t('po.chartConcernEmpty')}
               </div>
             )}
           </ChartCard>
 
-          <ChartCard title="크레딧 내역" subtitle={`${dateWindow.label} 일별 집계`}>
+          <ChartCard title={t('po.chartCredits')} subtitle={t('po.dailyAggregation', { label: dateWindow.label })}>
             {hasCreditDailyData ? (
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={creditDailyData} margin={{ top: 8, right: 4, left: -20, bottom: 0 }}>
@@ -554,18 +581,18 @@ export default function DashboardPage() {
                   <XAxis dataKey="name" tick={{ fontSize: "var(--text-xs)", fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} />
                   <YAxis tick={{ fontSize: "var(--text-xs)", fill: 'var(--text-disabled)' }} tickLine={false} axisLine={false} />
                   <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(79,70,229,0.04)' }}
-                    formatter={(value, name) => [`${Number(value)}크레딧`, String(name)]}
+                    formatter={(value, name) => [t('po.chartUnitCredit', { count: Number(value) }), String(name)]}
                   />
                   <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "var(--text-sm)", paddingTop: 8 }}
                     formatter={(value: string) => <span style={{ fontSize: "var(--text-sm)", color: 'var(--text-subdued)', marginLeft: 2 }}>{value}</span>}
                   />
-                  <Bar dataKey="충전" fill={CHART_PALETTE.primary} fillOpacity={0.85} radius={[6, 6, 0, 0]} maxBarSize={28} />
-                  <Bar dataKey="사용" fill={CHART_PALETTE.negative} fillOpacity={0.82} radius={[6, 6, 0, 0]} maxBarSize={28} />
+                  <Bar dataKey="charge" name={t('po.chartLegendCharge')} fill={CHART_PALETTE.primary} fillOpacity={0.85} radius={[6, 6, 0, 0]} maxBarSize={28} />
+                  <Bar dataKey="spend" name={t('po.chartLegendSpend')} fill={CHART_PALETTE.negative} fillOpacity={0.82} radius={[6, 6, 0, 0]} maxBarSize={28} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 220, color: 'var(--text-disabled)', fontSize: "var(--text-sm)" }}>
-                거래 내역이 없습니다.
+                {t('po.chartCreditsEmpty')}
               </div>
             )}
           </ChartCard>
@@ -583,8 +610,8 @@ export default function DashboardPage() {
             padding: '18px 24px',
           }}>
             <div>
-              <div style={{ fontSize: "var(--text-md)", fontWeight: "var(--font-bold)", color: 'var(--text-default)' }}>최근 고민</div>
-              <div style={{ fontSize: "var(--text-sm)", color: 'var(--text-disabled)', marginTop: 2 }}>{openConcerns.length}건의 제안 가능한 고민</div>
+              <div style={{ fontSize: "var(--text-md)", fontWeight: "var(--font-bold)", color: 'var(--text-default)' }}>{t('po.dashboardRecentConcerns')}</div>
+              <div style={{ fontSize: "var(--text-sm)", color: 'var(--text-disabled)', marginTop: 2 }}>{t('po.dashboardOpenConcernsCount', { count: openConcerns.length })}</div>
             </div>
             <Link href="/concerns" style={{
               display: 'inline-flex', alignItems: 'center', gap: 4,
@@ -594,7 +621,7 @@ export default function DashboardPage() {
               onMouseEnter={e => (e.currentTarget.style.background = '#eef2ff')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
-              전체보기 <ArrowRight size={14} />
+              {t('common.viewAll')} <ArrowRight size={14} />
             </Link>
           </div>
 
@@ -602,7 +629,13 @@ export default function DashboardPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--surface-subdued)' }}>
-                {['부위', '예산', '방문 시기', '상태', ''].map((h, i) => (
+                {[
+                  t('po.tableHeaderArea'),
+                  t('po.tableHeaderBudget'),
+                  t('po.tableHeaderVisit'),
+                  t('po.tableHeaderStatus'),
+                  '',
+                ].map((h, i) => (
                   <th key={i} style={{
                     padding: '10px 24px', fontSize: "var(--text-xs)", fontWeight: "var(--font-semibold)", color: 'var(--text-disabled)',
                     textAlign: 'left', letterSpacing: '0.05em', textTransform: 'uppercase' as const,
@@ -615,13 +648,14 @@ export default function DashboardPage() {
               {openConcerns.length === 0 && (
                 <tr>
                   <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-disabled)', padding: '40px 0', fontSize: "var(--text-sm)" }}>
-                    새로 들어온 고민이 없습니다.
+                    {t('po.tableEmpty')}
                   </td>
                 </tr>
               )}
               {openConcerns.slice(0, 5).map(c => {
-                const statusLabel = CONCERN_STATUS_KR[c.status] ?? c.status;
-                const statusStyle = CONCERN_STATUS_BADGE[statusLabel] ?? {
+                const statusKey = CONCERN_STATUS_I18N_KEY[c.status];
+                const statusLabel = statusKey ? t(statusKey) : c.status;
+                const statusStyle = CONCERN_STATUS_BADGE[c.status] ?? {
                   bg: 'var(--surface-subdued)', text: 'var(--text-subdued)', dot: CHART_PALETTE.neutral,
                 };
                 const areaStyle = AREA_BADGE;
@@ -636,15 +670,15 @@ export default function DashboardPage() {
                         <span style={{
                           display: 'inline-block', padding: '3px 10px', borderRadius: 6,
                           fontSize: "var(--text-sm)", fontWeight: "var(--font-semibold)", background: areaStyle.bg, color: areaStyle.text,
-                        }}>{c.primaryArea}</span>
+                        }}>{t(`common.bodyArea.${c.primaryArea}`)}</span>
                         {c.bodyAreaDetail && <span style={{ fontSize: "var(--text-sm)", color: 'var(--text-subdued)' }}>{c.bodyAreaDetail}</span>}
                       </div>
                     </td>
                     <td style={{ padding: '14px 24px', fontSize: "var(--text-sm)", color: 'var(--text-default)', fontVariantNumeric: 'tabular-nums' }}>
-                      {formatBudget(c.budgetMin, c.budgetMax)}
+                      {(c.budgetMin == null && c.budgetMax == null) ? '-' : `${formatBudget(c.budgetMin, c.budgetMax)}${t('common.man')}`}
                     </td>
                     <td style={{ padding: '14px 24px', fontSize: "var(--text-sm)", color: 'var(--text-subdued)' }}>
-                      {formatDateRange(c.visitDateFrom, c.visitDateTo)}
+                      {c.visitDateFrom ? formatDateRange(c.visitDateFrom, c.visitDateTo) : t('common.tbd')}
                     </td>
                     <td style={{ padding: '14px 24px' }}>
                       <span style={{
@@ -659,7 +693,7 @@ export default function DashboardPage() {
                     <td style={{ padding: '14px 24px' }}>
                       <Link href={`/concerns/${c.id}`} style={{
                         fontSize: "var(--text-sm)", fontWeight: "var(--font-medium)", color: CHART_PALETTE.primary, textDecoration: 'none',
-                      }}>보기</Link>
+                      }}>{t('po.tableView')}</Link>
                     </td>
                   </tr>
                 );

@@ -12,6 +12,7 @@ import { Step3Content } from '@/components/procedure-wizard/Step3Content';
 import { Step4Preview } from '@/components/procedure-wizard/Step4Preview';
 import { usePOAuthStore } from '@/store/po-auth';
 import { useToastStore } from '@/store/toast';
+import { useLocaleStore } from '@/store/locale';
 import { toUserMessage } from '@/lib/api/error-messages';
 import { proceduresApi } from '@/lib/api/procedures';
 import { emptyWizardForm } from '@/lib/wizard/defaults';
@@ -22,11 +23,11 @@ import { track } from '@hyliren/shared/src/events';
 import type { WizardForm } from '@/lib/wizard/types';
 import type { ProcedureStatus } from '@hyliren/shared';
 
-const STEPS = [
-  { key: 'basics', label: '기본 정보' },
-  { key: 'pricing', label: '가격·옵션' },
-  { key: 'content', label: '상세·이미지' },
-  { key: 'preview', label: '미리보기·공개' },
+const STEP_KEYS = [
+  { key: 'basics', labelKey: 'po.wizardStepBasics' },
+  { key: 'pricing', labelKey: 'po.wizardStepPricing' },
+  { key: 'content', labelKey: 'po.wizardStepContent' },
+  { key: 'preview', labelKey: 'po.wizardStepPreview' },
 ];
 
 /** 입력 데이터가 있는지 판단 — empty form 대비. */
@@ -46,6 +47,8 @@ export default function NewProcedurePage() {
   const router = useRouter();
   const member = usePOAuthStore(s => s.member);
   const { showToast } = useToastStore();
+  const t = useLocaleStore(s => s.t);
+  const STEPS = STEP_KEYS.map(s => ({ key: s.key, label: t(s.labelKey) }));
 
   /* sessionStorage persist 제거 (2026-04-26):
      이전엔 작성본을 자동으로 sessionStorage 에 저장 → 재진입 시 복원했으나,
@@ -120,7 +123,7 @@ export default function NewProcedurePage() {
       eventType: 'treatment_wizard_start',
       actorType: 'member',
       actorId: member.id,
-      metadata: { source: 'po', locale: 'ko', mode: 'create' },
+      metadata: { source: 'po', mode: 'create' },
     });
   }, [member]);
 
@@ -137,7 +140,7 @@ export default function NewProcedurePage() {
     // H3: 중복 클릭 방지
     if (savingRef.current) return;
     if (!member) {
-      showToast('로그인이 필요합니다.', 'error');
+      showToast(t('po.treatmentNeedLogin'), 'error');
       return;
     }
     // D1: draft 저장은 Step 1 최소 필드만, published 는 전체 검증
@@ -145,8 +148,8 @@ export default function NewProcedurePage() {
     if (!ok) {
       showToast(
         status === 'published'
-          ? '필수 입력값을 모두 채워주세요.'
-          : '분류와 원본 언어 타이틀은 최소한 입력해야 저장할 수 있어요.',
+          ? t('po.treatmentFillRequired')
+          : t('po.treatmentMinDraftRequired'),
         'error',
       );
       return;
@@ -188,26 +191,26 @@ export default function NewProcedurePage() {
         actorType: 'member',
         actorId: member.id,
         targetId: res.procedure.id,
-        metadata: { source: 'po', locale: 'ko', mode: 'create', value: status },
+        metadata: { source: 'po', mode: 'create', value: status },
       });
       showToast(
         status === 'published'
-          ? '공개로 등록되었습니다.'
+          ? t('po.treatmentPublishedRegistered')
           : status === 'archived'
-            ? '비공개로 등록되었습니다.'
-            : '임시저장되었습니다.',
+            ? t('po.treatmentArchivedRegistered')
+            : t('po.treatmentDraftSaved'),
         'success',
       );
       // 저장 완료 → 목록 복귀. 서버 저장 완료 시점이라 nav guard 도 불필요.
       // (form state 는 unmount 시 휘발 — 재진입 시 fresh form)
       router.push('/treatments');
     } catch (e: unknown) {
-      const msg = toUserMessage(e, '저장에 실패했습니다');
+      const msg = toUserMessage(e, t('po.treatmentSaveFail'), t);
       track({
         eventType: 'treatment_wizard_save_fail',
         actorType: 'member',
         actorId: member.id,
-        metadata: { source: 'po', locale: 'ko', mode: 'create', value: status, label: msg.slice(0, 120) },
+        metadata: { source: 'po', mode: 'create', value: status, label: msg.slice(0, 120) },
       });
       showToast(msg, 'error');
     } finally {
@@ -221,7 +224,7 @@ export default function NewProcedurePage() {
       <POSidebar active="/treatments" />
       <div className="flex-1 flex flex-col bg-white">
         <WizardShell
-          title="새 시술 등록"
+          title={t('po.treatmentNewTitle')}
           steps={stepsWithDone}
           activeIndex={activeStep}
           onStepChange={i => { if (i <= activeStep || stepsWithDone[i - 1]?.done) setActiveStep(i); }}
@@ -238,13 +241,13 @@ export default function NewProcedurePage() {
               onClick={() => submit('draft')}
               disabled={saving || !stepsValidForDraft(form)}
             >
-              임시저장
+              {t('po.treatmentDraftSave')}
             </Button>
           }
           primaryAction={{
             /* Step 4 (마지막) primary = '등록하기' — 클릭 시 모달로 공개/비공개 선택.
                데이터 완성 = 진열 결정의 갈림길. 모달이 의식 (ceremony) 역할. */
-            label: '등록하기',
+            label: t('po.treatmentRegister'),
             onClick: () => setPublishOptionOpen(true),
             disabled: saving || !allStepsValid(form),
             loading: saving,
@@ -262,7 +265,7 @@ export default function NewProcedurePage() {
       <Modal
         open={publishOptionOpen}
         onClose={() => !saving && setPublishOptionOpen(false)}
-        title="이 시술을 어떻게 등록할까요?"
+        title={t('po.treatmentRegisterChooseTitle')}
       >
         <div className="flex flex-col gap-3">
           <button
@@ -276,10 +279,10 @@ export default function NewProcedurePage() {
           >
             <div className="flex items-center gap-2 mb-1">
               <Eye size={16} className="text-[var(--color-success)]" />
-              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">공개로 등록</span>
+              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">{t('po.treatmentSaveAsPublic')}</span>
             </div>
             <p className="text-[var(--app-text-micro)] text-[var(--text-subdued)] leading-relaxed">
-              즉시 고객에게 노출됩니다. 상담 신청 화면과 시술 상세에 표시돼요.
+              {t('po.treatmentSaveAsPublicDesc')}
             </p>
           </button>
 
@@ -294,15 +297,15 @@ export default function NewProcedurePage() {
           >
             <div className="flex items-center gap-2 mb-1">
               <EyeOff size={16} className="text-[var(--text-subdued)]" />
-              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">비공개로 등록</span>
+              <span className="text-[var(--text-sm)] font-semibold text-[var(--text-default)]">{t('po.treatmentSaveAsArchived')}</span>
             </div>
             <p className="text-[var(--app-text-micro)] text-[var(--text-subdued)] leading-relaxed">
-              데이터만 저장하고 고객에게는 아직 노출하지 않습니다. 시술 관리 메뉴에서 언제든 공개로 전환할 수 있어요.
+              {t('po.treatmentSaveAsArchivedDesc')}
             </p>
           </button>
 
           <Button variant="secondary" onClick={() => setPublishOptionOpen(false)} disabled={saving}>
-            취소
+            {t('common.cancel')}
           </Button>
         </div>
       </Modal>
@@ -312,20 +315,20 @@ export default function NewProcedurePage() {
       <Modal
         open={discardModalOpen}
         onClose={handleCancelDiscard}
-        title="작성 내용을 두고 나가시겠어요?"
+        title={t('po.treatmentLeaveTitle')}
       >
         <div className="flex flex-col gap-5">
           <p className="text-[var(--text-base)] text-[var(--text-subdued)] leading-relaxed">
-            저장하지 않고 나가면 지금까지 입력한 내용이 <span className="font-semibold text-[var(--color-danger)]">사라집니다.</span>
+            {t('po.treatmentLeaveDescPrefix')}<span className="font-semibold text-[var(--color-danger)]">{t('po.treatmentLeaveDescHighlight')}</span>
             <br />
-            계속 이어서 작성하려면 먼저 <span className="font-semibold text-[var(--text-default)]">임시저장</span> 을 눌러 주세요.
+            {t('po.treatmentLeaveHintPrefix')}<span className="font-semibold text-[var(--text-default)]">{t('po.treatmentLeaveHintHighlight')}</span>{t('po.treatmentLeaveHintSuffix')}
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Button variant="secondary" onClick={handleCancelDiscard}>
-              계속 작성
+              {t('po.treatmentLeaveContinue')}
             </Button>
             <Button variant="danger" onClick={handleConfirmDiscard}>
-              저장 안 하고 나가기
+              {t('po.treatmentLeaveDiscard')}
             </Button>
           </div>
         </div>

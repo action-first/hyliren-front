@@ -6,6 +6,7 @@ import { Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { ANESTHESIA_TYPES, formatNumberWithComma, parseNumberFromInput } from '@hyliren/shared';
 import type { AnesthesiaType, Locale } from '@hyliren/shared';
 import { LocaleTabs } from './LocaleTabs';
+import { useLocaleStore } from '@/store/locale';
 import type { WizardVariant, WizardForm } from '@/lib/wizard/types';
 
 interface VariantCardProps {
@@ -18,15 +19,16 @@ interface VariantCardProps {
   onSetDefault: () => void;
 }
 
-const ANESTHESIA_OPTIONS = [
-  { value: 'local', label: '부분마취' },
-  { value: 'sedation', label: '수면마취' },
-  { value: 'general', label: '전신마취' },
-];
-
 export function VariantCard({
   variant, sourceLocale, base, canDelete, onChange, onDelete, onSetDefault,
 }: VariantCardProps) {
+  const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
+  const ANESTHESIA_OPTIONS = [
+    { value: 'local', label: t('po.wizardAnesthesiaLocal') },
+    { value: 'sedation', label: t('po.wizardAnesthesiaSedation') },
+    { value: 'general', label: t('po.wizardAnesthesiaGeneral') },
+  ];
   const [activeLocale, setActiveLocale] = useState<Locale>(sourceLocale);
   const [showOverride, setShowOverride] = useState(
     // 한 필드라도 override 돼 있으면 펼쳐놓음
@@ -89,11 +91,11 @@ export function VariantCard({
               onChange={onSetDefault}
               className="cursor-pointer"
             />
-            대표 옵션
+            {t('po.wizardVariantMain')}
           </label>
           {variant.isNew && (
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-warning-soft)] text-[var(--color-warning)]">
-              저장 대기
+              {t('po.wizardVariantSavePending')}
             </span>
           )}
         </div>
@@ -101,7 +103,7 @@ export function VariantCard({
           type="button"
           onClick={onDelete}
           disabled={!canDelete}
-          title={canDelete ? '옵션 삭제' : '최소 1개 옵션은 유지해야 합니다'}
+          title={canDelete ? t('po.wizardVariantDeleteTooltip') : t('po.wizardVariantMinOneTooltip')}
           className={`
             p-1.5 rounded transition-colors
             ${canDelete
@@ -122,17 +124,23 @@ export function VariantCard({
       />
       <div className="grid gap-3">
         <Input
-          label="옵션명 *"
+          label={t('po.wizardOptionName')}
           value={block.name}
           onChange={e => updateI18n({ name: e.target.value })}
-          placeholder={activeLocale === 'ko' ? '예: 매몰법' : activeLocale === 'zh-CN' ? '例: 埋线法' : ''}
+          placeholder={
+            activeLocale === 'ko' ? t('po.wizardOptionNamePlaceholderKo')
+              : activeLocale === 'zh-CN' ? t('po.wizardOptionNamePlaceholderZh')
+              : activeLocale === 'ja' ? t('po.wizardOptionNamePlaceholderJa')
+              : activeLocale === 'en' ? t('po.wizardOptionNamePlaceholderEn')
+              : ''
+          }
         />
         <Textarea
-          label="옵션 설명 (선택)"
+          label={t('po.wizardOptionDescription')}
           value={block.description ?? ''}
           onChange={e => updateI18n({ description: e.target.value || null })}
           rows={2}
-          placeholder="옵션별 차별점이 있다면 적어주세요"
+          placeholder={t('po.wizardOptionDescriptionPlaceholder')}
         />
       </div>
 
@@ -144,55 +152,55 @@ export function VariantCard({
           className="flex items-center gap-1.5 text-[var(--text-xs)] font-medium text-[var(--text-default)] hover:text-[var(--interactive-default)]"
         >
           {showOverride ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          {showOverride ? '개별 값 사용' : '기본값 사용 (기본값과 다르면 펼치기)'}
+          {showOverride ? t('po.wizardUseOverride') : t('po.wizardUseDefault')}
         </button>
 
         {showOverride && (
           <div className="grid grid-cols-2 gap-3 mt-3">
             {/* 가격 — 콤마 포맷 + '원' inline */}
             <div className="input-wrapper">
-              <label className="input-label">가격</label>
+              <label className="input-label">{t('po.wizardOverridePrice')}</label>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   inputMode="numeric"
-                  value={variant.price !== null ? formatNumberWithComma(variant.price) : ''}
+                  value={variant.price !== null ? formatNumberWithComma(variant.price, locale) : ''}
                   onChange={e => {
                     const v = parseNumberFromInput(e.target.value);
                     onChange({ price: e.target.value ? v : null });
                   }}
-                  placeholder={`기본: ${base.basePrice.toLocaleString('ko-KR')}`}
+                  placeholder={t('po.wizardBasePlaceholder', { value: base.basePrice.toLocaleString(locale) })}
                   className="input-field flex-1 text-right tabular-nums"
                 />
-                <span className="text-[var(--text-sm)] text-[var(--text-subdued)] flex-shrink-0">원</span>
+                <span className="text-[var(--text-sm)] text-[var(--text-subdued)] flex-shrink-0">{t('po.wizardWonUnit')}</span>
               </div>
             </div>
             <Select
-              label="마취"
+              label={t('po.wizardOverrideAnesthesia')}
               value={variant.anesthesia ?? base.baseAnesthesia}
               options={ANESTHESIA_OPTIONS}
               onChange={v => onChange({ anesthesia: v as AnesthesiaType })}
             />
             <Input
-              label="시술 시간 (분)"
+              label={t('po.wizardOverrideDuration')}
               type="number"
               value={variant.durationMinutes ?? ''}
               onChange={e => onChange({ durationMinutes: e.target.value ? Number(e.target.value) : null })}
-              placeholder={`기본: ${base.baseDurationMinutes}`}
+              placeholder={t('po.wizardBasePlaceholder', { value: base.baseDurationMinutes })}
             />
             <Input
-              label="회복일"
+              label={t('po.wizardOverrideRecovery')}
               type="number"
               value={variant.recoveryDays ?? ''}
               onChange={e => onChange({ recoveryDays: e.target.value ? Number(e.target.value) : null })}
-              placeholder={`기본: ${base.baseRecoveryDays}`}
+              placeholder={t('po.wizardBasePlaceholder', { value: base.baseRecoveryDays })}
             />
             <Input
-              label="입원일"
+              label={t('po.wizardOverrideHospitalStay')}
               type="number"
               value={variant.hospitalStayDays ?? ''}
               onChange={e => onChange({ hospitalStayDays: e.target.value ? Number(e.target.value) : null })}
-              placeholder={`기본: ${base.baseHospitalStayDays}`}
+              placeholder={t('po.wizardBasePlaceholder', { value: base.baseHospitalStayDays })}
             />
           </div>
         )}

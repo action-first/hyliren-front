@@ -15,7 +15,7 @@ import { isNarrativeQualityEnough } from '@/lib/consult/narrative-quality';
  *  - bodyAreas 의 enum 제약은 서버가 강제하지 않고, 클라이언트 mapper(`toBodyArea`)가 '기타'로 정규화한다 — yj.jung 설계 존중
  */
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '날짜는 YYYY-MM-DD 형식이어야 합니다');
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'ERR_DATE_FORMAT');
 const nonNegInt = z.number().int().nonnegative();
 const photoRef = z.string().min(1).max(2048);
 
@@ -29,12 +29,12 @@ export const createConcernSchema = z
     description: z
       .string()
       .trim()
-      .min(1, '고민을 입력해주세요')
+      .min(1, 'ERR_NARRATIVE_REQUIRED')
       .max(5000)
       // concern-analysis 와 동일한 언어별 품질 refine 을 서버 측에서도 강제.
       // 클라이언트 우회 호출 (curl/Postman) 및 이모지·공백 남발 방지.
       .refine(isNarrativeQualityEnough, {
-        message: '어느 부위가 어떻게 고민이신지 조금 더 구체적으로 알려주세요',
+        message: 'ERR_NARRATIVE_TOO_SHORT',
       }),
     // 고객 최초 입력 원문. description 이 AI 정제본이면 rawNarrative 는 원본 보존.
     // DB concerns.raw_narrative 에 대응.
@@ -55,11 +55,11 @@ export const createConcernSchema = z
   .strict()
   .refine(
     (v) => v.budgetMin == null || v.budgetMax == null || v.budgetMin <= v.budgetMax,
-    { message: 'budgetMin은 budgetMax보다 작거나 같아야 합니다', path: ['budgetMin'] },
+    { message: 'ERR_BUDGET_MIN_GT_MAX', path: ['budgetMin'] },
   )
   .refine(
     (v) => v.visitDateFrom == null || v.visitDateTo == null || v.visitDateFrom <= v.visitDateTo,
-    { message: 'visitDateFrom은 visitDateTo보다 이전이어야 합니다', path: ['visitDateFrom'] },
+    { message: 'ERR_VISIT_DATE_FROM_GT_TO', path: ['visitDateFrom'] },
   );
 
 export const updateConcernSchema = z
@@ -73,16 +73,16 @@ export const updateConcernSchema = z
   .strict()
   .refine(
     (v) => v.budgetMin == null || v.budgetMax == null || v.budgetMin <= v.budgetMax,
-    { message: 'budgetMin은 budgetMax보다 작거나 같아야 합니다', path: ['budgetMin'] },
+    { message: 'ERR_BUDGET_MIN_GT_MAX', path: ['budgetMin'] },
   )
   .refine(
     (v) => v.visitDateFrom == null || v.visitDateTo == null || v.visitDateFrom <= v.visitDateTo,
-    { message: 'visitDateFrom은 visitDateTo보다 이전이어야 합니다', path: ['visitDateFrom'] },
+    { message: 'ERR_VISIT_DATE_FROM_GT_TO', path: ['visitDateFrom'] },
   );
 
 export const selectHospitalSchema = z
   .object({
-    proposalId: z.string().regex(/^p-[a-zA-Z0-9_-]{1,48}$/, '유효한 제안서 ID가 아닙니다'),
+    proposalId: z.string().regex(/^p-[a-zA-Z0-9_-]{1,48}$/, 'ERR_INVALID_PROPOSAL_ID'),
   })
   .strict();
 

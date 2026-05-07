@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { parseAcceptLanguage } from '@hyliren/shared';
 import { analysisRequestSchema } from '@/server/concern-analysis/schema';
 import { analyzeConcernService } from '@/server/concern-analysis/service';
 import { log } from '@/lib/logger';
@@ -12,13 +13,16 @@ import { log } from '@/lib/logger';
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
-  /* ── Parse body ── */
+  /* ── Parse body ──
+   * error 응답은 stable ERR_* code 만 반환 — FE 가 t('error.<code>') 매핑.
+   * (BE customer 도 동일 컨벤션, action-first/hyliren-api PR #53 참조)
+   */
   let body: unknown;
   try {
     body = await request.json();
   } catch {
     return NextResponse.json(
-      { error: '유효한 JSON 요청이 필요합니다.' },
+      { error: 'ERR_INVALID_JSON' },
       { status: 400 },
     );
   }
@@ -28,18 +32,28 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     const firstError = parsed.error.issues[0];
     log('warn', 'validation_failed', { path: firstError?.path, message: firstError?.message });
+    // schema 의 zod message 는 이미 ERR_* code 형태. fallback 도 generic code.
+    const code = firstError?.message?.startsWith('ERR_') ? firstError.message : 'ERR_VALIDATION_FAILED';
     return NextResponse.json(
-      { error: firstError?.message || '입력값이 올바르지 않습니다.' },
+      { error: code },
       { status: 400 },
     );
   }
 
   const { photos, narrative, feedbackTurns } = parsed.data;
 
+  // Accept-Language 헤더 → sourceLocale 추론 (extract 키워드 사전 선택용).
+  // q-value 우선순위 정렬 후 prefix 매칭 (BE 공통 resolver 와 정책 일치).
+  // Customer 앱 fallback 'zh-CN' (i18n-strategy §8-1).
+  const acceptLang = request.headers.get('accept-language');
+  const sourceLocale: 'ko' | 'zh-CN' | 'ja' | 'en' =
+    (acceptLang ? parseAcceptLanguage(acceptLang) : null) ?? 'zh-CN';
+
   log('info', 'analysis_request_received', {
     photoCount: photos.length,
     narrativeLength: narrative.length,
     feedbackTurnCount: feedbackTurns.length,
+    sourceLocale,
   });
 
   /* ── Run analysis ── */
@@ -48,6 +62,7 @@ export async function POST(request: NextRequest) {
       photos,
       narrative,
       feedbackTurns,
+      sourceLocale,
     });
 
     const duration = Date.now() - startTime;
@@ -68,18 +83,16 @@ export async function POST(request: NextRequest) {
       error: error instanceof Error ? error.message : 'Unknown error',
     });
 
-    // Never return empty — provide generic guidance
+    // Never return empty — i18n key 만 반환, FE 가 viewerLocale 기준 번역.
+    // options 는 빈 배열 — FE 가 fallback 키 (consult.fallbackOptionGeneric*) 로 자체 표시.
+    // bodyArea 는 enum key (etc), bodyAreaDetail 은 빈 문자열로 두어 FE 라벨 매핑 일관성 유지.
     return NextResponse.json({
-      empathy: '고민을 나눠주셔서 감사합니다. 어떤 변화를 원하시는지 이해하고 있어요.',
-      education: '한국은 다양한 미용 시술 분야에서 세계적인 수준을 갖추고 있습니다. 고객님의 상황에 맞는 방법을 여러 병원의 의견을 통해 비교해 보시는 것을 권합니다.',
-      options: [{
-        key: 'generic_consultation',
-        name: '맞춤 상담',
-        description: '고객님의 상황에 맞는 최적의 방법을 병원과 함께 찾아보세요.',
-      }],
+      empathy: { key: 'concern.analysis.empathy.fallback' },
+      education: { key: 'concern.analysis.education.fallback' },
+      options: [],
       extractedTags: { symptoms: [], preferences: [], budget: [], timing: [] },
-      extractedSummary: { bodyAreas: ['기타'], primaryArea: '기타', bodyAreaDetail: '일반 상담' },
-      disclaimer: '정확한 적용 여부는 실제 병원의 상담과 진단을 통해 결정됩니다.',
+      extractedSummary: { bodyAreas: ['etc'], primaryArea: 'etc', bodyAreaDetail: '' },
+      disclaimer: { key: 'concern.analysis.disclaimer' },
       ruleVersion: 'fallback',
     });
   }

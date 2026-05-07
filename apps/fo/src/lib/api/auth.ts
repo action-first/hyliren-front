@@ -1,4 +1,4 @@
-import type { Locale, User, UserRole } from '@hyliren/shared';
+import { narrowLocale, type Locale, type User, type UserRole } from '@hyliren/shared';
 import { request, setTokens, clearTokens } from './client';
 
 interface TokenPair {
@@ -38,10 +38,6 @@ function narrowRole(role: string): UserRole {
   return role === 'admin' ? 'admin' : 'buyer';
 }
 
-function narrowLocale(locale: string): Locale {
-  return locale === 'zh-CN' ? 'zh-CN' : 'ko';
-}
-
 function toUser(raw: RawMeResponse): User {
   return {
     id: raw.id,
@@ -49,7 +45,8 @@ function toUser(raw: RawMeResponse): User {
     email: raw.email,
     phone: raw.phone,
     name: raw.name,
-    locale: narrowLocale(raw.locale),
+    // FO 사용자 미지정 시 'zh-CN' 기본 — Customer DB users.locale DEFAULT 와 일치.
+    locale: narrowLocale(raw.locale, 'zh-CN'),
     avatarUrl: raw.avatarUrl,
     referralCode: raw.referralCode,
     referredBy: raw.referredBy,
@@ -95,4 +92,14 @@ export async function logout(): Promise<void> {
 export async function fetchMe(): Promise<User> {
   const raw = await request<RawMeResponse>('/auth/me', { method: 'GET' });
   return toUser(raw);
+}
+
+/**
+ * 사용자 표시 언어 변경 — users.locale DB 갱신.
+ *
+ * UX: locale 스위처에서 선택 시 store 즉시 반영(낙관적 UI) + 본 호출은 silent fail.
+ * 디바이스 간 일관성 (다음 로그인 시 다른 디바이스에서도 복원) 을 위한 동기화 용도.
+ */
+export async function updateLocale(locale: Locale): Promise<void> {
+  await request<void>('/auth/locale', { method: 'PATCH', body: { locale } });
 }

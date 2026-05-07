@@ -1,36 +1,52 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Badge, Button } from '@hyliren/ui';
+import { Badge, Button, Spinner } from '@hyliren/ui';
 import { ArrowLeft, ArrowRight, Clock, Eye } from 'lucide-react';
 import { useLocaleStore } from '@/store/locale';
-import { getArticleBySlug, getArticleImage } from '@/lib/articles-data';
-import type { Article } from '@/lib/articles-data';
+import { getArticle, mapArticleDetail, type ArticleDetail, type ArticleImage } from '@/lib/api/article';
 import { ARTICLE_QUIZZES } from '@/lib/article-quizzes';
 
-function formatViews(n: number): string {
-  return n >= 10000 ? `${(n / 10000).toFixed(1)}만` : n >= 1000 ? `${(n / 1000).toFixed(1)}천` : String(n);
+/**
+ * 조회수 압축 표기 — 로케일별 자연스러운 단위 적용 (Intl.NumberFormat compact).
+ * - ko: 1.5만 / zh-CN: 1.5万 / ja: 1.5万 / en: 15K
+ */
+function formatViews(n: number, locale: string): string {
+  return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(n);
 }
 
-/* ── Markdown → JSX (lightweight) ── */
-function renderBody(article: Article) {
+const CATEGORY_LABEL_KEY: Record<string, string> = {
+  guide: 'articles2.categoryGuide',
+  review: 'articles2.categoryComparison',
+  news: 'articles2.categoryAll',
+  tip: 'articles2.categorySafety',
+};
+
+type TFn = (key: string, params?: Record<string, string | number>) => string;
+
+/* ── Markdown → JSX (lightweight) ──
+ * quiz 콘텐츠는 현재 article-quizzes.ts 의 한국어 raw — locale 별 자연어 콘텐츠는
+ * 후속 트랙 (콘텐츠 다국어). 본 PR 단계에선 ko locale 만 quiz 노출, 그 외엔 skip.
+ */
+function renderBody(article: ArticleDetail, t: TFn, locale: string) {
   const lines = article.body.split('\n');
   const elements: React.ReactNode[] = [];
+  const imageByType = (type: 'hero' | 'procedure' | 'lifestyle'): ArticleImage | undefined =>
+    article.images.find(img => img.type === type);
   let i = 0;
 
   while (i < lines.length) {
     const line = lines[i];
 
-    // Image markers
     if (line.trim().startsWith('[IMAGE:')) {
       const type = line.trim().replace('[IMAGE:', '').replace(']', '').trim() as 'hero' | 'procedure' | 'lifestyle';
-      // hero는 상단에 이미 표시되므로 본문에서 스킵
       if (type === 'hero') { i++; continue; }
-      // lifestyle → 퀴즈 UI로 교체
       if (type === 'lifestyle') {
         const quiz = ARTICLE_QUIZZES[article.slug];
-        if (quiz) {
+        // 한국어 raw 콘텐츠 — 다국어 번역 트랙 완료까지 ko locale 만 노출.
+        if (quiz && locale === 'ko') {
           elements.push(
             <div key={`quiz-${i}`} className="my-6 rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)] p-5">
               <p className="text-[15px] font-bold text-[var(--color-text)] mb-4">{quiz.title}</p>
@@ -48,18 +64,18 @@ function renderBody(article: Article) {
                   </div>
                 ))}
               </div>
-              <p className="text-[10.5px] text-[var(--color-text-dim)] mt-4">상담 시 이 정보를 함께 전달하면 더 정확한 방향을 잡을 수 있어요</p>
+              <p className="text-[10.5px] text-[var(--color-text-dim)] mt-4">{t('mypage.articleHelpHint')}</p>
             </div>,
           );
         }
         i++;
         continue;
       }
-      const img = getArticleImage(article, type);
+      const img = imageByType(type);
       if (img) {
         elements.push(
           <div key={`img-${i}`} className="my-5 rounded-[var(--app-radius)] overflow-hidden">
-            <img src={img.src} alt={img.alt} className="w-full" loading="lazy" />
+            <img src={img.url} alt={article.title} className="w-full" loading="lazy" />
           </div>,
         );
       }
@@ -67,14 +83,12 @@ function renderBody(article: Article) {
       continue;
     }
 
-    // Horizontal rule
     if (line.trim() === '---') {
       elements.push(<hr key={`hr-${i}`} className="my-6 border-[var(--color-border-light)]" />);
       i++;
       continue;
     }
 
-    // Headers
     if (line.startsWith('### ')) {
       elements.push(
         <h3 key={`h3-${i}`} className="text-[15px] font-bold text-[var(--color-text)] mt-5 mb-2">
@@ -94,7 +108,6 @@ function renderBody(article: Article) {
       continue;
     }
 
-    // Blockquote
     if (line.startsWith('> ')) {
       const quoteLines: string[] = [];
       while (i < lines.length && lines[i].startsWith('> ')) {
@@ -111,7 +124,6 @@ function renderBody(article: Article) {
       continue;
     }
 
-    // Unordered list
     if (line.startsWith('- ')) {
       const items: string[] = [];
       while (i < lines.length && lines[i].startsWith('- ')) {
@@ -130,13 +142,11 @@ function renderBody(article: Article) {
       continue;
     }
 
-    // Ordered list
     if (/^\d+\.\s/.test(line)) {
       const items: string[] = [];
       while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
         items.push(lines[i].replace(/^\d+\.\s/, ''));
         i++;
-        // Gather continuation lines (indented)
         while (i < lines.length && lines[i].startsWith('   ') && !lines[i].startsWith('   -')) {
           items[items.length - 1] += ' ' + lines[i].trim();
           i++;
@@ -154,13 +164,11 @@ function renderBody(article: Article) {
       continue;
     }
 
-    // Empty line
     if (line.trim() === '') {
       i++;
       continue;
     }
 
-    // Paragraph
     elements.push(
       <p key={`p-${i}`} className="text-[13px] text-[var(--color-text-secondary)] leading-[1.8] mb-3">
         {renderInline(line)}
@@ -173,7 +181,6 @@ function renderBody(article: Article) {
 }
 
 function renderInline(text: string): React.ReactNode {
-  // Bold
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
@@ -186,56 +193,93 @@ function renderInline(text: string): React.ReactNode {
 export default function ArticleDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const t = useLocaleStore(s => s.t);
-  const article = getArticleBySlug(slug);
+  const locale = useLocaleStore(s => s.locale);
+  const [article, setArticle] = useState<ArticleDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  if (!article) {
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setNotFound(false);
+    getArticle(slug)
+      .then(wire => {
+        if (cancelled) return;
+        setArticle(mapArticleDetail(wire));
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setNotFound(true);
+        setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [slug, locale]);
+
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-[60vh]"><Spinner /></div>;
+  }
+
+  if (notFound || !article) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-5">
-        <p className="text-[15px] font-semibold text-[var(--color-text)] mb-2">아티클을 찾을 수 없습니다</p>
+        <p className="text-[15px] font-semibold text-[var(--color-text)] mb-2">{t('mypage.articleNotFound')}</p>
         <Link href="/articles" className="text-[13px] text-[var(--color-primary)] no-underline">
-          ← 목록으로
+          {t('mypage.backToArticles')}
         </Link>
       </div>
     );
   }
+
+  const heroImg = article.images.find(img => img.type === 'hero');
 
   return (
     <div className="flex flex-col pb-10">
       {/* Back */}
       <div className="px-5 pt-4 pb-2">
         <Link href="/articles" className="flex items-center gap-1 text-[12px] text-[var(--color-text-dim)] no-underline">
-          <ArrowLeft size={14} /> 목록
+          <ArrowLeft size={14} /> {t('articles.backToList')}
         </Link>
       </div>
 
       {/* Hero image */}
-      <div className="px-5 mb-4">
-        <div className="rounded-[var(--app-radius-md)] overflow-hidden">
-          <img src={article.heroImage} alt={article.title} className="w-full aspect-[16/9] object-cover" />
+      {(article.coverImageUrl || heroImg) && (
+        <div className="px-5 mb-4">
+          <div className="rounded-[var(--app-radius-md)] overflow-hidden">
+            <img
+              src={article.coverImageUrl ?? heroImg!.url}
+              alt={article.title}
+              className="w-full aspect-[16/9] object-cover"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Meta */}
       <div className="px-5 mb-4">
         <div className="flex items-center gap-2 mb-2">
-          <Badge variant={article.tagColor} size="sm">{article.category}</Badge>
-          {article.bodyArea !== '전체' && (
-            <span className="text-[10px] text-[var(--color-text-dim)]">{article.bodyArea}</span>
+          <Badge variant={article.tagColor} size="sm">
+            {t(CATEGORY_LABEL_KEY[article.category] ?? 'articles2.categoryAll')}
+          </Badge>
+          {article.primaryArea !== 'all' && (
+            <span className="text-[10px] text-[var(--color-text-dim)]">
+              {t(`common.bodyArea.${article.primaryArea}`)}
+            </span>
           )}
         </div>
         <h1 className="text-[1.25rem] font-bold text-[var(--color-text)] leading-[1.35] tracking-[-0.3px] mb-2">
           {article.title}
         </h1>
         <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-dim)]">
-          <span className="flex items-center gap-1"><Clock size={11} /> {article.readTime}분</span>
-          <span className="flex items-center gap-1"><Eye size={11} /> {formatViews(article.views)}</span>
-          <span>{article.publishedAt}</span>
+          <span className="flex items-center gap-1"><Clock size={11} /> {t('articles.readTime', { min: article.readTime })}</span>
+          <span className="flex items-center gap-1"><Eye size={11} /> {formatViews(article.viewCount, locale)}</span>
+          {article.publishedAt && <span>{article.publishedAt.slice(0, 10)}</span>}
         </div>
       </div>
 
       {/* Body */}
       <div className="px-5">
-        {renderBody(article)}
+        {renderBody(article, t, locale)}
       </div>
 
       {/* Bottom CTA */}
@@ -246,7 +290,7 @@ export default function ArticleDetailPage() {
             <span className="text-[11px] text-[var(--color-text-dim)]">{t('articles.bottomDesc')}</span>
           </div>
           <Link href="/consult" className="no-underline">
-            <Button variant="primary" size="sm">{article.ctaText} <ArrowRight size={12} /></Button>
+            <Button variant="primary" size="sm">{t('articles.bottomCta')} <ArrowRight size={12} /></Button>
           </Link>
         </div>
       </div>

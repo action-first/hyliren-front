@@ -155,10 +155,19 @@ export type PayoutTrigger = typeof PAYOUT_TRIGGERS[number];
 
 // --- Body Area (DB: concerns.primary_area VARCHAR(50), body_areas JSONB) ---
 
-// DB 는 enum 이 아닌 자유 문자열이지만, FO UI 표시 일관성을 위해 enum 으로 제약.
-// mapper.ts 의 toBodyArea() 가 DB 에 저장된 unknown 값을 '기타' 로 정규화한다.
-export const BODY_AREAS = ['눈', '코', '리프팅', '피부', '다이어트', '기타'] as const;
+// 정책 (i18n QA Stage 3):
+//   - DB/wire shape 는 stable enum key (eyes/nose/lifting/skin/diet/etc)
+//   - 한국어 표시 라벨은 i18n 메시지 키 common.bodyArea.{key} 로 분리
+//   - mapper.ts 의 toBodyArea() 가 DB 에 저장된 unknown 값을 'etc' 로 정규화
+export const BODY_AREAS = ['eyes', 'nose', 'lifting', 'skin', 'diet', 'etc'] as const;
 export type BodyArea = typeof BODY_AREAS[number];
+
+/** i18n 키 prefix — t(`common.bodyArea.${area}`) 로 표시 라벨 매핑. */
+export const BODY_AREA_LABEL_KEY_PREFIX = 'common.bodyArea';
+
+export function bodyAreaLabelKey(area: BodyArea | string): string {
+  return `${BODY_AREA_LABEL_KEY_PREFIX}.${area}`;
+}
 
 // --- Locale (DB: users.locale VARCHAR(10) DEFAULT 'zh-CN') ---
 
@@ -169,6 +178,22 @@ export type Locale = typeof LOCALES[number];
 
 /** 서비스 기본 소스 언어 — 모든 원본 콘텐츠의 기준. */
 export const DEFAULT_SOURCE_LOCALE: Locale = 'ko';
+
+export function isLocale(value: unknown): value is Locale {
+  return typeof value === 'string' && (LOCALES as readonly string[]).includes(value);
+}
+
+/**
+ * 임의 string 을 Locale 로 좁힘. 미지원 값은 fallback (기본 'ko').
+ *
+ * 호출처별 fallback:
+ *   - Customer (FO): 'zh-CN' — 중국 의료관광 고객 주력
+ *   - Partner (PO):  'ko'    — 한국 병원
+ *   - Admin (BO):    'ko'    — 한국 운영자
+ */
+export function narrowLocale(value: unknown, fallback: Locale = 'ko'): Locale {
+  return isLocale(value) ? value : fallback;
+}
 
 // --- Procedure (DB: procedure_type, procedure_status) ---
 // FO 시술 상세페이지 / PO 시술 등록 페이지에서 사용하는 시술 유형.
@@ -229,47 +254,47 @@ export type ProcedureType = typeof PROCEDURE_TYPES[number];
  */
 export const PROCEDURE_TYPE_AREAS: Record<ProcedureType, BodyArea> = {
   // 눈
-  eye_double_eyelid: '눈',
-  eye_ptosis_correction: '눈',
-  eye_under_eye_fat: '눈',
-  eye_lower_blepharoplasty: '눈',
-  eye_epicanthoplasty: '눈',
-  eye_canthoplasty: '눈',
-  eye_revision: '눈',
+  eye_double_eyelid: 'eyes',
+  eye_ptosis_correction: 'eyes',
+  eye_under_eye_fat: 'eyes',
+  eye_lower_blepharoplasty: 'eyes',
+  eye_epicanthoplasty: 'eyes',
+  eye_canthoplasty: 'eyes',
+  eye_revision: 'eyes',
 
   // 코
-  nose_augmentation: '코',
-  nose_tip: '코',
-  nose_revision: '코',
-  nose_hump: '코',
-  nose_short_correction: '코',
-  nose_nostril: '코',
+  nose_augmentation: 'nose',
+  nose_tip: 'nose',
+  nose_revision: 'nose',
+  nose_hump: 'nose',
+  nose_short_correction: 'nose',
+  nose_nostril: 'nose',
 
   // 리프팅 (안면윤곽 포함 — enum 상 area 로 '안면윤곽' 이 없음)
-  lift_thread: '리프팅',
-  lift_ulthera: '리프팅',
-  lift_hifu: '리프팅',
-  lift_face_lift: '리프팅',
-  lift_fat_graft: '리프팅',
-  contour_facial: '리프팅',
-  contour_mandible: '리프팅',
-  contour_chin: '리프팅',
+  lift_thread: 'lifting',
+  lift_ulthera: 'lifting',
+  lift_hifu: 'lifting',
+  lift_face_lift: 'lifting',
+  lift_fat_graft: 'lifting',
+  contour_facial: 'lifting',
+  contour_mandible: 'lifting',
+  contour_chin: 'lifting',
 
   // 피부
-  skin_laser: '피부',
-  skin_injection: '피부',
-  skin_peeling: '피부',
-  skin_acne: '피부',
-  skin_pigmentation: '피부',
-  skin_scar: '피부',
+  skin_laser: 'skin',
+  skin_injection: 'skin',
+  skin_peeling: 'skin',
+  skin_acne: 'skin',
+  skin_pigmentation: 'skin',
+  skin_scar: 'skin',
 
   // 다이어트
-  diet_liposuction: '다이어트',
-  diet_injection: '다이어트',
-  diet_body_contouring: '다이어트',
+  diet_liposuction: 'diet',
+  diet_injection: 'diet',
+  diet_body_contouring: 'diet',
 
   // 기타
-  other: '기타',
+  other: 'etc',
 };
 
 /** 특정 body area 에 속하는 procedure type 목록. wizard drill-down·필터 UI 용. */

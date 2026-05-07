@@ -61,23 +61,23 @@ export default function ServicesPage({ params }: Props) {
       {/* Header */}
       <div className="mb-5">
         <div className="flex items-center gap-2 mb-2">
-          <Badge variant={STATUS_COLORS[concern.status] || 'default'}>{STATUS_LABELS[concern.status]}</Badge>
+          <Badge variant={STATUS_COLORS[concern.status] || 'default'}>{STATUS_LABELS[concern.status] ? t(STATUS_LABELS[concern.status]) : concern.status}</Badge>
           {concern.bodyAreas.map(area => (
-            <Badge key={area} variant="info" size="sm">{area}</Badge>
+            <Badge key={area} variant="info" size="sm">{t(`common.bodyArea.${area}`)}</Badge>
           ))}
         </div>
         <h1 className="text-[1.375rem] font-bold text-[var(--color-text)] leading-tight mb-1">
-          실행 서비스 준비
+          {t('services.pageTitle')}
         </h1>
         <p className="text-[13px] text-[var(--color-text-dim)]">
-          시술 전후 필요한 서비스를 준비하세요
+          {t('services.pageDesc')}
         </p>
       </div>
 
       {/* Selected hospital */}
       {selectedProposal && (
         <div className="rounded-[var(--app-radius-md)] fo-gradient-accent px-4 py-3.5 mb-5">
-          <span className="text-[10px] text-[var(--color-text-dim)] block mb-1">선택한 병원</span>
+          <span className="text-[10px] text-[var(--color-text-dim)] block mb-1">{t('mypage.concernSelectedHospital')}</span>
           <div className="flex items-center justify-between">
             <div>
               <span className="text-[15px] font-bold text-[var(--color-text)]">{selectedProposal.hospitalName}</span>
@@ -87,7 +87,7 @@ export default function ServicesPage({ params }: Props) {
               </div>
             </div>
             <Link href={`/concerns/${concern.id}/proposals`} className="no-underline">
-              <Button variant="ghost" size="sm">제안 보기</Button>
+              <Button variant="ghost" size="sm">{t('mypage.concernViewProposal')}</Button>
             </Link>
           </div>
         </div>
@@ -98,7 +98,7 @@ export default function ServicesPage({ params }: Props) {
         <div className="flex items-center gap-3 px-4 py-3 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)] mb-5">
           <MapPin size={16} className="text-[var(--color-primary)] shrink-0" />
           <div>
-            <span className="text-[13px] font-medium text-[var(--color-text)]">방문 예정</span>
+            <span className="text-[13px] font-medium text-[var(--color-text)]">{t('mypage.concernVisitPlanned')}</span>
             <span className="text-[11px] text-[var(--color-text-dim)] block">{concern.visitDateFrom}~{concern.visitDateTo || ''}</span>
           </div>
         </div>
@@ -111,7 +111,7 @@ export default function ServicesPage({ params }: Props) {
           const StatusIcon = STATUS_ICON[service.status];
           return (
             <button key={service.key} type="button"
-              onClick={() => track({ eventType: 'service_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: service.key } })}
+              onClick={() => track({ eventType: 'service_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', label: service.key } })}
               className="flex items-center gap-3.5 px-4 py-4 rounded-[var(--app-radius-md)] bg-[var(--color-bg)] border-0 text-left cursor-pointer w-full"
               style={{ boxShadow: 'var(--app-shadow-card-light)' }}>
               <div className="w-10 h-10 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center shrink-0">
@@ -139,13 +139,12 @@ export default function ServicesPage({ params }: Props) {
 
       {/* Bottom CTA */}
       <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)] px-4 py-4">
-        <p className="text-[13px] text-[var(--color-text-secondary)] text-center leading-relaxed mb-3">
-          서비스는 병원 확정 후 순차적으로 준비됩니다.<br />
-          필요한 서비스를 미리 확인해두세요.
+        <p className="text-[13px] text-[var(--color-text-secondary)] text-center leading-relaxed mb-3 whitespace-pre-line">
+          {t('services.bottomCtaHelper')}
         </p>
         <Link href={`/concerns/${concern.id}`} className="no-underline block">
           <Button variant="secondary" size="xl" fullWidth>
-            고민 상세로 돌아가기
+            {t('services.bottomCtaBack')}
           </Button>
         </Link>
       </div>

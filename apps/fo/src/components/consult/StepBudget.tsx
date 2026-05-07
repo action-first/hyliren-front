@@ -2,7 +2,7 @@
 
 import { Button } from '@hyliren/ui';
 import { ArrowRight, ArrowLeft, Check } from 'lucide-react';
-import { useConcernFlowStore, BUDGET_LABELS, type BudgetRange } from '@/store/concern-flow';
+import { useConcernFlowStore, BUDGET_LABEL_KEYS, type BudgetRange } from '@/store/concern-flow';
 import { useLocaleStore } from '@/store/locale';
 
 const BUDGET_OPTIONS: { key: BudgetRange; subKey: string }[] = [
@@ -55,7 +55,7 @@ export function StepBudget() {
               </div>
               <div className="flex-1">
                 <span className={`text-[14px] block ${selected ? 'font-bold text-[var(--color-primary)]' : 'font-medium text-[var(--color-text)]'}`}>
-                  {BUDGET_LABELS[opt.key]}
+                  {t(BUDGET_LABEL_KEYS[opt.key])}
                 </span>
                 <span className="text-[11px] text-[var(--color-text-dim)]">{t(opt.subKey)}</span>
               </div>

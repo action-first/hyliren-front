@@ -11,13 +11,20 @@ interface Props {
 
 export function AIAnalysisResultCard({ result, compact = false }: Props) {
   const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
   const { extractedSummary, options, disclaimer } = result;
 
+  // bodyArea enum key (Stage 3) → t('common.bodyArea.${key}') 매핑.
+  const areasLabel = (extractedSummary.bodyAreas ?? [])
+    .map(a => t(`common.bodyArea.${a}`))
+    .filter(Boolean)
+    .join(' · ');
+
   const rows = [
-    { label: t('consult.summaryArea'), value: extractedSummary.bodyAreas?.join(' · ') || extractedSummary.primaryArea },
+    { label: t('consult.summaryArea'), value: areasLabel || (extractedSummary.primaryArea ? t(`common.bodyArea.${extractedSummary.primaryArea}`) : '') },
     { label: t('consult.summaryDetail'), value: extractedSummary.bodyAreaDetail },
     { label: t('consult.summaryDirection'), value: extractedSummary.desiredOutcome },
-    { label: t('consult.summaryBudget'), value: extractedSummary.budgetMax ? `${extractedSummary.budgetMax.toLocaleString()}${t('common.currency')}` : t('common.tbd') },
+    { label: t('consult.summaryBudget'), value: extractedSummary.budgetMax ? `${extractedSummary.budgetMax.toLocaleString(locale)}${t('common.currency')}` : t('common.tbd') },
     { label: t('consult.summaryTiming'), value: extractedSummary.visitDate || t('common.tbd') },
   ].filter(r => r.value);
 
@@ -44,26 +51,24 @@ export function AIAnalysisResultCard({ result, compact = false }: Props) {
             <div className="flex flex-col gap-2">
               {options.map(opt => (
                 <div key={opt.key} className="px-3 py-2.5 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
-                  <span className="text-[12px] font-semibold text-[var(--color-text)] block mb-0.5">{opt.name}</span>
-                  <span className="text-[11px] text-[var(--color-text-dim)] leading-relaxed">{opt.description}</span>
+                  <span className="text-[12px] font-semibold text-[var(--color-text)] block mb-0.5">{t(opt.name)}</span>
+                  <span className="text-[11px] text-[var(--color-text-dim)] leading-relaxed">{t(opt.description)}</span>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {!compact && result.extractedTags.symptoms.length > 0 && (
-          <div className="flex gap-1 flex-wrap mt-2.5">
-            {result.extractedTags.symptoms.filter(s => !s.includes('미분류')).map(s => (
-              <span key={s} className="px-1.5 py-0.5 rounded text-[9.5px] text-[var(--color-primary)] bg-[var(--color-primary-soft)]">#{s.replace(/_/g, '')}</span>
-            ))}
-          </div>
-        )}
+        {/* extractedTags.symptoms 는 한국어 stable id (예: '쌍꺼풀_희망') — 사용자 가시 라벨로
+            그대로 노출하면 ja/en/zh-CN 사용자에게 한국어 leak. tag display 는 후속 트랙
+            (i18n key 매핑 또는 BE LLM 단계 도입) 까지 미노출. */}
       </div>
 
       <div className="flex items-start gap-1.5 px-4 py-2.5 bg-[var(--color-bg-secondary)] border-t border-[var(--color-border-light)]">
         <Shield size={11} className="text-[var(--color-text-dim)] shrink-0 mt-0.5" />
-        <span className="text-[10px] text-[var(--color-text-dim)] leading-relaxed">{disclaimer}</span>
+        <span className="text-[10px] text-[var(--color-text-dim)] leading-relaxed">
+          {t(disclaimer.key, disclaimer.params)}
+        </span>
       </div>
     </div>
   );

@@ -22,7 +22,7 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
 
   useEffect(() => {
     track({ eventType: 'proposal_viewed', actorType: 'user', targetType: 'proposal', targetId: proposal.id,
-      metadata: { source: 'fo', locale: 'ko', label: profile?.hospitalName || '' } });
+      metadata: { source: 'fo', label: profile?.hospitalName || '' } });
   }, [proposal.id, profile?.hospitalName]);
 
   const valueProp = profile?.description || '';
@@ -116,7 +116,7 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
           <div className="sticky bottom-0 bg-[var(--color-bg)] border-t border-[var(--color-border-light)] px-5 py-4">
             {purchased ? (
               <Button variant="neutral" size="xl" fullWidth onClick={onAnalyze}>
-                검증 리포트 보기
+                {t('detail.verifyReportCta')}
               </Button>
             ) : (
               <Button variant="primary" size="xl" fullWidth onClick={onAnalyze}>

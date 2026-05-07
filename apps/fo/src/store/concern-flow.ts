@@ -21,26 +21,36 @@ export type BudgetRange = 'under100' | '100to300' | '300to500' | 'over500' | 'un
 export type VisitTiming = 'within1m' | 'within3m' | 'within6m' | 'undecided';
 export type StayDuration = 'under3d' | '5to7d' | '2weeks' | 'undecided';
 
-export const BUDGET_LABELS: Record<BudgetRange, string> = {
-  under100: '100만원 이하',
-  '100to300': '100~300만원',
-  '300to500': '300~500만원',
-  over500: '500만원 이상',
-  undecided: '아직 미정',
+/**
+ * 라벨 표시는 i18n key 로 — 컴포넌트가 t(`consult.budget.${range}`) 등으로 매핑.
+ * 사용 예시:
+ *   <span>{t(`consult.budget.${range}`)}</span>
+ *
+ * 메시지 키 (4-locale):
+ *   consult.budget.{under100|100to300|300to500|over500|undecided}
+ *   consult.visit.{within1m|within3m|within6m|undecided}
+ *   consult.stay.{under3d|5to7d|2weeks|undecided}
+ */
+export const BUDGET_LABEL_KEYS: Record<BudgetRange, string> = {
+  under100: 'consult.budget.under100',
+  '100to300': 'consult.budget.100to300',
+  '300to500': 'consult.budget.300to500',
+  over500: 'consult.budget.over500',
+  undecided: 'consult.budget.undecided',
 };
 
-export const VISIT_TIMING_LABELS: Record<VisitTiming, string> = {
-  within1m: '1개월 내',
-  within3m: '3개월 내',
-  within6m: '6개월 내',
-  undecided: '아직 미정',
+export const VISIT_TIMING_LABEL_KEYS: Record<VisitTiming, string> = {
+  within1m: 'consult.visit.within1m',
+  within3m: 'consult.visit.within3m',
+  within6m: 'consult.visit.within6m',
+  undecided: 'consult.visit.undecided',
 };
 
-export const STAY_DURATION_LABELS: Record<StayDuration, string> = {
-  under3d: '3일 이내',
-  '5to7d': '5~7일',
-  '2weeks': '2주 정도',
-  undecided: '아직 미정',
+export const STAY_DURATION_LABEL_KEYS: Record<StayDuration, string> = {
+  under3d: 'consult.stay.under3d',
+  '5to7d': 'consult.stay.5to7d',
+  '2weeks': 'consult.stay.2weeks',
+  undecided: 'consult.stay.undecided',
 };
 
 interface ConcernFlowState {

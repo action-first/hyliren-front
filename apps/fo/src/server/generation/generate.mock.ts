@@ -1,43 +1,40 @@
-import type { ExtractedTags, RuleMatchResult, GeneratedGuide, FeedbackTurn } from '../concern-analysis/types';
+import type { ExtractedTags, RuleMatchResult, GeneratedGuide, FeedbackTurn, I18nMessage } from '../concern-analysis/types';
 
-const DISCLAIMER = '정확한 적용 여부는 실제 병원의 상담과 진단을 통해 결정됩니다.';
+/**
+ * Concern 분석 결과 mock — i18n key 패턴.
+ *
+ * "BE 는 번역 안 함, FE 판별" 정책에 따라 한국어 raw 대신 i18n key + params 만 반환.
+ * FE 컴포넌트가 useLocaleStore.t(key, params) 로 viewerLocale 기준 번역.
+ *
+ * 콘텐츠 자연어 다국어는 별도 트랙 (자동 번역 도입 시점에 일괄 작성). 현재는 ko 자연어 +
+ * 다른 locale 은 ko fallback (i18n.t 가 키 누락 시 ko 로 자동 fallback — 인프라 차원 안전).
+ */
 
-/* ── Empathy templates ── */
-const EMPATHY: Record<string, Record<string, string>> = {
-  '눈': {
-    '눈매교정': '눈매 때문에 인상이 강하게 보이거나 피곤해 보이는 점이 고민이셨군요. 많은 분들이 같은 이유로 상담을 시작하십니다.',
-    '쌍꺼풀': '자연스러운 쌍꺼풀 라인을 원하시는 마음, 충분히 이해합니다. 아시아권 고객분들이 가장 많이 상담하시는 고민이에요.',
-    '눈밑': '눈밑이 꺼지거나 지방이 튀어나오면 실제보다 훨씬 피곤하고 나이 들어 보일 수 있어요. 공감합니다.',
-    _default: '눈매는 첫인상을 좌우하는 부위라 작은 변화만으로도 전체 분위기가 크게 달라집니다. 고민되시는 마음 충분히 이해해요.',
+const DISCLAIMER: I18nMessage = { key: 'concern.analysis.disclaimer' };
+
+/* ── Empathy 매핑: bodyArea(BodyArea enum key — Stage 3) → 시술군 → i18n key ── */
+const EMPATHY_KEY: Record<string, Record<string, string>> = {
+  eyes: {
+    '눈매교정': 'concern.analysis.empathy.eyes.eyelines',
+    '쌍꺼풀': 'concern.analysis.empathy.eyes.doubleEyelid',
+    '눈밑': 'concern.analysis.empathy.eyes.underEye',
+    _default: 'concern.analysis.empathy.eyes.default',
   },
-  '코': {
-    _default: '코 모양 때문에 전체 얼굴 밸런스가 아쉬우셨군요. 코는 얼굴 인상에 가장 큰 영향을 미치는 부위 중 하나입니다.',
-  },
-  '리프팅': {
-    _default: '나이가 들면서 얼굴 라인이 변하는 건 자연스러운 과정이에요. 하지만 본인이 느끼는 스트레스는 충분히 이해합니다.',
-  },
-  '피부': {
-    _default: '피부 컨디션은 자신감과 직결되는 부분이죠. 고민하시는 마음 충분히 공감합니다.',
-  },
+  nose: { _default: 'concern.analysis.empathy.nose.default' },
+  lifting: { _default: 'concern.analysis.empathy.lifting.default' },
+  skin: { _default: 'concern.analysis.empathy.skin.default' },
 };
 
-/* ── Education templates ── */
-const EDUCATION: Record<string, Record<string, string>> = {
-  '눈': {
-    '눈매교정': '한국에서는 비절개 눈매교정이나 이마 거상술을 통해 자연스럽게 인상을 부드럽게 만드는 접근을 많이 고려합니다. 중요한 건 무조건 큰 변화를 주는 게 아니라, 현재 눈매의 구조에 맞는 방법을 찾는 것이에요.',
-    '쌍꺼풀': '매몰법은 회복이 빠르고 자연스러운 반면, 절개법은 더 뚜렷하고 오래 유지됩니다. 피부 두께와 지방량에 따라 적합한 방법이 달라지므로, 여러 병원의 의견을 비교해 보시는 것을 권합니다.',
-    '눈밑': '눈밑지방 재배치는 지방을 제거하는 게 아니라 고르게 펴주는 시술이에요. 다크서클과 꺼짐을 동시에 개선할 수 있으며, 일반적으로 회복이 비교적 빠른 편입니다.',
-    _default: '눈 수술은 매몰·부분절개·절개 등 방법이 다양하고, 피부 두께·눈꺼풀 처짐 정도·원하시는 라인 스타일에 따라 적합한 접근이 달라집니다. 여러 병원의 상담을 비교하시는 것을 권합니다.',
+const EDUCATION_KEY: Record<string, Record<string, string>> = {
+  eyes: {
+    '눈매교정': 'concern.analysis.education.eyes.eyelines',
+    '쌍꺼풀': 'concern.analysis.education.eyes.doubleEyelid',
+    '눈밑': 'concern.analysis.education.eyes.underEye',
+    _default: 'concern.analysis.education.eyes.default',
   },
-  '코': {
-    _default: '코성형은 높이만 올리는 게 아니라, 코끝의 모양과 콧대의 라인을 함께 조절해야 자연스럽습니다. 한국에서는 자가 연골을 활용한 자연스러운 코성형이 일반적으로 많이 고려됩니다.',
-  },
-  '리프팅': {
-    _default: '실리프팅은 절개 없이 리프팅 효과를 주고 회복이 빠른 장점이 있어요. 울쎄라 같은 초음파 리프팅은 비침습적이면서 피부 탄력을 개선합니다. 처짐 정도에 따라 적합한 방법이 달라질 수 있습니다.',
-  },
-  '피부': {
-    _default: '한국의 피부과는 레이저, 필링, 재생 치료 등 다양한 옵션을 복합적으로 활용합니다. 피부 타입과 고민에 맞는 맞춤 프로토콜이 일반적으로 중요하게 고려됩니다.',
-  },
+  nose: { _default: 'concern.analysis.education.nose.default' },
+  lifting: { _default: 'concern.analysis.education.lifting.default' },
+  skin: { _default: 'concern.analysis.education.skin.default' },
 };
 
 export function generateMock(
@@ -49,44 +46,32 @@ export function generateMock(
   const areas = ruleResult.bodyAreas;
   const primaryArea = ruleResult.primaryArea;
 
-  // Empathy — multi-area: combine empathy from each area
-  // 가운뎃점(·) 구분으로 조사(과/와) 불일치 회피 — 예: 눈·코·리프팅
-  let empathy: string;
-  if (areas.length > 1) {
-    empathy = `${areas.join('·')} 부위를 함께 고민하고 계시군요. 복합적으로 개선하면 전체 인상이 더 조화롭게 바뀔 수 있습니다.`;
-  } else {
-    empathy = EMPATHY[primaryArea]?._default
-      || '고민을 나눠주셔서 감사해요. 어떤 변화를 원하시는지 충분히 이해했습니다.';
-  }
+  const isMulti = areas.length > 1;
 
-  // Education — multi-area: combine education from each area
-  let education: string;
-  if (areas.length > 1) {
-    const parts = areas
-      .map(a => EDUCATION[a]?._default)
-      .filter(Boolean);
-    education = parts.length > 0
-      ? parts.join(' ') + ' 여러 부위를 함께 진행하면 회복 기간과 비용 면에서 효율적일 수 있습니다.'
-      : '한국은 복합 시술 경험이 풍부하며, 여러 부위를 함께 고려할 때 전체적인 조화를 중시합니다.';
-  } else {
-    education = EDUCATION[primaryArea]?._default
-      || '한국은 다양한 미용 시술 분야에서 세계적인 수준을 갖추고 있어요. 고객님의 상황에 맞는 최적의 방법을 찾는 것이 일반적으로 가장 중요하게 고려됩니다.';
-  }
+  // Empathy
+  const empathy: I18nMessage = isMulti
+    ? { key: 'concern.analysis.empathy.multi', params: { areas: areas.join('·') } }
+    : { key: EMPATHY_KEY[primaryArea]?._default ?? 'concern.analysis.empathy.fallback' };
 
-  // Apply feedback refinements
+  // Education — multi-area 시 부위별 default 키 합성은 FE 에서 처리 어려움 → 단일 multi 키 + 부위 params.
+  const education: I18nMessage = isMulti
+    ? { key: 'concern.analysis.education.multi', params: { areas: areas.join('·') } }
+    : { key: EDUCATION_KEY[primaryArea]?._default ?? 'concern.analysis.education.fallback' };
+
+  // Feedback refinements — 추가 안내 멘트는 별도 키 suffix 로 합성하지 않고
+  // 본 키만 반환. 정밀 안내는 후속 콘텐츠 작업에서 multi-key 패턴으로 확장.
   const userFeedback = feedbackTurns
     .filter(t => t.role === 'user')
     .map(t => t.message.toLowerCase())
     .join(' ');
-
   if (userFeedback.includes('절개') && (userFeedback.includes('부담') || userFeedback.includes('싫'))) {
-    education += ' 비절개 방식 위주로 정리해 드릴게요.';
+    education.params = { ...(education.params ?? {}), refine: 'noIncision' };
   }
   if (userFeedback.includes('회복') && (userFeedback.includes('짧') || userFeedback.includes('빠'))) {
-    education += ' 회복이 빠른 옵션을 우선적으로 안내해 드립니다.';
+    education.params = { ...(education.params ?? {}), refine: 'fastRecovery' };
   }
 
-  // Options from rule result (with bodyArea for grouping)
+  // Options from rule result (이미 i18n 무관 raw key + 한국어 name — name 은 후속 다국어 트랙)
   const options = ruleResult.matchedOptions.map(opt => ({
     key: opt.key,
     name: opt.name,

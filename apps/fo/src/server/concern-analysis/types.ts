@@ -63,17 +63,26 @@ export interface RuleMatchResult {
   ruleVersion: string;
 }
 
+/**
+ * i18n key + params 직렬화 — BE/mock 이 한국어 raw 대신 키만 반환하면 FE 가 t() 로
+ * viewerLocale 기준으로 번역. "BE 는 번역 안 함, FE 판별" 정책 일치.
+ */
+export interface I18nMessage {
+  key: string;
+  params?: Record<string, string | number>;
+}
+
 /** Layer 3: Generation output */
 export interface GeneratedGuide {
-  empathy: string;
-  education: string;
+  empathy: I18nMessage;
+  education: I18nMessage;
   options: Array<{
     key: string;
     name: string;
     description: string;
     bodyArea: string;
   }>;
-  disclaimer: string;
+  disclaimer: I18nMessage;
 }
 
 /** Feedback turn */
@@ -87,12 +96,18 @@ export interface AnalysisRequest {
   photos: string[];
   narrative: string;
   feedbackTurns?: FeedbackTurn[];
+  /**
+   * narrative 작성 언어 — extract 단계 키워드 사전 선택용.
+   * 미명시 시 BE 가 Accept-Language 로 추론 (Customer 앱 fallback 'zh-CN').
+   * 'ko' | 'zh-CN' | 'ja' | 'en'.
+   */
+  sourceLocale?: string;
 }
 
-/** API Response */
+/** API Response — empathy/education/disclaimer 는 i18n key 형태로 반환 (FE 가 t() 호출). */
 export interface AnalysisResponse {
-  empathy: string;
-  education: string;
+  empathy: I18nMessage;
+  education: I18nMessage;
   options: Array<{
     key: string;
     name: string;
@@ -101,6 +116,6 @@ export interface AnalysisResponse {
   }>;
   extractedTags: ExtractedTags;
   extractedSummary: ExtractedSummary;
-  disclaimer: string;
+  disclaimer: I18nMessage;
   ruleVersion: string;
 }

@@ -13,6 +13,7 @@ import { useReportStore } from '@/store/report';
 import { useLocaleStore } from '@/store/locale';
 import { useMyConcerns } from '@/lib/hooks/concern';
 import { listProposals, mapProposal } from '@/lib/api/proposal';
+import { authApi } from '@/lib/api';
 import { AuthModal } from '@/components/auth/AuthModal';
 
 const LOCALE_OPTIONS: { value: Locale; labelKey: string }[] = [
@@ -28,11 +29,25 @@ function localeToLabelKey(locale: Locale): string {
 }
 
 export default function MyPage() {
-  const { user, isGuest, logout } = useAuthStore();
+  const { user, isGuest, isLoggedIn, logout } = useAuthStore();
   const { purchasedIds } = useReportStore();
   const { locale, setLocale, t } = useLocaleStore();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showLocaleSheet, setShowLocaleSheet] = useState(false);
+
+  /**
+   * locale 변경 핸들러 — UI 즉시 반영(낙관적) + 로그인 사용자만 BE 동기화.
+   * BE 실패는 silent — 다음 setLocale 또는 디바이스 재로그인 시 재시도 효과.
+   */
+  function handleLocaleChange(value: Locale) {
+    setLocale(value);
+    setShowLocaleSheet(false);
+    if (isLoggedIn) {
+      void authApi.updateLocale(value).catch(() => {
+        // silent fail — UX 차단하지 않음. 다음 변경/로그인 시 동기화.
+      });
+    }
+  }
 
   const { concerns: apiConcerns, loading: concernsLoading } = useMyConcerns();
   const [proposals, setProposals] = useState<Proposal[] | null>(null);
@@ -51,14 +66,14 @@ export default function MyPage() {
     return (
       <>
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-5 gap-4">
-          <p className="text-[15px] font-medium text-[var(--color-text)] text-center">
-            로그인하고 내 고민과 제안을<br/>한 곳에서 관리하세요
+          <p className="text-[15px] font-medium text-[var(--color-text)] text-center whitespace-pre-line">
+            {t('mypage.loginToManage')}
           </p>
           <p className="text-[12px] text-[var(--color-text-dim)] text-center mb-2">
-            상담 등록 후 자동으로 로그인 화면이 안내됩니다
+            {t('mypage.loginAfterConsultHint')}
           </p>
           <Button variant="primary" size="xl" onClick={() => setShowAuthModal(true)}>
-            로그인 / 회원가입
+            {t('mypage.loginOrSignup')}
           </Button>
         </div>
         <AuthModal
@@ -145,20 +160,20 @@ export default function MyPage() {
                       <div className="flex items-center gap-1.5">
                         {c.bodyAreas.slice(0, 2).map(area => (
                           <span key={area} className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${AREA_ACCENT[area] || 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}`}>
-                            {area}
+                            {t(`common.bodyArea.${area}`)}
                           </span>
                         ))}
                       </div>
                       <Badge variant={STATUS_COLORS[c.status] || 'default'} size="sm">
-                        {STATUS_LABELS[c.status] || c.status}
+                        {STATUS_LABELS[c.status] ? t(STATUS_LABELS[c.status]) : c.status}
                       </Badge>
                     </div>
                     <p className="text-[13px] text-[var(--color-text-secondary)] line-clamp-1 mb-1.5">{c.description}</p>
                     <div className="flex items-center justify-between">
                       {cProposalCount > 0 ? (
-                        <span className="text-[11px] text-[var(--color-text-dim)]">제안 {cProposalCount}건</span>
+                        <span className="text-[11px] text-[var(--color-text-dim)]">{t('decision.proposalCount', { count: cProposalCount })}</span>
                       ) : (
-                        <span className="text-[11px] text-[var(--color-text-dim)]">대기 중</span>
+                        <span className="text-[11px] text-[var(--color-text-dim)]">{t('mypage.awaitingProposals')}</span>
                       )}
                       <ChevronRight size={14} className="text-[var(--color-text-dim)]" />
                     </div>
@@ -222,10 +237,7 @@ export default function MyPage() {
               <button
                 key={opt.value}
                 type="button"
-                onClick={() => {
-                  setLocale(opt.value);
-                  setShowLocaleSheet(false);
-                }}
+                onClick={() => handleLocaleChange(opt.value)}
                 className="flex items-center justify-between px-1 py-3.5 border-0 bg-transparent cursor-pointer text-left border-b border-[var(--color-border-light)] last:border-b-0"
               >
                 <span className={`text-[14px] ${isActive ? 'font-semibold text-[var(--color-text)]' : 'text-[var(--color-text)]'}`}>

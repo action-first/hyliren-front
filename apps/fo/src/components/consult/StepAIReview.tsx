@@ -28,13 +28,13 @@ export function StepAIReview() {
       {isFallback && (
         <div className="rounded-[var(--app-radius)] bg-[var(--color-warning-soft)] border border-[var(--color-warning-soft)] px-4 py-3 mb-3">
           <p className="text-[12px] text-[var(--color-warning)] leading-relaxed">
-            분석 서버에 연결할 수 없어 기본 안내를 표시하고 있습니다. 네트워크를 확인하고 다시 시도해 주세요.
+            {t('consult.reviewFallbackNotice')}
           </p>
           <button
             onClick={() => setStep('processing')}
             className="mt-2 text-[12px] font-medium text-[var(--color-warning)] underline bg-transparent border-0 cursor-pointer p-0"
           >
-            다시 분석하기
+            {t('consult.reviewRetry')}
           </button>
         </div>
       )}
@@ -43,7 +43,7 @@ export function StepAIReview() {
       <div className="rounded-[var(--app-radius-md)] fo-gradient-wash-br px-4 py-4 mb-3"
         style={{ boxShadow: 'var(--app-shadow-card-xs)' }}>
         <p className="text-[14px] text-[var(--color-text)] leading-[1.7]">
-          {analysisResult.empathy}
+          {t(analysisResult.empathy.key, analysisResult.empathy.params)}
         </p>
       </div>
 
@@ -51,7 +51,7 @@ export function StepAIReview() {
       <div className="rounded-[var(--app-radius-md)] bg-[var(--color-bg)] px-4 py-4 mb-3"
         style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
         <p className="text-[13px] text-[var(--color-text-secondary)] leading-[1.7]">
-          {analysisResult.education}
+          {t(analysisResult.education.key, analysisResult.education.params)}
         </p>
       </div>
 

@@ -48,8 +48,23 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
     setErrorMessage(null);
   }
 
+  /**
+   * BE envelope.error / message 의 stable ERR_* code 를 우선 매핑.
+   * code 없거나 모르는 code 는 status 기반 fallback.
+   */
   function mapError(err: unknown): string {
     if (err instanceof ApiError) {
+      if (err.code?.startsWith('ERR_')) {
+        const i18nKey = `error.${err.code}`;
+        const translated = t(i18nKey);
+        if (translated !== i18nKey) { return translated; }
+      }
+      // envelope.message 가 ERR_* (ValidationPipe RegisterDto Matches 등)
+      if (err.message?.startsWith('ERR_')) {
+        const i18nKey = `error.${err.message}`;
+        const translated = t(i18nKey);
+        if (translated !== i18nKey) { return translated; }
+      }
       if (err.status === 0) { return t('auth.error.network'); }
       if (err.status === 401) { return t('auth.error.invalidCredentials'); }
       if (err.status === 409) { return t('auth.error.emailTaken'); }

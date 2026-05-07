@@ -76,7 +76,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
   const preview = generatePreview(proposal, profile, t);
 
   useEffect(() => {
-    track({ eventType: 'report_preview_viewed', actorType: 'user', targetType: 'proposal', targetId: proposal.id, metadata: { source: 'fo', locale: 'ko' } });
+    track({ eventType: 'report_preview_viewed', actorType: 'user', targetType: 'proposal', targetId: proposal.id, metadata: { source: 'fo' } });
     if (purchased) {
       setFullReport(generateFullReport(proposal, profile, t));
     }
@@ -85,7 +85,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
   const fullReport = purchased ? generateFullReport(proposal, profile, t) : null;
 
   function handlePurchase() {
-    track({ eventType: 'report_purchased', actorType: 'user', targetType: 'proposal', targetId: proposal.id, metadata: { source: 'fo', locale: 'ko', value: '4900' } });
+    track({ eventType: 'report_purchased', actorType: 'user', targetType: 'proposal', targetId: proposal.id, metadata: { source: 'fo', value: '4900' } });
     // TODO: 백엔드에 payment endpoint 가 추가되면 direct request<T> 로 호출.
     // 현재는 useReportStore (localStorage) 만으로 구매 상태 유지.
     markPurchased(proposal.id);
@@ -133,7 +133,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
               })}
               {!purchased && (
                 <p className="text-[11px] text-[var(--color-text-dim)] leading-relaxed px-1 mt-1">
-                  리포트 확인 시 정확한 결과를 보여드립니다.
+                  {t('report.previewLockedHint')}
                 </p>
               )}
             </div>
@@ -289,7 +289,7 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
           <div className="sticky bottom-0 bg-[var(--color-bg)] border-t border-[var(--color-border-light)] px-5 py-4">
             {purchased ? (
               <Button variant="neutral" size="xl" fullWidth onClick={() => { onClose(); router.push(`/mypage/reports/${proposal.id}`); }}>
-                리포트 상세 보기
+                {t('report.viewReportDetail')}
               </Button>
             ) : (
               <>

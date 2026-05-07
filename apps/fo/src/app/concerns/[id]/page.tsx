@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { track } from '@hyliren/shared';
 import { Button, Badge } from '@hyliren/ui';
@@ -8,10 +8,11 @@ import {
   ArrowRight, Edit3, Camera, ChevronRight,
   Sparkles, MessageCircle, BookOpen, Calendar, Wallet,
 } from 'lucide-react';
-import { computeConcernActions, getRecommendedArticles } from '@/domain/lifecycle';
+import { computeConcernActions } from '@/domain/lifecycle';
 import { useLocaleStore } from '@/store/locale';
 import { useConcern } from '@/lib/hooks/concern';
 import { useProposalsForConcern } from '@/lib/hooks/proposal';
+import { listArticles, listRelatedArticles, mapArticleListItem, type ArticleListItem } from '@/lib/api/article';
 
 function ConcernPhoto({ url }: { url: string }) {
   const [failed, setFailed] = useState(false);
@@ -56,7 +57,6 @@ export default function ConcernDetailPage({ params }: Props) {
 
   const proposals = realProposals.filter(p => p.isActive);
   const actions = computeConcernActions(concern, realProposals);
-  const articles = getRecommendedArticles(concern.primaryArea, concern.status);
 
   return (
     <div className="flex flex-col px-5 pt-5 pb-10">
@@ -67,7 +67,7 @@ export default function ConcernDetailPage({ params }: Props) {
       <section className="mb-5">
         <div className="flex items-center gap-1.5 mb-2 flex-wrap">
           {concern.bodyAreas.map(area => (
-            <Badge key={area} variant="info" size="sm">{area}</Badge>
+            <Badge key={area} variant="info" size="sm">{t(`common.bodyArea.${area}`)}</Badge>
           ))}
           {concern.bodyAreaDetail && (
             <span className="text-[11px] text-[var(--color-text-dim)]">{concern.bodyAreaDetail}</span>
@@ -82,7 +82,7 @@ export default function ConcernDetailPage({ params }: Props) {
           {concern.budgetMin && concern.budgetMax && (
             <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)]">
               <Wallet size={12} className="text-[var(--color-text-dim)]" />
-              <span className="text-[11px] text-[var(--color-text-secondary)]">{concern.budgetMin}~{concern.budgetMax}{t('common.currency')}</span>
+              <span className="text-[11px] text-[var(--color-text-secondary)]">{t('decision.budgetRangeMan', { min: concern.budgetMin, max: concern.budgetMax })}</span>
             </div>
           )}
           {concern.visitDateFrom && (
@@ -105,7 +105,7 @@ export default function ConcernDetailPage({ params }: Props) {
             ))}
             {actions.canAddPhotos && photos.length < 3 && (
               <button type="button"
-                onClick={() => track({ eventType: 'concern_photo_added', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko' } })}
+                onClick={() => track({ eventType: 'concern_photo_added', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo' } })}
                 className="w-24 h-28 rounded-[var(--app-radius)] border-2 border-dashed border-[var(--color-border)] flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-transparent shrink-0">
                 <Camera size={20} className="text-[var(--color-text-dim)]" />
                 <span className="text-[10px] text-[var(--color-text-dim)]">{t('concern.form.photosAddMore')}</span>
@@ -116,7 +116,7 @@ export default function ConcernDetailPage({ params }: Props) {
 
         {actions.editable && (
           <Link href="/consult" className="flex items-center gap-1 mt-3 text-[12px] font-medium text-[var(--color-primary)] no-underline"
-            onClick={() => track({ eventType: 'concern_edited', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko' } })}>
+            onClick={() => track({ eventType: 'concern_edited', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo' } })}>
             <Edit3 size={12} /> {t('concern.editConcern')}
           </Link>
         )}
@@ -127,14 +127,14 @@ export default function ConcernDetailPage({ params }: Props) {
          ══════════════════════════════════════ */}
       <section className="rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)] px-4 py-4 mb-5">
         <div className="flex items-center gap-2 mb-2">
-          <Badge variant={actions.statusColor}>{actions.statusLabel}</Badge>
+          <Badge variant={actions.statusColor}>{t(actions.statusLabel)}</Badge>
           {actions.hasNewProposal && (
             <span className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />
           )}
         </div>
         {actions.helperMessage && (
           <p className="text-[13px] text-[var(--color-text-secondary)] leading-relaxed mb-4">
-            {actions.helperMessage}
+            {t(actions.helperMessage)}
           </p>
         )}
 
@@ -142,7 +142,7 @@ export default function ConcernDetailPage({ params }: Props) {
           <Link key={action.label} href={action.href} className="no-underline block mb-3">
             <div className="flex items-center gap-2 px-3 py-2 rounded-[var(--app-radius-sm)] bg-[var(--color-bg)]">
               <Sparkles size={13} className="text-[var(--color-primary)]" />
-              <span className="text-[12px] font-medium text-[var(--color-primary)]">{action.label}</span>
+              <span className="text-[12px] font-medium text-[var(--color-primary)]">{t(action.label, action.i18nParams)}</span>
             </div>
           </Link>
         ))}
@@ -150,7 +150,7 @@ export default function ConcernDetailPage({ params }: Props) {
         {actions.primaryAction && (
           <Link href={actions.primaryAction.href} className="no-underline block">
             <Button variant="primary" size="xl" fullWidth>
-              {actions.primaryAction.label}
+              {t(actions.primaryAction.label, actions.primaryAction.i18nParams)}
               <ArrowRight size={18} />
             </Button>
           </Link>
@@ -159,7 +159,7 @@ export default function ConcernDetailPage({ params }: Props) {
         {actions.secondaryAction && (
           <Link href={actions.secondaryAction.href} className="no-underline block mt-2">
             <Button variant="secondary" size="xl" fullWidth>
-              {actions.secondaryAction.label}
+              {t(actions.secondaryAction.label, actions.secondaryAction.i18nParams)}
             </Button>
           </Link>
         )}
@@ -185,7 +185,7 @@ export default function ConcernDetailPage({ params }: Props) {
                     {(p.hospitalName || t('services.fallbackHospitalName'))[0]}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-[13px] font-medium text-[var(--color-text)]">{p.hospitalName}</span>
+                    <span className="text-[13px] font-medium text-[var(--color-text)]">{p.hospitalName || t('common.unknownHospital')}</span>
                     <div className="flex items-center gap-2 text-[11px] text-[var(--color-text-dim)]">
                       <span>{p.totalPrice}{t('common.currency')}</span>
                       <span>{t('common.recovery')} {p.recoveryDays}{t('common.days')}</span>
@@ -224,32 +224,10 @@ export default function ConcernDetailPage({ params }: Props) {
       )}
 
       {/* ══════════════════════════════════════
-          SECTION 5: 관련 아티클
+          SECTION 5: 관련 아티클 (BE listRelatedArticles — 다국어)
          ══════════════════════════════════════ */}
-      <section className="mb-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[15px] font-bold text-[var(--color-text)]">{t('concern.relatedInfo')}</h2>
-          <Link href="/articles" className="flex items-center gap-0.5 text-[11px] text-[var(--color-text-dim)] no-underline">
-            {t('common.seeMore')} <ChevronRight size={14} />
-          </Link>
-        </div>
-        <div className="flex flex-col gap-2">
-          {articles.slice(0, 3).map((a, i) => (
-            <Link key={i} href="/articles" className="flex gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
-              style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
-              <div className="w-12 h-12 rounded-[var(--app-radius-sm)] overflow-hidden shrink-0">
-                <div className={`w-full h-full bg-gradient-to-br ${a.gradient} flex items-center justify-center`}>
-                  <BookOpen size={14} className="text-white/50" />
-                </div>
-              </div>
-              <div className="flex flex-col gap-0.5 justify-center min-w-0">
-                <Badge variant={a.tagColor} size="sm">{a.tag}</Badge>
-                <span className="text-[12px] font-medium text-[var(--color-text)] leading-snug line-clamp-1">{a.title}</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <RelatedArticlesSection bodyArea={concern.primaryArea} />
+
 
       {/* ══════════════════════════════════════
           SECTION 6: 재진입 CTA
@@ -260,10 +238,75 @@ export default function ConcernDetailPage({ params }: Props) {
           <span className="text-[13px] text-[var(--color-text-secondary)]">{t('concern.reentryQuestion')}</span>
         </div>
         <Link href="/consult" className="no-underline"
-          onClick={() => track({ eventType: 'reentry_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', locale: 'ko', label: 'concern_detail' } })}>
+          onClick={() => track({ eventType: 'reentry_cta_clicked', actorType: 'user', targetType: 'concern', targetId: concern.id, metadata: { source: 'fo', label: 'concern_detail' } })}>
           <Button variant="ghost" size="sm">{t('common.register')}</Button>
         </Link>
       </div>
     </div>
+  );
+}
+
+/**
+ * BE listRelatedArticles 기반 관련 아티클 (Accept-Language 따라 4 로케일 자동).
+ * 정적 한국어 dict (lifecycle.ts AREA_ARTICLES/STATUS_ARTICLES) 폐기 — sourceLocale 오염 방지.
+ */
+function RelatedArticlesSection({ bodyArea }: { bodyArea: string }) {
+  const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
+  const [articles, setArticles] = useState<ArticleListItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const handle = async () => {
+      try {
+        const related = await listRelatedArticles({ area: bodyArea });
+        if (cancelled) return;
+        if (related.articles.length > 0) {
+          setArticles(related.articles.slice(0, 3).map(mapArticleListItem));
+          return;
+        }
+      } catch { /* fallback to list */ }
+      try {
+        const all = await listArticles({ limit: 3 });
+        if (!cancelled) setArticles(all.articles.map(mapArticleListItem));
+      } catch {
+        if (!cancelled) setArticles([]);
+      }
+    };
+    void handle();
+    return () => { cancelled = true; };
+  }, [bodyArea, locale]);
+
+  if (articles.length === 0) return null;
+
+  return (
+    <section className="mb-5">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-[15px] font-bold text-[var(--color-text)]">{t('concern.relatedInfo')}</h2>
+        <Link href="/articles" className="flex items-center gap-0.5 text-[11px] text-[var(--color-text-dim)] no-underline">
+          {t('common.seeMore')} <ChevronRight size={14} />
+        </Link>
+      </div>
+      <div className="flex flex-col gap-2">
+        {articles.map(a => (
+          <Link key={a.id} href={`/articles/${a.slug}`} className="flex gap-3 p-3 rounded-[var(--app-radius)] bg-[var(--color-bg)] no-underline"
+            style={{ boxShadow: 'var(--app-shadow-card-sm)' }}>
+            <div className="w-12 h-12 rounded-[var(--app-radius-sm)] overflow-hidden shrink-0 bg-[var(--color-bg-secondary)] flex items-center justify-center">
+              {a.coverImageUrl ? (
+                <img src={a.coverImageUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <BookOpen size={14} className="text-[var(--color-text-dim)]" />
+              )}
+            </div>
+            <div className="flex flex-col gap-0.5 justify-center min-w-0">
+              {a.primaryArea !== 'all' && (
+                <Badge variant="info" size="sm">{t(`common.bodyArea.${a.primaryArea}`)}</Badge>
+              )}
+              <span className="text-[12px] font-medium text-[var(--color-text)] leading-snug line-clamp-1">{a.title}</span>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
