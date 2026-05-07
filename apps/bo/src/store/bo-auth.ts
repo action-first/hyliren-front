@@ -3,19 +3,20 @@
 import { create } from 'zustand';
 import type { Member } from '@hyliren/shared';
 import * as adminAuthApi from '@/lib/api/admin-auth';
-import { ApiError } from '@/lib/api/errors';
+import { adminTokenStore } from '@/lib/auth/token-store';
 
 export type BOAuthStatus = 'idle' | 'authenticating' | 'authenticated' | 'guest';
 
 /**
- * Admin (BO) 인증 store.
+ * Admin (BO) 인증 store. PO 의 usePOAuthStore 와 동형.
  *
- * 토큰은 httpOnly cookie 라 client store 는 member 정보만 보유.
- * 새 탭 / 새로고침 시 BOSessionBootstrap 이 /api/admin/auth/me 로 복원.
+ * 토큰은 localStorage (`hyliren-bo-tokens`). client.ts 가 fetch 마다 Authorization
+ * 첨부 + 401 자동 refresh. BOSessionBootstrap 이 mount 시 refreshSession 호출.
  */
 interface BOAuthState {
   member: Member | null;
   status: BOAuthStatus;
+  isGuest: boolean;
   error: string | null;
   setMember: (member: Member | null) => void;
   loginWithPassword: (input: adminAuthApi.AdminLoginInput) => Promise<void>;
@@ -26,12 +27,14 @@ interface BOAuthState {
 export const useBOAuthStore = create<BOAuthState>()((set) => ({
   member: null,
   status: 'idle',
+  isGuest: false,
   error: null,
 
   setMember: (member) =>
     set({
       member,
       status: member ? 'authenticated' : 'guest',
+      isGuest: !member,
       error: null,
     }),
 
@@ -39,33 +42,45 @@ export const useBOAuthStore = create<BOAuthState>()((set) => ({
     set({ status: 'authenticating', error: null });
     try {
       const member = await adminAuthApi.login(input);
-      set({ member, status: 'authenticated', error: null });
+      set({ member, status: 'authenticated', isGuest: false, error: null });
     } catch (e) {
-      const message =
-        e instanceof ApiError ? e.message : e instanceof Error ? e.message : '로그인에 실패했습니다.';
-      set({ status: 'guest', member: null, error: message });
+      const message = e instanceof Error ? e.message : '로그인에 실패했습니다';
+      adminTokenStore.clearTokens();
+      set({ status: 'guest', member: null, isGuest: true, error: message });
       throw e;
     }
   },
 
   refreshSession: async () => {
+    const token = adminTokenStore.getAccessToken();
+    if (!token) {
+      set({ member: null, status: 'guest', isGuest: true, error: null });
+      return;
+    }
+
+    // client.ts 가 401 시 자동 refresh + retry 처리. 여기 catch 는 refresh 까지 실패한 경우만.
     set({ status: 'authenticating', error: null });
     try {
       const member = await adminAuthApi.fetchMe();
-      set({ member, status: 'authenticated', error: null });
+      set({ member, status: 'authenticated', isGuest: false, error: null });
     } catch {
-      // 401 (no/invalid session) 은 정상 흐름 — guest 로 전환만.
-      set({ member: null, status: 'guest' });
+      adminTokenStore.clearTokens();
+      set({ member: null, status: 'guest', isGuest: true });
     }
   },
 
   logout: async () => {
+    let serverFailed = false;
     try {
       await adminAuthApi.logout();
     } catch {
-      // 서버 cookie clear 실패해도 client 상태는 우선 비우기.
+      serverFailed = true;
     } finally {
-      set({ member: null, status: 'guest', error: null });
+      adminTokenStore.clearTokens();
+      set({ member: null, status: 'guest', isGuest: true, error: null });
+    }
+    if (serverFailed) {
+      throw new Error('로그아웃 정리에 실패했습니다');
     }
   },
 }));

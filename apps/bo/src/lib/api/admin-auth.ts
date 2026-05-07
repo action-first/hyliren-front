@@ -1,37 +1,60 @@
-import type { Member } from '@hyliren/shared';
-import { request } from './client';
-
 /**
- * Admin Auth API — same-origin BFF (/api/admin/auth/*) 호출.
- * 토큰 cookie 는 BFF 가 자동 set/clear, 클라이언트는 응답 본문의 member 만 사용.
+ * Admin Auth API client — direct backend 호출 (BFF 미경유).
+ * FO 의 `lib/api/auth.ts` / PO 의 `lib/api/partner-auth.ts` 와 동일 컨벤션.
+ * 토큰 저장은 client.ts (adminTokenStore localStorage) 가 담당.
  */
+import type { Member } from '@hyliren/shared';
+import { request, setTokens, clearTokens } from './client';
+
+interface TokenPair {
+  accessToken: string;
+  refreshToken: string;
+}
+
+interface AdminMeWire {
+  memberId: string;
+  role: 'admin';
+  email: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface AdminLoginInput {
   email: string;
   password: string;
 }
 
-interface MeResponse {
-  member: Member;
-}
-
-interface LoginResponse {
-  member: Member;
+function toMember(wire: AdminMeWire): Member {
+  return {
+    id: wire.memberId,
+    role: wire.role,
+    email: wire.email,
+    name: wire.name,
+    createdAt: wire.createdAt,
+    updatedAt: wire.updatedAt,
+  };
 }
 
 export async function login(input: AdminLoginInput): Promise<Member> {
-  const res = await request<LoginResponse>('/api/admin/auth/login', {
+  const tokens = await request<TokenPair>('/auth/login', {
     method: 'POST',
-    body: { email: input.email.trim().toLowerCase(), password: input.password },
+    auth: false,
+    body: input,
   });
-  return res.member;
+  setTokens(tokens);
+  return fetchMe();
 }
 
 export async function fetchMe(): Promise<Member> {
-  const res = await request<MeResponse>('/api/admin/auth/me', { method: 'GET' });
-  return res.member;
+  const wire = await request<AdminMeWire>('/auth/me', { method: 'GET' });
+  return toMember(wire);
 }
 
 export async function logout(): Promise<void> {
-  await request<null>('/api/admin/auth/logout', { method: 'POST' });
+  try {
+    await request<void>('/auth/logout', { method: 'POST' });
+  } finally {
+    clearTokens();
+  }
 }

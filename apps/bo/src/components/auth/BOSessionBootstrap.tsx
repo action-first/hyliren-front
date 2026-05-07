@@ -2,20 +2,25 @@
 
 import { useEffect } from 'react';
 import { useBOAuthStore } from '@/store/bo-auth';
+import { subscribeAdminStorageSync } from '@/lib/auth/session';
 
 /**
- * 첫 mount 에 /api/admin/auth/me 호출 — cookie 기반 세션 복원.
+ * 첫 mount + storage 변화 감지 — admin 세션 부트스트랩.
  *
- * middleware 가 SSR 단계에서 cookie 없는 요청을 이미 /login 으로 보내므로,
- * 본 컴포넌트가 도달했다는 건 cookie 존재. 그래도 정합성을 위해 me 호출 →
- * member 정보를 store 에 채움 (name·email 등 sidebar 표시용).
+ * - mount: localStorage 의 token 존재 시 /auth/me 호출해 member 복원
+ * - storage: 다른 탭에서 logout/login 발생 시 동기화
  */
 export function BOSessionBootstrap() {
   const refreshSession = useBOAuthStore((s) => s.refreshSession);
+  const setMember = useBOAuthStore((s) => s.setMember);
 
   useEffect(() => {
     void refreshSession();
-  }, [refreshSession]);
+    return subscribeAdminStorageSync(
+      () => setMember(null),
+      () => { void refreshSession(); },
+    );
+  }, [refreshSession, setMember]);
 
   return null;
 }
