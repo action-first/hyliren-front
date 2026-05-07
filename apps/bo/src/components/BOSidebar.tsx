@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Wordmark } from '@hyliren/ui';
 import {
   LayoutDashboard,
   Users,
@@ -44,8 +45,16 @@ export function BOSidebar({ active }: { active: string }) {
 
   return (
     <aside className="bo-sidebar">
-      <Link href="/dashboard" className="bo-sidebar-logo" aria-label="mimyo Business Office">
-        Business Office
+      <Link
+        href="/dashboard"
+        className="bo-sidebar-logo"
+        aria-label="mimyo Business Office"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
+      >
+        <Wordmark locale="ko" fontSize={22} color="currentColor" />
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.55 }}>
+          Admin
+        </span>
       </Link>
       <nav className="bo-sidebar-nav">
         {NAV.map((n) => {

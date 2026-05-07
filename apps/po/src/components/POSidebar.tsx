@@ -13,6 +13,7 @@ import {
   Plus,
   LogOut,
 } from 'lucide-react';
+import { Wordmark, pickWordmarkLocale } from '@hyliren/ui';
 import { useCreditBalance } from '@/hooks/queries/credits';
 import { useMyPartnerProfile } from '@/hooks/queries/partner-profile';
 import { usePOAuthStore } from '@/store/po-auth';
@@ -30,6 +31,8 @@ export function POSidebar({ active }: { active: string }) {
   const logout = usePOAuthStore(s => s.logout);
   const { showToast } = useToastStore();
   const t = useLocaleStore(s => s.t);
+  const locale = useLocaleStore(s => s.locale);
+  const wordmarkLocale = pickWordmarkLocale(locale);
 
   const NAV = [
     { href: '/dashboard', icon: LayoutDashboard, label: t('po.navDashboard') },
@@ -56,7 +59,17 @@ export function POSidebar({ active }: { active: string }) {
   return (
     <>
       <aside className="po-sidebar">
-        <Link href="/dashboard" className="po-sidebar-logo">Partner Office</Link>
+        <Link
+          href="/dashboard"
+          className="po-sidebar-logo"
+          aria-label={wordmarkLocale === 'zh' ? 'meimiao Partner Office' : 'mimyo Partner Office'}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
+        >
+          <Wordmark locale={wordmarkLocale} fontSize={22} color="currentColor" />
+          <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.55 }}>
+            Partner
+          </span>
+        </Link>
         <nav className="po-sidebar-nav">
           {NAV.map(n => {
             const Icon = n.icon;

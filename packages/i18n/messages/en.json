@@ -1,7 +1,7 @@
 {
   "common": {
     "appName": "MIMYO",
-    "appNameZh": "美妙",
+    "appNameZh": "MIMYO",
     "login": "Sign in",
     "signup": "Sign up",
     "next": "Next",
@@ -685,6 +685,8 @@
     "title": "MIMYO — The right treatment, suggested first by clinics",
     "poTitle": "MIMYO Partner Office",
     "poDescription": "Hospital management system",
+    "boTitle": "MIMYO Business Office",
+    "boDescription": "Internal management system",
     "description": "K-beauty decision platform. Register your concern and verified Korean hospitals will send tailored proposals."
   },
   "dateFilter": {
