@@ -13,7 +13,7 @@ import { useReportStore } from '@/store/report';
 import { useLocaleStore } from '@/store/locale';
 import { useMyConcerns } from '@/lib/hooks/concern';
 import { listProposals, mapProposal } from '@/lib/api/proposal';
-import { authApi } from '@/lib/api';
+import { useLocaleSwitch } from '@/hooks/use-locale-switch';
 import { AuthModal } from '@/components/auth/AuthModal';
 
 const LOCALE_OPTIONS: { value: Locale; labelKey: string }[] = [
@@ -29,23 +29,23 @@ function localeToLabelKey(locale: Locale): string {
 }
 
 export default function MyPage() {
-  const { user, isGuest, isLoggedIn, logout } = useAuthStore();
+  const { user, isGuest, logout } = useAuthStore();
   const { purchasedIds } = useReportStore();
-  const { locale, setLocale, t } = useLocaleStore();
+  const { locale, t } = useLocaleStore();
+  const switchLocale = useLocaleSwitch();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showLocaleSheet, setShowLocaleSheet] = useState(false);
 
   /**
-   * locale 변경 핸들러 — UI 즉시 반영(낙관적) + 로그인 사용자만 BE 동기화.
-   * BE 실패는 silent — 다음 setLocale 또는 디바이스 재로그인 시 재시도 효과.
+   * locale 변경 핸들러 — path navigation 으로 새 lang 페이지 이동.
+   *
+   * path SSOT: store/cookie 직접 set 안 함. middleware 가 새 path 진입 시 cookie
+   * 자동 동기화. 로그인 사용자 BE 동기화는 useLocaleSwitch hook 에서 fire-and-forget.
    */
   function handleLocaleChange(value: Locale) {
-    setLocale(value);
     setShowLocaleSheet(false);
-    if (isLoggedIn) {
-      void authApi.updateLocale(value).catch(() => {
-        // silent fail — UX 차단하지 않음. 다음 변경/로그인 시 동기화.
-      });
+    if (value !== locale) {
+      switchLocale(value);
     }
   }
 

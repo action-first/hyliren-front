@@ -6,15 +6,19 @@ import type { LoginInput, RegisterInput } from '@/lib/api';
 import { tokenStore } from '@/lib/auth/token-store';
 
 /**
- * TODO(i18n PR follow-up): user.locale 기반 redirect 로 재구현.
+ * user.locale ↔ path 자동 동기화는 의도적으로 수행하지 않는다.
  *
- * 이전 구현은 `useLocaleStore.getState().setLocale(user.locale)` 로 store 만 갱신했으나,
- * path SSOT (`/{lang}/...`) 정책 도입 후엔 store 만 바꿔도 URL/path 와 어긋나며 다음
- * navigation 시 path lang 으로 다시 덮임. 또한 Provider 패턴 도입으로 외부 모듈에서
- * `.getState()` 글로벌 접근이 불가.
+ * 이유:
+ *   - 사용자가 명시 path (`/ko/...`) 로 진입한 경우 그 lang 이 현재 의도 (가장 강한 신호)
+ *   - user.locale 은 다른 디바이스에서의 마지막 명시 선택 — 현재 디바이스 의도가 아님
+ *   - 자동 redirect 는 사용자가 의외로 다른 lang 화면을 보게 만드는 UX 결함
  *
- * 정상 패턴: 로그인 직후 client component 에서 useLocalizedRouter 로
- * `router.push('/{user.locale}{rest}')` redirect. 해당 작업은 후속 PR 처리.
+ * 디바이스 간 user.locale 동기화 흐름:
+ *   1. 마이페이지 / LanguageSwitcher 에서 명시 선택 → useLocaleSwitch 가 path navigation
+ *      + PATCH /auth/locale (DB 갱신)
+ *   2. 다른 디바이스 첫 진입 시 cookie 없음 → Accept-Language fallback
+ *      → 그 디바이스에서도 사용자가 마이페이지에서 lang 변경 가능
+ *   3. user.locale 자체는 향후 추천/이메일 등 BE 측 콘텐츠 lang 결정에 활용
  */
 
 export type AuthStatus = 'idle' | 'authenticating' | 'authenticated' | 'guest';
@@ -54,7 +58,6 @@ export const useAuthStore = create<AuthState>()(
           isLoggedIn: !!user,
           isGuest: !user,
         });
-        // 디바이스 간 user.locale 동기화는 후속 PR 에서 router redirect 로 재구현 (위 TODO 참조).
       },
 
       loginWithPassword: async (input) => {
@@ -115,7 +118,6 @@ export const useAuthStore = create<AuthState>()(
           state.status = 'authenticated';
           state.isLoggedIn = true;
           state.isGuest = false;
-          // user.locale ↔ path 정합은 후속 PR (위 TODO 참조).
         } else {
           state.status = 'guest';
           state.isLoggedIn = false;
