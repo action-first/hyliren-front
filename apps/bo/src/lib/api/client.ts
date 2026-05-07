@@ -1,19 +1,6 @@
+import { env } from '@/lib/env';
+import { adminTokenStore } from '@/lib/auth/token-store';
 import { ApiError } from './errors';
-
-/**
- * BO BFF client.
- *
- * BO 의 모든 API 호출은 same-origin `/api/admin/*` route handler 경유.
- * 토큰은 httpOnly cookie 라 별도 Authorization 헤더 주입 불필요 — fetch credentials 'include'
- * 면 쿠키 자동 송신.
- *
- * FO/PO 의 client.ts 와 다른 점:
- *  - base URL 환경변수 없음 (same-origin)
- *  - 토큰 store 없음 (cookie 가 단일 진실원천)
- *  - refresh 로직 없음 (단일 만료, 만료 시 재로그인)
- *
- * 향후 real BE 전환 시: route handler 가 backend 로 proxy 해주므로 본 모듈 변경 X.
- */
 
 interface Envelope<T> {
   success: boolean;
@@ -23,8 +10,30 @@ interface Envelope<T> {
   error?: string;
 }
 
-export interface RequestOptions extends Omit<RequestInit, 'body'> {
-  body?: unknown;
+interface TokenPair {
+  accessToken: string;
+  refreshToken: string;
+}
+
+let refreshPromise: Promise<TokenPair> | null = null;
+let loggingOut = false;
+
+type ForcedLogoutReason = 'refresh_failed' | 'no_refresh_token' | 'storage_sync';
+const logoutListeners = new Set<(reason: ForcedLogoutReason) => void>();
+
+export function onForcedLogout(listener: (reason: ForcedLogoutReason) => void): () => void {
+  logoutListeners.add(listener);
+  return () => { logoutListeners.delete(listener); };
+}
+
+function notifyForcedLogout(reason: ForcedLogoutReason): void {
+  if (loggingOut) return;
+  loggingOut = true;
+  adminTokenStore.clearTokens();
+  logoutListeners.forEach((listener) => {
+    try { listener(reason); } catch { /* swallow — listener errors must not break auth flow */ }
+  });
+  loggingOut = false;
 }
 
 async function parseEnvelope<T>(res: Response): Promise<Envelope<T>> {
@@ -42,8 +51,45 @@ function coalesceMessage(envelope: Envelope<unknown>): string {
   return envelope.message ?? envelope.error ?? '알 수 없는 오류';
 }
 
+async function runRefresh(): Promise<TokenPair> {
+  const refreshToken = adminTokenStore.getRefreshToken();
+  if (!refreshToken) {
+    throw new ApiError(401, 'NO_REFRESH_TOKEN', 'No refresh token available');
+  }
+
+  const res = await fetch(`${env.adminApiBaseUrl}/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+    cache: 'no-store',
+  });
+
+  const envelope = await parseEnvelope<TokenPair>(res);
+  if (!res.ok || !envelope.success || !envelope.data) {
+    throw new ApiError(res.status, 'REFRESH_FAILED', coalesceMessage(envelope));
+  }
+
+  adminTokenStore.setTokens(envelope.data);
+  return envelope.data;
+}
+
+async function refreshOnce(): Promise<TokenPair> {
+  if (!refreshPromise) {
+    refreshPromise = runRefresh().finally(() => { refreshPromise = null; });
+  }
+  return refreshPromise;
+}
+
+export interface RequestOptions extends Omit<RequestInit, 'body'> {
+  body?: unknown;
+  /** 기본 true. false이면 Authorization 미첨부 (login 등). */
+  auth?: boolean;
+  /** 내부 전용 — 재시도 재귀 방지. 직접 사용하지 말 것. */
+  skipRefresh?: boolean;
+}
+
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { body, headers, ...init } = options;
+  const { auth = true, skipRefresh = false, body, headers, ...init } = options;
 
   const finalHeaders = new Headers(headers);
   finalHeaders.set('Accept', 'application/json');
@@ -58,17 +104,31 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     }
   }
 
+  if (auth) {
+    const token = adminTokenStore.getAccessToken();
+    if (token) finalHeaders.set('Authorization', `Bearer ${token}`);
+  }
+
   let res: Response;
   try {
-    res = await fetch(path, {
+    res = await fetch(`${env.adminApiBaseUrl}${path}`, {
       ...init,
       headers: finalHeaders,
       body: encodedBody,
       cache: 'no-store',
-      credentials: 'same-origin',
     });
   } catch (err) {
     throw ApiError.network(err instanceof Error ? err.message : '네트워크 오류');
+  }
+
+  if (res.status === 401 && auth && !skipRefresh && !loggingOut) {
+    try {
+      await refreshOnce();
+    } catch {
+      notifyForcedLogout('refresh_failed');
+      throw new ApiError(401, 'UNAUTHORIZED', 'Session expired');
+    }
+    return request<T>(path, { ...options, skipRefresh: true });
   }
 
   const envelope = await parseEnvelope<T>(res);
@@ -78,4 +138,12 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   }
 
   return envelope.data as T;
+}
+
+export function setTokens(tokens: TokenPair): void {
+  adminTokenStore.setTokens(tokens);
+}
+
+export function clearTokens(): void {
+  adminTokenStore.clearTokens();
 }

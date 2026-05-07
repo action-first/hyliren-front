@@ -8,13 +8,13 @@ import { useBOAuthStore } from '@/store/bo-auth';
 const PUBLIC_PATHS = new Set(['/login']);
 
 /**
- * Client-side defense-in-depth gate.
+ * Client-side admin auth gate (PO 의 PartnerAuthGate 와 동형).
  *
- * middleware.ts 가 cookie 검증을 SSR 단계에서 마쳤으므로 일반적으로 본 컴포넌트는
- * 통과만 함. 그러나 /me 응답이 401 (서버에서 cookie 만료/admin role 박탈) 인 경우
- * client store 가 guest 로 떨어지고 — 이때 본 gate 가 즉시 /login 으로 리다이렉트.
+ * BOSessionBootstrap 이 mount 시 token 으로 /auth/me 복원 시도.
+ * 결과가 guest 면 본 gate 가 즉시 /login 으로 리다이렉트.
  *
- * middleware + client gate 이중화로 cookie tampering·서버 401·세션 만료 모든 케이스 차단.
+ * 서버 401·세션 만료·token 탈취 후 BE 거부 등 모든 케이스에서 status 가 guest
+ * 로 떨어지면 본 gate 가 동작.
  */
 export function BOAuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
