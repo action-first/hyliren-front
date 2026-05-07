@@ -687,7 +687,8 @@
     "poDescription": "Hospital management system",
     "boTitle": "MIMYO Business Office",
     "boDescription": "Internal management system",
-    "description": "K-beauty decision platform. Register your concern and verified Korean hospitals will send tailored proposals."
+    "description": "K-beauty decision platform. Register your concern and verified Korean hospitals will send tailored proposals.",
+    "ogImageAlt": "MIMYO — It's OK to start with worries."
   },
   "dateFilter": {
     "today": "Today",
