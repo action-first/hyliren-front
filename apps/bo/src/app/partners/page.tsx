@@ -1,11 +1,12 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MOCK_MEMBERS, MOCK_PARTNER_PROFILES, MOCK_PROPOSALS, BODY_AREA_BADGE, isProposalAccepted } from '@hyliren/shared';
-import { BOSidebar } from '@/components/BOSidebar';
-import { DataGrid, AdminPage, badgeCellRenderer, detailLinkRenderer } from '@hyliren/ui';
+import { Spinner, DataGrid, AdminPage, badgeCellRenderer, detailLinkRenderer } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
 import type { ColDef } from 'ag-grid-community';
+import { BOSidebar } from '@/components/BOSidebar';
+import { listPartners, type AdminPartnerListItem } from '@/lib/api/admin-partners';
 
 const BO_ACCENT = '#18181b';
 
@@ -53,34 +54,54 @@ const columnDefs: ColDef<PartnerRow>[] = [
   },
 ];
 
+function toRow(item: AdminPartnerListItem): PartnerRow {
+  return {
+    id: item.id,
+    hospitalName: item.hospitalName,
+    specialties: item.specialties.join(', '),
+    verified: item.verified ? '인증' : '미인증',
+    proposalCount: item.proposalCount,
+    selectRate: `${item.selectRate}%`,
+  };
+}
+
 export default function PartnersPage() {
   const router = useRouter();
-  const partners = MOCK_MEMBERS.filter(m => m.role === 'partner');
-  const rowData: PartnerRow[] = partners.map(m => {
-    const profile = MOCK_PARTNER_PROFILES.find(p => p.memberId === m.id);
-    const proposals = MOCK_PROPOSALS.filter(p => p.memberId === m.id && p.isActive);
-    const selected = proposals.filter(isProposalAccepted).length;
-    const rate = proposals.length > 0 ? Math.round((selected / proposals.length) * 100) : 0;
-    return {
-      id: m.id,
-      hospitalName: profile?.hospitalName || m.name,
-      specialties: profile?.specialties.join(', ') || '',
-      verified: profile?.verified ? '인증' : '미인증',
-      proposalCount: proposals.length,
-      selectRate: `${rate}%`,
-    };
-  });
+  const [rows, setRows] = useState<PartnerRow[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    listPartners()
+      .then((items) => {
+        if (cancelled) return;
+        setRows(items.map(toRow));
+      })
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        setError(e instanceof Error ? e.message : '병원 목록을 불러오지 못했습니다.');
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <AdminPage sidebar={<BOSidebar active="/partners" />} title="병원 관리" prefix="bo">
-      <DataGrid<PartnerRow>
-        columnDefs={columnDefs}
-        rowData={rowData}
-        searchFields={searchFields}
-        exportFileName="병원목록"
-        title="병원 목록"
-        onRowClick={(data) => router.push(`/partners/${data.id}`)}
-      />
+      {error ? (
+        <div style={{ padding: 24, color: 'var(--color-danger,#d72c0d)', fontSize: 13 }}>{error}</div>
+      ) : rows === null ? (
+        <div style={{ minHeight: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Spinner />
+        </div>
+      ) : (
+        <DataGrid<PartnerRow>
+          columnDefs={columnDefs}
+          rowData={rows}
+          searchFields={searchFields}
+          exportFileName="병원목록"
+          title="병원 목록"
+          onRowClick={(data) => router.push(`/partners/${data.id}`)}
+        />
+      )}
     </AdminPage>
   );
 }
