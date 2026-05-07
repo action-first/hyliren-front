@@ -24,11 +24,4 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Prisma 가 자동 생성하는 model 타입을 같이 re-export 하면 호출처 import 가 단순해짐.
-export type {
-  User,
-  Member,
-  PartnerProfile,
-  AdminAuditLog,
-  UserRole,
-  MemberRole,
-} from '@prisma/client';
+export type { Member, MemberRole } from '@prisma/client';

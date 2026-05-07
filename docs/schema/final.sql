@@ -2,6 +2,10 @@
 -- Hyliren — Local DB Schema Initializer
 -- PostgreSQL 16+
 -- 컨테이너 최초 기동 시 /docker-entrypoint-initdb.d/ 에 의해 자동 실행됩니다.
+--
+-- ⚠️ SOURCE OF TRUTH: hyliren-api/docker/init.sql
+--   본 파일은 그 정본의 동기화 사본. hyliren-api 측 변경 시 수동 sync.
+--   FE (Prisma schema 등) 가 참조할 때는 본 파일 기준.
 -- =============================================================
 
 
@@ -41,6 +45,27 @@ CREATE TYPE article_status   AS ENUM ('draft', 'published', 'archived');
 CREATE TYPE article_category AS ENUM ('guide', 'review', 'news', 'tip');
 CREATE TYPE article_intent   AS ENUM ('education', 'promotion', 'seo');
 
+CREATE TYPE procedure_status AS ENUM ('draft', 'published', 'archived');
+CREATE TYPE procedure_type   AS ENUM (
+  -- 눈 (7)
+  'eye_double_eyelid', 'eye_ptosis_correction', 'eye_under_eye_fat',
+  'eye_lower_blepharoplasty', 'eye_epicanthoplasty', 'eye_canthoplasty',
+  'eye_revision',
+  -- 코 (6)
+  'nose_augmentation', 'nose_tip', 'nose_revision', 'nose_hump',
+  'nose_short_correction', 'nose_nostril',
+  -- 리프팅 · 안면윤곽 (8)
+  'lift_thread', 'lift_ulthera', 'lift_hifu', 'lift_face_lift',
+  'lift_fat_graft', 'contour_facial', 'contour_mandible', 'contour_chin',
+  -- 피부 (6)
+  'skin_laser', 'skin_injection', 'skin_peeling', 'skin_acne',
+  'skin_pigmentation', 'skin_scar',
+  -- 다이어트 (3)
+  'diet_liposuction', 'diet_injection', 'diet_body_contouring',
+  -- 기타 (1)
+  'other'
+);
+
 -- =============================================================
 -- Tables (FK 의존 순서로 정렬)
 -- =============================================================
@@ -55,7 +80,8 @@ CREATE TABLE users (
   phone         VARCHAR(20)  UNIQUE,
   password_hash VARCHAR(72),
   name          VARCHAR(100) NOT NULL,
-  locale        VARCHAR(10)  NOT NULL DEFAULT 'zh-CN',
+  locale        VARCHAR(10)  NOT NULL DEFAULT 'zh-CN'
+                CHECK (locale IN ('ko', 'zh-CN', 'ja', 'en')),
   avatar_url    TEXT,
   referral_code VARCHAR(32)  UNIQUE,
   referred_by   VARCHAR(28)  REFERENCES users(user_id) ON DELETE SET NULL,
@@ -90,13 +116,10 @@ CREATE TABLE members (
 
 -- ------------------------------------------------------------
 -- 4. partner_profiles
+-- 다국어 컨텐츠(hospital_name / description)는 partner_profile_translations 에 분리 저장.
 -- ------------------------------------------------------------
 CREATE TABLE partner_profiles (
   member_id        VARCHAR(28)  PRIMARY KEY REFERENCES members(member_id) ON DELETE CASCADE,
-  hospital_name    VARCHAR(200) NOT NULL,
-  hospital_name_zh VARCHAR(200),
-  description      TEXT,
-  description_zh   TEXT,
   address          VARCHAR(500),
   phone            VARCHAR(20),
   website          VARCHAR(512),
@@ -104,8 +127,23 @@ CREATE TABLE partner_profiles (
   cover_image_url  TEXT,
   specialties      JSONB        NOT NULL DEFAULT '[]',
   verified         BOOLEAN      NOT NULL DEFAULT false,
+  source_locale    VARCHAR(10)  NOT NULL DEFAULT 'ko'
+               CHECK (source_locale IN ('ko', 'zh-CN', 'ja', 'en')),
   created_at       TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
+
+-- 병원(파트너) 다국어 컨텐츠 — 기존 partner_profiles.{hospital_name,description}_{zh} 를 정규화.
+CREATE TABLE partner_profile_translations (
+  member_id      VARCHAR(28)  NOT NULL REFERENCES partner_profiles(member_id) ON DELETE CASCADE,
+  locale         VARCHAR(10)  NOT NULL
+               CHECK (locale IN ('ko', 'zh-CN', 'ja', 'en')),
+  hospital_name  VARCHAR(200) NOT NULL,
+  description    TEXT,
+  created_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  PRIMARY KEY (member_id, locale)
+);
+CREATE INDEX idx_partner_profile_translations_locale ON partner_profile_translations(locale);
 
 -- ------------------------------------------------------------
 -- 5. subscriptions
@@ -152,9 +190,6 @@ CREATE TABLE concerns (
   source           concern_source NOT NULL DEFAULT 'organic',
   body_areas       JSONB          NOT NULL DEFAULT '[]',
   primary_area     VARCHAR(50)    NOT NULL,
-  body_area_detail VARCHAR(300),
-  description      TEXT           NOT NULL,
-  raw_narrative    TEXT,
   ai_summary       JSONB,
   feedback_turns   JSONB          NOT NULL DEFAULT '[]',
   budget_min       INT,
@@ -162,6 +197,8 @@ CREATE TABLE concerns (
   visit_date_from  DATE,
   visit_date_to    DATE,
   has_passport     BOOLEAN        NOT NULL DEFAULT false,
+  source_locale    VARCHAR(10)    NOT NULL DEFAULT 'ko'
+               CHECK (source_locale IN ('ko', 'zh-CN', 'ja', 'en')),
   created_at       TIMESTAMPTZ    NOT NULL DEFAULT now(),
   updated_at       TIMESTAMPTZ    NOT NULL DEFAULT now(),
   deleted_at       TIMESTAMPTZ
@@ -194,10 +231,11 @@ CREATE TABLE proposals (
   hospital_stay_days  INT             NOT NULL DEFAULT 0,
   available_date_from DATE,
   available_date_to   DATE,
-  consultation_note   TEXT,
   quality_score       INT,
   is_flagged          BOOLEAN         NOT NULL DEFAULT false,
   credits_charged     INT             NOT NULL DEFAULT 0,
+  source_locale       VARCHAR(10)     NOT NULL DEFAULT 'ko'
+               CHECK (source_locale IN ('ko', 'zh-CN', 'ja', 'en')),
   sent_at             TIMESTAMPTZ,
   viewed_at           TIMESTAMPTZ,
   created_at          TIMESTAMPTZ     NOT NULL DEFAULT now(),
@@ -209,14 +247,13 @@ CREATE TABLE proposals (
 -- 11. proposal_items
 -- ------------------------------------------------------------
 CREATE TABLE proposal_items (
-  proposal_item_id  VARCHAR(28) PRIMARY KEY,
-  proposal_id       VARCHAR(28) NOT NULL REFERENCES proposals(proposal_id) ON DELETE CASCADE,
-  treatment_name    VARCHAR(200) NOT NULL,
-  treatment_name_zh VARCHAR(200),
-  price             INT         NOT NULL,
-  description       TEXT,
-  sort_order        INT         NOT NULL DEFAULT 0,
-  created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+  proposal_item_id VARCHAR(28) PRIMARY KEY,
+  proposal_id      VARCHAR(28) NOT NULL REFERENCES proposals(proposal_id) ON DELETE CASCADE,
+  price            INT         NOT NULL,
+  sort_order       INT         NOT NULL DEFAULT 0,
+  source_locale    VARCHAR(10) NOT NULL DEFAULT 'ko'
+               CHECK (source_locale IN ('ko', 'zh-CN', 'ja', 'en')),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- ------------------------------------------------------------
@@ -338,17 +375,14 @@ CREATE TABLE articles (
   status           article_status   NOT NULL DEFAULT 'draft',
   category         article_category NOT NULL,
   intent           article_intent   NOT NULL,
-  title_ko         VARCHAR(300)     NOT NULL,
-  body_ko          TEXT             NOT NULL,
-  excerpt_ko       VARCHAR(500),
-  title_zh         VARCHAR(300),
-  body_zh          TEXT,
-  excerpt_zh       VARCHAR(500),
   cover_image_url  TEXT,
   tags             JSONB            NOT NULL DEFAULT '[]',
   body_areas       JSONB            NOT NULL DEFAULT '[]',
   view_count       INT              NOT NULL DEFAULT 0,
   cta_click_count  INT              NOT NULL DEFAULT 0,
+  featured         BOOLEAN          NOT NULL DEFAULT FALSE,
+  source_locale    VARCHAR(10)      NOT NULL DEFAULT 'ko'
+               CHECK (source_locale IN ('ko', 'zh-CN', 'ja', 'en')),
   published_at     TIMESTAMPTZ,
   created_at       TIMESTAMPTZ      NOT NULL DEFAULT now(),
   updated_at       TIMESTAMPTZ      NOT NULL DEFAULT now(),
@@ -363,7 +397,158 @@ CREATE TABLE article_images (
   article_id       VARCHAR(28) NOT NULL REFERENCES articles(article_id) ON DELETE CASCADE,
   url              TEXT         NOT NULL,
   alt_text         VARCHAR(300),
-  sort_order       INT  NOT NULL DEFAULT 0
+  type             VARCHAR(20)  NOT NULL DEFAULT 'lifestyle'
+                                CHECK (type IN ('hero', 'procedure', 'lifestyle')),
+  sort_order       INT          NOT NULL DEFAULT 0
+);
+
+-- ------------------------------------------------------------
+-- 21. procedures
+-- ------------------------------------------------------------
+-- 병원 파트너가 등록하는 시술/수술 상품.
+-- 다국어 컨텐츠는 procedure_translations 에 분리 저장 (source_locale 기준 fallback).
+-- price_min/price_max 는 variant 변경 시 서비스에서 재계산되는 역정규화 컬럼.
+CREATE TABLE procedures (
+  procedure_id            VARCHAR(28)      PRIMARY KEY,
+  member_id               VARCHAR(28)      NOT NULL REFERENCES members(member_id) ON DELETE CASCADE,
+  slug                    VARCHAR(120)     NOT NULL UNIQUE,
+  primary_area            VARCHAR(50)      NOT NULL,
+  procedure_type          procedure_type   NOT NULL,
+  hero_image_url          TEXT             NOT NULL DEFAULT '',
+  gallery_image_urls      JSONB            NOT NULL DEFAULT '[]',
+  base_price              INT              NOT NULL DEFAULT 0,
+  base_anesthesia         anesthesia_type  NOT NULL DEFAULT 'local',
+  base_duration_minutes   INT              NOT NULL DEFAULT 30,
+  base_recovery_days      INT              NOT NULL DEFAULT 0,
+  base_hospital_stay_days INT              NOT NULL DEFAULT 0,
+  price_min               INT              NOT NULL DEFAULT 0,
+  price_max               INT              NOT NULL DEFAULT 0,
+  currency                CHAR(3)          NOT NULL DEFAULT 'KRW',
+  status                  procedure_status NOT NULL DEFAULT 'draft',
+  source_locale           VARCHAR(10)      NOT NULL DEFAULT 'ko'
+               CHECK (source_locale IN ('ko', 'zh-CN', 'ja', 'en')),
+  view_count              INT              NOT NULL DEFAULT 0,
+  bookmark_count          INT              NOT NULL DEFAULT 0,
+  consult_click_count     INT              NOT NULL DEFAULT 0,
+  published_at            TIMESTAMPTZ,
+  created_at              TIMESTAMPTZ      NOT NULL DEFAULT now(),
+  updated_at              TIMESTAMPTZ      NOT NULL DEFAULT now(),
+  deleted_at              TIMESTAMPTZ
+);
+
+-- ------------------------------------------------------------
+-- 22. procedure_variants
+-- ------------------------------------------------------------
+-- 시술 세부 옵션. procedure 당 최소 1개, is_default 정확히 1개 (service 에서 보장).
+-- price/anesthesia/duration_minutes/recovery_days/hospital_stay_days 가 null 이면
+-- procedure.base_* 값 상속 (frontend getEffectiveVariant() 와 동일 규약).
+CREATE TABLE procedure_variants (
+  procedure_variant_id  VARCHAR(28)     PRIMARY KEY,
+  procedure_id          VARCHAR(28)     NOT NULL REFERENCES procedures(procedure_id) ON DELETE CASCADE,
+  price                 INT,
+  anesthesia            anesthesia_type,
+  duration_minutes      INT,
+  recovery_days         INT,
+  hospital_stay_days    INT,
+  sort_order            INT             NOT NULL DEFAULT 0,
+  is_default            BOOLEAN         NOT NULL DEFAULT false,
+  source_locale         VARCHAR(10)     NOT NULL DEFAULT 'ko'
+               CHECK (source_locale IN ('ko', 'zh-CN', 'ja', 'en')),
+  created_at            TIMESTAMPTZ     NOT NULL DEFAULT now(),
+  updated_at            TIMESTAMPTZ     NOT NULL DEFAULT now()
+);
+
+-- ------------------------------------------------------------
+-- 23. concern_translations
+-- ------------------------------------------------------------
+-- 고민(concerns) 다국어 본문. source_locale 행은 원문, 그 외는 번역본.
+CREATE TABLE concern_translations (
+  concern_id       VARCHAR(28)  NOT NULL REFERENCES concerns(concern_id) ON DELETE CASCADE,
+  locale           VARCHAR(10)  NOT NULL
+               CHECK (locale IN ('ko', 'zh-CN', 'ja', 'en')),
+  description      TEXT         NOT NULL,
+  raw_narrative    TEXT,
+  body_area_detail VARCHAR(300),
+  created_at       TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at       TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  PRIMARY KEY (concern_id, locale)
+);
+
+-- ------------------------------------------------------------
+-- 24. proposal_translations
+-- ------------------------------------------------------------
+-- 제안서(proposals) 다국어 컨텐츠 — 현재는 consultation_note 만 번역 대상.
+CREATE TABLE proposal_translations (
+  proposal_id       VARCHAR(28)  NOT NULL REFERENCES proposals(proposal_id) ON DELETE CASCADE,
+  locale            VARCHAR(10)  NOT NULL
+               CHECK (locale IN ('ko', 'zh-CN', 'ja', 'en')),
+  consultation_note TEXT,
+  created_at        TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at        TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  PRIMARY KEY (proposal_id, locale)
+);
+
+-- ------------------------------------------------------------
+-- 25. proposal_item_translations
+-- ------------------------------------------------------------
+-- 제안서 항목(proposal_items) 다국어 컨텐츠 — 시술명/설명 locale 별 번역.
+CREATE TABLE proposal_item_translations (
+  proposal_item_id VARCHAR(28)  NOT NULL REFERENCES proposal_items(proposal_item_id) ON DELETE CASCADE,
+  locale           VARCHAR(10)  NOT NULL
+               CHECK (locale IN ('ko', 'zh-CN', 'ja', 'en')),
+  treatment_name   VARCHAR(200) NOT NULL,
+  description      TEXT,
+  created_at       TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at       TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  PRIMARY KEY (proposal_item_id, locale)
+);
+
+-- ------------------------------------------------------------
+-- 26. procedure_translations
+-- ------------------------------------------------------------
+-- 시술(procedures) 다국어 컨텐츠 — 기존 procedures.i18n JSONB 를 정규화.
+CREATE TABLE procedure_translations (
+  procedure_id VARCHAR(28)  NOT NULL REFERENCES procedures(procedure_id) ON DELETE CASCADE,
+  locale       VARCHAR(10)  NOT NULL
+               CHECK (locale IN ('ko', 'zh-CN', 'ja', 'en')),
+  title        VARCHAR(300) NOT NULL,
+  description  TEXT,
+  precautions  TEXT,
+  indications  JSONB        NOT NULL DEFAULT '[]',
+  created_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  PRIMARY KEY (procedure_id, locale)
+);
+
+-- ------------------------------------------------------------
+-- 27. procedure_variant_translations
+-- ------------------------------------------------------------
+-- 시술 세부 옵션(procedure_variants) 다국어 컨텐츠 — 기존 procedure_variants.i18n JSONB 를 정규화.
+CREATE TABLE procedure_variant_translations (
+  procedure_variant_id VARCHAR(28)  NOT NULL REFERENCES procedure_variants(procedure_variant_id) ON DELETE CASCADE,
+  locale               VARCHAR(10)  NOT NULL
+               CHECK (locale IN ('ko', 'zh-CN', 'ja', 'en')),
+  name                 VARCHAR(200) NOT NULL,
+  description          TEXT,
+  created_at           TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at           TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  PRIMARY KEY (procedure_variant_id, locale)
+);
+
+-- ------------------------------------------------------------
+-- 28. article_translations
+-- ------------------------------------------------------------
+-- 아티클(articles) 다국어 컨텐츠 — 기존 title_ko/zh, body_ko/zh, excerpt_ko/zh 정규화.
+CREATE TABLE article_translations (
+  article_id VARCHAR(28)  NOT NULL REFERENCES articles(article_id) ON DELETE CASCADE,
+  locale     VARCHAR(10)  NOT NULL
+               CHECK (locale IN ('ko', 'zh-CN', 'ja', 'en')),
+  title      VARCHAR(300) NOT NULL,
+  body       TEXT         NOT NULL,
+  excerpt    VARCHAR(500),
+  created_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  PRIMARY KEY (article_id, locale)
 );
 
 -- =============================================================
@@ -379,6 +564,12 @@ CREATE INDEX idx_proposals_member_id  ON proposals(member_id);
 CREATE INDEX idx_proposals_status     ON proposals(status);
 CREATE INDEX idx_proposals_deleted_at ON proposals(deleted_at) WHERE deleted_at IS NULL;
 
+-- Partial unique — 같은 concern × member 의 활성 제안서 1개만 허용 (race condition 차단).
+-- is_active=true AND deleted_at IS NULL 조건만 고유. 비활성·삭제된 row 는 중복 허용 (이력 보존).
+CREATE UNIQUE INDEX uniq_active_proposal_concern_member
+  ON proposals(concern_id, member_id)
+  WHERE is_active = true AND deleted_at IS NULL;
+
 CREATE INDEX idx_orders_user_id       ON orders(user_id);
 CREATE INDEX idx_orders_status        ON orders(status);
 
@@ -386,12 +577,27 @@ CREATE INDEX idx_events_actor_id      ON events(actor_id);
 CREATE INDEX idx_events_target_id     ON events(target_id);
 CREATE INDEX idx_events_event_type    ON events(event_type);
 
+CREATE INDEX idx_procedures_member_id      ON procedures(member_id);
+CREATE INDEX idx_procedures_status         ON procedures(status);
+CREATE INDEX idx_procedures_primary_area   ON procedures(primary_area);
+CREATE INDEX idx_procedures_deleted_at     ON procedures(deleted_at) WHERE deleted_at IS NULL;
+
+CREATE INDEX idx_procedure_variants_procedure_id ON procedure_variants(procedure_id);
+
 CREATE INDEX idx_credit_txn_member_id ON credit_transactions(member_id);
 CREATE INDEX idx_referral_payouts_ref ON referral_payouts(referrer_id);
 
 CREATE INDEX idx_articles_slug        ON articles(slug);
 CREATE INDEX idx_articles_status      ON articles(status);
 CREATE INDEX idx_articles_deleted_at  ON articles(deleted_at) WHERE deleted_at IS NULL;
+CREATE INDEX idx_articles_featured    ON articles(featured) WHERE featured = TRUE;
+
+CREATE INDEX idx_concern_translations_locale           ON concern_translations(locale);
+CREATE INDEX idx_proposal_translations_locale          ON proposal_translations(locale);
+CREATE INDEX idx_proposal_item_translations_locale     ON proposal_item_translations(locale);
+CREATE INDEX idx_procedure_translations_locale         ON procedure_translations(locale);
+CREATE INDEX idx_procedure_variant_translations_locale ON procedure_variant_translations(locale);
+CREATE INDEX idx_article_translations_locale           ON article_translations(locale);
 
 -- =============================================================
 -- Table & Column Comments
@@ -440,12 +646,8 @@ COMMENT ON COLUMN members.updated_at    IS '최종 수정 일시';
 -- ------------------------------------------------------------
 -- partner_profiles
 -- ------------------------------------------------------------
-COMMENT ON TABLE partner_profiles IS '병원(파트너) 상세 프로필. 고객에게 노출되는 병원 소개 정보. 한국어/중국어 다국어 지원. members와 1:1.';
+COMMENT ON TABLE partner_profiles IS '병원(파트너) 상세 프로필. 고객에게 노출되는 병원 소개 정보. members와 1:1. 다국어는 partner_profile_translations 분리.';
 COMMENT ON COLUMN partner_profiles.member_id        IS '멤버 ID (members.member_id FK, 1:1 관계의 PK)';
-COMMENT ON COLUMN partner_profiles.hospital_name    IS '병원명 (한국어)';
-COMMENT ON COLUMN partner_profiles.hospital_name_zh IS '병원명 (중국어 번역)';
-COMMENT ON COLUMN partner_profiles.description      IS '병원 소개 (한국어)';
-COMMENT ON COLUMN partner_profiles.description_zh   IS '병원 소개 (중국어 번역)';
 COMMENT ON COLUMN partner_profiles.address          IS '병원 주소 (추측)';
 COMMENT ON COLUMN partner_profiles.phone            IS '병원 대표 전화번호 (추측)';
 COMMENT ON COLUMN partner_profiles.website          IS '병원 공식 웹사이트 URL (추측)';
@@ -453,7 +655,17 @@ COMMENT ON COLUMN partner_profiles.logo_url         IS '병원 로고 이미지 
 COMMENT ON COLUMN partner_profiles.cover_image_url  IS '프로필 상단 커버 이미지 URL';
 COMMENT ON COLUMN partner_profiles.specialties      IS '전문 분야 / 시술 카테고리 (JSONB 배열)';
 COMMENT ON COLUMN partner_profiles.verified         IS '관리자 심사(검증) 완료 여부';
+COMMENT ON COLUMN partner_profiles.source_locale    IS '원본 언어 — partner_profile_translations fallback 기준 (기본 ko)';
 COMMENT ON COLUMN partner_profiles.created_at       IS '프로필 생성 일시';
+
+-- ------------------------------------------------------------
+-- partner_profile_translations
+-- ------------------------------------------------------------
+COMMENT ON TABLE partner_profile_translations IS '병원(파트너) 다국어 컨텐츠. 기존 partner_profiles.{hospital_name,description}_{zh} 를 정규화한 테이블.';
+COMMENT ON COLUMN partner_profile_translations.member_id     IS '소속 파트너 member ID (partner_profiles.member_id FK, PK 일부)';
+COMMENT ON COLUMN partner_profile_translations.locale        IS 'BCP-47 로케일 (예: ko, zh-CN, ja, en). PK 일부';
+COMMENT ON COLUMN partner_profile_translations.hospital_name IS '병원명 (해당 locale, 필수)';
+COMMENT ON COLUMN partner_profile_translations.description   IS '병원 소개 (해당 locale)';
 
 -- ------------------------------------------------------------
 -- subscriptions
@@ -496,10 +708,7 @@ COMMENT ON COLUMN concerns.user_id         IS '고민을 등록한 고객 ID (us
 COMMENT ON COLUMN concerns.status          IS '고민 상태: draft → submitted(pending_review/proposals_waiting) → comparing → hospital_selected → completed / cancelled';
 COMMENT ON COLUMN concerns.source          IS '유입 경로: organic / referral / campaign';
 COMMENT ON COLUMN concerns.body_areas      IS '관심 시술 부위 목록 (JSONB 배열)';
-COMMENT ON COLUMN concerns.primary_area    IS '주된 시술 부위 (예: 눈 / 코 / 턱)';
-COMMENT ON COLUMN concerns.body_area_detail IS '부위 세부 서술 (예: "쌍꺼풀 + 앞트임", 추측)';
-COMMENT ON COLUMN concerns.description     IS '고객이 서술한 고민 내용 (정제된 본문, 추측)';
-COMMENT ON COLUMN concerns.raw_narrative   IS '고객 최초 입력 원문 (가공 전 텍스트, 추측)';
+COMMENT ON COLUMN concerns.primary_area    IS '주된 시술 부위 — BodyArea enum key (eyes/nose/lifting/skin/diet/etc)';
 COMMENT ON COLUMN concerns.ai_summary      IS 'AI 분석 구조화 요약 (JSONB)';
 COMMENT ON COLUMN concerns.feedback_turns  IS 'AI 상담 대화 히스토리 (턴 배열, JSONB)';
 COMMENT ON COLUMN concerns.budget_min      IS '희망 예산 하한 (통화는 별도 필드/기본값에 종속, 추측)';
@@ -507,6 +716,7 @@ COMMENT ON COLUMN concerns.budget_max      IS '희망 예산 상한 (통화는 �
 COMMENT ON COLUMN concerns.visit_date_from IS '방한 희망 시기 시작일';
 COMMENT ON COLUMN concerns.visit_date_to   IS '방한 희망 시기 종료일';
 COMMENT ON COLUMN concerns.has_passport    IS '여권 보유 여부 (실제 방한 가능성/확정도 판단에 활용)';
+COMMENT ON COLUMN concerns.source_locale   IS '원본 언어 — concern_translations fallback 기준 (기본 ko)';
 COMMENT ON COLUMN concerns.created_at      IS '고민 등록 일시';
 COMMENT ON COLUMN concerns.updated_at      IS '최종 수정 일시';
 COMMENT ON COLUMN concerns.deleted_at      IS '소프트 삭제 일시 (null이면 활성, 데이터 보존용)';
@@ -537,10 +747,10 @@ COMMENT ON COLUMN proposals.anesthesia_type    IS '마취 종류: local / sedati
 COMMENT ON COLUMN proposals.hospital_stay_days IS '예상 입원 일수 (외래면 0)';
 COMMENT ON COLUMN proposals.available_date_from IS '시술 가능 시작일';
 COMMENT ON COLUMN proposals.available_date_to   IS '시술 가능 종료일';
-COMMENT ON COLUMN proposals.consultation_note  IS '의사/상담 메모 (고객 표시용)';
 COMMENT ON COLUMN proposals.quality_score      IS '제안서 품질 점수 (관리자/AI 평가)';
 COMMENT ON COLUMN proposals.is_flagged         IS '관리자 플래그 (저품질/스팸 의심)';
 COMMENT ON COLUMN proposals.credits_charged    IS '발송 시 차감된 크레딧 수량';
+COMMENT ON COLUMN proposals.source_locale      IS '원본 언어 — proposal_translations fallback 기준 (기본 ko)';
 COMMENT ON COLUMN proposals.sent_at            IS '고객에게 발송된(공개된) 일시';
 COMMENT ON COLUMN proposals.viewed_at          IS '고객이 최초 열람한 일시';
 COMMENT ON COLUMN proposals.created_at         IS '제안서 작성 일시';
@@ -551,14 +761,12 @@ COMMENT ON COLUMN proposals.deleted_at         IS '소프트 삭제 일시 (null
 -- proposal_items
 -- ------------------------------------------------------------
 COMMENT ON TABLE proposal_items IS '제안서에 포함된 개별 시술 항목. 제안서 총액(total_price)의 구성 근거이며, 동일 포맷 비교의 단위가 된다.';
-COMMENT ON COLUMN proposal_items.proposal_item_id  IS '항목 고유 식별자 (ULID 기반, 28자)';
-COMMENT ON COLUMN proposal_items.proposal_id       IS '소속 제안서 ID (proposals.proposal_id FK)';
-COMMENT ON COLUMN proposal_items.treatment_name    IS '시술명 (한국어)';
-COMMENT ON COLUMN proposal_items.treatment_name_zh IS '시술명 (중국어 번역)';
-COMMENT ON COLUMN proposal_items.price             IS '항목별 가격';
-COMMENT ON COLUMN proposal_items.description       IS '시술 상세 설명 (추측)';
-COMMENT ON COLUMN proposal_items.sort_order        IS '표시 정렬 순서 (낮을수록 앞)';
-COMMENT ON COLUMN proposal_items.created_at        IS '항목 추가 일시';
+COMMENT ON COLUMN proposal_items.proposal_item_id IS '항목 고유 식별자 (ULID 기반, 28자)';
+COMMENT ON COLUMN proposal_items.proposal_id      IS '소속 제안서 ID (proposals.proposal_id FK)';
+COMMENT ON COLUMN proposal_items.price            IS '항목별 가격';
+COMMENT ON COLUMN proposal_items.sort_order       IS '표시 정렬 순서 (낮을수록 앞)';
+COMMENT ON COLUMN proposal_items.source_locale    IS '원본 언어 — proposal_item_translations fallback 기준 (기본 ko)';
+COMMENT ON COLUMN proposal_items.created_at       IS '항목 추가 일시';
 
 -- ------------------------------------------------------------
 -- proposal_images
@@ -655,23 +863,18 @@ COMMENT ON COLUMN events.created_at  IS '이벤트 발생 일시';
 -- ------------------------------------------------------------
 -- articles
 -- ------------------------------------------------------------
-COMMENT ON TABLE articles IS '콘텐츠 마케팅용 아티클 (가이드/후기/뉴스/팁). Phase 1 바이럴 및 SEO 유입 전략의 핵심 — 한국어/중국어 다국어 본문을 단일 레코드에 보관. 소프트 삭제(deleted_at) 지원.';
+COMMENT ON TABLE articles IS '콘텐츠 마케팅용 아티클 (가이드/후기/뉴스/팁). Phase 1 바이럴 및 SEO 유입 전략의 핵심 — 다국어 본문은 article_translations 에 분리 저장(source_locale 기준 fallback). 소프트 삭제(deleted_at) 지원.';
 COMMENT ON COLUMN articles.article_id      IS '아티클 고유 식별자 (ULID 기반, 28자)';
 COMMENT ON COLUMN articles.slug            IS 'SEO 친화적 URL 슬러그 (고유)';
 COMMENT ON COLUMN articles.status          IS '게시 상태: draft → published → archived';
 COMMENT ON COLUMN articles.category        IS '카테고리: guide / review / news / tip';
 COMMENT ON COLUMN articles.intent          IS '콘텐츠 목적: education / promotion / seo';
-COMMENT ON COLUMN articles.title_ko        IS '제목 (한국어)';
-COMMENT ON COLUMN articles.body_ko         IS '본문 (한국어, 마크다운/HTML 추측)';
-COMMENT ON COLUMN articles.excerpt_ko      IS '요약/미리보기 (한국어)';
-COMMENT ON COLUMN articles.title_zh        IS '제목 (중국어 번역)';
-COMMENT ON COLUMN articles.body_zh         IS '본문 (중국어 번역)';
-COMMENT ON COLUMN articles.excerpt_zh      IS '요약/미리보기 (중국어 번역)';
 COMMENT ON COLUMN articles.cover_image_url IS '리스트/상단 노출용 커버 이미지 URL';
 COMMENT ON COLUMN articles.tags            IS '태그 목록 (JSONB 배열)';
 COMMENT ON COLUMN articles.body_areas      IS '관련 시술 부위 키워드 (JSONB 배열, 고민과 매칭용)';
 COMMENT ON COLUMN articles.view_count      IS '조회수 누적 (성과 추적)';
 COMMENT ON COLUMN articles.cta_click_count IS 'CTA 클릭수 누적 (전환 추적)';
+COMMENT ON COLUMN articles.source_locale   IS '원본 언어 — article_translations fallback 기준 (기본 ko)';
 COMMENT ON COLUMN articles.published_at    IS '최초 게시 일시 (draft 단계에서는 null)';
 COMMENT ON COLUMN articles.created_at      IS '작성 일시';
 COMMENT ON COLUMN articles.updated_at      IS '최종 수정 일시';
@@ -687,4 +890,361 @@ COMMENT ON COLUMN article_images.url              IS '이미지 파일 URL (스�
 COMMENT ON COLUMN article_images.alt_text         IS '이미지 대체 텍스트 (접근성/SEO 용)';
 COMMENT ON COLUMN article_images.sort_order       IS '본문/갤러리 내 정렬 순서 (낮을수록 앞)';
 
+-- ------------------------------------------------------------
+-- procedures
+-- ------------------------------------------------------------
+COMMENT ON TABLE procedures IS '병원 파트너가 등록하는 시술/수술 상품. 다국어 컨텐츠는 procedure_translations 테이블에 분리 저장, price_min/max 는 variant 변경 시 서비스에서 재계산되는 역정규화 컬럼. 소프트 삭제(deleted_at) 지원.';
+COMMENT ON COLUMN procedures.procedure_id          IS '시술 고유 식별자 (ULID 기반, 28자, prefix PC)';
+COMMENT ON COLUMN procedures.member_id             IS '등록 주체 병원 ID (members.member_id FK)';
+COMMENT ON COLUMN procedures.slug                  IS 'SEO URL 슬러그 (전역 유니크, 서비스에서 suffix 부여 보장)';
+COMMENT ON COLUMN procedures.primary_area          IS '주 시술 부위 — BodyArea enum key (eyes/nose/lifting/skin/diet/etc)';
+COMMENT ON COLUMN procedures.procedure_type        IS '시술 세부 유형 (eye_double_eyelid 등 30여개, procedure_type enum)';
+COMMENT ON COLUMN procedures.hero_image_url        IS '대표 이미지 URL (draft 는 빈 문자열 허용, published 는 필수)';
+COMMENT ON COLUMN procedures.gallery_image_urls    IS '갤러리 이미지 URL 배열 (최대 8장, JSONB)';
+COMMENT ON COLUMN procedures.base_price            IS '기본 가격 (원). variant 가 null 이면 이 값 상속';
+COMMENT ON COLUMN procedures.base_anesthesia       IS '기본 마취 방식. variant 승계 기준';
+COMMENT ON COLUMN procedures.base_duration_minutes IS '기본 시술 시간 (분). variant 승계 기준';
+COMMENT ON COLUMN procedures.base_recovery_days    IS '기본 회복 기간 (일). variant 승계 기준';
+COMMENT ON COLUMN procedures.base_hospital_stay_days IS '기본 입원 기간 (일). variant 승계 기준';
+COMMENT ON COLUMN procedures.price_min             IS 'variant 가격 최소치 역정규화 (리스트/FO 노출 최적화)';
+COMMENT ON COLUMN procedures.price_max             IS 'variant 가격 최대치 역정규화';
+COMMENT ON COLUMN procedures.currency              IS '통화 단위 (현재 KRW 고정)';
+COMMENT ON COLUMN procedures.status                IS '게시 상태: draft → published → archived';
+COMMENT ON COLUMN procedures.source_locale         IS '원본 언어 — procedure_translations fallback 기준 (기본 ko)';
+COMMENT ON COLUMN procedures.view_count            IS 'FO 상세 조회수 누적';
+COMMENT ON COLUMN procedures.bookmark_count        IS '북마크 누적 (bookmarks 도메인 추가 시 연동)';
+COMMENT ON COLUMN procedures.consult_click_count   IS '상담 버튼 클릭 누적';
+COMMENT ON COLUMN procedures.published_at          IS '최초 공개 일시 (draft 는 null, published 전환 시 세팅)';
+COMMENT ON COLUMN procedures.created_at            IS '등록 일시';
+COMMENT ON COLUMN procedures.updated_at            IS '최종 수정 일시';
+COMMENT ON COLUMN procedures.deleted_at            IS '소프트 삭제 일시 (archived 와 별개 — deleted_at 은 완전 숨김)';
 
+-- ------------------------------------------------------------
+-- procedure_variants
+-- ------------------------------------------------------------
+COMMENT ON TABLE procedure_variants IS '시술 세부 옵션 (예: 쌍꺼풀 → 매몰/부분절개/절개). procedure 당 최소 1개, is_default 정확히 1개. null 컬럼은 procedure.base_* 상속.';
+COMMENT ON COLUMN procedure_variants.procedure_variant_id IS '옵션 고유 식별자 (ULID 기반, 28자, prefix PV)';
+COMMENT ON COLUMN procedure_variants.procedure_id         IS '소속 시술 ID (procedures.procedure_id FK)';
+COMMENT ON COLUMN procedure_variants.price                IS '가격 override (null 이면 procedure.base_price 상속)';
+COMMENT ON COLUMN procedure_variants.anesthesia           IS '마취 override (null 이면 procedure.base_anesthesia 상속)';
+COMMENT ON COLUMN procedure_variants.duration_minutes     IS '시술 시간 override (분, null 이면 base 상속)';
+COMMENT ON COLUMN procedure_variants.recovery_days        IS '회복 기간 override (일, null 이면 base 상속)';
+COMMENT ON COLUMN procedure_variants.hospital_stay_days   IS '입원 기간 override (일, null 이면 base 상속)';
+COMMENT ON COLUMN procedure_variants.sort_order           IS '표시 순서 (낮을수록 앞)';
+COMMENT ON COLUMN procedure_variants.is_default           IS '대표 옵션 여부 — procedure 당 정확히 1개 (서비스 트랜잭션에서 보장)';
+COMMENT ON COLUMN procedure_variants.source_locale        IS '원본 언어 — procedure_variant_translations fallback 기준 (기본 ko)';
+COMMENT ON COLUMN procedure_variants.created_at           IS '옵션 추가 일시';
+COMMENT ON COLUMN procedure_variants.updated_at           IS '최종 수정 일시';
+
+-- ------------------------------------------------------------
+-- concern_translations
+-- ------------------------------------------------------------
+COMMENT ON TABLE concern_translations IS '고민(concerns) 다국어 컨텐츠. locale 별 description / raw_narrative / body_area_detail 보관. source_locale 행은 원문, 그 외는 번역본.';
+COMMENT ON COLUMN concern_translations.concern_id       IS '소속 고민 ID (concerns.concern_id FK, PK 일부)';
+COMMENT ON COLUMN concern_translations.locale           IS 'BCP-47 로케일 (예: ko, zh-CN, ja, en). PK 일부';
+COMMENT ON COLUMN concern_translations.description      IS '고민 본문 (해당 locale, 필수)';
+COMMENT ON COLUMN concern_translations.raw_narrative    IS '고객 원문 입력 (해당 locale, 가공 전 텍스트)';
+COMMENT ON COLUMN concern_translations.body_area_detail IS '부위 세부 서술 (해당 locale)';
+COMMENT ON COLUMN concern_translations.created_at       IS '레코드 생성 일시';
+COMMENT ON COLUMN concern_translations.updated_at       IS '최종 수정 일시';
+
+-- ------------------------------------------------------------
+-- proposal_translations
+-- ------------------------------------------------------------
+COMMENT ON TABLE proposal_translations IS '제안서(proposals) 다국어 컨텐츠. 현재는 consultation_note 만 번역 대상.';
+COMMENT ON COLUMN proposal_translations.proposal_id       IS '소속 제안서 ID (proposals.proposal_id FK, PK 일부)';
+COMMENT ON COLUMN proposal_translations.locale            IS 'BCP-47 로케일. PK 일부';
+COMMENT ON COLUMN proposal_translations.consultation_note IS '상담 메모 (해당 locale)';
+COMMENT ON COLUMN proposal_translations.created_at        IS '레코드 생성 일시';
+COMMENT ON COLUMN proposal_translations.updated_at        IS '최종 수정 일시';
+
+-- ------------------------------------------------------------
+-- proposal_item_translations
+-- ------------------------------------------------------------
+COMMENT ON TABLE proposal_item_translations IS '제안서 항목(proposal_items) 다국어 컨텐츠. 시술명과 설명의 locale 별 번역.';
+COMMENT ON COLUMN proposal_item_translations.proposal_item_id IS '소속 제안서 항목 ID (proposal_items.proposal_item_id FK, PK 일부)';
+COMMENT ON COLUMN proposal_item_translations.locale           IS 'BCP-47 로케일. PK 일부';
+COMMENT ON COLUMN proposal_item_translations.treatment_name   IS '시술명 (해당 locale, 필수)';
+COMMENT ON COLUMN proposal_item_translations.description      IS '시술 상세 설명 (해당 locale)';
+COMMENT ON COLUMN proposal_item_translations.created_at       IS '레코드 생성 일시';
+COMMENT ON COLUMN proposal_item_translations.updated_at       IS '최종 수정 일시';
+
+-- ------------------------------------------------------------
+-- procedure_translations
+-- ------------------------------------------------------------
+COMMENT ON TABLE procedure_translations IS '시술 상품(procedures) 다국어 컨텐츠. 기존 procedures.i18n JSONB 를 정규화한 테이블.';
+COMMENT ON COLUMN procedure_translations.procedure_id IS '소속 시술 ID (procedures.procedure_id FK, PK 일부)';
+COMMENT ON COLUMN procedure_translations.locale       IS 'BCP-47 로케일. PK 일부';
+COMMENT ON COLUMN procedure_translations.title        IS '시술명/제목 (해당 locale, 필수)';
+COMMENT ON COLUMN procedure_translations.description  IS '시술 설명 (해당 locale)';
+COMMENT ON COLUMN procedure_translations.precautions  IS '주의사항 (해당 locale)';
+COMMENT ON COLUMN procedure_translations.indications  IS '적응증 키워드 배열 (해당 locale, JSONB)';
+COMMENT ON COLUMN procedure_translations.created_at   IS '레코드 생성 일시';
+COMMENT ON COLUMN procedure_translations.updated_at   IS '최종 수정 일시';
+
+-- ------------------------------------------------------------
+-- procedure_variant_translations
+-- ------------------------------------------------------------
+COMMENT ON TABLE procedure_variant_translations IS '시술 세부 옵션(procedure_variants) 다국어 컨텐츠. 기존 procedure_variants.i18n JSONB 를 정규화한 테이블.';
+COMMENT ON COLUMN procedure_variant_translations.procedure_variant_id IS '소속 옵션 ID (procedure_variants.procedure_variant_id FK, PK 일부)';
+COMMENT ON COLUMN procedure_variant_translations.locale               IS 'BCP-47 로케일. PK 일부';
+COMMENT ON COLUMN procedure_variant_translations.name                 IS '옵션 이름 (해당 locale, 필수)';
+COMMENT ON COLUMN procedure_variant_translations.description          IS '옵션 설명 (해당 locale)';
+COMMENT ON COLUMN procedure_variant_translations.created_at           IS '레코드 생성 일시';
+COMMENT ON COLUMN procedure_variant_translations.updated_at           IS '최종 수정 일시';
+
+-- ------------------------------------------------------------
+-- article_translations
+-- ------------------------------------------------------------
+COMMENT ON TABLE article_translations IS '아티클(articles) 다국어 컨텐츠. 기존 title_ko/zh, body_ko/zh, excerpt_ko/zh 를 정규화.';
+COMMENT ON COLUMN article_translations.article_id IS '소속 아티클 ID (articles.article_id FK, PK 일부)';
+COMMENT ON COLUMN article_translations.locale     IS 'BCP-47 로케일. PK 일부';
+COMMENT ON COLUMN article_translations.title      IS '제목 (해당 locale, 필수)';
+COMMENT ON COLUMN article_translations.body       IS '본문 (해당 locale, 필수)';
+COMMENT ON COLUMN article_translations.excerpt    IS '요약/미리보기 (해당 locale)';
+COMMENT ON COLUMN article_translations.created_at IS '레코드 생성 일시';
+COMMENT ON COLUMN article_translations.updated_at IS '최종 수정 일시';
+
+-- =============================================================
+-- Seed Data (개발 환경용 최소 초기 데이터)
+--
+-- 통합 테스트 자격증명: test@test.com / 123123123
+-- · FO (users 테이블, role=buyer)  — 고객 로그인 검증
+-- · PO (members 테이블, role=partner) — 파트너 로그인 검증
+-- · BO (members.role=admin) 은 schema UNIQUE(email) 제약으로 동일 이메일
+--   사용 불가 → 필요 시점에 별도 admin 시드 추가 (현재 미포함)
+-- =============================================================
+
+-- 파트너 병원 (Member + PartnerProfile)
+INSERT INTO members (member_id, role, email, name, password_hash) VALUES
+  ('MB00000000000000000000000002', 'partner', 'test@test.com', '테스트 병원',
+   '$2b$10$/h0Bc.n7R/KOCXJnYW.AVuBg2dq/vZD42hGg8gGWm6pXircuxqKXi');
+
+INSERT INTO credit_balances (member_id, balance) VALUES
+  ('MB00000000000000000000000002', 100);
+
+INSERT INTO partner_profiles (member_id, specialties, verified, source_locale) VALUES
+  ('MB00000000000000000000000002', '["눈", "코", "리프팅", "피부"]', true, 'ko');
+
+INSERT INTO partner_profile_translations (member_id, locale, hospital_name, description) VALUES
+  ('MB00000000000000000000000002', 'ko',    '테스트 병원',  NULL),
+  ('MB00000000000000000000000002', 'zh-CN', '测试医院',     NULL);
+
+-- FO 공개 시술/수술 카탈로그 seed
+-- PO에서 등록된 published procedure 와 동일한 형태로 customer API가 조회한다.
+-- 다국어 컨텐츠는 procedure_translations / procedure_variant_translations 에 분리 저장.
+INSERT INTO procedures (
+  procedure_id,
+  member_id,
+  slug,
+  primary_area,
+  procedure_type,
+  hero_image_url,
+  gallery_image_urls,
+  base_price,
+  base_anesthesia,
+  base_duration_minutes,
+  base_recovery_days,
+  base_hospital_stay_days,
+  price_min,
+  price_max,
+  currency,
+  status,
+  source_locale,
+  view_count,
+  bookmark_count,
+  consult_click_count,
+  published_at
+) VALUES
+  (
+    'PC00000000000000000000000001',
+    'MB00000000000000000000000002',
+    'natural-double-eyelid',
+    'eyes',
+    'eye_double_eyelid',
+    '/images/articles/ssangkkeopul-maemol-vs-jeolgae-natural-eyes/02_procedure_midjourney_paper-folding-metaphor.png',
+    '["/images/articles/ssangkkeopul-maemol-vs-jeolgae-natural-eyes/02_procedure_midjourney_paper-folding-metaphor.png"]',
+    1200000,
+    'local',
+    50,
+    7,
+    0,
+    1200000,
+    1800000,
+    'KRW',
+    'published',
+    'ko',
+    24,
+    0,
+    0,
+    now()
+  ),
+  (
+    'PC00000000000000000000000002',
+    'MB00000000000000000000000002',
+    'nose-tip-balance',
+    'nose',
+    'nose_tip',
+    '/images/articles/nose-tip-plasty-mini-rhinoplasty-korea/02_procedure_midjourney_house-vs-nameplate-metaphor.png',
+    '["/images/articles/nose-tip-plasty-mini-rhinoplasty-korea/02_procedure_midjourney_house-vs-nameplate-metaphor.png"]',
+    2200000,
+    'sedation',
+    90,
+    10,
+    0,
+    2200000,
+    3600000,
+    'KRW',
+    'published',
+    'ko',
+    18,
+    0,
+    0,
+    now()
+  ),
+  (
+    'PC00000000000000000000000003',
+    'MB00000000000000000000000002',
+    'lifting-tightness-check',
+    'lifting',
+    'lift_hifu',
+    '/images/articles/lifting-ulthera-thermage-inmode/02_procedure_midjourney_3floor-house-metaphor.png',
+    '["/images/articles/lifting-ulthera-thermage-inmode/02_procedure_midjourney_3floor-house-metaphor.png"]',
+    900000,
+    'local',
+    45,
+    2,
+    0,
+    900000,
+    1500000,
+    'KRW',
+    'published',
+    'ko',
+    15,
+    0,
+    0,
+    now()
+  ),
+  (
+    'PC00000000000000000000000004',
+    'MB00000000000000000000000002',
+    'pigment-laser-care',
+    'skin',
+    'skin_laser',
+    '/images/articles/pigment-laser-picosure-picoway-toning/02_procedure_midjourney_3-erasers-metaphor.png',
+    '["/images/articles/pigment-laser-picosure-picoway-toning/02_procedure_midjourney_3-erasers-metaphor.png"]',
+    350000,
+    'local',
+    30,
+    1,
+    0,
+    350000,
+    600000,
+    'KRW',
+    'published',
+    'ko',
+    12,
+    0,
+    0,
+    now()
+  );
+
+INSERT INTO procedure_translations (procedure_id, locale, title, description, precautions, indications) VALUES
+  (
+    'PC00000000000000000000000001', 'ko',
+    '자연스러운 쌍꺼풀 상담',
+    '눈매와 피부 두께를 기준으로 매몰, 부분절개, 절개 가능성을 상담하는 시술입니다.',
+    '붓기와 멍은 개인차가 있으며, 기존 눈매와 피부 상태에 따라 적합한 방식이 달라질 수 있습니다.',
+    '["쌍꺼풀 라인이 자주 풀려요", "자연스러운 눈매 변화를 원해요", "회복 기간을 고려해서 상담받고 싶어요"]'
+  ),
+  (
+    'PC00000000000000000000000001', 'zh-CN',
+    '自然双眼皮咨询',
+    '根据眼型和皮肤厚度，咨询埋线、部分切开或切开方式的适合度。',
+    '肿胀和淤青因人而异，适合方式需根据眼部状态判断。',
+    '["双眼皮线条容易消失", "想要自然的眼部变化", "希望结合恢复期进行咨询"]'
+  ),
+  (
+    'PC00000000000000000000000002', 'ko',
+    '코끝 밸런스 상담',
+    '코끝 높이, 각도, 콧대와의 균형을 기준으로 필요한 범위를 상담하는 시술입니다.',
+    '보형물, 연골 사용 여부와 회복 기간은 개인 상태와 의료진 판단에 따라 달라집니다.',
+    '["코끝이 낮아 보여요", "정면보다 옆모습 균형이 신경 쓰여요", "과하지 않은 변화를 원해요"]'
+  ),
+  (
+    'PC00000000000000000000000002', 'zh-CN',
+    '鼻尖比例咨询',
+    '围绕鼻尖高度、角度及与鼻梁的协调度进行咨询。',
+    '是否使用假体或软骨、恢复期长短需由医生根据个人状态判断。',
+    '["鼻尖看起来偏低", "侧脸比例比较在意", "希望变化自然不过度"]'
+  ),
+  (
+    'PC00000000000000000000000003', 'ko',
+    '탄력 리프팅 상담',
+    '피부 처짐, 탄력 저하, 얼굴 라인 고민을 기준으로 장비 리프팅 적합도를 상담합니다.',
+    '통증, 붓기, 효과 체감 시점은 장비와 개인 상태에 따라 달라질 수 있습니다.',
+    '["얼굴 라인이 무너져 보여요", "피부 탄력이 떨어진 느낌이에요", "수술보다 가벼운 방법을 먼저 알고 싶어요"]'
+  ),
+  (
+    'PC00000000000000000000000003', 'zh-CN',
+    '紧致提升咨询',
+    '根据皮肤松弛、弹性下降和脸部线条问题，咨询仪器提升适合度。',
+    '疼痛、肿胀和效果显现时间会因设备和个人状态而不同。',
+    '["脸部线条不够清晰", "感觉皮肤弹性下降", "想先了解非手术方式"]'
+  ),
+  (
+    'PC00000000000000000000000004', 'ko',
+    '색소 레이저 상담',
+    '기미, 잡티, 색소 침착의 양상에 따라 레이저 토닝과 색소 장비 적합도를 상담합니다.',
+    '시술 후 자외선 관리가 중요하며, 색소 종류에 따라 반복 치료가 필요할 수 있습니다.',
+    '["기미와 잡티가 신경 쓰여요", "피부 톤이 고르지 않아요", "다운타임이 짧은 관리를 찾고 있어요"]'
+  ),
+  (
+    'PC00000000000000000000000004', 'zh-CN',
+    '色素激光咨询',
+    '根据斑点、色沉和肤色不均情况，咨询激光及美白管理适合度。',
+    '术后防晒管理很重要，不同色素类型可能需要多次治疗。',
+    '["在意斑点和色沉", "肤色看起来不均匀", "想找恢复期较短的管理"]'
+  );
+
+INSERT INTO procedure_variants (
+  procedure_variant_id,
+  procedure_id,
+  price,
+  anesthesia,
+  duration_minutes,
+  recovery_days,
+  hospital_stay_days,
+  sort_order,
+  is_default,
+  source_locale
+) VALUES
+  ('PV00000000000000000000000001', 'PC00000000000000000000000001', 1200000, 'local',  45,  5, 0, 1, true,  'ko'),
+  ('PV00000000000000000000000002', 'PC00000000000000000000000001', 1800000, 'local',  60, 10, 0, 2, false, 'ko'),
+  ('PV00000000000000000000000003', 'PC00000000000000000000000002', 2200000, 'sedation', 80, 10, 0, 1, true,  'ko'),
+  ('PV00000000000000000000000004', 'PC00000000000000000000000002', 3600000, 'sedation', 120, 14, 0, 2, false, 'ko'),
+  ('PV00000000000000000000000005', 'PC00000000000000000000000003', 900000,  'local',  45,  2, 0, 1, true,  'ko'),
+  ('PV00000000000000000000000006', 'PC00000000000000000000000004', 350000,  'local',  30,  1, 0, 1, true,  'ko');
+
+INSERT INTO procedure_variant_translations (procedure_variant_id, locale, name, description) VALUES
+  ('PV00000000000000000000000001', 'ko',    '매몰 라인 상담',      '회복 부담을 줄이고 자연스러운 라인을 우선 검토합니다.'),
+  ('PV00000000000000000000000001', 'zh-CN', '埋线线条咨询',        '优先考虑恢复负担较低、自然的线条方案。'),
+  ('PV00000000000000000000000002', 'ko',    '부분절개 상담',       '라인 지속성과 회복 기간의 균형을 함께 상담합니다.'),
+  ('PV00000000000000000000000002', 'zh-CN', '部分切开咨询',        '综合考虑线条维持力与恢复期。'),
+  ('PV00000000000000000000000003', 'ko',    '코끝 중심 상담',      '코끝 높이와 각도를 중심으로 필요한 범위를 확인합니다.'),
+  ('PV00000000000000000000000003', 'zh-CN', '鼻尖重点咨询',        '以鼻尖高度和角度为中心确认适合范围。'),
+  ('PV00000000000000000000000004', 'ko',    '코끝+콧대 상담',      '코끝과 콧대의 전체 균형을 함께 검토합니다.'),
+  ('PV00000000000000000000000004', 'zh-CN', '鼻尖+鼻梁咨询',       '一起确认鼻尖和鼻梁的整体协调度。'),
+  ('PV00000000000000000000000005', 'ko',    'HIFU 리프팅 상담',    '탄력 저하와 얼굴 라인 고민에 맞춰 장비 적합도를 확인합니다.'),
+  ('PV00000000000000000000000005', 'zh-CN', 'HIFU提升咨询',        '根据弹性下降和脸部线条问题确认适合度。'),
+  ('PV00000000000000000000000006', 'ko',    '레이저 토닝 상담',    '기미, 잡티, 톤 불균형을 기준으로 반복 관리 계획을 상담합니다.'),
+  ('PV00000000000000000000000006', 'zh-CN', '激光嫩肤咨询',        '围绕斑点和肤色不均咨询管理计划。');
+
+-- 고객 (User + BuyerProfile)
+-- users.email 과 members.email 은 별도 UNIQUE — 동일 'test@test.com' 공존 가능.
+INSERT INTO users (user_id, role, email, name, password_hash, locale) VALUES
+  ('US00000000000000000000000002', 'buyer', 'test@test.com', '테스트 고객',
+   '$2b$10$/h0Bc.n7R/KOCXJnYW.AVuBg2dq/vZD42hGg8gGWm6pXircuxqKXi', 'ko');
+
+INSERT INTO buyer_profiles (user_id, country) VALUES
+  ('US00000000000000000000000002', 'KR');

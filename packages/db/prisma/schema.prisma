@@ -1,14 +1,19 @@
-// MIMYO Database Schema
+// MIMYO Database Schema (Prisma)
 //
-// 정본은 docs/schema/final.sql (Postgres-native, 21 tables 전체).
-// 본 Prisma schema 는 launch scope 인증·핵심 도메인만 우선 반영.
-// 다른 테이블은 추후 `prisma db pull` 또는 명시적 모델 추가로 합류.
+// SOURCE OF TRUTH : hyliren-api/docker/init.sql (정본)
+//                   ↓ 동기화 사본
+// LOCAL MIRROR    : docs/schema/final.sql
+//                   ↓ Prisma 가 따라감
+// 본 파일         : packages/db/prisma/schema.prisma
 //
-// 마이그레이션:
-//   pnpm --filter @hyliren/db prisma:migrate
+// 본 schema 가 모델링하는 범위 = BO admin 인증에 필요한 최소 (Member 1개).
+// 이 외 테이블 (concerns / proposals / procedures 등) 은 정본에 정의돼 있고
+// FO/PO 가 사용할 때 점진적으로 `prisma db pull` 또는 명시적 model 추가.
 //
-// 시드:
-//   pnpm --filter @hyliren/db prisma:seed
+// 규칙:
+//   - 본 Prisma schema 가 정본 init.sql 을 변경하지 않는다 (단방향 follower).
+//   - 새 테이블·컬럼 필요 시 hyliren-api 측 init.sql/migration 먼저 추가 → 동기화.
+//   - BO 관련 audit 도 별도 admin_audit_log 신설하지 않고 기존 events 테이블에 적재.
 
 generator client {
   provider = "prisma-client-js"
@@ -19,14 +24,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── Enums ──────────────────────────────────────────────────────────
-
-enum UserRole {
-  buyer
-  admin
-
-  @@map("user_role")
-}
+// ─── Enum: member_role ──────────────────────────────────────────────
+// 정본 docker/init.sql 의 ENUM 'partner' | 'admin' 그대로.
 
 enum MemberRole {
   partner
@@ -35,29 +34,9 @@ enum MemberRole {
   @@map("member_role")
 }
 
-// ─── Auth: Users (FO 고객 — 향후 FO auth 작업 시 사용) ───────────────
-
-model User {
-  userId       String   @id @map("user_id") @db.VarChar(28)
-  role         UserRole
-  email        String?  @unique @db.VarChar(255)
-  phone        String?  @unique @db.VarChar(20)
-  passwordHash String?  @map("password_hash") @db.VarChar(72)
-  name         String   @db.VarChar(100)
-  locale       String   @default("zh-CN") @db.VarChar(10)
-  avatarUrl    String?  @map("avatar_url") @db.Text
-  referralCode String?  @unique @map("referral_code") @db.VarChar(32)
-  referredBy   String?  @map("referred_by") @db.VarChar(28)
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  referrer  User?  @relation("UserReferral", fields: [referredBy], references: [userId], onDelete: SetNull)
-  referrals User[] @relation("UserReferral")
-
-  @@map("users")
-}
-
-// ─── Auth: Members (PO 병원 + BO admin) ─────────────────────────────
+// ─── Member ─────────────────────────────────────────────────────────
+// PO 병원 (role='partner') + BO admin (role='admin') 양쪽이 같은 테이블.
+// BO 인증 시 role='admin' + password_hash 매칭으로만 로그인 허용.
 
 model Member {
   memberId     String     @id @map("member_id") @db.VarChar(28)
@@ -68,48 +47,5 @@ model Member {
   createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  partnerProfile  PartnerProfile?
-  adminAuditLogs  AdminAuditLog[]
-
   @@map("members")
-}
-
-model PartnerProfile {
-  memberId        String   @id @map("member_id") @db.VarChar(28)
-  hospitalName    String   @map("hospital_name") @db.VarChar(200)
-  hospitalNameZh  String?  @map("hospital_name_zh") @db.VarChar(200)
-  description     String?  @db.Text
-  descriptionZh   String?  @map("description_zh") @db.Text
-  address         String?  @db.VarChar(500)
-  phone           String?  @db.VarChar(20)
-  website         String?  @db.VarChar(512)
-  logoUrl         String?  @map("logo_url") @db.Text
-  coverImageUrl   String?  @map("cover_image_url") @db.Text
-  specialties     Json     @default("[]")
-  verified        Boolean  @default(false)
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  member Member @relation(fields: [memberId], references: [memberId], onDelete: Cascade)
-
-  @@map("partner_profiles")
-}
-
-// ─── Audit: BO admin 행위 기록 (감사 추적) ────────────────────────────
-
-model AdminAuditLog {
-  id         BigInt   @id @default(autoincrement())
-  memberId   String   @map("member_id") @db.VarChar(28)
-  action     String   @db.VarChar(64)        // "login" | "logout" | "credit_grant" | "user_suspend" | ...
-  targetType String?  @map("target_type") @db.VarChar(32)  // "user" | "member" | "concern" | ...
-  targetId   String?  @map("target_id") @db.VarChar(28)
-  detail     Json?    // 액션별 추가 메타 (예: { reason, amount, before, after })
-  ip         String?  @db.VarChar(64)
-  userAgent  String?  @map("user_agent") @db.Text
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  member Member @relation(fields: [memberId], references: [memberId], onDelete: Restrict)
-
-  @@index([memberId, createdAt(sort: Desc)])
-  @@index([action, createdAt(sort: Desc)])
-  @@map("admin_audit_log")
 }

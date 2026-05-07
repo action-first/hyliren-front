@@ -1,13 +1,15 @@
 /**
  * 초기 admin 계정 seed.
  *
+ * 정본 schema (hyliren-api/docker/init.sql) 의 members 테이블에 role='admin' row 1 개를
+ * 생성. 같은 테이블의 events 테이블에 'admin_seed' 이벤트 기록 (audit 추적).
+ *
  * 사용:
- *   1. packages/db/.env 에 DATABASE_URL 과 SEED_ADMIN_* 채움
- *   2. pnpm --filter @hyliren/db prisma:migrate    (스키마 적용)
- *   3. pnpm --filter @hyliren/db prisma:seed       (admin 계정 생성)
+ *   1. packages/db/.env 에 DATABASE_URL · SEED_ADMIN_* 채움
+ *   2. pnpm --filter @hyliren/db prisma:seed
  *
  * 멱등성: 같은 이메일이 이미 있으면 건너뜀 (재실행 안전).
- * 비밀번호: bcrypt (cost 12) 해시 후 저장 — 평문 비밀번호는 .env 에서 즉시 제거 권장.
+ * 비밀번호: bcrypt (cost 12) 해시 후 저장 — 평문은 .env 에서 즉시 제거 권장.
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -58,13 +60,16 @@ async function main() {
     },
   });
 
-  await prisma.adminAuditLog.create({
-    data: {
-      memberId: created.memberId,
-      action: 'admin_seed',
-      detail: { reason: 'initial admin bootstrap', name },
-    },
-  });
+  // 정본 events 테이블에 audit 기록 (별도 admin_audit_log 신설 회피).
+  // event_id 는 28자 영숫자, actor_type='member' (admin 도 members 테이블), event_type='admin_seed'.
+  const eventId = generateMemberId();
+  await prisma.$executeRawUnsafe(
+    `INSERT INTO events (event_id, event_type, actor_type, actor_id, metadata)
+     VALUES ($1, 'admin_seed', 'member', $2, $3::jsonb)`,
+    eventId,
+    created.memberId,
+    JSON.stringify({ reason: 'initial admin bootstrap', name }),
+  );
 
   console.log(`[seed] admin 생성 완료`);
   console.log(`       member_id : ${created.memberId}`);
