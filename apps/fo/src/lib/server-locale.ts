@@ -1,35 +1,29 @@
-import { cookies, headers } from 'next/headers';
-import { narrowLocale, parseAcceptLanguage, type Locale } from '@hyliren/shared';
+import { cookies } from 'next/headers';
+import { isLocale, type Locale } from '@hyliren/shared';
 
+/**
+ * Server-side locale 헬퍼.
+ *
+ * locale 결정의 SSOT 는 middleware 가 강제하는 `[lang]` path segment.
+ * 따라서 server component / page 는 `params.lang` 을 직접 받아 사용한다 (Next 15 표준).
+ *
+ * 본 모듈은 root layout / params 를 받지 못하는 server context 전용 폴백:
+ *   middleware 가 동기화한 cookie `mimyo-locale` 을 읽어 lang 결정.
+ */
+
+const FALLBACK_LOCALE: Locale = 'zh-CN';
 export const LOCALE_COOKIE_NAME = 'mimyo-locale';
 
 /**
- * SSR 단계에서 현재 locale 결정 — RootLayout/generateMetadata 등 server component 전용.
- *
- * 우선순위:
- *   1. cookie `mimyo-locale` (FE 의 useLocaleStore.setLocale 이 동기화)
- *   2. `Accept-Language` 헤더 — q-value 우선순위로 정렬된 다단 매칭
- *      (BE 공통 resolver 와 동일한 RFC 7231 §5.3.5 부분 구현)
- *      예: `fr-FR, ja;q=0.9, en;q=0.8` → ja 매칭
- *   3. fallback `'zh-CN'` (Customer 앱 주 사용자)
- *
- * Why cookie:
- *   localStorage 는 client-only 라 SSR 첫 렌더에서 못 읽음 — html lang/metadata 가
- *   초기엔 fallback 으로 깨지는 결함. cookie 로 SSR-readable 한 locale 전달.
+ * cookie 에서 locale 읽기 (root layout 등 params 미수신 context 용).
+ * middleware 가 모든 진입에서 cookie 를 path lang 과 동기화하므로 정합 보장.
  */
-export async function getServerLocale(): Promise<Locale> {
-  const cookieStore = await cookies();
-  const fromCookie = cookieStore.get(LOCALE_COOKIE_NAME)?.value;
-  if (fromCookie) {
-    return narrowLocale(fromCookie, 'zh-CN');
-  }
+export async function getLocaleFromCookie(): Promise<Locale> {
+  const c = (await cookies()).get(LOCALE_COOKIE_NAME)?.value;
+  return c && isLocale(c) ? c : FALLBACK_LOCALE;
+}
 
-  const headerStore = await headers();
-  const accept = headerStore.get('accept-language');
-  if (accept) {
-    const parsed = parseAcceptLanguage(accept);
-    if (parsed) return parsed;
-  }
-
-  return 'zh-CN';
+/** params.lang 을 안전하게 Locale 로 좁힘. 잘못된 값이면 fallback. */
+export function narrowLangParam(value: unknown): Locale {
+  return typeof value === 'string' && isLocale(value) ? value : FALLBACK_LOCALE;
 }

@@ -687,7 +687,8 @@
     "poDescription": "병원 관리 시스템",
     "boTitle": "MIMYO 비즈니스 오피스",
     "boDescription": "내부 관리 시스템",
-    "description": "K-성형 의사결정 플랫폼. 고민을 등록하면 검증된 한국 병원이 맞춤 제안서를 보내드립니다."
+    "description": "K-성형 의사결정 플랫폼. 고민을 등록하면 검증된 한국 병원이 맞춤 제안서를 보내드립니다.",
+    "ogImageAlt": "MIMYO — 고민부터 해도 괜찮아요."
   },
   "dateFilter": {
     "today": "오늘",

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useLocalizedRouter } from '@/hooks/use-localized-router';
 import type { Proposal, PartnerProfile } from '@hyliren/shared';
 import { track } from '@hyliren/shared';
 import { Button, BottomSheet } from '@hyliren/ui';
@@ -70,7 +70,7 @@ const VERDICT_COLOR = { below: 'text-[var(--color-success)]', fair: 'text-[var(-
 
 export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
   const t = useLocaleStore(s => s.t);
-  const router = useRouter();
+  const router = useLocalizedRouter();
   const { markPurchased, isPurchased: checkPurchased, setFullReport } = useReportStore();
   const purchased = checkPurchased(proposal.id);
   const preview = generatePreview(proposal, profile, t);

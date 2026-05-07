@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { Link } from '@/components/i18n/Link';
 import { Bell, User } from 'lucide-react';
 import { Wordmark, pickWordmarkLocale } from '@hyliren/ui';
 import { useAuthStore } from '@/store/auth';

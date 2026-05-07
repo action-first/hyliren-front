@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/components/i18n/Link';
 import { usePathname } from 'next/navigation';
 import { Home, LayoutDashboard, Scale, BookOpen, User } from 'lucide-react';
 import { useLocaleStore } from '@/store/locale';

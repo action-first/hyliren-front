@@ -1,25 +1,25 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { User } from '@hyliren/shared';
 import { authApi, onForcedLogout } from '@/lib/api';
+import type { User } from '@hyliren/shared';
 import type { LoginInput, RegisterInput } from '@/lib/api';
 import { tokenStore } from '@/lib/auth/token-store';
-import { useLocaleStore } from './locale';
 
 /**
- * user.locale 을 UI locale store 와 동기화.
+ * user.locale ↔ path 자동 동기화는 의도적으로 수행하지 않는다.
  *
- * 다른 디바이스에서 ja 로 설정한 사용자가 새 디바이스에서 로그인 시 user.locale=ja 가
- * 반환되며, 이 함수가 useLocaleStore 를 ja 로 즉시 전환하여 디바이스 간 일관성 유지.
+ * 이유:
+ *   - 사용자가 명시 path (`/ko/...`) 로 진입한 경우 그 lang 이 현재 의도 (가장 강한 신호)
+ *   - user.locale 은 다른 디바이스에서의 마지막 명시 선택 — 현재 디바이스 의도가 아님
+ *   - 자동 redirect 는 사용자가 의외로 다른 lang 화면을 보게 만드는 UX 결함
  *
- * 동일 locale 이면 set 호출 생략 — 불필요한 t 함수 reference 갱신/리렌더 회피.
+ * 디바이스 간 user.locale 동기화 흐름:
+ *   1. 마이페이지 / LanguageSwitcher 에서 명시 선택 → useLocaleSwitch 가 path navigation
+ *      + PATCH /auth/locale (DB 갱신)
+ *   2. 다른 디바이스 첫 진입 시 cookie 없음 → Accept-Language fallback
+ *      → 그 디바이스에서도 사용자가 마이페이지에서 lang 변경 가능
+ *   3. user.locale 자체는 향후 추천/이메일 등 BE 측 콘텐츠 lang 결정에 활용
  */
-function syncUiLocale(user: User): void {
-  const current = useLocaleStore.getState().locale;
-  if (user.locale !== current) {
-    useLocaleStore.getState().setLocale(user.locale);
-  }
-}
 
 export type AuthStatus = 'idle' | 'authenticating' | 'authenticated' | 'guest';
 
@@ -58,9 +58,6 @@ export const useAuthStore = create<AuthState>()(
           isLoggedIn: !!user,
           isGuest: !user,
         });
-        // 로그인 사용자의 user.locale 을 UI store 와 동기화 (디바이스 간 일관성).
-        // logout 시(user=null) 에는 마지막 locale 유지 — 비로그인 상태에서도 UX 연속성.
-        if (user) syncUiLocale(user);
       },
 
       loginWithPassword: async (input) => {
@@ -121,9 +118,6 @@ export const useAuthStore = create<AuthState>()(
           state.status = 'authenticated';
           state.isLoggedIn = true;
           state.isGuest = false;
-          // 페이지 새로고침 후 복원 시점에도 user.locale ↔ UI store 정렬.
-          // useLocaleStore 도 자체 persist 가 있어 어긋날 가능성 (디바이스 간) → user 우선.
-          syncUiLocale(state.user);
         } else {
           state.status = 'guest';
           state.isLoggedIn = false;
