@@ -1,17 +1,13 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  MOCK_USERS, CONCERN_STATUS_KR, CONCERN_STATUS_BADGE, formatDateKR,
-} from '@hyliren/shared';
-import type { Concern } from '@hyliren/shared';
-import {
-  DataGrid, AdminPage,
-  badgeCellRenderer, detailLinkRenderer,
-} from '@hyliren/ui';
+import { CONCERN_STATUS_KR, CONCERN_STATUS_BADGE, formatDateKR } from '@hyliren/shared';
+import { DataGrid, AdminPage, detailLinkRenderer, Spinner } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
-import { BOSidebar } from '@/components/BOSidebar';
 import type { ColDef } from 'ag-grid-community';
+import { BOSidebar } from '@/components/BOSidebar';
+import { listBuyers, type AdminBuyerListItem } from '@/lib/api/admin-buyers';
 
 interface BuyerRow {
   id: string;
@@ -64,36 +60,55 @@ const columnDefs: ColDef<BuyerRow>[] = [
   },
 ];
 
-export function BuyersClient({ concerns }: { concerns: Concern[] }) {
-  const router = useRouter();
-  const buyers = MOCK_USERS.filter(u => u.role === 'buyer');
+function toRow(item: AdminBuyerListItem): BuyerRow {
+  return {
+    id: item.id,
+    name: item.name,
+    contact: item.phone || item.email || '',
+    locale: item.locale,
+    concernCount: item.concernCount,
+    latestStatusEnum: item.latestConcernStatus ?? '',
+    createdAt: formatDateKR(item.createdAt),
+  };
+}
 
-  const rowData: BuyerRow[] = buyers.map(u => {
-    const userConcerns = concerns.filter(c => c.userId === u.id && !c.deletedAt);
-    const latest = userConcerns.sort((a, b) =>
-      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-    )[0];
-    return {
-      id: u.id,
-      name: u.name,
-      contact: u.phone || u.email || '',
-      locale: u.locale,
-      concernCount: userConcerns.length,
-      latestStatusEnum: latest?.status ?? '',
-      createdAt: formatDateKR(u.createdAt),
-    };
-  });
+export function BuyersClient() {
+  const router = useRouter();
+  const [rows, setRows] = useState<BuyerRow[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    listBuyers()
+      .then((items) => {
+        if (cancelled) return;
+        setRows(items.map(toRow));
+      })
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        setError(e instanceof Error ? e.message : '고객 목록을 불러오지 못했습니다.');
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <AdminPage sidebar={<BOSidebar active="/buyers" />} title="고객 관리" prefix="bo">
-      <DataGrid<BuyerRow>
-        columnDefs={columnDefs}
-        rowData={rowData}
-        searchFields={searchFields}
-        exportFileName="고객목록"
-        title="고객 목록"
-        onRowClick={(data) => router.push(`/buyers/${data.id}`)}
-      />
+      {error ? (
+        <div style={{ padding: 24, color: 'var(--color-danger,#d72c0d)', fontSize: 13 }}>{error}</div>
+      ) : rows === null ? (
+        <div style={{ minHeight: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Spinner />
+        </div>
+      ) : (
+        <DataGrid<BuyerRow>
+          columnDefs={columnDefs}
+          rowData={rows}
+          searchFields={searchFields}
+          exportFileName="고객목록"
+          title="고객 목록"
+          onRowClick={(data) => router.push(`/buyers/${data.id}`)}
+        />
+      )}
     </AdminPage>
   );
 }
