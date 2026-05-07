@@ -1,19 +1,16 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  MOCK_CONCERNS, MOCK_PARTNER_PROFILES,
   PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE, BODY_AREA_DOT,
   formatDateKR,
 } from '@hyliren/shared';
-import type { Proposal } from '@hyliren/shared';
 import { BOSidebar } from '@/components/BOSidebar';
-import {
-  DataGrid, AdminPage,
-  badgeCellRenderer, dotTextRenderer, detailLinkRenderer,
-} from '@hyliren/ui';
+import { DataGrid, AdminPage, dotTextRenderer, detailLinkRenderer, Spinner } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
 import type { ColDef } from 'ag-grid-community';
+import { listProposals, type AdminProposalListItem } from '@/lib/api/admin-proposals';
 
 interface ProposalRow {
   id: string;
@@ -32,8 +29,7 @@ const searchFields: SearchField[] = [
     { value: '리프팅', label: '리프팅' }, { value: '피부', label: '피부' },
   ]},
   { key: 'statusEnum', label: '상태', type: 'select', row: 1, options: [
-    { value: 'sent', label: '발송' }, { value: 'viewed', label: '열람' },
-    { value: 'selected', label: '선택됨' }, { value: 'rejected', label: '거절' },
+    { value: 'sent', label: '발송' }, { value: 'accepted', label: '선택됨' }, { value: 'rejected', label: '거절' },
   ]},
   { key: '_keyword', label: '키워드', placeholder: '병원명, 부위 통합 검색', row: 2 },
 ];
@@ -71,31 +67,51 @@ const columnDefs: ColDef<ProposalRow>[] = [
   },
 ];
 
-export function ProposalsClient({ proposals }: { proposals: Proposal[] }) {
+function toRow(item: AdminProposalListItem): ProposalRow {
+  return {
+    id: item.id,
+    area: item.primaryArea || '-',
+    hospitalName: item.hospitalName || item.memberId,
+    totalPrice: `${item.totalPrice}만`,
+    statusEnum: item.status,
+    sentAt: formatDateKR(item.sentAt),
+  };
+}
+
+export function ProposalsClient() {
   const router = useRouter();
-  const rowData: ProposalRow[] = proposals.filter(p => p.isActive).map(p => {
-    const concern = MOCK_CONCERNS.find(c => c.id === p.concernId);
-    const profile = MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId);
-    return {
-      id: p.id,
-      area: concern?.primaryArea || '-',
-      hospitalName: profile?.hospitalName || p.memberId,
-      totalPrice: `${p.totalPrice}만`,
-      statusEnum: p.status,
-      sentAt: formatDateKR(p.sentAt),
-    };
-  });
+  const [rows, setRows] = useState<ProposalRow[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    listProposals()
+      .then((items) => { if (!cancelled) setRows(items.map(toRow)); })
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        setError(e instanceof Error ? e.message : '제안서 목록을 불러오지 못했습니다.');
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <AdminPage sidebar={<BOSidebar active="/proposals" />} title="제안서 관리" prefix="bo">
-      <DataGrid<ProposalRow>
-        columnDefs={columnDefs}
-        rowData={rowData}
-        searchFields={searchFields}
-        exportFileName="제안서목록"
-        title="제안서 목록"
-        onRowClick={(data) => router.push(`/proposals/${data.id}`)}
-      />
+      {error ? (
+        <div style={{ padding: 24, color: 'var(--color-danger,#d72c0d)', fontSize: 13 }}>{error}</div>
+      ) : rows === null ? (
+        <div style={{ minHeight: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Spinner />
+        </div>
+      ) : (
+        <DataGrid<ProposalRow>
+          columnDefs={columnDefs}
+          rowData={rows}
+          searchFields={searchFields}
+          exportFileName="제안서목록"
+          title="제안서 목록"
+          onRowClick={(data) => router.push(`/proposals/${data.id}`)}
+        />
+      )}
     </AdminPage>
   );
 }
