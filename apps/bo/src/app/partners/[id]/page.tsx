@@ -1,17 +1,15 @@
-import { notFound } from 'next/navigation';
+'use client';
+
+import { useEffect, useState, use } from 'react';
 import {
-  MOCK_MEMBERS, MOCK_PARTNER_PROFILES,
   PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE,
   ANESTHESIA_KR, formatDateKR,
-  isProposalAccepted,
 } from '@hyliren/shared';
-import { getProposals } from '@hyliren/shared/src/server/data-store';
-import { Card, Badge, SectionHeader, AdminPage } from '@hyliren/ui';
+import { Card, Badge, SectionHeader, AdminPage, Spinner } from '@hyliren/ui';
 import { BOSidebar } from '@/components/BOSidebar';
+import { getPartnerDetail, type AdminPartnerDetail } from '@/lib/api/admin-partners';
+import { ApiError } from '@/lib/api/errors';
 
-export const dynamic = 'force-dynamic';
-
-// ── 스타일 토큰 ──
 const S = {
   label: { fontSize: 13, color: '#94a3b8', marginBottom: 2 } as const,
   value: { fontSize: 14, color: '#0f172a', fontWeight: 500 } as const,
@@ -45,17 +43,54 @@ function StatusBadge({ statusKey, label, map }: { statusKey: string; label: stri
 
 interface Props { params: Promise<{ id: string }> }
 
-export default async function PartnerDetailPage({ params }: Props) {
-  const { id } = await params;
-  const member = MOCK_MEMBERS.find(m => m.id === id);
-  if (!member) notFound();
+export default function PartnerDetailPage({ params }: Props) {
+  const { id } = use(params);
+  const [data, setData] = useState<AdminPartnerDetail | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
 
-  const profile = MOCK_PARTNER_PROFILES.find(p => p.memberId === id);
-  const proposals = getProposals().filter(p => p.memberId === id && p.isActive);
-  const selectedCount = proposals.filter(isProposalAccepted).length;
-  const viewedCount = proposals.filter(p => p.viewedAt).length;
-  const selectRate = proposals.length > 0 ? Math.round((selectedCount / proposals.length) * 100) : 0;
-  const viewRate = proposals.length > 0 ? Math.round((viewedCount / proposals.length) * 100) : 0;
+  useEffect(() => {
+    let cancelled = false;
+    getPartnerDetail(id)
+      .then((d) => { if (!cancelled) setData(d); })
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        if (e instanceof ApiError && e.status === 404) {
+          setNotFound(true);
+          return;
+        }
+        setError(e instanceof Error ? e.message : '병원 정보를 불러오지 못했습니다.');
+      });
+    return () => { cancelled = true; };
+  }, [id]);
+
+  if (notFound) {
+    return (
+      <AdminPage sidebar={<BOSidebar active="/partners" />} title="병원 상세" prefix="bo">
+        <div style={{ padding: 24, fontSize: 14, color: '#475569' }}>존재하지 않는 병원입니다.</div>
+      </AdminPage>
+    );
+  }
+
+  if (error) {
+    return (
+      <AdminPage sidebar={<BOSidebar active="/partners" />} title="병원 상세" prefix="bo">
+        <div style={{ padding: 24, color: 'var(--color-danger,#d72c0d)', fontSize: 13 }}>{error}</div>
+      </AdminPage>
+    );
+  }
+
+  if (!data) {
+    return (
+      <AdminPage sidebar={<BOSidebar active="/partners" />} title="병원 상세" prefix="bo">
+        <div style={{ minHeight: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Spinner />
+        </div>
+      </AdminPage>
+    );
+  }
+
+  const { member, profile, proposals, stats } = data;
 
   return (
     <AdminPage
@@ -68,13 +103,10 @@ export default async function PartnerDetailPage({ params }: Props) {
           : <Badge variant="warning">미인증</Badge>
       }
     >
-      {/* ══ 2열 레이아웃 ══ */}
       <div className="detail-grid">
 
-        {/* ══ 좌측: 메인 콘텐츠 ══ */}
         <div className="detail-main">
 
-          {/* 병원 정보 */}
           <Card padding="md">
             <SectionHeader title="병원 정보" />
             <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px 24px' }}>
@@ -108,9 +140,8 @@ export default async function PartnerDetailPage({ params }: Props) {
             </div>
           </Card>
 
-          {/* 제안서 내역 */}
           <Card padding="md">
-            <SectionHeader title={`제안서 내역`} subtitle={`${proposals.length}건`} />
+            <SectionHeader title="제안서 내역" subtitle={`${proposals.length}건`} />
             {proposals.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '32px 0', color: '#94a3b8', fontSize: 13 }}>제안서가 없습니다</div>
             ) : (
@@ -140,29 +171,26 @@ export default async function PartnerDetailPage({ params }: Props) {
           </Card>
         </div>
 
-        {/* ══ 우측: 사이드바 ══ */}
         <div className="detail-sticky-sidebar">
 
-          {/* KPI 카드 */}
           <Card padding="md">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <MetaRow label="발송 제안서">
-                <span style={{ fontSize: 18, fontWeight: 700, color: '#0f172a' }}>{proposals.length}건</span>
+                <span style={{ fontSize: 18, fontWeight: 700, color: '#0f172a' }}>{stats.proposalCount}건</span>
               </MetaRow>
               <hr style={S.divider} />
               <MetaRow label="열람률">
-                <span style={{ fontSize: 16, fontWeight: 700, color: viewRate > 50 ? '#10b981' : '#f59e0b' }}>{viewRate}%</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: stats.viewRate > 50 ? '#10b981' : '#f59e0b' }}>{stats.viewRate}%</span>
               </MetaRow>
               <MetaRow label="선택률">
-                <span style={{ fontSize: 16, fontWeight: 700, color: selectRate > 30 ? '#10b981' : '#f59e0b' }}>{selectRate}%</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: stats.selectRate > 30 ? '#10b981' : '#f59e0b' }}>{stats.selectRate}%</span>
               </MetaRow>
               <MetaRow label="선택 건수">
-                <span style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>{selectedCount}건</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>{stats.selectedCount}건</span>
               </MetaRow>
             </div>
           </Card>
 
-          {/* 계정 정보 */}
           <Card padding="md">
             <SectionHeader title="계정 정보" />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
