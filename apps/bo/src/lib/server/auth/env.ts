@@ -6,7 +6,7 @@
  * - 운영 환경엔 실 BE auth 로 전환되며 본 모듈의 mock 분기는 사용 안 됨.
  */
 
-export type BoAuthMode = 'mock' | 'real';
+export type BoAuthMode = 'mock' | 'db' | 'real';
 
 export interface BoServerAuthEnv {
   mode: BoAuthMode;
@@ -27,7 +27,8 @@ export interface BoServerAuthEnv {
 }
 
 export function readServerAuthEnv(): BoServerAuthEnv {
-  const mode = (process.env.BO_AUTH_MODE === 'real' ? 'real' : 'mock') as BoAuthMode;
+  const raw = process.env.BO_AUTH_MODE;
+  const mode: BoAuthMode = raw === 'real' ? 'real' : raw === 'db' ? 'db' : 'mock';
   return {
     mode,
     secret: process.env.BO_AUTH_SECRET ?? '',
@@ -52,6 +53,9 @@ export function assertReadyForRuntime(env: BoServerAuthEnv): void {
     if (!env.devAdminEmail || !env.devAdminPassword) {
       throw new Error('BO_AUTH_MODE=mock 인데 BO_DEV_ADMIN_EMAIL/PASSWORD 미설정');
     }
+  } else if (env.mode === 'db') {
+    // db 모드: @hyliren/db (Prisma) 가 DATABASE_URL 을 사용. BO 자체엔 추가 env 불필요.
+    // DATABASE_URL 누락은 Prisma client 가 첫 query 시점에 throw 하므로 별도 검증 생략.
   } else if (env.mode === 'real') {
     if (!env.backendUrl) {
       throw new Error('BO_AUTH_MODE=real 인데 BO_BACKEND_URL 미설정');

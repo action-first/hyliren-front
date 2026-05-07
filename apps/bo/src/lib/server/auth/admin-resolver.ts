@@ -1,10 +1,12 @@
 import type { Member } from '@hyliren/shared';
+import { verifyAdminCredentials, getAdminByEmail } from '@hyliren/db';
 import { readServerAuthEnv, assertReadyForRuntime } from './env';
 
 /**
  * Email → AdminMember resolve.
  *
  * mock 모드: env BO_DEV_ADMIN_EMAIL/NAME 와 일치하면 가상 admin Member 반환.
+ * db 모드:   @hyliren/db 의 getAdminByEmail (Prisma) 로 members 테이블 직접 조회.
  * real 모드: BACKEND `/admin/auth/me` proxy 호출.
  *
  * BFF route handler (login·me) 가 token verify 후 본 함수 호출 → admin 정보 응답.
@@ -24,6 +26,11 @@ export async function resolveAdminByEmail(email: string): Promise<Member | null>
       createdAt: now,
       updatedAt: now,
     };
+  }
+
+  if (env.mode === 'db') {
+    const row = await getAdminByEmail(email);
+    return row ? toSharedMember(row) : null;
   }
 
   // real 모드 — backend 의 admin lookup endpoint proxy.
@@ -47,6 +54,7 @@ export async function resolveAdminByEmail(email: string): Promise<Member | null>
  * 로그인 자격 검증.
  *
  * mock 모드: env 의 평문 비밀번호와 정확히 일치할 때만 통과.
+ * db 모드:   @hyliren/db 의 verifyAdminCredentials (bcrypt + role='admin' 가드).
  * real 모드: BACKEND `/admin/auth/login` proxy.
  *
  * 실패 시 null 반환. 호출자가 401 envelope 변환.
@@ -70,6 +78,11 @@ export async function authenticateAdmin(
     return resolveAdminByEmail(email);
   }
 
+  if (env.mode === 'db') {
+    const row = await verifyAdminCredentials({ email, password });
+    return row ? toSharedMember(row) : null;
+  }
+
   if (!env.backendUrl) return null;
   try {
     const res = await fetch(`${env.backendUrl}/admin/auth/login`, {
@@ -84,4 +97,29 @@ export async function authenticateAdmin(
   } catch {
     return null;
   }
+}
+
+/**
+ * Prisma Member row → @hyliren/shared Member DTO.
+ *
+ * - 정본 schema 의 PK 는 member_id (Prisma: memberId) → shared DTO 의 id 로 매핑.
+ * - createdAt/updatedAt 은 ISO string 으로 직렬화.
+ * - passwordHash 등 민감 필드는 절대 응답에 포함 X (구조분해로 의도적 제외).
+ */
+function toSharedMember(row: {
+  memberId: string;
+  email: string;
+  name: string;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
+}): Member {
+  return {
+    id: row.memberId,
+    role: 'admin',
+    email: row.email,
+    name: row.name,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
 }

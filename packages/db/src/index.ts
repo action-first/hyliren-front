@@ -25,3 +25,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Prisma 가 자동 생성하는 model 타입을 같이 re-export 하면 호출처 import 가 단순해짐.
 export type { Member, MemberRole } from '@prisma/client';
+
+// Admin auth helpers — apps/bo 가 prisma·bcrypt 직접 다루지 않게 캡슐화.
+export { verifyAdminCredentials, getAdminByEmail } from './auth';
+export type { VerifyAdminInput } from './auth';

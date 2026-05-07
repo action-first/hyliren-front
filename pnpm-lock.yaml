@@ -33,6 +33,9 @@ importers:
 
   apps/bo:
     dependencies:
+      '@hyliren/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@hyliren/shared':
         specifier: workspace:*
         version: link:../../packages/shared

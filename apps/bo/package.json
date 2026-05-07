@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@hyliren/db": "workspace:*",
     "@hyliren/shared": "workspace:*",
     "@hyliren/ui": "workspace:*",
     "ag-grid-community": "^35.2.1",
