@@ -1,9 +1,7 @@
+'use client';
+
+import { useEffect, useState, use } from 'react';
 import {
-  MOCK_USERS,
-  MOCK_BUYER_PROFILES,
-  MOCK_CONCERNS,
-  MOCK_PROPOSALS,
-  MOCK_PARTNER_PROFILES,
   CONCERN_STATUS_KR,
   CONCERN_STATUS_BADGE,
   BODY_AREA_BADGE,
@@ -12,22 +10,23 @@ import {
   formatBudget,
   formatDateKR,
   formatDateRange,
-  isProposalAccepted,
 } from '@hyliren/shared';
-import { Card, Badge, SectionHeader, AdminPage } from '@hyliren/ui';
+import { Card, Badge, SectionHeader, AdminPage, Spinner } from '@hyliren/ui';
 import { BOSidebar } from '@/components/BOSidebar';
+import {
+  getBuyerDetail,
+  type AdminBuyerDetail,
+  type AdminBuyerConcern,
+  type AdminBuyerProposal,
+} from '@/lib/api/admin-buyers';
+import { ApiError } from '@/lib/api/errors';
 
-// ── 스타일 토큰 (Shopreach DS 스타일) ──
 const S = {
   label: { fontSize: 13, color: 'var(--text-subdued)', marginBottom: 2 } as const,
   value: { fontSize: 14, color: 'var(--text-default)', fontWeight: 500 } as const,
   sectionGap: { display: 'flex', flexDirection: 'column' as const, gap: 16 },
-  metaRow: {
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-  } as const,
-  divider: {
-    height: 1, background: 'var(--border-subdued)', margin: 0,
-  } as const,
+  metaRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } as const,
+  divider: { height: 1, background: 'var(--border-subdued)', margin: 0 } as const,
 };
 
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -54,56 +53,93 @@ function StatusBadge({ statusKey, label, map }: { statusKey: string; label: stri
   );
 }
 
-interface Props { params: Promise<{ id: string }>; }
+interface TimelineEvent {
+  time: string;
+  text: string;
+  type: 'concern' | 'proposal' | 'action';
+}
 
-export default async function BuyerDetailPage({ params }: Props) {
-  const { id } = await params;
-  const user = MOCK_USERS.find(u => u.id === id) || MOCK_USERS[0];
-  const profile = MOCK_BUYER_PROFILES.find(p => p.userId === user.id);
-
-  const concerns = MOCK_CONCERNS.filter(c => c.userId === user.id && !c.deletedAt)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-  const proposals = MOCK_PROPOSALS.filter(p =>
-    concerns.some(c => c.id === p.concernId) && p.isActive
-  ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-  // 활동 타임라인
-  const events = concerns.flatMap(c => {
-    const items: { time: string; text: string; type: 'concern' | 'proposal' | 'action' }[] = [
-      { time: c.createdAt, text: `고민 등록: ${c.bodyArea} ${c.bodyAreaDetail || ''}`, type: 'concern' },
-    ];
-    const ps = MOCK_PROPOSALS.filter(p => p.concernId === c.id && p.isActive);
-    ps.forEach(p => {
+function buildTimeline(concerns: AdminBuyerConcern[], proposals: AdminBuyerProposal[]): TimelineEvent[] {
+  const items: TimelineEvent[] = [];
+  for (const c of concerns) {
+    items.push({
+      time: c.createdAt,
+      text: `고민 등록: ${c.primaryArea} ${c.bodyAreaDetail || ''}`,
+      type: 'concern',
+    });
+    const ps = proposals.filter((p) => p.concernId === c.id);
+    for (const p of ps) {
       if (p.sentAt) items.push({ time: p.sentAt, text: `제안서 도착 (${p.totalPrice}만원)`, type: 'proposal' });
       if (p.viewedAt) items.push({ time: p.viewedAt, text: '제안서 열람', type: 'action' });
-      if (p.status === 'shortlisted') items.push({ time: p.viewedAt || p.sentAt || c.createdAt, text: '제안서 비교 선택', type: 'action' });
-      if (isProposalAccepted(p)) items.push({ time: p.updatedAt, text: '병원 선택 완료', type: 'action' });
-    });
-    return items;
-  }).sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+      if (p.status === 'accepted') items.push({ time: p.updatedAt, text: '병원 선택 완료', type: 'action' });
+    }
+  }
+  return items.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+}
 
-  // 통계
-  const totalProposals = proposals.length;
-  const viewedProposals = proposals.filter(p => p.viewedAt).length;
-  const selectedProposals = proposals.filter(isProposalAccepted).length;
+interface Props { params: Promise<{ id: string }> }
 
+export default function BuyerDetailPage({ params }: Props) {
+  const { id } = use(params);
+  const [data, setData] = useState<AdminBuyerDetail | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    getBuyerDetail(id)
+      .then((d) => { if (!cancelled) setData(d); })
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        if (e instanceof ApiError && e.status === 404) {
+          setNotFound(true);
+          return;
+        }
+        setError(e instanceof Error ? e.message : '고객 정보를 불러오지 못했습니다.');
+      });
+    return () => { cancelled = true; };
+  }, [id]);
+
+  if (notFound) {
+    return (
+      <AdminPage sidebar={<BOSidebar active="/buyers" />} title="고객 상세" prefix="bo">
+        <div style={{ padding: 24, fontSize: 14, color: '#475569' }}>존재하지 않는 고객입니다.</div>
+      </AdminPage>
+    );
+  }
+  if (error) {
+    return (
+      <AdminPage sidebar={<BOSidebar active="/buyers" />} title="고객 상세" prefix="bo">
+        <div style={{ padding: 24, color: 'var(--color-danger,#d72c0d)', fontSize: 13 }}>{error}</div>
+      </AdminPage>
+    );
+  }
+  if (!data) {
+    return (
+      <AdminPage sidebar={<BOSidebar active="/buyers" />} title="고객 상세" prefix="bo">
+        <div style={{ minHeight: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Spinner />
+        </div>
+      </AdminPage>
+    );
+  }
+
+  const { user, profile, concerns, proposals, stats } = data;
+  const events = buildTimeline(concerns, proposals);
   const genderLabel = profile?.gender === 'female' ? '여성' : profile?.gender === 'male' ? '남성' : profile?.gender === 'other' ? '기타' : '-';
   const age = profile?.birthYear ? new Date().getFullYear() - profile.birthYear : null;
 
   return (
     <AdminPage sidebar={<BOSidebar active="/buyers" />} title={`고객 상세 — ${user.name}`} prefix="bo">
 
-      {/* ══════ 2열 레이아웃 (Shopreach claim-process-grid 스타일) ══════ */}
       <div className="detail-grid">
 
-        {/* ══════ 좌측: 메인 콘텐츠 ══════ */}
         <div className="detail-main">
 
-          {/* ── 고민 내역 ── */}
+          {/* 고민 내역 */}
           <Card padding="md">
             <SectionHeader
-              title={`고민 내역`}
+              title="고민 내역"
               subtitle={`총 ${concerns.length}건의 상담 고민이 등록되어 있습니다`}
             />
             <div style={{ marginTop: 16 }}>
@@ -115,7 +151,7 @@ export default async function BuyerDetailPage({ params }: Props) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {concerns.map(c => {
                     const statusLabel = CONCERN_STATUS_KR[c.status] ?? c.status;
-                    const areaColor = BODY_AREA_BADGE[c.bodyArea];
+                    const areaColor = BODY_AREA_BADGE[c.primaryArea];
                     return (
                       <div
                         key={c.id}
@@ -135,11 +171,11 @@ export default async function BuyerDetailPage({ params }: Props) {
                                 fontSize: 12, fontWeight: 500,
                                 backgroundColor: areaColor.bg, color: areaColor.text,
                               }}>
-                                {c.bodyArea}
+                                {c.primaryArea}
                               </span>
                             )}
                             <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-default)' }}>
-                              {c.bodyAreaDetail || c.bodyArea}
+                              {c.bodyAreaDetail || c.primaryArea}
                             </span>
                           </div>
                           <StatusBadge statusKey={c.status} label={statusLabel} map={CONCERN_STATUS_BADGE} />
@@ -162,12 +198,9 @@ export default async function BuyerDetailPage({ params }: Props) {
             </div>
           </Card>
 
-          {/* ── 제안서 현황 ── */}
+          {/* 제안서 현황 */}
           <Card padding="md">
-            <SectionHeader
-              title="제안서 현황"
-              subtitle={`${totalProposals}건의 제안서가 접수되었습니다`}
-            />
+            <SectionHeader title="제안서 현황" subtitle={`${stats.proposalCount}건의 제안서가 접수되었습니다`} />
             <div style={{ marginTop: 16 }}>
               {proposals.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-disabled)', fontSize: 14 }}>
@@ -192,11 +225,11 @@ export default async function BuyerDetailPage({ params }: Props) {
                         <tr key={p.id}>
                           <td>
                             <span style={{ fontSize: 13, color: 'var(--text-default)' }}>
-                              {concern?.bodyArea || '-'} {concern?.bodyAreaDetail || ''}
+                              {concern?.primaryArea || '-'} {concern?.bodyAreaDetail || ''}
                             </span>
                           </td>
                           <td style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-default)' }}>
-                            {MOCK_PARTNER_PROFILES.find(pp => pp.memberId === p.memberId)?.hospitalName || '-'}
+                            {p.hospitalName || '-'}
                           </td>
                           <td style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-default)', fontVariantNumeric: 'tabular-nums' }}>
                             {p.totalPrice}만원
@@ -216,12 +249,9 @@ export default async function BuyerDetailPage({ params }: Props) {
             </div>
           </Card>
 
-          {/* ── 활동 타임라인 ── */}
+          {/* 활동 타임라인 */}
           <Card padding="md">
-            <SectionHeader
-              title="활동 타임라인"
-              subtitle="최근 활동 기록입니다"
-            />
+            <SectionHeader title="활동 타임라인" subtitle="최근 활동 기록입니다" />
             <div className="timeline" style={{ marginTop: 16 }}>
               {events.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-disabled)', fontSize: 14 }}>
@@ -239,14 +269,12 @@ export default async function BuyerDetailPage({ params }: Props) {
           </Card>
         </div>
 
-        {/* ══════ 우측: Sticky 사이드바 ══════ */}
+        {/* 우측 사이드바 */}
         <div className="detail-sticky-sidebar">
 
-          {/* ── 고객 정보 ── */}
           <Card padding="md">
             <SectionHeader title="고객 정보" />
             <div style={{ ...S.sectionGap, marginTop: 16 }}>
-              {/* 이름 강조 */}
               <div>
                 <div style={S.label}>이름</div>
                 <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-default)' }}>{user.name}</div>
@@ -258,16 +286,16 @@ export default async function BuyerDetailPage({ params }: Props) {
               <MetaRow label="이메일">{user.email || '-'}</MetaRow>
               <MetaRow label="국가/도시">{profile?.country || '-'} {profile?.city || ''}</MetaRow>
               <MetaRow label="성별">{genderLabel}</MetaRow>
-              {age && <MetaRow label="나이">{age}세 ({profile?.birthYear}년생)</MetaRow>}
+              {age !== null && <MetaRow label="나이">{age}세 ({profile?.birthYear}년생)</MetaRow>}
               <MetaRow label="언어"><Badge>{user.locale}</Badge></MetaRow>
 
               <div style={S.divider} />
 
               <MetaRow label="가입일">{formatDateKR(user.createdAt)}</MetaRow>
-              {user.referredBy && (
+              {user.referredByName && (
                 <MetaRow label="추천인">
                   <span style={{ fontSize: 13, color: 'var(--interactive-default)', fontWeight: 500 }}>
-                    {MOCK_USERS.find(u => u.id === user.referredBy)?.name || user.referredBy}
+                    {user.referredByName}
                   </span>
                 </MetaRow>
               )}
@@ -275,25 +303,23 @@ export default async function BuyerDetailPage({ params }: Props) {
             </div>
           </Card>
 
-          {/* ── 활동 요약 ── */}
           <Card padding="md">
             <SectionHeader title="활동 요약" />
             <div style={{ ...S.sectionGap, marginTop: 16 }}>
-              <MetaRow label="고민 등록">{concerns.length}건</MetaRow>
-              <MetaRow label="받은 제안서">{totalProposals}건</MetaRow>
-              <MetaRow label="열람한 제안서">{viewedProposals}건</MetaRow>
-              <MetaRow label="선택 완료">{selectedProposals}건</MetaRow>
+              <MetaRow label="고민 등록">{stats.concernCount}건</MetaRow>
+              <MetaRow label="받은 제안서">{stats.proposalCount}건</MetaRow>
+              <MetaRow label="열람한 제안서">{stats.viewedCount}건</MetaRow>
+              <MetaRow label="선택 완료">{stats.selectedCount}건</MetaRow>
 
               <div style={S.divider} />
 
-              {/* 전환 퍼널 요약 */}
               <div>
                 <div style={{ fontSize: 12, color: 'var(--text-disabled)', marginBottom: 8 }}>전환 퍼널</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {[
-                    { label: '고민 → 제안', value: concerns.length > 0 ? `${Math.round((totalProposals / concerns.length) * 100)}%` : '-' },
-                    { label: '제안 → 열람', value: totalProposals > 0 ? `${Math.round((viewedProposals / totalProposals) * 100)}%` : '-' },
-                    { label: '열람 → 선택', value: viewedProposals > 0 ? `${Math.round((selectedProposals / viewedProposals) * 100)}%` : '-' },
+                    { label: '고민 → 제안', value: stats.concernCount > 0 ? `${Math.round((stats.proposalCount / stats.concernCount) * 100)}%` : '-' },
+                    { label: '제안 → 열람', value: stats.proposalCount > 0 ? `${Math.round((stats.viewedCount / stats.proposalCount) * 100)}%` : '-' },
+                    { label: '열람 → 선택', value: stats.viewedCount > 0 ? `${Math.round((stats.selectedCount / stats.viewedCount) * 100)}%` : '-' },
                   ].map((row, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: 12, color: 'var(--text-subdued)' }}>{row.label}</span>

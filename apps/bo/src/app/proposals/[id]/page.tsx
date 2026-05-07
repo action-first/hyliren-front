@@ -1,15 +1,15 @@
-import { notFound } from 'next/navigation';
+'use client';
+
+import { useEffect, useState, use } from 'react';
 import {
-  MOCK_USERS, MOCK_PARTNER_PROFILES,
   PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE,
   CONCERN_STATUS_KR, ANESTHESIA_KR,
   formatDateKR, formatDateRange, formatBudget,
 } from '@hyliren/shared';
-import { getConcerns, getProposals, getProposalItems } from '@hyliren/shared/src/server/data-store';
-import { Card, Badge, SectionHeader, AdminPage } from '@hyliren/ui';
+import { Card, Badge, SectionHeader, AdminPage, Spinner } from '@hyliren/ui';
 import { BOSidebar } from '@/components/BOSidebar';
-
-export const dynamic = 'force-dynamic';
+import { getProposalDetail, type AdminProposalDetail } from '@/lib/api/admin-proposals';
+import { ApiError } from '@/lib/api/errors';
 
 const S = {
   label: { fontSize: 13, color: '#94a3b8', marginBottom: 2 } as const,
@@ -44,15 +44,52 @@ function StatusBadge({ statusKey, label, map }: { statusKey: string; label: stri
 
 interface Props { params: Promise<{ id: string }> }
 
-export default async function ProposalDetailPage({ params }: Props) {
-  const { id } = await params;
-  const proposal = getProposals().find(p => p.id === id);
-  if (!proposal) notFound();
+export default function ProposalDetailPage({ params }: Props) {
+  const { id } = use(params);
+  const [data, setData] = useState<AdminProposalDetail | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
 
-  const items = getProposalItems().filter(i => i.proposalId === id);
-  const concern = getConcerns().find(c => c.id === proposal.concernId);
-  const user = concern ? MOCK_USERS.find(u => u.id === concern.userId) : null;
-  const hospital = MOCK_PARTNER_PROFILES.find(p => p.memberId === proposal.memberId);
+  useEffect(() => {
+    let cancelled = false;
+    getProposalDetail(id)
+      .then((d) => { if (!cancelled) setData(d); })
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        if (e instanceof ApiError && e.status === 404) {
+          setNotFound(true);
+          return;
+        }
+        setError(e instanceof Error ? e.message : '제안서 정보를 불러오지 못했습니다.');
+      });
+    return () => { cancelled = true; };
+  }, [id]);
+
+  if (notFound) {
+    return (
+      <AdminPage sidebar={<BOSidebar active="/proposals" />} title="제안서 상세" prefix="bo">
+        <div style={{ padding: 24, fontSize: 14, color: '#475569' }}>존재하지 않는 제안서입니다.</div>
+      </AdminPage>
+    );
+  }
+  if (error) {
+    return (
+      <AdminPage sidebar={<BOSidebar active="/proposals" />} title="제안서 상세" prefix="bo">
+        <div style={{ padding: 24, color: 'var(--color-danger,#d72c0d)', fontSize: 13 }}>{error}</div>
+      </AdminPage>
+    );
+  }
+  if (!data) {
+    return (
+      <AdminPage sidebar={<BOSidebar active="/proposals" />} title="제안서 상세" prefix="bo">
+        <div style={{ minHeight: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Spinner />
+        </div>
+      </AdminPage>
+    );
+  }
+
+  const { proposal, items, concern, user, hospital } = data;
   const statusLabel = PROPOSAL_STATUS_KR[proposal.status] ?? proposal.status;
 
   return (
@@ -64,7 +101,6 @@ export default async function ProposalDetailPage({ params }: Props) {
     >
       <div className="detail-grid">
 
-        {/* 좌측 */}
         <div className="detail-main">
 
           {/* 시술 항목 */}
@@ -129,7 +165,6 @@ export default async function ProposalDetailPage({ params }: Props) {
           </Card>
         </div>
 
-        {/* 우측 */}
         <div className="detail-sticky-sidebar">
 
           {/* 상태 */}
@@ -141,7 +176,7 @@ export default async function ProposalDetailPage({ params }: Props) {
               <hr style={S.divider} />
               <MetaRow label="발송일">{formatDateKR(proposal.sentAt)}</MetaRow>
               <MetaRow label="열람일">{proposal.viewedAt ? formatDateKR(proposal.viewedAt) : '미열람'}</MetaRow>
-              <MetaRow label="크레딧">{proposal.creditsCharged ?? 3}개</MetaRow>
+              <MetaRow label="크레딧">{proposal.creditsCharged ?? 0}개</MetaRow>
             </div>
           </Card>
 
