@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { t } from '@hyliren/i18n';
 import { narrowLangParam } from '@/lib/server-locale';
 
 /**
@@ -10,11 +11,31 @@ import { narrowLangParam } from '@/lib/server-locale';
  *
  * 결: 따뜻한 한 톤 (#FAFAF8) · 좌측 wordmark + tagline · 우측 거대 Held bowl (curl scale 30, low opacity).
  * 갤러리·grid 금지, ONE mark 원칙 그대로.
+ *
+ * Why generateImageMetadata over `export const alt`:
+ *   정적 export 는 모든 lang 에 단일 alt 가 강제됨. `generateImageMetadata` 는
+ *   params.lang 을 받아 lang 별 alt 를 동적으로 정의 가능 — Next 15 표준 패턴.
  */
 
-export const alt = 'MIMYO — 고민부터 해도 괜찮아요.';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
+
+export async function generateImageMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  const locale = narrowLangParam(lang);
+  return [
+    {
+      id: 'og',
+      alt: t(locale, 'metadata.ogImageAlt'),
+      size,
+      contentType,
+    },
+  ];
+}
 
 const MIMYO_ACCENT = '#FF385C';
 const MIMYO_PAPER = '#FAFAF8';
