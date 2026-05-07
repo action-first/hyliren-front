@@ -1,27 +1,17 @@
-import type { Metadata, Viewport } from 'next';
-import { t } from '@hyliren/i18n';
+import type { Viewport } from 'next';
+import { getLocaleFromCookie } from '@/lib/server-locale';
 import './globals.css';
-import { FOHeader } from '@/components/layout/FOHeader';
-import { FOTabBar } from '@/components/layout/FOTabBar';
-
-import Toast from '@/components/common/Toast';
-import { SessionBootstrap } from '@/components/auth/SessionBootstrap';
-import { LocaleHydrator } from '@/components/i18n/LocaleHydrator';
-import { getServerLocale } from '@/lib/server-locale';
 
 /**
- * SSR locale 기반 metadata — Customer 앱.
+ * Root layout — html/body shell 만 담당.
  *
- * 우선순위(getServerLocale): cookie `mimyo-locale` → Accept-Language → 'zh-CN' fallback.
- * 검색엔진/소셜 미리보기가 첫 응답에서 locale 별 정확한 메타를 받음.
+ * locale 결정의 SSOT 는 path (`[lang]` segment) 이고 middleware 가 모든 진입을
+ * `/{lang}/...` 로 강제한다. 다만 root layout 은 dynamic params 를 직접 받지 못하므로
+ * middleware 가 동기화한 cookie `mimyo-locale` 로 `<html lang>` 을 결정한다.
+ *
+ * 첫 진입(redirect 직전)이라도 middleware 의 redirect 응답에 Set-Cookie 가 동봉되어
+ * 브라우저가 재요청 시점부턴 cookie 가 SSOT path lang 과 정합된다.
  */
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getServerLocale();
-  return {
-    title: t(locale, 'metadata.title'),
-    description: t(locale, 'metadata.description'),
-  };
-}
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -31,24 +21,10 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const locale = await getServerLocale();
+  const locale = await getLocaleFromCookie();
   return (
     <html lang={locale} data-theme="fo">
-      <body>
-        <LocaleHydrator initialLocale={locale} />
-        <SessionBootstrap />
-        <div className="fo-shell">
-          <div className="fo-frame">
-            <FOHeader />
-            <main className="fo-main">
-              {children}
-            </main>
-          </div>
-        </div>
-        {/* 하단 탭바 — fixed로 항상 플로팅 */}
-        <FOTabBar />
-        <Toast />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

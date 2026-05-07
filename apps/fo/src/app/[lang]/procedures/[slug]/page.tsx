@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { Link } from '@/components/i18n/Link';
+import { useParams } from 'next/navigation';
+import { useLocalizedRouter } from '@/hooks/use-localized-router';
 import {
   ArrowLeft, CalendarDays, CheckCircle2, Clock3,
   HeartHandshake, ImageIcon, MessageCircle, ShieldCheck, Tag,
@@ -42,7 +43,7 @@ function formatDuration(minutes: number, t: T): string {
 
 export default function ProcedureDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-  const router = useRouter();
+  const router = useLocalizedRouter();
   const t = useLocaleStore(s => s.t);
   const locale = useLocaleStore(s => s.locale);
   const [data, setData] = useState<ProcedureDetailResponseWire | null>(null);

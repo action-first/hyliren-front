@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
+import { Link } from '@/components/i18n/Link';
 import { Badge, Button, Spinner } from '@hyliren/ui';
 import { ArrowLeft, ArrowRight, Clock, Eye } from 'lucide-react';
 import { useLocaleStore } from '@/store/locale';

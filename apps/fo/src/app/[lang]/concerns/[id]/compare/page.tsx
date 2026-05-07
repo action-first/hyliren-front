@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useLocalizedRouter } from '@/hooks/use-localized-router';
 import { track } from '@hyliren/shared';
 import { Button, Badge, MobileBottomCTA, Spinner } from '@hyliren/ui';
 import {
@@ -21,7 +21,7 @@ interface Props { params: Promise<{ id: string }>; }
 
 export default function ComparePage({ params }: Props) {
   const t = useLocaleStore(s => s.t);
-  const router = useRouter();
+  const router = useLocalizedRouter();
   const { id } = use(params);
 
   // ── Hooks 는 early return 이전에 모두 호출한다 (React 규칙). ──

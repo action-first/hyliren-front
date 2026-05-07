@@ -1,25 +1,23 @@
+import { isLocale } from '@hyliren/shared';
 import { env } from '@/lib/env';
 import { tokenStore } from '@/lib/auth/token-store';
 import { ApiError } from './errors';
 
 /**
- * 현재 사용자의 locale 을 localStorage 에서 읽어 Accept-Language 헤더에 주입.
- * - zustand persist 스토리지(hyliren-locale) 에서 직접 읽음 — store import 시 SSR 호환·순환의존 회피.
- * - 미설정·서버 측 호출 시 null → 헤더 미첨부 → BE 가 ko 기본 fallback.
+ * 현재 locale 을 cookie `mimyo-locale` 에서 읽어 Accept-Language 헤더에 주입.
+ * - middleware (apps/fo/src/middleware.ts) 가 path lang 과 cookie 를 항상 동기화하므로
+ *   `[lang]` segment === cookie === BE 요청 lang 정합 보장.
+ * - 미설정·SSR 측 호출 시 null → 헤더 미첨부 → BE fallback.
  *
  * Why: 시술 목록·상세·아티클 등 콘텐츠 API 는 Accept-Language 로 분기. 미첨부 시 모두
- *      한국어로만 내려와 다국어 사용자가 한국어 콘텐츠를 보게 되는 결함 (Codex QA High).
+ *      default lang 으로만 내려와 다국어 사용자가 잘못된 lang 콘텐츠를 보게 되는 결함.
  */
 function getCurrentLocale(): string | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = window.localStorage.getItem('hyliren-locale');
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { state?: { locale?: string } };
-    return parsed?.state?.locale ?? null;
-  } catch {
-    return null;
-  }
+  if (typeof document === 'undefined') return null;
+  const m = /(?:^|;\s*)mimyo-locale=([^;]+)/.exec(document.cookie);
+  if (!m) return null;
+  const v = decodeURIComponent(m[1]);
+  return isLocale(v) ? v : null;
 }
 
 interface Envelope<T> {

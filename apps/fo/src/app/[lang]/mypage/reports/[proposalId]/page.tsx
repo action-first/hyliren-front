@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
+import { Link } from '@/components/i18n/Link';
 import { Spinner } from '@hyliren/ui';
 import {
   ArrowLeft, ShieldCheck, Star, BarChart3, FileCheck, Activity,
