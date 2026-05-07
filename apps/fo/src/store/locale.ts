@@ -2,12 +2,18 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { isLocale, type Locale } from '@hyliren/shared';
+import { isLocale, parseAcceptLanguage, type Locale } from '@hyliren/shared';
 import { t as translate } from '@hyliren/i18n';
 
 interface LocaleState {
   locale: Locale;
   setLocale: (locale: Locale) => void;
+  /**
+   * SSR(`getServerLocale`)이 결정한 locale을 client store에 1회 주입.
+   * cookie/persist 가 이미 있으면 사용자 설정을 존중하여 no-op.
+   * 첫 진입(둘 다 없음) 시점에만 SSR 결정값으로 store + cookie 를 채움.
+   */
+  hydrateFromServer: (locale: Locale) => void;
   t: (key: string, params?: Record<string, string | number>) => string;
 }
 
@@ -48,6 +54,26 @@ function readLocaleCookie(): Locale | null {
 }
 
 /**
+ * navigator 의 언어 선호도를 Accept-Language 형식으로 직렬화하여
+ * 공통 parser(parseAcceptLanguage)로 매칭. SSR resolver 와 동일한 정책 보장.
+ *
+ * Why navigator.languages over navigator.language:
+ *   브라우저 설정의 다단 우선순위(예: ['ko-KR','ko','en-US'])를 활용해야
+ *   SSR Accept-Language 와 동일한 결과를 낸다.
+ */
+function readNavigatorLocale(): Locale | null {
+  if (typeof navigator === 'undefined') return null;
+  const langs =
+    navigator.languages && navigator.languages.length
+      ? navigator.languages
+      : navigator.language
+        ? [navigator.language]
+        : [];
+  if (!langs.length) return null;
+  return parseAcceptLanguage(langs.join(','));
+}
+
+/**
  * locale store — 번역 함수 t 를 locale 변경 시 새 reference 로 갱신.
  *
  * Why new reference on every setLocale:
@@ -62,10 +88,20 @@ function readLocaleCookie(): Locale | null {
  */
 export const useLocaleStore = create<LocaleState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       locale: FALLBACK_LOCALE,
       setLocale: (locale) => {
         set({ locale, t: makeT(locale) });
+        syncLocaleCookie(locale);
+      },
+      hydrateFromServer: (locale) => {
+        // 사용자가 명시적으로 선택한 흔적(cookie)이 있으면 존중 — 새로고침/세션 일관성.
+        if (readLocaleCookie()) return;
+        // 이미 동일 locale 이면 set 생략 (불필요 re-render 방지).
+        if (get().locale !== locale) {
+          set({ locale, t: makeT(locale) });
+        }
+        // cookie 가 비어 있으면 SSR 결정값으로 채움 — 다음 SSR 응답이 동일 locale 로 일관되도록.
         syncLocaleCookie(locale);
       },
       t: makeT(FALLBACK_LOCALE),
@@ -75,10 +111,20 @@ export const useLocaleStore = create<LocaleState>()(
       partialize: (state) => ({ locale: state.locale }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        // Cookie 우선 — SSR getServerLocale 이 결정한 값이 SSOT. localStorage 와 다르면 cookie 값 채택.
+        // 우선순위:
+        //   1. cookie (SSR getServerLocale SSOT)
+        //   2. persist 된 locale (사용자가 이전에 setLocale 호출)
+        //   3. navigator.languages 매칭 (LocaleHydrator 도달 전 paint 안전망)
         const fromCookie = readLocaleCookie();
-        if (fromCookie && fromCookie !== state.locale) {
+        if (fromCookie) {
           state.locale = fromCookie;
+        } else {
+          // cookie 없음 = 첫 진입 또는 사용자 명시 선택 없음.
+          // persist 가 default 'zh-CN' 으로 굳어버리는 결함을 navigator 폴백으로 방어.
+          const fromNavigator = readNavigatorLocale();
+          if (fromNavigator) {
+            state.locale = fromNavigator;
+          }
         }
         state.t = makeT(state.locale);
         // 새로고침 후에도 cookie 가 SSR 과 정합되도록 재동기화 (cookie 미존재 사용자에게 채워둠).
