@@ -6,7 +6,7 @@ import { FOHeader } from '@/components/layout/FOHeader';
 import { FOTabBar } from '@/components/layout/FOTabBar';
 import Toast from '@/components/common/Toast';
 import { SessionBootstrap } from '@/components/auth/SessionBootstrap';
-import { LocaleSync } from '@/components/i18n/LocaleSync';
+import { LocaleStoreProvider } from '@/store/locale';
 
 /**
  * `[lang]` layout — locale 별 본체 (FOHeader, FOTabBar, metadata 등).
@@ -43,8 +43,7 @@ export default async function LangLayout({
   if (!isLocale(lang)) notFound();
 
   return (
-    <>
-      <LocaleSync locale={lang} />
+    <LocaleStoreProvider initialLocale={lang}>
       <SessionBootstrap />
       <div className="fo-shell">
         <div className="fo-frame">
@@ -55,6 +54,6 @@ export default async function LangLayout({
       {/* 하단 탭바 — fixed 로 항상 플로팅 */}
       <FOTabBar />
       <Toast />
-    </>
+    </LocaleStoreProvider>
   );
 }
