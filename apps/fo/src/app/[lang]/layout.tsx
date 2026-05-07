@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { isLocale, LOCALES, type Locale } from '@hyliren/shared';
 import { t } from '@hyliren/i18n';
@@ -7,6 +8,29 @@ import { FOTabBar } from '@/components/layout/FOTabBar';
 import Toast from '@/components/common/Toast';
 import { SessionBootstrap } from '@/components/auth/SessionBootstrap';
 import { LocaleStoreProvider } from '@/store/locale';
+import { env } from '@/lib/env';
+
+/** lang prefix 를 제거하여 페이지의 nested path 만 추출 ('/ko/concerns/123' → '/concerns/123'). */
+function stripLangPrefix(pathname: string, lang: Locale): string {
+  const prefix = `/${lang}`;
+  if (pathname === prefix) return '';
+  return pathname.startsWith(`${prefix}/`) ? pathname.slice(prefix.length) : '';
+}
+
+/**
+ * 모든 lang 별 절대 URL 생성. hreflang alternates 노출용.
+ *
+ * @param restPath nested path (예: `/concerns/123`). 빈 문자열이면 root.
+ */
+function buildAlternates(restPath: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const l of LOCALES) {
+    out[l] = `${env.siteUrl}/${l}${restPath}`;
+  }
+  // x-default — Customer 앱 주력(zh-CN) 으로 매칭. 검색엔진이 lang 매칭 실패 시 노출할 URL.
+  out['x-default'] = `${env.siteUrl}/zh-CN${restPath}`;
+  return out;
+}
 
 /**
  * `[lang]` layout — locale 별 본체 (FOHeader, FOTabBar, metadata 등).
@@ -26,9 +50,27 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang } = await params;
   const locale: Locale = isLocale(lang) ? lang : 'zh-CN';
+
+  // middleware 가 주입한 x-pathname 으로 nested path 추출.
+  // 헤더 미존재(예: client navigation 후 RSC) 시엔 root path 로 fallback.
+  const pathname = (await headers()).get('x-pathname') ?? `/${locale}`;
+  const restPath = stripLangPrefix(pathname, locale);
+  const canonical = `${env.siteUrl}/${locale}${restPath}`;
+  const altText = t(locale, 'metadata.ogImageAlt');
   return {
+    metadataBase: new URL(env.siteUrl),
     title: t(locale, 'metadata.title'),
     description: t(locale, 'metadata.description'),
+    alternates: {
+      canonical,
+      languages: buildAlternates(restPath),
+    },
+    openGraph: {
+      images: [{ url: `/${locale}/opengraph-image`, alt: altText }],
+    },
+    twitter: {
+      images: [{ url: `/${locale}/opengraph-image`, alt: altText }],
+    },
   };
 }
 
