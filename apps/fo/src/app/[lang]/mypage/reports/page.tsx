@@ -47,7 +47,7 @@ export default function PurchasedReportsPage() {
       const valid = results.filter((r): r is ProposalDetailWire => r !== null);
       setReports(valid.map(p => ({
         proposal: p,
-        priceAdequacy: p.totalPrice < 200 ? 'low' : p.totalPrice > 400 ? 'high' : 'fair',
+        priceAdequacy: p.totalPrice < 2_000_000 ? 'low' : p.totalPrice > 4_000_000 ? 'high' : 'fair',
         riskLevel: p.anesthesiaType === 'general' ? 'medium' : 'low',
       })));
       setLoading(false);

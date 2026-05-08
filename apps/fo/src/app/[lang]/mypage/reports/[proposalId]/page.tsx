@@ -22,13 +22,13 @@ function generateFullReport(proposal: ProposalDetailWire, t: T): FullReport {
   return {
     proposalId: proposal.id,
     hospitalName: proposal.hospitalName,
-    priceScore: proposal.totalPrice < 200 ? 85 : proposal.totalPrice > 400 ? 55 : 72,
+    priceScore: proposal.totalPrice < 2_000_000 ? 85 : proposal.totalPrice > 4_000_000 ? 55 : 72,
     priceVerdict: proposal.totalPrice <= avgPrice
       ? t('report.priceVerdictFair')
       : t('report.priceVerdictHigh'),
     priceBreakdown: [
       { itemName: t('report.itemMainTreatment'), proposalPrice: Math.round(proposal.totalPrice * 0.75), marketAvg: Math.round(proposal.totalPrice * 0.8), marketRange: [Math.round(proposal.totalPrice * 0.5), Math.round(proposal.totalPrice * 1.2)], verdict: 'fair' },
-      { itemName: t('report.itemSubTreatment'), proposalPrice: Math.round(proposal.totalPrice * 0.25), marketAvg: Math.round(proposal.totalPrice * 0.3), marketRange: [Math.round(proposal.totalPrice * 0.15), Math.round(proposal.totalPrice * 0.4)], verdict: proposal.totalPrice > 300 ? 'above' : 'below' },
+      { itemName: t('report.itemSubTreatment'), proposalPrice: Math.round(proposal.totalPrice * 0.25), marketAvg: Math.round(proposal.totalPrice * 0.3), marketRange: [Math.round(proposal.totalPrice * 0.15), Math.round(proposal.totalPrice * 0.4)], verdict: proposal.totalPrice > 3_000_000 ? 'above' : 'below' },
     ],
     overtreatmentVerdict: t('report.overtreatmentVerdictDefault'),
     unnecessaryItems: [],
