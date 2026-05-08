@@ -11,10 +11,10 @@ import { getPartnerDetail, type AdminPartnerDetail } from '@/lib/api/admin-partn
 import { ApiError } from '@/lib/api/errors';
 
 const S = {
-  label: { fontSize: 13, color: '#94a3b8', marginBottom: 2 } as const,
-  value: { fontSize: 14, color: '#0f172a', fontWeight: 500 } as const,
+  label: { fontSize: 13, color: 'var(--text-subdued)', marginBottom: 2 } as const,
+  value: { fontSize: 14, color: 'var(--text-default)', fontWeight: 500 } as const,
   metaRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } as const,
-  divider: { height: 1, background: '#f1f5f9', margin: 0 } as const,
+  divider: { height: 1, background: 'var(--border-subdued)', margin: 0 } as const,
 };
 
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -67,7 +67,7 @@ export default function PartnerDetailPage({ params }: Props) {
   if (notFound) {
     return (
       <AdminPage sidebar={<BOSidebar active="/partners" />} title="병원 상세" prefix="bo">
-        <div style={{ padding: 24, fontSize: 14, color: '#475569' }}>존재하지 않는 병원입니다.</div>
+        <div style={{ padding: 24, fontSize: 14, color: 'var(--text-subdued)' }}>존재하지 않는 병원입니다.</div>
       </AdminPage>
     );
   }
@@ -143,21 +143,21 @@ export default function PartnerDetailPage({ params }: Props) {
           <Card padding="md">
             <SectionHeader title="제안서 내역" subtitle={`${proposals.length}건`} />
             {proposals.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px 0', color: '#94a3b8', fontSize: 13 }}>제안서가 없습니다</div>
+              <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-disabled)', fontSize: 13 }}>제안서가 없습니다</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
                 {proposals.map(p => {
                   const pStatus = PROPOSAL_STATUS_KR[p.status] ?? p.status;
                   return (
                     <div key={p.id} style={{
-                      padding: '14px 16px', background: '#f8fafc', borderRadius: 10,
-                      border: '1px solid #f1f5f9',
+                      padding: '14px 16px', background: 'var(--surface-subdued)', borderRadius: 10,
+                      border: '1px solid var(--border-subdued)',
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                        <span style={{ fontSize: 18, fontWeight: 700, color: '#0f172a' }}>{formatKRW(p.totalPrice)}</span>
+                        <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-default)' }}>{formatKRW(p.totalPrice)}</span>
                         <StatusBadge statusKey={p.status} label={pStatus} map={PROPOSAL_STATUS_BADGE} />
                       </div>
-                      <div style={{ display: 'flex', gap: 16, fontSize: 13, color: '#64748b' }}>
+                      <div style={{ display: 'flex', gap: 16, fontSize: 13, color: 'var(--text-subdued)' }}>
                         <span>회복 {p.recoveryDays}일</span>
                         <span>{ANESTHESIA_KR[p.anesthesiaType] ?? p.anesthesiaType}</span>
                         <span>발송 {formatDateKR(p.sentAt)}</span>
@@ -176,17 +176,17 @@ export default function PartnerDetailPage({ params }: Props) {
           <Card padding="md">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <MetaRow label="발송 제안서">
-                <span style={{ fontSize: 18, fontWeight: 700, color: '#0f172a' }}>{stats.proposalCount}건</span>
+                <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-default)' }}>{stats.proposalCount}건</span>
               </MetaRow>
               <hr style={S.divider} />
               <MetaRow label="열람률">
-                <span style={{ fontSize: 16, fontWeight: 700, color: stats.viewRate > 50 ? '#10b981' : '#f59e0b' }}>{stats.viewRate}%</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: stats.viewRate > 50 ? 'var(--color-success)' : 'var(--color-warning)' }}>{stats.viewRate}%</span>
               </MetaRow>
               <MetaRow label="선택률">
-                <span style={{ fontSize: 16, fontWeight: 700, color: stats.selectRate > 30 ? '#10b981' : '#f59e0b' }}>{stats.selectRate}%</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: stats.selectRate > 30 ? 'var(--color-success)' : 'var(--color-warning)' }}>{stats.selectRate}%</span>
               </MetaRow>
               <MetaRow label="선택 건수">
-                <span style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>{stats.selectedCount}건</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-default)' }}>{stats.selectedCount}건</span>
               </MetaRow>
             </div>
           </Card>
@@ -199,8 +199,8 @@ export default function PartnerDetailPage({ params }: Props) {
               <hr style={S.divider} />
               <MetaRow label="인증">
                 {profile?.verified
-                  ? <span style={{ fontSize: 12, color: '#166534', fontWeight: 600 }}>완료</span>
-                  : <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>미인증</span>
+                  ? <span style={{ fontSize: 12, color: 'var(--color-success)', fontWeight: 600 }}>완료</span>
+                  : <span style={{ fontSize: 12, color: 'var(--color-warning)', fontWeight: 600 }}>미인증</span>
                 }
               </MetaRow>
               <MetaRow label="가입일">{formatDateKR(member.createdAt)}</MetaRow>
