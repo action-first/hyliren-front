@@ -1,5 +1,6 @@
 'use client';
 
+import { formatKRW } from '@hyliren/shared';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Link } from '@/components/i18n/Link';
@@ -133,7 +134,7 @@ export default function ReportDetailPage() {
           )}
         </div>
         <div className="flex items-center gap-3 text-[12px] text-[var(--color-text-dim)] mb-2">
-          <span className="text-[18px] font-bold text-[var(--color-text)]">{proposal.totalPrice}{t('common.currency')}</span>
+          <span className="text-[18px] font-bold text-[var(--color-text)]">{formatKRW(proposal.totalPrice)}</span>
           <span className="flex items-center gap-1"><Clock size={11} /> {meta}</span>
           <span className="flex items-center gap-0.5 ml-auto"><Star size={10} fill="currentColor" /> 4.8</span>
         </div>
@@ -183,7 +184,7 @@ export default function ReportDetailPage() {
                   <span className="text-[10px] text-[var(--color-text-dim)]">{t('report.marketAvgRange', { avg: item.marketAvg, min: item.marketRange[0], max: item.marketRange[1], unit: t('common.currency') })}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[13px] font-bold text-[var(--color-text)] block">{item.proposalPrice}{t('common.currency')}</span>
+                  <span className="text-[13px] font-bold text-[var(--color-text)] block">{formatKRW(item.proposalPrice)}</span>
                   <span className={`text-[10px] font-medium ${VERDICT_COLOR[item.verdict]}`}>{t(VERDICT_LABEL_KEYS[item.verdict] || 'report.priceFair')}</span>
                 </div>
               </div>

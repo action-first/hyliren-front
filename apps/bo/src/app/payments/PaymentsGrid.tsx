@@ -48,8 +48,9 @@ const columnDefs: ColDef<PaymentRow>[] = [
   { field: 'actor', headerName: '주체', flex: 1, minWidth: 140, filter: true,
     cellStyle: { fontWeight: 500 },
   },
-  { field: 'amount', headerName: '금액', flex: 0.6, minWidth: 100, filter: false,
-    valueFormatter: p => `₩${(p.value as number).toLocaleString()}`,
+  { field: 'amount', headerName: '금액', flex: 0.8, minWidth: 130, filter: false,
+    // 원 단위 결제 금액 — "₩1,500,000" 약 110~130px 필요
+    valueFormatter: p => `₩${(p.value as number).toLocaleString('ko-KR')}`,
     cellStyle: { fontWeight: 600, fontVariantNumeric: 'tabular-nums' },
   },
   { field: 'status', headerName: '상태', flex: 0.5, minWidth: 90, filter: true,

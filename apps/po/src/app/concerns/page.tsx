@@ -99,7 +99,10 @@ export default function ConcernListPage() {
       field: 'description', headerName: t('po.concernColContent'), flex: 2, minWidth: 150, filter: true,
       cellStyle: { color: 'var(--text-subdued)' },
     },
-    { field: 'budget', headerName: t('po.concernColBudget'), flex: 0.7, minWidth: 80, filter: false },
+    // 원 단위 예산 (예: "1,000,000~3,000,000원") — minWidth 확장
+    { field: 'budget', headerName: t('po.concernColBudget'), flex: 1.4, minWidth: 200, filter: false,
+      cellStyle: { fontVariantNumeric: 'tabular-nums' },
+    },
     { field: 'visitDate', headerName: t('po.concernColVisitDate'), flex: 0.8, minWidth: 90, filter: false },
     {
       field: 'mySentStatus', headerName: t('po.concernColMyProposal'), flex: 0.7, minWidth: 80, filter: true,

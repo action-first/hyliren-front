@@ -41,8 +41,9 @@ const columnDefs: ColDef<ProposalRow>[] = [
   { field: 'hospitalName', headerName: '병원', flex: 1.2, minWidth: 130, filter: true,
     cellStyle: { fontWeight: 500 },
   },
-  { field: 'totalPrice', headerName: '가격', flex: 0.6, minWidth: 80, filter: false,
-    cellStyle: { fontWeight: 600 },
+  { field: 'totalPrice', headerName: '가격', flex: 0.8, minWidth: 120, filter: false,
+    // 원 단위 가격 (예: "1,500,000원") 약 95~110px 필요 — 80px 시 truncation 발생
+    cellStyle: { fontWeight: 600, fontVariantNumeric: 'tabular-nums' },
   },
   { field: 'statusEnum', headerName: '상태', flex: 0.6, minWidth: 80, filter: true,
     cellRenderer: (p: { value: string }) => {

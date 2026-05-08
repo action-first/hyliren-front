@@ -86,15 +86,15 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
         {concern.description}
       </p>
 
-      {/* 예산·방문 칩 */}
-      <div className="flex items-center gap-2 mb-3">
+      {/* 예산·방문 칩 — 원 단위 가격 자릿수 길어 모바일에서 줄바꿈 필요 */}
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
         {concern.budgetMin && concern.budgetMax && (
-          <span className="flex items-center gap-0.5 px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-bg)] text-[11px] font-medium text-[var(--color-text-secondary)]">
+          <span className="flex items-center gap-0.5 px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-bg)] text-[11px] font-medium text-[var(--color-text-secondary)] whitespace-nowrap tabular-nums">
             <Banknote size={11} /> {formatBudget(concern.budgetMin, concern.budgetMax)}
           </span>
         )}
         {concern.visitDateFrom && (
-          <span className="flex items-center gap-0.5 px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-bg)] text-[11px] font-medium text-[var(--color-text-secondary)]">
+          <span className="flex items-center gap-0.5 px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-bg)] text-[11px] font-medium text-[var(--color-text-secondary)] whitespace-nowrap">
             <Calendar size={11} /> {t('decision.visitDateLabel', { date: concern.visitDateFrom.slice(5) })}
           </span>
         )}

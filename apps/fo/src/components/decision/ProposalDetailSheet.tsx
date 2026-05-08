@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import type { Proposal, PartnerProfile, ProposalItem } from '@hyliren/shared';
-import { track } from '@hyliren/shared';
+import { track , formatKRW } from '@hyliren/shared';
 import { Button, Badge, BottomSheet } from '@hyliren/ui';
 import { X, ShieldCheck, Star, Sparkles, Clock, Syringe } from 'lucide-react';
 import { useLocaleStore } from '@/store/locale';
@@ -49,7 +49,7 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
           <div className="px-5 py-4">
             {/* Price hero */}
             <div className="flex items-baseline gap-2 mb-4">
-              <span className="text-[1.75rem] font-bold text-[var(--color-text)]">{proposal.totalPrice}{t('common.currency')}</span>
+              <span className="text-[1.75rem] font-bold text-[var(--color-text)]">{formatKRW(proposal.totalPrice)}</span>
               <div className="flex items-center gap-1 text-[12px] text-[var(--color-text-dim)]">
                 <Star size={11} fill="currentColor" /> 4.8
               </div>
@@ -80,7 +80,7 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
                 {items.map(item => (
                   <div key={item.id} className="flex items-center justify-between px-3.5 py-2.5 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
                     <span className="text-[13px] text-[var(--color-text)]">{item.treatmentName}</span>
-                    <span className="text-[13px] font-semibold text-[var(--color-text)]">{item.price}{t('common.currency')}</span>
+                    <span className="text-[13px] font-semibold text-[var(--color-text)]">{formatKRW(item.price)}</span>
                   </div>
                 ))}
               </div>

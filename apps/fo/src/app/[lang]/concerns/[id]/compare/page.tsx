@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useLocalizedRouter } from '@/hooks/use-localized-router';
-import { track } from '@hyliren/shared';
+import { track, formatKRW } from '@hyliren/shared';
 import { Button, Badge, MobileBottomCTA, Spinner } from '@hyliren/ui';
 import {
   Check, ChevronRight, Sparkles,
@@ -108,7 +108,7 @@ export default function ComparePage({ params }: Props) {
                   <span className="text-[13px] font-semibold text-[var(--color-text)] block mb-1">{hospitalName}</span>
 
                   {/* Price */}
-                  <span className="text-[1.25rem] font-bold text-[var(--color-text)] block mb-2">{p.totalPrice}{t('common.currency')}</span>
+                  <span className="text-[1.25rem] font-bold text-[var(--color-text)] block mb-2">{formatKRW(p.totalPrice)}</span>
 
                   {/* Key metrics — visual */}
                   <div className="flex flex-col gap-1.5">
@@ -167,20 +167,28 @@ export default function ComparePage({ params }: Props) {
                 const pHospitalName = p.hospitalName || t('services.fallbackHospitalName');
                 const maxPrice = Math.max(...proposals.map(pp => pp.totalPrice));
                 const barWidth = Math.max((p.totalPrice / maxPrice) * 100, 20);
+                const isLowest = p.totalPrice === lowestPrice;
+                /*
+                 * 가격을 bar 외부 우측에 배치 — 원 단위 가격 (1,500,000원) 자릿수가 길어 좁은
+                 * bar 안에 들어갈 수 없음. bar 는 시각적 비교만 유지하고, 가격은 tabular-nums
+                 * 로 정렬하여 모바일에서도 가독성 유지.
+                 */
                 return (
-                  <div key={p.id} className={`flex items-center gap-3 py-2 ${selectedId === p.id ? '' : ''}`}>
+                  <div key={p.id} className="flex items-center gap-2 py-2">
                     <span className="text-[11px] text-[var(--color-text-secondary)] w-16 shrink-0 truncate">{pHospitalName.split(' ')[0]}</span>
-                    <div className="flex-1 h-6 bg-[var(--color-bg-secondary)] rounded-full overflow-hidden">
+                    <div className="flex-1 h-2 bg-[var(--color-bg-secondary)] rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full flex items-center justify-end pr-2 transition-all ${
-                          p.totalPrice === lowestPrice ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'
+                        className={`h-full rounded-full transition-all ${
+                          isLowest ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'
                         }`}
-                        style={{ width: `${barWidth}%` }}>
-                        <span className={`text-[10px] font-bold ${p.totalPrice === lowestPrice ? 'text-white' : 'text-[var(--color-text)]'}`}>
-                          {p.totalPrice}{t('common.currency')}
-                        </span>
-                      </div>
+                        style={{ width: `${barWidth}%` }}
+                      />
                     </div>
+                    <span className={`text-[11px] font-semibold tabular-nums shrink-0 ${
+                      isLowest ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'
+                    }`}>
+                      {formatKRW(p.totalPrice)}
+                    </span>
                   </div>
                 );
               })}
