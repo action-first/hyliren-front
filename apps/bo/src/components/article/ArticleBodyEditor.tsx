@@ -45,8 +45,8 @@ export function ArticleBodyEditor({ value, onChange, disabled = false }: Props) 
   if (!TINY_API_KEY) {
     return (
       <div style={{
-        padding: 16, borderRadius: 8, border: '1px solid #fecaca', background: '#fef2f2',
-        color: '#991b1b', fontSize: 13,
+        padding: 16, borderRadius: 8, border: '1px solid var(--color-danger-soft)', background: 'var(--color-danger-soft)',
+        color: 'var(--color-danger)', fontSize: 13,
       }}>
         TinyMCE API key 미설정 — <code>apps/bo/.env.local</code> 에 <code>NEXT_PUBLIC_TINYMCE_API_KEY</code> 추가 필요
       </div>
