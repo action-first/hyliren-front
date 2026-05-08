@@ -10,6 +10,7 @@ import {
   formatBudget,
   formatDateKR,
   formatDateRange,
+  formatKRW,
 } from '@hyliren/shared';
 import { Card, Badge, SectionHeader, AdminPage, Spinner } from '@hyliren/ui';
 import { BOSidebar } from '@/components/BOSidebar';
@@ -69,7 +70,7 @@ function buildTimeline(concerns: AdminBuyerConcern[], proposals: AdminBuyerPropo
     });
     const ps = proposals.filter((p) => p.concernId === c.id);
     for (const p of ps) {
-      if (p.sentAt) items.push({ time: p.sentAt, text: `제안서 도착 (${p.totalPrice}만원)`, type: 'proposal' });
+      if (p.sentAt) items.push({ time: p.sentAt, text: `제안서 도착 (${formatKRW(p.totalPrice)})`, type: 'proposal' });
       if (p.viewedAt) items.push({ time: p.viewedAt, text: '제안서 열람', type: 'action' });
       if (p.status === 'accepted') items.push({ time: p.updatedAt, text: '병원 선택 완료', type: 'action' });
     }
@@ -232,7 +233,7 @@ export default function BuyerDetailPage({ params }: Props) {
                             {p.hospitalName || '-'}
                           </td>
                           <td style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-default)', fontVariantNumeric: 'tabular-nums' }}>
-                            {p.totalPrice}만원
+                            {formatKRW(p.totalPrice)}
                           </td>
                           <td>
                             <StatusBadge statusKey={p.status} label={statusLabel} map={PROPOSAL_STATUS_BADGE} />

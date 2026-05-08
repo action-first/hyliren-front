@@ -1,5 +1,6 @@
 'use client';
 
+import { formatKRW } from '@hyliren/shared';
 import { useEffect, useState } from 'react';
 import { Link } from '@/components/i18n/Link';
 import { Button, Spinner } from '@hyliren/ui';
@@ -46,7 +47,7 @@ export default function PurchasedReportsPage() {
       const valid = results.filter((r): r is ProposalDetailWire => r !== null);
       setReports(valid.map(p => ({
         proposal: p,
-        priceAdequacy: p.totalPrice < 200 ? 'low' : p.totalPrice > 400 ? 'high' : 'fair',
+        priceAdequacy: p.totalPrice < 2_000_000 ? 'low' : p.totalPrice > 4_000_000 ? 'high' : 'fair',
         riskLevel: p.anesthesiaType === 'general' ? 'medium' : 'low',
       })));
       setLoading(false);
@@ -123,7 +124,7 @@ export default function PurchasedReportsPage() {
 
                 {/* 가격 + 메타 */}
                 <div className="mb-2.5">
-                  <span className="text-[17px] font-bold text-[var(--color-text)] mr-2">{proposal.totalPrice}{t('common.currency')}</span>
+                  <span className="text-[17px] font-bold text-[var(--color-text)] mr-2">{formatKRW(proposal.totalPrice)}</span>
                   <span className="text-[11px] text-[var(--color-text-dim)]">{meta}</span>
                 </div>
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { formatKRW } from '@hyliren/shared';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Link } from '@/components/i18n/Link';
@@ -21,13 +22,13 @@ function generateFullReport(proposal: ProposalDetailWire, t: T): FullReport {
   return {
     proposalId: proposal.id,
     hospitalName: proposal.hospitalName,
-    priceScore: proposal.totalPrice < 200 ? 85 : proposal.totalPrice > 400 ? 55 : 72,
+    priceScore: proposal.totalPrice < 2_000_000 ? 85 : proposal.totalPrice > 4_000_000 ? 55 : 72,
     priceVerdict: proposal.totalPrice <= avgPrice
       ? t('report.priceVerdictFair')
       : t('report.priceVerdictHigh'),
     priceBreakdown: [
       { itemName: t('report.itemMainTreatment'), proposalPrice: Math.round(proposal.totalPrice * 0.75), marketAvg: Math.round(proposal.totalPrice * 0.8), marketRange: [Math.round(proposal.totalPrice * 0.5), Math.round(proposal.totalPrice * 1.2)], verdict: 'fair' },
-      { itemName: t('report.itemSubTreatment'), proposalPrice: Math.round(proposal.totalPrice * 0.25), marketAvg: Math.round(proposal.totalPrice * 0.3), marketRange: [Math.round(proposal.totalPrice * 0.15), Math.round(proposal.totalPrice * 0.4)], verdict: proposal.totalPrice > 300 ? 'above' : 'below' },
+      { itemName: t('report.itemSubTreatment'), proposalPrice: Math.round(proposal.totalPrice * 0.25), marketAvg: Math.round(proposal.totalPrice * 0.3), marketRange: [Math.round(proposal.totalPrice * 0.15), Math.round(proposal.totalPrice * 0.4)], verdict: proposal.totalPrice > 3_000_000 ? 'above' : 'below' },
     ],
     overtreatmentVerdict: t('report.overtreatmentVerdictDefault'),
     unnecessaryItems: [],
@@ -133,7 +134,7 @@ export default function ReportDetailPage() {
           )}
         </div>
         <div className="flex items-center gap-3 text-[12px] text-[var(--color-text-dim)] mb-2">
-          <span className="text-[18px] font-bold text-[var(--color-text)]">{proposal.totalPrice}{t('common.currency')}</span>
+          <span className="text-[18px] font-bold text-[var(--color-text)]">{formatKRW(proposal.totalPrice)}</span>
           <span className="flex items-center gap-1"><Clock size={11} /> {meta}</span>
           <span className="flex items-center gap-0.5 ml-auto"><Star size={10} fill="currentColor" /> 4.8</span>
         </div>
@@ -180,10 +181,10 @@ export default function ReportDetailPage() {
               <div key={item.itemName} className="flex items-center justify-between py-2.5 border-t border-[var(--color-border-light)]">
                 <div>
                   <span className="text-[12px] font-medium text-[var(--color-text)] block">{item.itemName}</span>
-                  <span className="text-[10px] text-[var(--color-text-dim)]">{t('report.marketAvgRange', { avg: item.marketAvg, min: item.marketRange[0], max: item.marketRange[1], unit: t('common.man') })}</span>
+                  <span className="text-[10px] text-[var(--color-text-dim)]">{t('report.marketAvgRange', { avg: item.marketAvg, min: item.marketRange[0], max: item.marketRange[1], unit: t('common.currency') })}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[13px] font-bold text-[var(--color-text)] block">{item.proposalPrice}{t('common.man')}</span>
+                  <span className="text-[13px] font-bold text-[var(--color-text)] block">{formatKRW(item.proposalPrice)}</span>
                   <span className={`text-[10px] font-medium ${VERDICT_COLOR[item.verdict]}`}>{t(VERDICT_LABEL_KEYS[item.verdict] || 'report.priceFair')}</span>
                 </div>
               </div>

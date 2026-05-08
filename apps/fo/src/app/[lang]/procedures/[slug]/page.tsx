@@ -27,9 +27,9 @@ function anesthesiaLabel(key: string, t: T): string {
   return key;
 }
 
-function formatPrice(min: number, max: number, locale: string, manLabel: string): string {
-  const toMan = (value: number) => `${Math.round(value / 10000).toLocaleString(locale)}${manLabel}`;
-  return min === max ? toMan(min) : `${toMan(min)}~${toMan(max)}`;
+function formatPrice(min: number, max: number, locale: string, currencyLabel: string): string {
+  const fmt = (v: number) => `${v.toLocaleString(locale)}${currencyLabel}`;
+  return min === max ? fmt(min) : `${fmt(min)}~${fmt(max)}`;
 }
 
 function formatDuration(minutes: number, t: T): string {
@@ -152,7 +152,7 @@ export default function ProcedureDetailPage() {
       </section>
 
       <section className="grid grid-cols-3 gap-2 px-5 py-4 bg-[var(--color-bg)] border-t border-[var(--color-border-light)]">
-        <SummaryTile label={t('landing.referencePrice')} value={formatPrice(procedure.priceMin, procedure.priceMax, locale, t('common.man'))} />
+        <SummaryTile label={t('landing.referencePrice')} value={formatPrice(procedure.priceMin, procedure.priceMax, locale, t('common.currency'))} />
         <SummaryTile label={t('procedures.summaryRecovery')} value={defaultVariant ? t('report.daysShort', { days: defaultVariant.recoveryDays }) : '-'} />
         <SummaryTile label={t('procedures.summaryDuration')} value={defaultVariant ? formatDuration(defaultVariant.durationMinutes, t) : '-'} />
       </section>
@@ -202,7 +202,7 @@ export default function ProcedureDetailPage() {
                     <p className="text-[12px] leading-5 text-[var(--color-text-secondary)]">{variant.description}</p>
                   ) : null}
                 </div>
-                <strong className="text-[13px] whitespace-nowrap text-[var(--color-text)]">{formatPrice(variant.price, variant.price, locale, t('common.man'))}</strong>
+                <strong className="text-[13px] whitespace-nowrap text-[var(--color-text)]">{formatPrice(variant.price, variant.price, locale, t('common.currency'))}</strong>
               </div>
               <div className="grid grid-cols-3 gap-2 pt-3 border-t border-[var(--color-border-light)]">
                 <MiniMeta icon={ShieldCheck} label={anesthesiaLabel(variant.anesthesia, t)} />

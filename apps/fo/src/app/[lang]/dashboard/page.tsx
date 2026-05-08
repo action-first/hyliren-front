@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from '@/components/i18n/Link';
 import type { Proposal } from '@hyliren/shared';
-import { track } from '@hyliren/shared';
+import { track, formatBudget } from '@hyliren/shared';
 import { useMyConcerns } from '@/lib/hooks/concern';
 import { listProposals, mapProposal } from '@/lib/api/proposal';
 import { Button, Badge, Spinner } from '@hyliren/ui';
@@ -258,16 +258,17 @@ function ConcernStatusCard({
           {description}
         </p>
 
-        {/* 3행: 예산/방문 칩 */}
+        {/* 3행: 예산/방문 칩 — 원 단위 가격 (1,000,000~3,000,000원) 자릿수가 길어 모바일에서
+            줄바꿈 필요. flex-wrap + chip 내부 whitespace-nowrap 으로 chip 단위 줄바꿈만 허용. */}
         {(budgetMin || visitDateFrom) && (
-          <div className="flex items-center gap-2 mb-2.5">
+          <div className="flex items-center gap-2 mb-2.5 flex-wrap">
             {budgetMin && budgetMax && (
-              <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)]">
-                <Banknote size={10} /> {t('decision.budgetRangeMan', { min: budgetMin, max: budgetMax })}
+              <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)] whitespace-nowrap tabular-nums">
+                <Banknote size={10} /> {formatBudget(budgetMin, budgetMax)}
               </span>
             )}
             {visitDateFrom && (
-              <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)]">
+              <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)] text-[10px] font-medium text-[var(--color-text-dim)] whitespace-nowrap">
                 <Calendar size={10} /> {visitDateFrom.slice(5)}~
               </span>
             )}
