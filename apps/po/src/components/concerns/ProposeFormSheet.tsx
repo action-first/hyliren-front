@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { AnesthesiaType, Procedure } from '@hyliren/shared';
-import { CREDIT_COST } from '@hyliren/shared';
+import { CREDIT_COST, formatKRW } from '@hyliren/shared';
 import { pickI18n } from '@hyliren/shared/src/domain/procedure';
 import { Button, Card, Input, SectionHeader, Select, SideSheet, Textarea } from '@hyliren/ui';
 import { Calendar, ChevronDown, Trash2 } from 'lucide-react';
@@ -115,7 +115,7 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
 
   /**
    * Procedure (real BE) 를 form item 으로 매핑.
-   * - 가격: priceMin/priceMax 가 KRW (raw) → 만원 단위로 변환 (form 은 만원 입력 기준).
+   * - 가격: priceMin/priceMax 가 KRW(원) raw → 그대로 form item 에 적용 (form 도 원 단위 입력).
    * - 이름: i18n.ko.title (sourceLocale fallback) / zh-CN 동일.
    * - 비어있는 row 가 있으면 거기를 채움, 없으면 신규 row 추가.
    */
@@ -123,17 +123,16 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
     const ko = pickI18n(p.i18n, 'ko', p.sourceLocale)?.content.title ?? '';
     const zh = pickI18n(p.i18n, 'zh-CN', p.sourceLocale)?.content.title ?? '';
     const midKrw = Math.round((p.priceMin + p.priceMax) / 2);
-    const midMan = Math.round(midKrw / 10000);
     setItems(prev => {
       const hasEmpty = prev.some(i => !i.name.trim());
       if (hasEmpty) {
         return prev.map((item, idx) =>
           idx === prev.findIndex(i => !i.name.trim())
-            ? { name: ko, nameZh: zh, price: midMan }
+            ? { name: ko, nameZh: zh, price: midKrw }
             : item
         );
       }
-      return [...prev, { name: ko, nameZh: zh, price: midMan }];
+      return [...prev, { name: ko, nameZh: zh, price: midKrw }];
     });
     setShowCatalog(false);
   }
@@ -234,9 +233,9 @@ export function ProposeFormSheet({ concernId, open, onClose, onSuccess }: Propos
                       ) : (
                         publishedProcedures.map(p => {
                           const koTitle = pickI18n(p.i18n, 'ko', p.sourceLocale)?.content.title || t('po.treatmentNoTitle');
-                          const minMan = Math.round(p.priceMin / 10000);
-                          const maxMan = Math.round(p.priceMax / 10000);
-                          const priceLabel = minMan === maxMan ? `${minMan}${t('common.man')}` : `${minMan}~${maxMan}${t('common.man')}`;
+                          const priceLabel = p.priceMin === p.priceMax
+                            ? formatKRW(p.priceMin)
+                            : `${p.priceMin.toLocaleString('ko-KR')}~${p.priceMax.toLocaleString('ko-KR')}원`;
                           return (
                             <button
                               key={p.id}

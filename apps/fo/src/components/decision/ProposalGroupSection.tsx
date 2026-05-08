@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Concern, Proposal, PartnerProfile, ProposalItem } from '@hyliren/shared';
+import { formatBudget } from '@hyliren/shared';
 import { Badge } from '@hyliren/ui';
 import { ChevronDown, ChevronUp, Banknote, Calendar } from 'lucide-react';
 import { SelectableProposalCard } from './SelectableProposalCard';
@@ -89,7 +90,7 @@ export function ProposalGroupSection({ concern, proposals, profiles, items, onCa
       <div className="flex items-center gap-2 mb-3">
         {concern.budgetMin && concern.budgetMax && (
           <span className="flex items-center gap-0.5 px-2.5 py-1 rounded-[var(--app-radius-sm)] bg-[var(--color-bg)] text-[11px] font-medium text-[var(--color-text-secondary)]">
-            <Banknote size={11} /> {t('decision.budgetRangeMan', { min: concern.budgetMin, max: concern.budgetMax })}
+            <Banknote size={11} /> {formatBudget(concern.budgetMin, concern.budgetMax)}
           </span>
         )}
         {concern.visitDateFrom && (

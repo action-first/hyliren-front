@@ -22,10 +22,10 @@ import { useConcerns } from '@/hooks/queries/concerns';
 import { useMyProposals } from '@/hooks/queries/proposals';
 import type { ConcernSummaryWire } from '@/lib/api/concern';
 import {
-  formatKrwAsMan,
   type MyProposalsQuery,
   type ProposalDetailWire,
 } from '@/lib/api/proposal';
+import { formatKRW } from '@hyliren/shared';
 
 interface ProposalRow {
   id: string;
@@ -59,15 +59,13 @@ function toRow(
   t: (k: string) => string,
 ): ProposalRow {
   const concern = concerns.find(c => c.id === proposal.concernId);
-  const budgetText = concern && (concern.budgetMin != null || concern.budgetMax != null)
-    ? `${formatBudget(concern.budgetMin, concern.budgetMax)}${t('common.man')}`
-    : '-';
+  const budgetText = concern ? formatBudget(concern.budgetMin, concern.budgetMax) : '-';
   return {
     id: proposal.id,
     sentAt: formatDateKR(proposal.sentAt, locale),
     concern: describeConcern(concern),
     budget: budgetText,
-    totalPrice: formatKrwAsMan(proposal.totalPrice, locale, t('common.currency')),
+    totalPrice: formatKRW(proposal.totalPrice),
     itemNames: proposal.items.map(item => item.treatmentName).join(', ') || '-',
     statusEnum: proposal.status,
   };

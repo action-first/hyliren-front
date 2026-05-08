@@ -13,7 +13,7 @@
     "loading": "Loading...",
     "empty": "No data",
     "verified": "Verified",
-    "currency": "0,000 KRW",
+    "currency": "KRW",
     "won": "KRW",
     "langKo": "한국어",
     "langZh": "中文",
@@ -276,7 +276,6 @@
     "receivedProposals": "Received proposals",
     "collapse": "Collapse",
     "showMoreProposals": "Show {count} more proposals",
-    "budgetRangeMan": "{min}–{max}0K KRW",
     "visitDateLabel": "Visit from {date}"
   },
   "detail": {

@@ -177,7 +177,7 @@ export default function ConcernListPage() {
       primaryArea: c.primaryArea,
       bodyAreaDetail: c.bodyAreaDetail || '',
       description: c.description.length > 50 ? c.description.slice(0, 50) + '...' : c.description,
-      budget: (c.budgetMin == null && c.budgetMax == null) ? '-' : `${formatBudget(c.budgetMin, c.budgetMax)}${t('common.man')}`,
+      budget: formatBudget(c.budgetMin, c.budgetMax),
       visitDate: c.visitDateFrom ? formatDateRange(c.visitDateFrom, c.visitDateTo) : t('common.tbd'),
       mySentStatus: c.mySentAt ? 'sent' : 'not_sent' as 'sent' | 'not_sent',
       mySentLabel: c.mySentAt ? t('po.concernMySentDone') : t('po.concernMySentNot'),

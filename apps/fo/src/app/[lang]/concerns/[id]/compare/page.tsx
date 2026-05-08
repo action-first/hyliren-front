@@ -177,7 +177,7 @@ export default function ComparePage({ params }: Props) {
                         }`}
                         style={{ width: `${barWidth}%` }}>
                         <span className={`text-[10px] font-bold ${p.totalPrice === lowestPrice ? 'text-white' : 'text-[var(--color-text)]'}`}>
-                          {p.totalPrice}{t('common.man')}
+                          {p.totalPrice}{t('common.currency')}
                         </span>
                       </div>
                     </div>

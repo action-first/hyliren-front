@@ -80,7 +80,7 @@ export function ProposalDetailSheet({ proposal, profile, items, onClose, onAnaly
                 {items.map(item => (
                   <div key={item.id} className="flex items-center justify-between px-3.5 py-2.5 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)]">
                     <span className="text-[13px] text-[var(--color-text)]">{item.treatmentName}</span>
-                    <span className="text-[13px] font-semibold text-[var(--color-text)]">{item.price}{t('common.man')}</span>
+                    <span className="text-[13px] font-semibold text-[var(--color-text)]">{item.price}{t('common.currency')}</span>
                   </div>
                 ))}
               </div>

@@ -22,7 +22,7 @@ import { toUserMessage } from '@/lib/api/error-messages';
 import { useConcerns } from '@/hooks/queries/concerns';
 import { useMyProposals } from '@/hooks/queries/proposals';
 import { useCreditBalance, useCreditTransactions } from '@/hooks/queries/credits';
-import { formatKrwAsMan } from '@/lib/api/proposal';
+import { formatKRW } from '@hyliren/shared';
 import type { ColDef } from 'ag-grid-community';
 import React from 'react';
 
@@ -151,15 +151,13 @@ export default function ActivityPage() {
       const concern = concerns.find(c => c.id === p.concernId);
       const budgetMin = concern?.budgetMin ?? null;
       const budgetMax = concern?.budgetMax ?? null;
-      const budgetText = (budgetMin == null && budgetMax == null)
-        ? '-'
-        : `${formatBudget(budgetMin, budgetMax)}${t('common.man')}`;
+      const budgetText = formatBudget(budgetMin, budgetMax);
       return {
         id: `prop-${p.id}`,
         date: formatDateKR(p.sentAt, locale),
         type: 'proposal',
         typeLabel: t('po.activityProposalSend'),
-        description: `${concern ? `${t(`common.bodyArea.${concern.primaryArea}`)} ${concern.bodyAreaDetail || ''}` : '-'} · ${budgetText} · ${formatKrwAsMan(p.totalPrice, locale, t('common.currency'))}`,
+        description: `${concern ? `${t(`common.bodyArea.${concern.primaryArea}`)} ${concern.bodyAreaDetail || ''}` : '-'} · ${budgetText} · ${formatKRW(p.totalPrice)}`,
         credit: `-${CREDIT_COST}`,
         statusEnum: p.status,
         concernId: p.concernId,

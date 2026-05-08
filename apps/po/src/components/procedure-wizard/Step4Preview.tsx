@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Badge } from '@hyliren/ui';
 import { Check, Eye, EyeOff, FileEdit, AlertCircle } from 'lucide-react';
 import type { Locale } from '@hyliren/shared';
+import { formatKRW } from '@hyliren/shared';
 import { pickI18n, getEffectiveVariant } from '@hyliren/shared/src/domain/procedure';
 import { stepIsValid } from '@/lib/wizard/validation';
 import { useLocaleStore } from '@/store/locale';
@@ -178,8 +179,8 @@ export function Step4Preview({ form }: Step4Props) {
                 {prices.length > 0 && (
                   <span className="px-2 py-0.5 rounded-full bg-[var(--surface-subdued)] text-[var(--app-text-micro)] text-[var(--text-default)]">
                     {priceMin === priceMax
-                      ? t('po.wizardPriceManwon', { n: (priceMin / 10000).toFixed(0) })
-                      : t('po.wizardPriceManwonRange', { min: (priceMin / 10000).toFixed(0), max: (priceMax / 10000).toFixed(0) })}
+                      ? formatKRW(priceMin)
+                      : `${priceMin.toLocaleString('ko-KR')}~${priceMax.toLocaleString('ko-KR')}원`}
                   </span>
                 )}
                 {itemNames.slice(0, 3).map((name, i) => (

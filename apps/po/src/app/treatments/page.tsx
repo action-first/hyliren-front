@@ -19,6 +19,7 @@ import { useLocaleStore } from '@/store/locale';
 import { pickI18n } from '@hyliren/shared/src/domain/procedure';
 import { StatusChip } from '@/components/procedure-wizard/StatusChip';
 import type { Procedure } from '@hyliren/shared';
+import { formatKRW } from '@hyliren/shared';
 import { Plus, ImageIcon, AlertTriangle, Trash2 } from 'lucide-react';
 
 /*
@@ -299,8 +300,8 @@ export default function TreatmentsPage() {
                       <span>·</span>
                       <span className="font-semibold text-[var(--text-default)]">
                         {p.priceMin === p.priceMax
-                          ? `${(p.priceMin / 10000).toFixed(0)}${t('common.man')}`
-                          : `${(p.priceMin / 10000).toFixed(0)}~${(p.priceMax / 10000).toFixed(0)}${t('common.man')}`}
+                          ? formatKRW(p.priceMin)
+                          : `${p.priceMin.toLocaleString('ko-KR')}~${p.priceMax.toLocaleString('ko-KR')}원`}
                       </span>
                     </div>
                   </div>

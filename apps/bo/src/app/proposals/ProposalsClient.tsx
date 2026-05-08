@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE, BODY_AREA_DOT,
-  formatDateKR,
+  formatDateKR, formatKRW,
 } from '@hyliren/shared';
 import { BOSidebar } from '@/components/BOSidebar';
 import { DataGrid, AdminPage, dotTextRenderer, detailLinkRenderer, Spinner } from '@hyliren/ui';
@@ -72,7 +72,7 @@ function toRow(item: AdminProposalListItem): ProposalRow {
     id: item.id,
     area: item.primaryArea || '-',
     hospitalName: item.hospitalName || item.memberId,
-    totalPrice: `${item.totalPrice}만`,
+    totalPrice: formatKRW(item.totalPrice),
     statusEnum: item.status,
     sentAt: formatDateKR(item.sentAt),
   };

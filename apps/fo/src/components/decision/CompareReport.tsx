@@ -151,7 +151,7 @@ export function CompareReport({ proposals, items, concernId, onClose }: Props) {
                       <div className="flex-1 h-6 bg-[var(--color-bg-secondary)] rounded-full overflow-hidden">
                         <div className={`h-full rounded-full flex items-center justify-end pr-2 ${BAR_COLOR(s.priceScore)}`}
                           style={{ width: `${barW}%` }}>
-                          <span className="text-[10px] font-bold text-white">{proposal.totalPrice}{t('common.man')}</span>
+                          <span className="text-[10px] font-bold text-white">{proposal.totalPrice}{t('common.currency')}</span>
                         </div>
                       </div>
                     </div>
@@ -186,7 +186,7 @@ export function CompareReport({ proposals, items, concernId, onClose }: Props) {
                     const findProposal = (s: ProposalScore) => proposals.find(pp => pp.id === s.proposalId);
                     const fastestRecovery = Math.min(...proposals.map(pp => pp.recoveryDays));
                     return [
-                    { label: t('report.totalPrice'), render: (s: ProposalScore) => { const p = findProposal(s); return p ? `${p.totalPrice}${t('common.man')}` : '—'; }, best: (s: ProposalScore) => s.priceScore >= 80 },
+                    { label: t('report.totalPrice'), render: (s: ProposalScore) => { const p = findProposal(s); return p ? `${p.totalPrice}${t('common.currency')}` : '—'; }, best: (s: ProposalScore) => s.priceScore >= 80 },
                     { label: t('report.priceScore'), render: (s: ProposalScore) => `${s.priceScore}${t('common.score')}`, best: (s: ProposalScore) => s.priceScore >= 80 },
                     { label: t('report.risk'), render: (s: ProposalScore) => `${s.riskScore}${t('common.score')}`, best: (s: ProposalScore) => s.riskScore >= 80 },
                     { label: t('report.valueScore'), render: (s: ProposalScore) => `${s.valueScore}${t('common.score')}`, best: (s: ProposalScore) => s.valueScore >= 80 },

@@ -180,10 +180,10 @@ export default function ReportDetailPage() {
               <div key={item.itemName} className="flex items-center justify-between py-2.5 border-t border-[var(--color-border-light)]">
                 <div>
                   <span className="text-[12px] font-medium text-[var(--color-text)] block">{item.itemName}</span>
-                  <span className="text-[10px] text-[var(--color-text-dim)]">{t('report.marketAvgRange', { avg: item.marketAvg, min: item.marketRange[0], max: item.marketRange[1], unit: t('common.man') })}</span>
+                  <span className="text-[10px] text-[var(--color-text-dim)]">{t('report.marketAvgRange', { avg: item.marketAvg, min: item.marketRange[0], max: item.marketRange[1], unit: t('common.currency') })}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[13px] font-bold text-[var(--color-text)] block">{item.proposalPrice}{t('common.man')}</span>
+                  <span className="text-[13px] font-bold text-[var(--color-text)] block">{item.proposalPrice}{t('common.currency')}</span>
                   <span className={`text-[10px] font-medium ${VERDICT_COLOR[item.verdict]}`}>{t(VERDICT_LABEL_KEYS[item.verdict] || 'report.priceFair')}</span>
                 </div>
               </div>

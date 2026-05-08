@@ -95,7 +95,7 @@ export function BODashboardKPI({
         icon={<Banknote size={16} color={C.positive} />}
         iconBg="#ECFDF5"
         label="총 결제"
-        value={`₩${(totalRevenue / 10000).toFixed(1)}만`}
+        value={`₩${totalRevenue.toLocaleString('ko-KR')}`}
         trend="+18%" trendUp
       />
     </div>

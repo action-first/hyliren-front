@@ -13,7 +13,7 @@
     "loading": "로딩 중...",
     "empty": "데이터가 없습니다",
     "verified": "인증",
-    "currency": "만원",
+    "currency": "원",
     "won": "원",
     "langKo": "한국어",
     "langZh": "中文",
@@ -276,7 +276,6 @@
     "receivedProposals": "받은 제안",
     "collapse": "접기",
     "showMoreProposals": "나머지 {count}개 제안 더 보기",
-    "budgetRangeMan": "{min}~{max}만",
     "visitDateLabel": "{date}~ 방문"
   },
   "detail": {

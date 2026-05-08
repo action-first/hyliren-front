@@ -155,10 +155,10 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
                       <div key={item.itemName} className="flex items-center justify-between py-2 border-t border-[var(--color-border-light)]">
                         <div>
                           <span className="text-[12px] font-medium text-[var(--color-text)] block">{item.itemName}</span>
-                          <span className="text-[10px] text-[var(--color-text-dim)]">{t('common.marketAvg')} {item.marketAvg}{t('common.man')} ({item.marketRange[0]}~{item.marketRange[1]}{t('common.man')})</span>
+                          <span className="text-[10px] text-[var(--color-text-dim)]">{t('common.marketAvg')} {item.marketAvg}{t('common.currency')} ({item.marketRange[0]}~{item.marketRange[1]}{t('common.currency')})</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-[13px] font-bold text-[var(--color-text)] block">{item.proposalPrice}{t('common.man')}</span>
+                          <span className="text-[13px] font-bold text-[var(--color-text)] block">{item.proposalPrice}{t('common.currency')}</span>
                           <span className={`text-[10px] font-medium ${VERDICT_COLOR[item.verdict]}`}>{{ below: t('report.priceLow'), fair: t('report.priceFair'), above: t('report.priceHigh') }[item.verdict]}</span>
                         </div>
                       </div>

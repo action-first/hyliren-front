@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from 'react';
 import { Link } from '@/components/i18n/Link';
-import { track } from '@hyliren/shared';
+import { track, formatBudget } from '@hyliren/shared';
 import { Button, Badge } from '@hyliren/ui';
 import {
   ArrowRight, Edit3, Camera, ChevronRight,
@@ -82,7 +82,7 @@ export default function ConcernDetailPage({ params }: Props) {
           {concern.budgetMin && concern.budgetMax && (
             <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)]">
               <Wallet size={12} className="text-[var(--color-text-dim)]" />
-              <span className="text-[11px] text-[var(--color-text-secondary)]">{t('decision.budgetRangeMan', { min: concern.budgetMin, max: concern.budgetMax })}</span>
+              <span className="text-[11px] text-[var(--color-text-secondary)]">{formatBudget(concern.budgetMin, concern.budgetMax)}</span>
             </div>
           )}
           {concern.visitDateFrom && (

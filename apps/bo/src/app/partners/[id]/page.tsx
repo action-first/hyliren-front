@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import {
   PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE,
-  ANESTHESIA_KR, formatDateKR,
+  ANESTHESIA_KR, formatDateKR, formatKRW,
 } from '@hyliren/shared';
 import { Card, Badge, SectionHeader, AdminPage, Spinner } from '@hyliren/ui';
 import { BOSidebar } from '@/components/BOSidebar';
@@ -154,7 +154,7 @@ export default function PartnerDetailPage({ params }: Props) {
                       border: '1px solid #f1f5f9',
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                        <span style={{ fontSize: 18, fontWeight: 700, color: '#0f172a' }}>{p.totalPrice}만원</span>
+                        <span style={{ fontSize: 18, fontWeight: 700, color: '#0f172a' }}>{formatKRW(p.totalPrice)}</span>
                         <StatusBadge statusKey={p.status} label={pStatus} map={PROPOSAL_STATUS_BADGE} />
                       </div>
                       <div style={{ display: 'flex', gap: 16, fontSize: 13, color: '#64748b' }}>

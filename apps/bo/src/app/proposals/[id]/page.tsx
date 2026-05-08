@@ -4,7 +4,7 @@ import { useEffect, useState, use } from 'react';
 import {
   PROPOSAL_STATUS_KR, PROPOSAL_STATUS_BADGE,
   CONCERN_STATUS_KR, ANESTHESIA_KR,
-  formatDateKR, formatDateRange, formatBudget,
+  formatDateKR, formatDateRange, formatBudget, formatKRW,
 } from '@hyliren/shared';
 import { Card, Badge, SectionHeader, AdminPage, Spinner } from '@hyliren/ui';
 import { BOSidebar } from '@/components/BOSidebar';
@@ -118,7 +118,7 @@ export default function ProposalDetailPage({ params }: Props) {
                       <div style={{ fontSize: 14, fontWeight: 500, color: '#0f172a' }}>{item.treatmentName}</div>
                       {item.treatmentNameZh && <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{item.treatmentNameZh}</div>}
                     </div>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{item.price}만원</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{formatKRW(item.price)}</span>
                   </div>
                 ))}
               </div>
@@ -127,10 +127,7 @@ export default function ProposalDetailPage({ params }: Props) {
             )}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, paddingTop: 16, borderTop: '1px solid #f1f5f9' }}>
               <span style={{ fontSize: 14, fontWeight: 600, color: '#64748b' }}>총 예상 비용</span>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                <span style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{proposal.totalPrice}</span>
-                <span style={{ fontSize: 14, color: '#94a3b8' }}>만원</span>
-              </div>
+              <span style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{formatKRW(proposal.totalPrice)}</span>
             </div>
           </Card>
 
