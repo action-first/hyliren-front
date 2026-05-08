@@ -36,7 +36,7 @@ export function CoverImageUploader({ value, onChange }: Props) {
           <img
             src={value}
             alt="cover"
-            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8, border: '1px solid #e5e7eb', display: 'block' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border-default)', display: 'block' }}
           />
           <button
             type="button"
@@ -44,7 +44,7 @@ export function CoverImageUploader({ value, onChange }: Props) {
             style={{
               position: 'absolute', top: 6, right: 6,
               width: 26, height: 26, borderRadius: '50%', border: 0,
-              background: 'rgba(0,0,0,0.6)', color: '#fff', cursor: 'pointer',
+              background: 'rgba(0,0,0,0.6)', color: 'var(--surface-default)', cursor: 'pointer',
               fontSize: 14, lineHeight: 1,
             }}
             aria-label="삭제"
@@ -57,10 +57,10 @@ export function CoverImageUploader({ value, onChange }: Props) {
           disabled={uploading}
           style={{
             width: '100%', aspectRatio: '16 / 9', borderRadius: 8,
-            border: '2px dashed #d1d5db', background: '#f9fafb',
+            border: '2px dashed var(--border-strong)', background: 'var(--surface-subdued)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: uploading ? 'wait' : 'pointer',
-            color: '#6b7280', fontSize: 13,
+            color: 'var(--text-subdued)', fontSize: 13,
           }}
         >
           {uploading ? '업로드 중…' : '+ 커버 이미지 선택 (16:9)'}
@@ -77,7 +77,7 @@ export function CoverImageUploader({ value, onChange }: Props) {
           e.target.value = '';
         }}
       />
-      {err && <div style={{ marginTop: 8, fontSize: 12, color: '#dc2626' }}>{err}</div>}
+      {err && <div style={{ marginTop: 8, fontSize: 12, color: 'var(--color-danger)' }}>{err}</div>}
     </div>
   );
 }
