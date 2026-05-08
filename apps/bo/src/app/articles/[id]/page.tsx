@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { AdminPage, Spinner } from '@hyliren/ui';
+import { AdminPage, Select, Spinner } from '@hyliren/ui';
 import { BOSidebar } from '@/components/BOSidebar';
 import { ArticleBodyEditor } from '@/components/article/ArticleBodyEditor';
 import { CoverImageUploader } from '@/components/article/CoverImageUploader';
@@ -209,16 +209,16 @@ export default function ArticleDetailPage({ params }: Props) {
 
   const t = form.translations[activeLocale];
   const headerActions = (
-    <div style={{ display: 'flex', gap: 8 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       {!isNew && (
-        <select
-          value={form.status}
-          onChange={(e) => handleStatusChange(e.target.value as ArticleStatus)}
-          disabled={saving}
-          style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, cursor: 'pointer', background: '#fff' }}
-        >
-          {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-        </select>
+        <div style={{ width: 120 }}>
+          <Select
+            value={form.status}
+            onChange={(v) => handleStatusChange(v as ArticleStatus)}
+            disabled={saving}
+            options={STATUSES.map(s => ({ value: s.value, label: s.label }))}
+          />
+        </div>
       )}
       {!isNew && (
         <button type="button" onClick={handleDelete} disabled={saving}
@@ -337,34 +337,28 @@ export default function ArticleDetailPage({ params }: Props) {
           </FormField>
 
           <FormField label="source 언어">
-            <select
+            <Select
               value={form.sourceLocale}
-              onChange={(e) => setForm({ ...form, sourceLocale: e.target.value as ArticleLocale })}
+              onChange={(v) => setForm({ ...form, sourceLocale: v as ArticleLocale })}
               disabled={!isNew}
-              style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, background: !isNew ? '#f9fafb' : '#fff' }}
-            >
-              {LOCALES.map(loc => <option key={loc} value={loc}>{LOCALE_LABEL[loc]}</option>)}
-            </select>
+              options={LOCALES.map(loc => ({ value: loc, label: LOCALE_LABEL[loc] }))}
+            />
           </FormField>
 
           <FormField label="카테고리">
-            <select
+            <Select
               value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value as ArticleCategory })}
-              style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, background: '#fff' }}
-            >
-              {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-            </select>
+              onChange={(v) => setForm({ ...form, category: v as ArticleCategory })}
+              options={CATEGORIES.map(c => ({ value: c.value, label: c.label }))}
+            />
           </FormField>
 
           <FormField label="콘텐츠 목적">
-            <select
+            <Select
               value={form.intent}
-              onChange={(e) => setForm({ ...form, intent: e.target.value as ArticleIntent })}
-              style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, background: '#fff' }}
-            >
-              {INTENTS.map(i => <option key={i.value} value={i.value}>{i.label}</option>)}
-            </select>
+              onChange={(v) => setForm({ ...form, intent: v as ArticleIntent })}
+              options={INTENTS.map(i => ({ value: i.value, label: i.label }))}
+            />
           </FormField>
 
           <FormField label="태그 (콤마 구분)">
@@ -398,13 +392,11 @@ export default function ArticleDetailPage({ params }: Props) {
 
           {isNew && (
             <FormField label="등록 시 상태">
-              <select
+              <Select
                 value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value as ArticleStatus })}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, background: '#fff' }}
-              >
-                {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
+                onChange={(v) => setForm({ ...form, status: v as ArticleStatus })}
+                options={STATUSES.map(s => ({ value: s.value, label: s.label }))}
+              />
             </FormField>
           )}
 
