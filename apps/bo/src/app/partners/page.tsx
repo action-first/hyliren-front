@@ -8,7 +8,7 @@ import type { ColDef } from 'ag-grid-community';
 import { BOSidebar } from '@/components/BOSidebar';
 import { listPartners, type AdminPartnerListItem } from '@/lib/api/admin-partners';
 
-const BO_ACCENT = '#18181b';
+const BO_ACCENT = 'var(--text-default)';
 
 const VERIFIED_BADGE: Record<string, { bg: string; text: string }> = {
   '인증':   { bg: '#dcfce7', text: '#166534' },
