@@ -292,17 +292,21 @@ export default function TreatmentsPage() {
                       : <ImageIcon size={28} className="text-[var(--text-disabled)]" />}
                   </div>
                   <div className="px-3 pt-3 pb-2">
-                    <p className="text-[var(--text-sm)] font-semibold text-[var(--text-default)] mb-1.5 line-clamp-1">
+                    <p className="text-[var(--text-sm)] font-semibold text-[var(--text-default)] mb-1 line-clamp-1">
                       {title}
                     </p>
-                    <div className="flex items-center gap-2 text-[var(--text-xs)] text-[var(--text-subdued)]">
-                      <span>{t(`common.bodyArea.${p.primaryArea}`)}</span>
-                      <span>·</span>
-                      <span className="font-semibold text-[var(--text-default)]">
-                        {p.priceMin === p.priceMax
-                          ? formatKRW(p.priceMin)
-                          : `${p.priceMin.toLocaleString('ko-KR')}~${p.priceMax.toLocaleString('ko-KR')}원`}
-                      </span>
+                    {/*
+                     * 가격 자릿수 큰 (원 단위) 구조에 맞춰 부위 chip 와 가격을 별도 줄로 분리.
+                     * 부위는 작은 chip, 가격은 강조 (font-medium · tabular-nums) — 좁은 카드(280px)에서도
+                     * 텍스트 압박/줄바꿈 회피.
+                     */}
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[var(--text-xs)] text-[var(--text-subdued)] bg-[var(--surface-subdued)] mb-1.5">
+                      {t(`common.bodyArea.${p.primaryArea}`)}
+                    </span>
+                    <div className="text-[var(--text-sm)] font-medium text-[var(--text-default)] tabular-nums truncate">
+                      {p.priceMin === p.priceMax
+                        ? formatKRW(p.priceMin)
+                        : `${p.priceMin.toLocaleString('ko-KR')}~${p.priceMax.toLocaleString('ko-KR')}원`}
                     </div>
                   </div>
                 </Link>
