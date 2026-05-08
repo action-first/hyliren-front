@@ -3,6 +3,7 @@
 import { DataGrid, badgeCellRenderer, dotTextRenderer } from '@hyliren/ui';
 import type { SearchField } from '@hyliren/ui';
 import type { ColDef } from 'ag-grid-community';
+import { formatKRW } from '@hyliren/shared';
 
 interface PaymentRow {
   id: string;
@@ -40,7 +41,7 @@ const searchFields: SearchField[] = [
 
 const columnDefs: ColDef<PaymentRow>[] = [
   { field: 'timestamp', headerName: '날짜', flex: 0.8, minWidth: 130, filter: false,
-    cellStyle: { color: '#9ca3af', fontVariantNumeric: 'tabular-nums', fontSize: '12px' },
+    cellStyle: { color: 'var(--text-disabled)', fontVariantNumeric: 'tabular-nums', fontSize: '12px' },
   },
   { field: 'type', headerName: '유형', flex: 0.6, minWidth: 100, filter: true,
     cellRenderer: dotTextRenderer(TYPE_DOT),
@@ -49,8 +50,8 @@ const columnDefs: ColDef<PaymentRow>[] = [
     cellStyle: { fontWeight: 500 },
   },
   { field: 'amount', headerName: '금액', flex: 0.8, minWidth: 130, filter: false,
-    // 원 단위 결제 금액 — "₩1,500,000" 약 110~130px 필요
-    valueFormatter: p => `₩${(p.value as number).toLocaleString('ko-KR')}`,
+    // 원 단위 결제 금액 — "1,500,000원" 약 110~130px 필요 (가격 단위 SSOT)
+    valueFormatter: p => formatKRW(p.value as number),
     cellStyle: { fontWeight: 600, fontVariantNumeric: 'tabular-nums' },
   },
   { field: 'status', headerName: '상태', flex: 0.5, minWidth: 90, filter: true,
