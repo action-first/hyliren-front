@@ -461,7 +461,14 @@ export function MimyoLogo({
 
 /* ── BCP47 Locale → WordmarkLocale 매핑 helper ───────────── */
 
+/**
+ * BCP47 (`'ko' | 'zh-CN' | 'ja' | 'en'`) → WordmarkLocale (`'ko' | 'zh' | 'kr'`).
+ *
+ * brand book 에 ja/en 전용 wordmark variant 가 없어 ko 변형으로 fallback (design 결정).
+ * brand book 에 ja/en variant 가 추가되면 WordmarkLocale 타입과 본 함수에 동시 반영.
+ */
 export function pickWordmarkLocale(bcp47: string | undefined | null): WordmarkLocale {
   if (bcp47 === 'zh-CN' || bcp47 === 'zh') return 'zh';
+  // ja, en 및 기타 → ko fallback (의도된 디자인 결정)
   return 'ko';
 }
