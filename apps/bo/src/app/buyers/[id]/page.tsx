@@ -104,7 +104,7 @@ export default function BuyerDetailPage({ params }: Props) {
   if (notFound) {
     return (
       <AdminPage sidebar={<BOSidebar active="/buyers" />} title="고객 상세" prefix="bo">
-        <div style={{ padding: 24, fontSize: 14, color: '#475569' }}>존재하지 않는 고객입니다.</div>
+        <div style={{ padding: 24, fontSize: 14, color: 'var(--text-subdued)' }}>존재하지 않는 고객입니다.</div>
       </AdminPage>
     );
   }
