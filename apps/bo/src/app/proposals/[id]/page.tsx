@@ -12,10 +12,10 @@ import { getProposalDetail, type AdminProposalDetail } from '@/lib/api/admin-pro
 import { ApiError } from '@/lib/api/errors';
 
 const S = {
-  label: { fontSize: 13, color: '#94a3b8', marginBottom: 2 } as const,
-  value: { fontSize: 14, color: '#0f172a', fontWeight: 500 } as const,
+  label: { fontSize: 13, color: 'var(--text-subdued)', marginBottom: 2 } as const,
+  value: { fontSize: 14, color: 'var(--text-default)', fontWeight: 500 } as const,
   metaRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } as const,
-  divider: { height: 1, background: '#f1f5f9', margin: 0, border: 0 } as const,
+  divider: { height: 1, background: 'var(--border-subdued)', margin: 0, border: 0 } as const,
 };
 
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -68,7 +68,7 @@ export default function ProposalDetailPage({ params }: Props) {
   if (notFound) {
     return (
       <AdminPage sidebar={<BOSidebar active="/proposals" />} title="제안서 상세" prefix="bo">
-        <div style={{ padding: 24, fontSize: 14, color: '#475569' }}>존재하지 않는 제안서입니다.</div>
+        <div style={{ padding: 24, fontSize: 14, color: 'var(--text-subdued)' }}>존재하지 않는 제안서입니다.</div>
       </AdminPage>
     );
   }
@@ -110,24 +110,24 @@ export default function ProposalDetailPage({ params }: Props) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
                 {items.map((item, i) => (
                   <div key={item.id ?? i} style={{
-                    padding: '12px 16px', background: '#f8fafc', borderRadius: 8,
-                    border: '1px solid #f1f5f9',
+                    padding: '12px 16px', background: 'var(--surface-subdued)', borderRadius: 8,
+                    border: '1px solid var(--border-subdued)',
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   }}>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: '#0f172a' }}>{item.treatmentName}</div>
-                      {item.treatmentNameZh && <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{item.treatmentNameZh}</div>}
+                      <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-default)' }}>{item.treatmentName}</div>
+                      {item.treatmentNameZh && <div style={{ fontSize: 12, color: 'var(--text-disabled)', marginTop: 2 }}>{item.treatmentNameZh}</div>}
                     </div>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{formatKRW(item.price)}</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-default)' }}>{formatKRW(item.price)}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p style={{ color: '#94a3b8', fontSize: 13, marginTop: 16 }}>항목 정보 없음</p>
+              <p style={{ color: 'var(--text-disabled)', fontSize: 13, marginTop: 16 }}>항목 정보 없음</p>
             )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, paddingTop: 16, borderTop: '1px solid #f1f5f9' }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#64748b' }}>총 예상 비용</span>
-              <span style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{formatKRW(proposal.totalPrice)}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border-subdued)' }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-subdued)' }}>총 예상 비용</span>
+              <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-default)' }}>{formatKRW(proposal.totalPrice)}</span>
             </div>
           </Card>
 
@@ -154,9 +154,9 @@ export default function ProposalDetailPage({ params }: Props) {
             </div>
             {proposal.consultationNote && (
               <>
-                <div style={{ borderTop: '1px solid #f1f5f9', margin: '16px 0' }} />
+                <div style={{ borderTop: '1px solid var(--border-subdued)', margin: '16px 0' }} />
                 <SectionHeader title="부연 설명" />
-                <p style={{ fontSize: 14, color: '#374151', marginTop: 12, lineHeight: 1.6 }}>{proposal.consultationNote}</p>
+                <p style={{ fontSize: 14, color: 'var(--text-default)', marginTop: 12, lineHeight: 1.6 }}>{proposal.consultationNote}</p>
               </>
             )}
           </Card>
@@ -184,8 +184,8 @@ export default function ProposalDetailPage({ params }: Props) {
               <MetaRow label="병원명">{hospital?.hospitalName || '—'}</MetaRow>
               <MetaRow label="인증">
                 {hospital?.verified
-                  ? <span style={{ fontSize: 12, color: '#166534', fontWeight: 600 }}>완료</span>
-                  : <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>미인증</span>
+                  ? <span style={{ fontSize: 12, color: 'var(--color-success)', fontWeight: 600 }}>완료</span>
+                  : <span style={{ fontSize: 12, color: 'var(--color-warning)', fontWeight: 600 }}>미인증</span>
                 }
               </MetaRow>
             </div>
@@ -200,7 +200,7 @@ export default function ProposalDetailPage({ params }: Props) {
                 <MetaRow label="부위">{concern.primaryArea} {concern.bodyAreaDetail || ''}</MetaRow>
                 <MetaRow label="예산">{formatBudget(concern.budgetMin, concern.budgetMax)}</MetaRow>
                 <MetaRow label="고민 상태">
-                  <span style={{ fontSize: 12, color: '#64748b' }}>{CONCERN_STATUS_KR[concern.status] ?? concern.status}</span>
+                  <span style={{ fontSize: 12, color: 'var(--text-subdued)' }}>{CONCERN_STATUS_KR[concern.status] ?? concern.status}</span>
                 </MetaRow>
               </div>
             </Card>

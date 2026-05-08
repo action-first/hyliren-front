@@ -61,10 +61,10 @@ const columnDefs: ColDef<ProposalRow>[] = [
     },
   },
   { field: 'sentAt', headerName: '발송일', flex: 0.7, minWidth: 90, filter: false,
-    cellStyle: { color: '#9ca3af', fontVariantNumeric: 'tabular-nums' },
+    cellStyle: { color: 'var(--text-disabled)', fontVariantNumeric: 'tabular-nums' },
   },
   { headerName: '액션', flex: 0.4, minWidth: 50, sortable: false, resizable: false, filter: false,
-    cellRenderer: detailLinkRenderer<ProposalRow>('/proposals', '상세', '#18181b'),
+    cellRenderer: detailLinkRenderer<ProposalRow>('/proposals', '상세', 'var(--text-default)'),
   },
 ];
 
