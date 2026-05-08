@@ -12,12 +12,14 @@ import { track } from '@hyliren/shared';
 import { createConcern, submitConcern, updateConcern } from '@/lib/api/concern';
 import { ApiError } from '@/lib/api/errors';
 
+// 사용자 BudgetRange 선택을 BE 저장 단위(원, KRW)로 변환.
+// CLAUDE.md "가격 단위 SSOT" — 만원 단위 입력 금지.
 function buildBudget(range: BudgetRange | null): { budgetMin?: number; budgetMax?: number } {
   switch (range) {
-    case 'under100':  return { budgetMin: 0,   budgetMax: 100 };
-    case '100to300':  return { budgetMin: 100,  budgetMax: 300 };
-    case '300to500':  return { budgetMin: 300,  budgetMax: 500 };
-    case 'over500':   return { budgetMin: 500 };
+    case 'under100':  return { budgetMin: 0,         budgetMax: 1_000_000  }; // ~ 100만원
+    case '100to300':  return { budgetMin: 1_000_000, budgetMax: 3_000_000  }; // 100~300만원
+    case '300to500':  return { budgetMin: 3_000_000, budgetMax: 5_000_000  }; // 300~500만원
+    case 'over500':   return { budgetMin: 5_000_000 };                         // 500만원~
     default:          return {};
   }
 }

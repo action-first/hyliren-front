@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { isLocale, parseAcceptLanguage, type Locale } from '@hyliren/shared';
+import { isLocale, LOCALES, parseAcceptLanguage, type Locale } from '@hyliren/shared';
 
 /**
  * FO i18n routing middleware — path 기반 SSOT.
@@ -16,6 +16,20 @@ import { isLocale, parseAcceptLanguage, type Locale } from '@hyliren/shared';
 const COOKIE_NAME = 'mimyo-locale';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1년
 const FALLBACK_LOCALE: Locale = 'zh-CN';
+
+/**
+ * 사용자가 직접 입력한 lang prefix 의 case 차이 정규화.
+ *
+ * `/zh-cn/...` (소문자) 입력 시 isLocale 이 false → /zh-CN/zh-cn/... 으로 redirect → 404 결함
+ * 회피. RFC 5646 lang tag 는 case-insensitive 매칭이 권장이므로 정확한 정본 표기로 매핑.
+ *
+ * 매칭 성공 시 정본 Locale 반환, 실패 시 null.
+ */
+function normalizeLocaleSegment(segment: string): Locale | null {
+  if (isLocale(segment)) return segment;
+  const lower = segment.toLowerCase();
+  return (LOCALES as readonly string[]).find((l) => l.toLowerCase() === lower) as Locale | null ?? null;
+}
 
 function resolveLocaleFromRequest(request: NextRequest): Locale {
   // 1. cookie 우선 (사용자 명시 선택 존중)
@@ -34,12 +48,27 @@ function resolveLocaleFromRequest(request: NextRequest): Locale {
 }
 
 export function middleware(request: NextRequest) {
-  const { pathname, search } = request.nextUrl;
+  const { pathname } = request.nextUrl;
   const segments = pathname.split('/').filter(Boolean);
-  const first = segments[0];
+  const first = segments[0] ?? '';
+  const normalized = first ? normalizeLocaleSegment(first) : null;
 
   // path 가 valid lang prefix 를 가진 경우 → 통과 + cookie 동기화
-  if (first && isLocale(first)) {
+  if (normalized) {
+    // 사용자가 소문자/혼합 case (예: `/zh-cn/...`) 로 입력 → 정본 표기(`/zh-CN/...`) 로 308 redirect.
+    // 308 (permanent) 로 SEO 봇이 정본 URL 을 학습하도록 한다.
+    if (first !== normalized) {
+      const url = request.nextUrl.clone();
+      url.pathname = pathname.replace(`/${first}`, `/${normalized}`);
+      const response = NextResponse.redirect(url, { status: 308 });
+      response.cookies.set(COOKIE_NAME, normalized, {
+        path: '/',
+        maxAge: COOKIE_MAX_AGE,
+        sameSite: 'lax',
+      });
+      return response;
+    }
+
     // RSC layout 이 pathname 을 알도록 헤더 주입 (canonical/hreflang 메타 생성용).
     // Next 15 의 generateMetadata 는 dynamic params 만 받고 children path 는 모르므로
     // middleware 가 명시 주입.
@@ -50,8 +79,8 @@ export function middleware(request: NextRequest) {
     // cookie 가 path lang 과 다르면 동기화
     // (사용자가 직접 다른 lang URL 로 진입했거나, 명시 선택 후 redirect 된 경우 일관성 보장)
     const currentCookie = request.cookies.get(COOKIE_NAME)?.value;
-    if (currentCookie !== first) {
-      response.cookies.set(COOKIE_NAME, first, {
+    if (currentCookie !== normalized) {
+      response.cookies.set(COOKIE_NAME, normalized, {
         path: '/',
         maxAge: COOKIE_MAX_AGE,
         sameSite: 'lax',

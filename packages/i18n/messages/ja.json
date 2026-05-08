@@ -13,7 +13,7 @@
     "loading": "読み込み中...",
     "empty": "データがありません",
     "verified": "認証済み",
-    "currency": "万ウォン",
+    "currency": "ウォン",
     "won": "ウォン",
     "langKo": "한국어",
     "langZh": "中文",
@@ -276,7 +276,6 @@
     "receivedProposals": "受け取った提案",
     "collapse": "閉じる",
     "showMoreProposals": "残りの {count} 件の提案を見る",
-    "budgetRangeMan": "{min}〜{max}万",
     "visitDateLabel": "{date}〜 来院"
   },
   "detail": {

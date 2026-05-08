@@ -1,7 +1,8 @@
 import type { Proposal, ProposalItem, AnesthesiaType, ProposalStatus } from '@hyliren/shared';
-import { krwToMan } from '@hyliren/shared';
 
 import type { ProposalListItemWire, ProposalItemWire } from './types';
+
+// 가격 단위 SSOT (CLAUDE.md): BE / FE / 표시 모두 원 단위. 만원 변환 (krwToMan) 폐기.
 
 const VALID_ANESTHESIA = new Set(['local', 'sedation', 'general']);
 const VALID_STATUS = new Set(['draft', 'sent', 'accepted', 'rejected', 'expired']);
@@ -20,7 +21,7 @@ export function mapProposalItem(wire: ProposalItemWire): ProposalItem {
     proposalId: wire.proposalId,
     treatmentName: wire.treatmentName,
     treatmentNameZh: wire.treatmentNameZh,
-    price: krwToMan(wire.price),
+    price: wire.price,
     description: wire.description,
     sortOrder: wire.sortOrder,
     createdAt: wire.createdAt,
@@ -35,7 +36,7 @@ export function mapProposal(wire: ProposalListItemWire): Proposal {
     version: wire.version,
     isActive: wire.isActive,
     status: toProposalStatus(wire.status),
-    totalPrice: krwToMan(wire.totalPrice),
+    totalPrice: wire.totalPrice,
     recoveryDays: wire.recoveryDays,
     anesthesiaType: toAnesthesia(wire.anesthesiaType),
     hospitalStayDays: wire.hospitalStayDays,

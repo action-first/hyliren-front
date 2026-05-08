@@ -14,7 +14,8 @@ import { AdminPage, Badge, Button, Card, SectionHeader, Spinner } from '@hyliren
 import { POSidebar } from '@/components/POSidebar';
 import { MyProposalSheet } from '@/components/concerns/MyProposalSheet';
 import { ProposeFormSheet } from '@/components/concerns/ProposeFormSheet';
-import { findMyProposalByConcern, formatKrwAsMan, type ProposalDetailWire } from '@/lib/api/proposal';
+import { findMyProposalByConcern, type ProposalDetailWire } from '@/lib/api/proposal';
+import { formatKRW } from '@hyliren/shared';
 import { getConcern, type ConcernDetailWire } from '@/lib/api/concern';
 import { ApiError } from '@/lib/api/errors';
 import { useLocaleStore } from '@/store/locale';
@@ -210,7 +211,7 @@ export default function ConcernDetailPage() {
           <Card padding="md">
             <SectionHeader title={t('po.concernSectionInfo')} />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 mt-3">
-              <InfoBlock label={t('po.concernInfoBudget')} value={(concern.budgetMin == null && concern.budgetMax == null) ? '-' : `${formatBudget(concern.budgetMin, concern.budgetMax)}${t('common.man')}`} emphasis />
+              <InfoBlock label={t('po.concernInfoBudget')} value={formatBudget(concern.budgetMin, concern.budgetMax)} emphasis />
               <InfoBlock label={t('po.concernInfoVisitDate')} value={concern.visitDateFrom ? formatDateRange(concern.visitDateFrom, concern.visitDateTo) : t('common.tbd')} />
               <InfoBlock label={t('po.concernInfoSource')} value={SOURCE_LABELS[concern.source] || concern.source} />
               <InfoBlock label={t('po.concernInfoProposalCount')} value={`${concern.proposalCount}${t('po.concernCountUnit')}`} />
@@ -246,7 +247,7 @@ export default function ConcernDetailPage() {
               <div className="flex items-center justify-between gap-4 mt-3">
                 <div className="flex-1 min-w-0">
                   <div className="text-[var(--text-md)] font-semibold text-[var(--text-default)] tabular-nums">
-                    {formatKrwAsMan(myProposal.totalPrice, locale, t('common.currency'))} · {t('common.recovery')} {t('po.proposalMetaDays', { days: myProposal.recoveryDays })}
+                    {formatKRW(myProposal.totalPrice)} · {t('common.recovery')} {t('po.proposalMetaDays', { days: myProposal.recoveryDays })}
                   </div>
                   <div className="text-[var(--text-sm)] text-[var(--text-subdued)] mt-1 truncate">
                     {myProposal.items.map(item => item.treatmentName).join(', ') || t('po.concernNoItems')}
