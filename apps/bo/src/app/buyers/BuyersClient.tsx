@@ -53,10 +53,10 @@ const columnDefs: ColDef<BuyerRow>[] = [
     },
   },
   { field: 'createdAt', headerName: '가입일', flex: 0.7, minWidth: 90, filter: false,
-    cellStyle: { color: '#9ca3af', fontVariantNumeric: 'tabular-nums' },
+    cellStyle: { color: 'var(--text-disabled)', fontVariantNumeric: 'tabular-nums' },
   },
   { headerName: '액션', flex: 0.5, minWidth: 60, sortable: false, resizable: false, filter: false,
-    cellRenderer: detailLinkRenderer<BuyerRow>('/buyers', '상세', '#18181b'),
+    cellRenderer: detailLinkRenderer<BuyerRow>('/buyers', '상세', 'var(--text-default)'),
   },
 ];
 
