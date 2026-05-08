@@ -1,6 +1,7 @@
 'use client';
 
 import { Users, Building2, FileText, Eye, Banknote, TrendingUp, TrendingDown } from 'lucide-react';
+import { formatKRW } from '@hyliren/shared';
 
 const C = {
   main: '#4F46E5',
@@ -16,9 +17,9 @@ function KPICard({ icon, iconBg, label, value, sub, trend, trendUp }: {
 }) {
   return (
     <div style={{
-      background: '#fff', borderRadius: 16, padding: '16px 18px',
+      background: 'var(--surface-default)', borderRadius: 16, padding: '16px 18px',
       boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-      border: '1px solid #f1f5f9',
+      border: '1px solid var(--border-subdued)',
       transition: 'box-shadow 200ms, transform 200ms',
     }}
       onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.07)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
@@ -42,10 +43,10 @@ function KPICard({ icon, iconBg, label, value, sub, trend, trendUp }: {
           </span>
         )}
       </div>
-      <div style={{ fontSize: 11, fontWeight: 500, color: '#94a3b8', marginBottom: 3 }}>{label}</div>
+      <div style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-disabled)', marginBottom: 3 }}>{label}</div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-        <span style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1 }}>{value}</span>
-        {sub && <span style={{ fontSize: 11, color: '#94a3b8' }}>{sub}</span>}
+        <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-default)', letterSpacing: '-0.02em', lineHeight: 1 }}>{value}</span>
+        {sub && <span style={{ fontSize: 11, color: 'var(--text-disabled)' }}>{sub}</span>}
       </div>
     </div>
   );
@@ -95,7 +96,7 @@ export function BODashboardKPI({
         icon={<Banknote size={16} color={C.positive} />}
         iconBg="#ECFDF5"
         label="총 결제"
-        value={`₩${totalRevenue.toLocaleString('ko-KR')}`}
+        value={formatKRW(totalRevenue)}
         trend="+18%" trendUp
       />
     </div>
