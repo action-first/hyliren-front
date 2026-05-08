@@ -12,6 +12,7 @@
   "dependencies": {
     "@hyliren/shared": "workspace:*",
     "@hyliren/ui": "workspace:*",
+    "@tinymce/tinymce-react": "^6.3.0",
     "ag-grid-community": "^35.2.1",
     "ag-grid-react": "^35.2.1",
     "lucide-react": "^1.8.0",
