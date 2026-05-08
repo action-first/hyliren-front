@@ -7,27 +7,12 @@
 /** 제안서 1건 발송 시 차감 크레딧 */
 export const CREDIT_COST = 3;
 
-/** @unit KRW 원. 화면 입력/표시는 만원 단위를 쓰며 API/DB wire 값은 원 단위다. */
-export const PRICE_MAN_UNIT = 10000;
-
-export function manToKrw(value: number): number {
-  return Math.round(value * PRICE_MAN_UNIT);
-}
-
-export function krwToMan(value: number): number {
-  return Math.round(value / PRICE_MAN_UNIT);
-}
-
 /**
- * KRW 원 → 만원 표기 + unit suffix.
- *
- * locale 인자: toLocaleString 의 콤마 포맷 로케일. 누락 시 'ko-KR' default (BO 한국어).
- * unitSuffix 인자: 단위 라벨 (한국어 '만원' default — BO backward-compat).
- *   PO 등 다국어 운영자 화면에서는 t('common.currency') 등으로 활성 locale 라벨 전달.
+ * 가격 단위 SSOT 정책 (CLAUDE.md "가격 단위 SSOT" 절):
+ *   - DB / API / FE 표시 모두 원 단위(KRW ISO 4217 최소 단위) 통일
+ *   - "만원" 표기 영구 금지 — 폐기된 헬퍼: PRICE_MAN_UNIT, manToKrw, krwToMan, formatKrwAsMan
+ *   - 가격 표시: formatKRW(value) 또는 value.toLocaleString('ko-KR') 사용
  */
-export function formatKrwAsMan(value: number, locale: string = 'ko-KR', unitSuffix: string = '만원'): string {
-  return `${krwToMan(value).toLocaleString(locale)}${unitSuffix}`;
-}
 
 /**
  * 입력 콤마 포맷 — input 표시용.
@@ -180,10 +165,38 @@ export function formatDateRange(from: string | undefined | null, to: string | un
 
 // ── 예산 포맷 ──
 /**
- * 예산 범위 표시. 만 단위(원/10000) 입력값 그대로 'min~max' 표시.
- * unit 라벨은 호출처가 t('common.man') 등으로 후행 추가 (한국어 raw '만' fallback 제거).
+ * 예산 범위 표시. 원 단위 입력값을 천 단위 콤마 + '원' 으로 표시.
+ *
+ * 정책: 모든 가격 / 예산 컬럼은 원 단위 (KRW ISO 4217 최소 단위) 로 저장.
+ * CLAUDE.md "가격 단위 SSOT" 절 — 만원 표기 영구 금지.
+ *
+ * 사용:
+ *   formatBudget(1000000, 3000000)  // → '1,000,000~3,000,000원'
+ *   formatBudget(0, 1000000)        // → '0~1,000,000원'
+ *   formatBudget(null, null)        // → '-'
+ *   formatBudget(1000000, null)     // → '1,000,000원~'
  */
 export function formatBudget(min: number | null | undefined, max: number | null | undefined): string {
   if (min == null && max == null) return '-';
-  return `${min ?? 0}~${max ?? 0}`;
+  const fmt = (n: number) => n.toLocaleString('ko-KR');
+  if (min != null && max != null) return `${fmt(min)}~${fmt(max)}원`;
+  if (min != null) return `${fmt(min)}원~`;
+  return `~${fmt(max as number)}원`;
+}
+
+// ── KRW 가격 포맷 ──
+/**
+ * 원 단위 가격을 한국어 로케일 천 단위 콤마 + '원' 으로 표시.
+ *
+ * 정책: 모든 가격 컬럼(orders.price, proposals.total_price, proposal_items.price 등) 은 원 단위
+ * (KRW ISO 4217 최소 단위) 로 저장한다. CLAUDE.md "가격 단위 SSOT" 절 참조.
+ *
+ * 사용:
+ *   formatKRW(150000)   // → '150,000원'
+ *   formatKRW(0)        // → '0원'
+ *   formatKRW(null)     // → '-'
+ */
+export function formatKRW(value: number | null | undefined): string {
+  if (value == null) return '-';
+  return `${value.toLocaleString('ko-KR')}원`;
 }

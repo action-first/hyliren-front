@@ -17,6 +17,28 @@ const EVENT_KR: Record<string, string> = {
   report_purchase: '리포트 구매',
 };
 
+// admin BE 가 enum key 만 노출 (한국어 라벨 BE 박지 않음 — customer/partner PR #51-57 정합).
+// dashboard 화면 표시는 BO 측에서 매핑.
+const CONCERN_STATUS_LABEL_KR: Record<string, string> = {
+  submitted: '등록',
+  proposal_received: '제안 도착',
+  comparing: '비교 중',
+  hospital_selected: '병원 선택',
+  completed: '완료',
+};
+
+const PROPOSAL_STATUS_LABEL_KR: Record<string, string> = {
+  sent: '발송',
+  viewed: '열람',
+  shortlisted: '후보',
+  selected: '선택',
+  rejected: '거절',
+};
+
+function localizeStatusItems<T extends { name: string; status: string }>(items: T[], map: Record<string, string>): T[] {
+  return items.map((it) => ({ ...it, name: map[it.status] ?? it.name }));
+}
+
 const EVENT_STYLE: Record<string, { bg: string; text: string }> = {
   concern_submit: { bg: '#EEF2FF', text: '#4F46E5' },
   proposal_send: { bg: '#F5F3FF', text: '#8B5CF6' },
@@ -56,7 +78,9 @@ export default function DashboardPage() {
 }
 
 function DashboardContent({ data }: { data: AdminDashboardSummary }) {
-  const { kpi, funnel, concernStatusPie, proposalStatusBar, bodyAreaDistribution, recentEvents } = data;
+  const { kpi, funnel, bodyAreaDistribution, recentEvents } = data;
+  const concernStatusPie = localizeStatusItems(data.concernStatusPie, CONCERN_STATUS_LABEL_KR);
+  const proposalStatusBar = localizeStatusItems(data.proposalStatusBar, PROPOSAL_STATUS_LABEL_KR);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>

@@ -240,9 +240,9 @@ export default function HomePage() {
   );
 }
 
-function formatProcedurePrice(min: number, max: number, locale: string, manLabel: string): string {
-  const toMan = (value: number) => `${Math.round(value / 10000).toLocaleString(locale)}${manLabel}`;
-  return min === max ? toMan(min) : `${toMan(min)}~${toMan(max)}`;
+function formatProcedurePrice(min: number, max: number, locale: string, currencyLabel: string): string {
+  const fmt = (v: number) => `${v.toLocaleString(locale)}${currencyLabel}`;
+  return min === max ? fmt(min) : `${fmt(min)}~${fmt(max)}`;
 }
 
 function ProcedureFeatureCard({ procedure, featured = false, t, locale }: { procedure: ProcedureListItemWire; featured?: boolean; t: (k: string, p?: Record<string, string | number>) => string; locale: string }) {
@@ -275,7 +275,7 @@ function ProcedureFeatureCard({ procedure, featured = false, t, locale }: { proc
           <div className="flex items-center justify-between">
             <div className="flex items-baseline gap-1.5">
               <span className="text-[15px] font-bold text-[var(--color-text)]">
-                {formatProcedurePrice(procedure.priceMin, procedure.priceMax, locale, t('common.man'))}
+                {formatProcedurePrice(procedure.priceMin, procedure.priceMax, locale, t('common.currency'))}
               </span>
               <span className="text-[11px] text-[var(--color-text-dim)]">· {t('landing.referencePrice')}</span>
             </div>

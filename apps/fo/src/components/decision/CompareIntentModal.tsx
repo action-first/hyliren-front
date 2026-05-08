@@ -2,7 +2,7 @@
 
 import { Button, BottomSheet } from '@hyliren/ui';
 import { AlertTriangle } from 'lucide-react';
-import { track } from '@hyliren/shared';
+import { track , formatKRW } from '@hyliren/shared';
 import { useLocaleStore } from '@/store/locale';
 
 interface Props {
@@ -51,7 +51,7 @@ export function CompareIntentModal({ prices, hospitalNames, onClose, onProceedTo
               <div key={name} className={`flex items-center justify-between py-2 ${i > 0 ? 'border-t border-[var(--color-border-light)]' : ''}`}>
                 <span className="text-[13px] text-[var(--color-text)]">{name}</span>
                 <span className={`text-[15px] font-bold ${prices[i] === minPrice ? 'text-[var(--color-success)]' : prices[i] === maxPrice ? 'text-[var(--color-warning)]' : 'text-[var(--color-text)]'}`}>
-                  {prices[i]}{t('common.currency')}
+                  {formatKRW(prices[i])}
                 </span>
               </div>
             ))}

@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from 'react';
 import { Link } from '@/components/i18n/Link';
-import { track } from '@hyliren/shared';
+import { track, formatBudget , formatKRW } from '@hyliren/shared';
 import { Button, Badge } from '@hyliren/ui';
 import {
   ArrowRight, Edit3, Camera, ChevronRight,
@@ -80,9 +80,9 @@ export default function ConcernDetailPage({ params }: Props) {
 
         <div className="flex flex-wrap gap-2 mb-3">
           {concern.budgetMin && concern.budgetMax && (
-            <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)]">
+            <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-[var(--app-radius-sm)] bg-[var(--color-bg-secondary)] whitespace-nowrap">
               <Wallet size={12} className="text-[var(--color-text-dim)]" />
-              <span className="text-[11px] text-[var(--color-text-secondary)]">{t('decision.budgetRangeMan', { min: concern.budgetMin, max: concern.budgetMax })}</span>
+              <span className="text-[11px] text-[var(--color-text-secondary)] tabular-nums">{formatBudget(concern.budgetMin, concern.budgetMax)}</span>
             </div>
           )}
           {concern.visitDateFrom && (
@@ -187,7 +187,7 @@ export default function ConcernDetailPage({ params }: Props) {
                   <div className="flex-1 min-w-0">
                     <span className="text-[13px] font-medium text-[var(--color-text)]">{p.hospitalName || t('common.unknownHospital')}</span>
                     <div className="flex items-center gap-2 text-[11px] text-[var(--color-text-dim)]">
-                      <span>{p.totalPrice}{t('common.currency')}</span>
+                      <span>{formatKRW(p.totalPrice)}</span>
                       <span>{t('common.recovery')} {p.recoveryDays}{t('common.days')}</span>
                     </div>
                   </div>

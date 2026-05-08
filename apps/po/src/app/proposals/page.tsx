@@ -22,10 +22,10 @@ import { useConcerns } from '@/hooks/queries/concerns';
 import { useMyProposals } from '@/hooks/queries/proposals';
 import type { ConcernSummaryWire } from '@/lib/api/concern';
 import {
-  formatKrwAsMan,
   type MyProposalsQuery,
   type ProposalDetailWire,
 } from '@/lib/api/proposal';
+import { formatKRW } from '@hyliren/shared';
 
 interface ProposalRow {
   id: string;
@@ -59,15 +59,13 @@ function toRow(
   t: (k: string) => string,
 ): ProposalRow {
   const concern = concerns.find(c => c.id === proposal.concernId);
-  const budgetText = concern && (concern.budgetMin != null || concern.budgetMax != null)
-    ? `${formatBudget(concern.budgetMin, concern.budgetMax)}${t('common.man')}`
-    : '-';
+  const budgetText = concern ? formatBudget(concern.budgetMin, concern.budgetMax) : '-';
   return {
     id: proposal.id,
     sentAt: formatDateKR(proposal.sentAt, locale),
     concern: describeConcern(concern),
     budget: budgetText,
-    totalPrice: formatKrwAsMan(proposal.totalPrice, locale, t('common.currency')),
+    totalPrice: formatKRW(proposal.totalPrice),
     itemNames: proposal.items.map(item => item.treatmentName).join(', ') || '-',
     statusEnum: proposal.status,
   };
@@ -102,8 +100,11 @@ export default function ProposalsPage() {
     { field: 'itemNames', headerName: t('po.proposalColItems'), flex: 1.3, minWidth: 180, filter: true,
       cellStyle: { color: 'var(--text-subdued)' },
     },
-    { field: 'budget', headerName: t('po.proposalColBudget'), flex: 0.8, minWidth: 100, filter: false },
-    { field: 'totalPrice', headerName: t('po.proposalColTotal'), flex: 0.7, minWidth: 100, filter: false,
+    // 원 단위 가격 (예: "1,500,000~3,000,000원" 22자) — minWidth 확장
+    { field: 'budget', headerName: t('po.proposalColBudget'), flex: 1.4, minWidth: 200, filter: false,
+      cellStyle: { fontVariantNumeric: 'tabular-nums' },
+    },
+    { field: 'totalPrice', headerName: t('po.proposalColTotal'), flex: 0.9, minWidth: 130, filter: false,
       cellStyle: { fontWeight: 700, color: 'var(--text-default)', fontVariantNumeric: 'tabular-nums' },
     },
     { field: 'statusEnum', headerName: t('po.proposalColStatus'), flex: 0.6, minWidth: 80, filter: true,

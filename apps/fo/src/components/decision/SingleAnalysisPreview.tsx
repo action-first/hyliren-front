@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useLocalizedRouter } from '@/hooks/use-localized-router';
 import type { Proposal, PartnerProfile } from '@hyliren/shared';
-import { track } from '@hyliren/shared';
+import { track , formatKRW } from '@hyliren/shared';
 import { Button, BottomSheet } from '@hyliren/ui';
 import {
   X, TrendingDown, ShieldCheck, AlertTriangle, Lock,
@@ -26,7 +26,7 @@ function generatePreview(proposal: Proposal, profile: PartnerProfile | undefined
   return {
     proposalId: proposal.id,
     hospitalName: profile?.hospitalName || '',
-    priceAdequacy: proposal.totalPrice < 200 ? 'low' : proposal.totalPrice > 400 ? 'high' : 'fair',
+    priceAdequacy: proposal.totalPrice < 2_000_000 ? 'low' : proposal.totalPrice > 4_000_000 ? 'high' : 'fair',
     riskLevel: proposal.anesthesiaType === 'general' ? 'medium' : 'low',
     overtreatment: 'none',
     summary: t('report.summaryTemplate', { hospital: profile?.hospitalName ?? '', price: proposal.totalPrice }),
@@ -38,13 +38,13 @@ function generateFullReport(proposal: Proposal, profile: PartnerProfile | undefi
   return {
     proposalId: proposal.id,
     hospitalName: profile?.hospitalName || '',
-    priceScore: proposal.totalPrice < 200 ? 85 : proposal.totalPrice > 400 ? 55 : 72,
+    priceScore: proposal.totalPrice < 2_000_000 ? 85 : proposal.totalPrice > 4_000_000 ? 55 : 72,
     priceVerdict: proposal.totalPrice <= avgPrice
       ? t('report.priceVerdictFair')
       : t('report.priceVerdictHigh'),
     priceBreakdown: [
       { itemName: t('report.itemMainTreatment'), proposalPrice: Math.round(proposal.totalPrice * 0.75), marketAvg: Math.round(proposal.totalPrice * 0.8), marketRange: [Math.round(proposal.totalPrice * 0.5), Math.round(proposal.totalPrice * 1.2)], verdict: 'fair' },
-      { itemName: t('report.itemSubTreatment'), proposalPrice: Math.round(proposal.totalPrice * 0.25), marketAvg: Math.round(proposal.totalPrice * 0.3), marketRange: [Math.round(proposal.totalPrice * 0.15), Math.round(proposal.totalPrice * 0.4)], verdict: proposal.totalPrice > 300 ? 'above' : 'below' },
+      { itemName: t('report.itemSubTreatment'), proposalPrice: Math.round(proposal.totalPrice * 0.25), marketAvg: Math.round(proposal.totalPrice * 0.3), marketRange: [Math.round(proposal.totalPrice * 0.15), Math.round(proposal.totalPrice * 0.4)], verdict: proposal.totalPrice > 3_000_000 ? 'above' : 'below' },
     ],
     overtreatmentVerdict: t('report.overtreatmentVerdictDefault'),
     unnecessaryItems: [],
@@ -155,10 +155,10 @@ export function SingleAnalysisPreview({ proposal, profile, onClose }: Props) {
                       <div key={item.itemName} className="flex items-center justify-between py-2 border-t border-[var(--color-border-light)]">
                         <div>
                           <span className="text-[12px] font-medium text-[var(--color-text)] block">{item.itemName}</span>
-                          <span className="text-[10px] text-[var(--color-text-dim)]">{t('common.marketAvg')} {item.marketAvg}{t('common.man')} ({item.marketRange[0]}~{item.marketRange[1]}{t('common.man')})</span>
+                          <span className="text-[10px] text-[var(--color-text-dim)]">{t('common.marketAvg')} {formatKRW(item.marketAvg)} ({item.marketRange[0]}~{formatKRW(item.marketRange[1])})</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-[13px] font-bold text-[var(--color-text)] block">{item.proposalPrice}{t('common.man')}</span>
+                          <span className="text-[13px] font-bold text-[var(--color-text)] block">{formatKRW(item.proposalPrice)}</span>
                           <span className={`text-[10px] font-medium ${VERDICT_COLOR[item.verdict]}`}>{{ below: t('report.priceLow'), fair: t('report.priceFair'), above: t('report.priceHigh') }[item.verdict]}</span>
                         </div>
                       </div>

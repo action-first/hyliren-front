@@ -8,7 +8,8 @@ import {
 } from '@hyliren/shared';
 import { Badge, Card, SectionHeader } from '@hyliren/ui';
 
-import { formatKrwAsMan, type ProposalDetailWire } from '@/lib/api/proposal';
+import { formatKRW } from '@hyliren/shared';
+import { type ProposalDetailWire } from '@/lib/api/proposal';
 import { useLocaleStore } from '@/store/locale';
 
 interface ProposalDetailViewProps {
@@ -138,7 +139,7 @@ export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetail
                   )}
                 </div>
                 <span className="text-[var(--text-md)] font-bold text-[var(--text-default)]">
-                  {formatKrwAsMan(item.price, locale, t("common.currency"))}
+                  {formatKRW(item.price)}
                 </span>
               </div>
             ))}
@@ -152,7 +153,7 @@ export function ProposalDetailView({ proposal, showMeta = true }: ProposalDetail
             {t('po.proposeTotalEstimated')}
           </span>
           <span className="text-[var(--text-2xl)] font-bold text-[var(--text-default)]">
-            {formatKrwAsMan(proposal.totalPrice, locale, t("common.currency"))}
+            {formatKRW(proposal.totalPrice)}
           </span>
         </div>
       </Card>

@@ -2,7 +2,7 @@
 
 import { use } from 'react';
 import { Link } from '@/components/i18n/Link';
-import { track } from '@hyliren/shared';
+import { track , formatKRW } from '@hyliren/shared';
 import { Button, Badge } from '@hyliren/ui';
 import {
   Calendar, Languages, Car, MapPin, Hotel, HeartPulse,
@@ -82,7 +82,7 @@ export default function ServicesPage({ params }: Props) {
             <div>
               <span className="text-[15px] font-bold text-[var(--color-text)]">{selectedProposal.hospitalName}</span>
               <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[var(--color-text-dim)]">
-                <span>{selectedProposal.totalPrice}{t('common.currency')}</span>
+                <span>{formatKRW(selectedProposal.totalPrice)}</span>
                 <span>{t('common.recovery')} {selectedProposal.recoveryDays}{t('common.days')}</span>
               </div>
             </div>

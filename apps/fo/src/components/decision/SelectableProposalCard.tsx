@@ -1,5 +1,6 @@
 'use client';
 
+import { formatKRW } from '@hyliren/shared';
 import { ShieldCheck, Star, Check, Clock, Syringe } from 'lucide-react';
 import { useLocaleStore } from '@/store/locale';
 
@@ -75,7 +76,7 @@ export function SelectableProposalCard({
           )}
 
           {/* 3행: 가격 */}
-          <span className="text-[17px] font-bold text-[var(--color-text)] block mb-1">{price}{t('common.currency')}</span>
+          <span className="text-[17px] font-bold text-[var(--color-text)] block mb-1">{formatKRW(price)}</span>
 
           {/* 4행: 메타 (회복·마취) */}
           <div className="flex items-center gap-1 text-[11px] text-[var(--color-text-dim)] mb-2">

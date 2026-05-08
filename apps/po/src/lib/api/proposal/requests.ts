@@ -6,34 +6,14 @@ import type {
   ProposalListWire,
   UpdateProposalBody,
 } from './types';
-import { manToKrw } from './price';
 
-function toBackendCreateBody(body: CreateProposalBody): CreateProposalBody {
-  return {
-    ...body,
-    totalPrice: manToKrw(body.totalPrice),
-    items: body.items.map(item => ({
-      ...item,
-      price: manToKrw(item.price),
-    })),
-  };
-}
-
-function toBackendUpdateBody(body: UpdateProposalBody): UpdateProposalBody {
-  return {
-    ...body,
-    totalPrice: body.totalPrice === undefined ? undefined : manToKrw(body.totalPrice),
-    items: body.items?.map(item => ({
-      ...item,
-      price: manToKrw(item.price),
-    })),
-  };
-}
+// 가격 단위 SSOT (CLAUDE.md): FE 입력 / BE 저장 / 표시 모두 원 단위로 통일.
+// 만원→원 변환 (manToKrw) 폐기 — 사용자 입력값을 그대로 BE 전송.
 
 export function createProposal(concernId: string, body: CreateProposalBody): Promise<ProposalDetailWire> {
   return request<ProposalDetailWire>(`/api/v1/concerns/${encodeURIComponent(concernId)}/proposals`, {
     method: 'POST',
-    body: toBackendCreateBody(body),
+    body,
   });
 }
 
@@ -67,6 +47,6 @@ export function findMyProposalByConcern(concernId: string): Promise<ProposalDeta
 export function updateProposal(proposalId: string, body: UpdateProposalBody): Promise<ProposalDetailWire> {
   return request<ProposalDetailWire>(`/api/v1/proposals/${encodeURIComponent(proposalId)}`, {
     method: 'PATCH',
-    body: toBackendUpdateBody(body),
+    body,
   });
 }

@@ -13,7 +13,7 @@
     "loading": "加载中...",
     "empty": "暂无数据",
     "verified": "已认证",
-    "currency": "万韩元",
+    "currency": "韩元",
     "won": "韩元",
     "langKo": "한국어",
     "langZh": "中文",
@@ -276,7 +276,6 @@
     "receivedProposals": "收到的提案",
     "collapse": "收起",
     "showMoreProposals": "查看其余 {count} 个提案",
-    "budgetRangeMan": "{min}~{max}万",
     "visitDateLabel": "{date}~ 到访"
   },
   "detail": {
