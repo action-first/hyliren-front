@@ -222,12 +222,12 @@ export default function ArticleDetailPage({ params }: Props) {
       )}
       {!isNew && (
         <button type="button" onClick={handleDelete} disabled={saving}
-          style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #fecaca', background: '#fff', color: '#dc2626', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+          style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid var(--color-danger-soft)', background: 'var(--surface-default)', color: 'var(--color-danger)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
           삭제
         </button>
       )}
       <button type="button" onClick={handleSave} disabled={saving}
-        style={{ padding: '8px 14px', borderRadius: 8, border: 0, background: '#18181b', color: '#fff', fontSize: 13, fontWeight: 600, cursor: saving ? 'wait' : 'pointer' }}>
+        style={{ padding: '8px 14px', borderRadius: 8, border: 0, background: 'var(--action-primary-bg)', color: 'var(--action-primary-text)', fontSize: 13, fontWeight: 600, cursor: saving ? 'wait' : 'pointer' }}>
         {saving ? '저장 중…' : isNew ? '작성하기' : '저장'}
       </button>
     </div>
@@ -241,16 +241,16 @@ export default function ArticleDetailPage({ params }: Props) {
       actions={headerActions}
     >
       {error && (
-        <div style={{ padding: 14, marginBottom: 16, borderRadius: 8, border: '1px solid #fecaca', background: '#fef2f2', color: '#991b1b', fontSize: 13 }}>
+        <div style={{ padding: 14, marginBottom: 16, borderRadius: 8, border: '1px solid var(--color-danger-soft)', background: 'var(--color-danger-soft)', color: 'var(--color-danger)', fontSize: 13 }}>
           {error}
         </div>
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
         {/* ── 좌측: 콘텐츠 (4 lang 탭) ── */}
-        <div style={{ background: '#fff', borderRadius: 12, padding: 24, border: '1px solid #f1f5f9' }}>
+        <div style={{ background: 'var(--surface-default)', borderRadius: 12, padding: 24, border: '1px solid var(--border-subdued)' }}>
           {/* lang 탭 */}
-          <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid #e5e7eb', marginBottom: 20 }}>
+          <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--border-default)', marginBottom: 20 }}>
             {LOCALES.map(loc => {
               const isActive = loc === activeLocale;
               const isSource = loc === form.sourceLocale;
@@ -262,16 +262,16 @@ export default function ArticleDetailPage({ params }: Props) {
                   onClick={() => setActiveLocale(loc)}
                   style={{
                     padding: '10px 14px', border: 0,
-                    borderBottom: isActive ? '2px solid #18181b' : '2px solid transparent',
+                    borderBottom: isActive ? '2px solid var(--text-default)' : '2px solid transparent',
                     background: 'transparent', cursor: 'pointer',
-                    color: isActive ? '#18181b' : '#6b7280',
+                    color: isActive ? 'var(--text-default)' : 'var(--text-subdued)',
                     fontSize: 13, fontWeight: isActive ? 600 : 500,
                     display: 'flex', alignItems: 'center', gap: 6,
                   }}
                 >
                   {LOCALE_LABEL[loc]}
-                  {isSource && <span style={{ fontSize: 10, color: '#18181b', background: '#fef3c7', padding: '1px 6px', borderRadius: 8 }}>source</span>}
-                  {!isSource && filled && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />}
+                  {isSource && <span style={{ fontSize: 10, color: 'var(--text-default)', background: '#fef3c7', padding: '1px 6px', borderRadius: 8 }}>source</span>}
+                  {!isSource && filled && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-success)' }} />}
                 </button>
               );
             })}
@@ -279,7 +279,7 @@ export default function ArticleDetailPage({ params }: Props) {
 
           {/* title */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>제목 *</label>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-subdued)', marginBottom: 6 }}>제목 *</label>
             <input
               type="text"
               value={t.title}
@@ -289,13 +289,13 @@ export default function ArticleDetailPage({ params }: Props) {
               })}
               placeholder={`${LOCALE_LABEL[activeLocale]} 제목`}
               maxLength={300}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14 }}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-default)', fontSize: 14 }}
             />
           </div>
 
           {/* excerpt */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>요약</label>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-subdued)', marginBottom: 6 }}>요약</label>
             <textarea
               value={t.excerpt}
               onChange={(e) => setForm({
@@ -305,13 +305,13 @@ export default function ArticleDetailPage({ params }: Props) {
               placeholder={`${LOCALE_LABEL[activeLocale]} 요약 (목록·미리보기에 노출)`}
               maxLength={500}
               rows={2}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontFamily: 'inherit', resize: 'vertical' }}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-default)', fontSize: 14, fontFamily: 'inherit', resize: 'vertical' }}
             />
           </div>
 
           {/* body — TinyMCE */}
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>본문 *</label>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-subdued)', marginBottom: 6 }}>본문 *</label>
             <ArticleBodyEditor
               key={activeLocale}
               value={t.body}
@@ -324,7 +324,7 @@ export default function ArticleDetailPage({ params }: Props) {
         </div>
 
         {/* ── 우측: 메타 ── */}
-        <div style={{ background: '#fff', borderRadius: 12, padding: 20, border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ background: 'var(--surface-default)', borderRadius: 12, padding: 20, border: '1px solid var(--border-subdued)', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <FormField label="slug">
             <input
               type="text"
@@ -332,7 +332,7 @@ export default function ArticleDetailPage({ params }: Props) {
               onChange={(e) => setForm({ ...form, slug: e.target.value })}
               placeholder="auto-generate (비워두면 title 기반)"
               pattern="[a-z0-9-]*"
-              style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13 }}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-default)', fontSize: 13 }}
             />
           </FormField>
 
@@ -367,7 +367,7 @@ export default function ArticleDetailPage({ params }: Props) {
               value={form.tags.join(', ')}
               onChange={(e) => setForm({ ...form, tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
               placeholder="쌍꺼풀, 매몰법, ..."
-              style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13 }}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-default)', fontSize: 13 }}
             />
           </FormField>
 
@@ -377,7 +377,7 @@ export default function ArticleDetailPage({ params }: Props) {
               value={form.bodyAreas.join(', ')}
               onChange={(e) => setForm({ ...form, bodyAreas: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
               placeholder="eyes, nose, lifting, skin, diet, etc"
-              style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13 }}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-default)', fontSize: 13 }}
             />
           </FormField>
 
@@ -387,7 +387,7 @@ export default function ArticleDetailPage({ params }: Props) {
               checked={form.featured}
               onChange={(e) => setForm({ ...form, featured: e.target.checked })}
             />
-            <span style={{ fontSize: 13, color: '#374151' }}>추천 (FO 메인 hero 노출)</span>
+            <span style={{ fontSize: 13, color: 'var(--text-subdued)' }}>추천 (FO 메인 hero 노출)</span>
           </label>
 
           {isNew && (
@@ -415,7 +415,7 @@ export default function ArticleDetailPage({ params }: Props) {
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>{label}</label>
+      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-subdued)', marginBottom: 6 }}>{label}</label>
       {children}
     </div>
   );
