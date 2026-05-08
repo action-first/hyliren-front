@@ -56,7 +56,15 @@ export async function generateMetadata({
   const pathname = (await headers()).get('x-pathname') ?? `/${locale}`;
   const restPath = stripLangPrefix(pathname, locale);
   const canonical = `${env.siteUrl}/${locale}${restPath}`;
-  const altText = t(locale, 'metadata.ogImageAlt');
+  // openGraph / twitter images 는 명시 override 하지 않는다.
+  //
+  // Why:
+  //   `app/[lang]/opengraph-image.tsx` 의 `generateImageMetadata` 가 lang 별 alt 와
+  //   자동 hash suffix 가 포함된 URL (`/{lang}/opengraph-image/og?<hash>`) 을 생성
+  //   → og:image 에 자동 적용. 단 manual override 를 하면 twitter:image 는 그 override
+  //   를 그대로 사용해 suffix 가 빠진 URL (`/{lang}/opengraph-image`) 로 박힘 → 404.
+  //   카카오톡/X 공유 미리보기 이미지가 깨짐 (실측 확인). manual override 제거 시
+  //   Next 가 generateImageMetadata 결과를 og:image · twitter:image 양쪽에 자동 적용.
   return {
     metadataBase: new URL(env.siteUrl),
     title: t(locale, 'metadata.title'),
@@ -64,12 +72,6 @@ export async function generateMetadata({
     alternates: {
       canonical,
       languages: buildAlternates(restPath),
-    },
-    openGraph: {
-      images: [{ url: `/${locale}/opengraph-image`, alt: altText }],
-    },
-    twitter: {
-      images: [{ url: `/${locale}/opengraph-image`, alt: altText }],
     },
   };
 }
