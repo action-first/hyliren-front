@@ -78,9 +78,13 @@ export const config = {
   /**
    * static asset / API / Next 내부 경로 제외.
    * `/opengraph-image` 같은 [lang] 하위 동적 라우트는 포함되어야 하므로
-   * 명시적 root 정적 파일만 제외.
+   * 명시적 root 정적 파일/디렉토리만 제외.
+   *
+   * `images` / `videos` 는 public/ 하위 정적 자산 디렉토리 — 누락 시 middleware 가
+   * `/images/foo.jpg` 를 lang prefix 없는 path 로 인식해 `/{lang}/images/foo.jpg` 로
+   * redirect → 404 → 모든 public 이미지/비디오 깨짐 결함 발생.
    */
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|icon.svg|robots.txt|sitemap.xml|manifest.json).*)',
+    '/((?!api|_next/static|_next/image|images|videos|favicon.ico|icon.svg|robots.txt|sitemap.xml|manifest.json).*)',
   ],
 };
