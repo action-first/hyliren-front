@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import type { Locale } from '@hyliren/shared';
+import { isLocale, type Locale } from '@hyliren/shared';
 import { useAuthStore } from '@/store/auth';
 import { updateLocale as updateLocaleApi } from '@/lib/api/auth';
 
@@ -19,12 +19,29 @@ import { updateLocale as updateLocaleApi } from '@/lib/api/auth';
  * cookie 박제 결함 회피:
  *   path navigation 자체가 SSOT 변경이라 store/cookie 직접 set 안 함.
  */
+
+/**
+ * pathname 의 첫 segment 가 valid lang 이면 제거.
+ *
+ * Why isLocale check (regex 대신):
+ *   regex `[a-z-]+` 은 대소문자 구분으로 `zh-CN` 의 `CN` 매칭 실패 → strip 실패 →
+ *   `/ja/zh-CN/mypage` 같이 lang prefix 가 중첩되는 결함 발생. PR 1 의 Link/router
+ *   wrapper 와 동일하게 isLocale 로 정확히 검증.
+ */
+function stripLangPrefix(pathname: string): string {
+  const segments = pathname.split('/').filter(Boolean);
+  if (segments.length > 0 && isLocale(segments[0])) {
+    return '/' + segments.slice(1).join('/');
+  }
+  return pathname;
+}
+
 export function useLocaleSwitch() {
   const pathname = usePathname() ?? '/';
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
 
   return (next: Locale) => {
-    const stripped = pathname.replace(/^\/[a-z-]+(\/|$)/, '/');
+    const stripped = stripLangPrefix(pathname);
     const newPath = `/${next}${stripped === '/' ? '' : stripped}`;
 
     // 로그인 사용자: BE 동기화 (실패해도 UI 영향 없음)
