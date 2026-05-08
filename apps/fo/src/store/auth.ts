@@ -1,25 +1,35 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { authApi, onForcedLogout } from '@/lib/api';
-import type { User } from '@hyliren/shared';
+import { isLocale, type User } from '@hyliren/shared';
 import type { LoginInput, RegisterInput } from '@/lib/api';
 import { tokenStore } from '@/lib/auth/token-store';
 
 /**
- * user.locale ↔ path 자동 동기화는 의도적으로 수행하지 않는다.
+ * user.locale ↔ path 동기화 — Soft auto-redirect.
  *
- * 이유:
- *   - 사용자가 명시 path (`/ko/...`) 로 진입한 경우 그 lang 이 현재 의도 (가장 강한 신호)
- *   - user.locale 은 다른 디바이스에서의 마지막 명시 선택 — 현재 디바이스 의도가 아님
- *   - 자동 redirect 는 사용자가 의외로 다른 lang 화면을 보게 만드는 UX 결함
- *
- * 디바이스 간 user.locale 동기화 흐름:
- *   1. 마이페이지 / LanguageSwitcher 에서 명시 선택 → useLocaleSwitch 가 path navigation
- *      + PATCH /auth/locale (DB 갱신)
- *   2. 다른 디바이스 첫 진입 시 cookie 없음 → Accept-Language fallback
- *      → 그 디바이스에서도 사용자가 마이페이지에서 lang 변경 가능
- *   3. user.locale 자체는 향후 추천/이메일 등 BE 측 콘텐츠 lang 결정에 활용
+ * 정책 (CLAUDE.md "i18n 라우팅 정책" 절):
+ *   - 로그인 / 회원가입 직후에만 1회 path lang 을 user.locale 로 정합. (디바이스 간 일관성)
+ *   - refreshSession (같은 디바이스 페이지 reload) 은 동기화 X — 현재 디바이스 path 신호 존중.
+ *   - 게스트 진입 / 명시 path 공유 (친구 카톡 링크) 는 redirect X — middleware 의 cookie/AL 우선.
+ *   - 마이페이지 lang 변경은 useLocaleSwitch 에서 path navigation + PATCH /auth/locale.
  */
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+function syncLocaleToPath(user: User): void {
+  if (typeof window === 'undefined') return;
+  const segments = window.location.pathname.split('/').filter(Boolean);
+  const first = segments[0];
+  if (!first || !isLocale(first)) return; // middleware 미통과 케이스 (이론상 도달 X)
+  if (first === user.locale) return;       // 이미 정합
+
+  // user.locale 로 path navigate + cookie 동기화 (다음 진입 middleware 일관성).
+  // window.location.assign 으로 hard navigation — layout 재마운트로 LocaleStoreProvider
+  // initialLocale 이 새 lang 으로 SSR 정합 (router.replace 는 RSC 만 갱신).
+  document.cookie = `mimyo-locale=${user.locale}; path=/; max-age=${COOKIE_MAX_AGE}; samesite=lax`;
+  const newPath = window.location.pathname.replace(`/${first}`, `/${user.locale}`);
+  window.location.assign(`${newPath}${window.location.search}`);
+}
 
 export type AuthStatus = 'idle' | 'authenticating' | 'authenticated' | 'guest';
 
@@ -66,6 +76,7 @@ export const useAuthStore = create<AuthState>()(
           await authApi.login(input);
           const user = await authApi.fetchMe();
           get().setUser(user);
+          syncLocaleToPath(user);
         } catch (err) {
           get().setUser(null);
           throw err;
@@ -78,6 +89,7 @@ export const useAuthStore = create<AuthState>()(
           await authApi.register(input);
           const user = await authApi.fetchMe();
           get().setUser(user);
+          syncLocaleToPath(user);
         } catch (err) {
           get().setUser(null);
           throw err;

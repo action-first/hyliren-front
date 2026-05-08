@@ -6,7 +6,10 @@ import { useAuthStore } from '@/store/auth';
 import { updateLocale as updateLocaleApi } from '@/lib/api/auth';
 
 /**
- * 사용자 명시 언어 선택 (마이페이지 / LanguageSwitcher 등에서 호출).
+ * 사용자 명시 언어 선택 — 마이페이지 BottomSheet 에서만 호출.
+ *
+ * 정책: FO 헤더 / 푸터 / 글로벌 layout 에 다국어 전환 UI 추가 영구 금지
+ * (CLAUDE.md "다국어 전환 UI" 절). 본 hook 의 호출 위치도 마이페이지로 한정.
  *
  * 동작:
  *   1. 현재 pathname 의 lang prefix 를 새 lang 으로 교체하여 full navigation
