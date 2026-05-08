@@ -16,6 +16,7 @@
     "ag-grid-community": "^35.2.1",
     "ag-grid-react": "^35.2.1",
     "lucide-react": "^1.8.0",
+    "marked": "^18.0.3",
     "next": "^15",
     "react": "^19",
     "react-dom": "^19",

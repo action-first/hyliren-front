@@ -76,7 +76,7 @@ function toRow(a: AdminArticleListItem): ArticleRow {
 }
 
 const searchFields: SearchField[] = [
-  { key: '_keyword', label: '키워드', placeholder: '제목 검색', row: 1 },
+  // row 1 — 단일/짧은 select 들 (statusLabel / category / featured)
   { key: 'statusLabel', label: '상태', type: 'select', row: 1, options: [
     { value: '초안', label: '초안' },
     { value: '게시', label: '게시' },
@@ -88,6 +88,8 @@ const searchFields: SearchField[] = [
   { key: 'featured', label: '추천', type: 'select', row: 1, options: [
     { value: '★', label: '추천만' },
   ]},
+  // row 2 — 키워드 (긴 input)
+  { key: '_keyword', label: '키워드', placeholder: '제목 검색', row: 2 },
 ];
 
 const columnDefs: ColDef<ArticleRow>[] = [

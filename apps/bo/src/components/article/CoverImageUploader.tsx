@@ -30,13 +30,13 @@ export function CoverImageUploader({ value, onChange }: Props) {
   }
 
   return (
-    <div>
+    <div style={{ width: '100%' }}>
       {value ? (
-        <div style={{ position: 'relative', display: 'inline-block' }}>
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9' }}>
           <img
             src={value}
             alt="cover"
-            style={{ width: 320, height: 180, objectFit: 'cover', borderRadius: 8, border: '1px solid #e5e7eb' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8, border: '1px solid #e5e7eb', display: 'block' }}
           />
           <button
             type="button"
@@ -56,14 +56,14 @@ export function CoverImageUploader({ value, onChange }: Props) {
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
           style={{
-            width: 320, height: 180, borderRadius: 8,
+            width: '100%', aspectRatio: '16 / 9', borderRadius: 8,
             border: '2px dashed #d1d5db', background: '#f9fafb',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: uploading ? 'wait' : 'pointer',
             color: '#6b7280', fontSize: 13,
           }}
         >
-          {uploading ? '업로드 중…' : '+ 커버 이미지 선택 (16:9 권장)'}
+          {uploading ? '업로드 중…' : '+ 커버 이미지 선택 (16:9)'}
         </button>
       )}
       <input

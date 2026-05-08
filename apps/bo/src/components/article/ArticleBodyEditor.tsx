@@ -1,8 +1,24 @@
 'use client';
 
 import { Editor } from '@tinymce/tinymce-react';
-import { useRef } from 'react';
+import { marked } from 'marked';
+import { useMemo, useRef } from 'react';
 import { uploadArticleImage } from '@/lib/api/admin-uploads';
+
+/**
+ * body 가 markdown 형식이면 HTML 로 변환.
+ * 휴리스틱: HTML tag (`<p>`, `<h1>`, `<div>` 등) 로 시작하면 HTML, 그 외엔 markdown 으로 간주.
+ *
+ * 기존 articles seed (006a/006b) 가 markdown/plain 으로 저장되어 있고, 신규 입력은
+ * TinyMCE HTML output. round-trip 시 첫 load 만 변환, 이후 저장은 HTML 그대로.
+ */
+function ensureHtml(value: string): string {
+  if (!value) return '';
+  const trimmed = value.trim();
+  if (trimmed.startsWith('<')) return value;
+  // marked.parse 는 sync (extensions 없을 때). string 단언.
+  return marked.parse(value, { async: false }) as string;
+}
 
 /**
  * TinyMCE Cloud 기반 본문 에디터.
@@ -23,6 +39,8 @@ const TINY_API_KEY = process.env.NEXT_PUBLIC_TINYMCE_API_KEY ?? '';
 
 export function ArticleBodyEditor({ value, onChange, disabled = false }: Props) {
   const editorRef = useRef<unknown>(null);
+  // 첫 load 만 markdown → HTML 변환. 이후 onEditorChange 가 HTML 만 흘러서 재변환 X.
+  const initialValue = useMemo(() => ensureHtml(value), [value]);
 
   if (!TINY_API_KEY) {
     return (
@@ -38,7 +56,9 @@ export function ArticleBodyEditor({ value, onChange, disabled = false }: Props) 
   return (
     <Editor
       apiKey={TINY_API_KEY}
-      value={value}
+      // initialValue 만 사용 — `value` controlled 모드는 IME 한글 입력 시 cursor jump 문제 일으킴.
+      // 첫 mount 시 markdown → HTML 변환된 값 주입, 이후 onEditorChange 로만 동기화.
+      initialValue={initialValue}
       disabled={disabled}
       onEditorChange={(html) => onChange(html)}
       onInit={(_evt, editor) => { editorRef.current = editor; }}
