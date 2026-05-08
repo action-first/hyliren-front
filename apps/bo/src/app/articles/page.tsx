@@ -104,13 +104,13 @@ const columnDefs: ColDef<ArticleRow>[] = [
     cellRenderer: dotTextRenderer(FEATURED_DOT),
   },
   { field: 'views', headerName: '조회수', flex: 0.5, minWidth: 80, filter: false,
-    cellStyle: { fontVariantNumeric: 'tabular-nums', color: '#6b7280' },
+    cellStyle: { fontVariantNumeric: 'tabular-nums', color: 'var(--text-subdued)' },
   },
   { field: 'publishedAt', headerName: '발행일', flex: 0.7, minWidth: 100, filter: false,
-    cellStyle: { fontVariantNumeric: 'tabular-nums', color: '#9ca3af' },
+    cellStyle: { fontVariantNumeric: 'tabular-nums', color: 'var(--text-disabled)' },
   },
   { headerName: '액션', flex: 0.4, minWidth: 60, sortable: false, resizable: false, filter: false,
-    cellRenderer: detailLinkRenderer<ArticleRow>('/articles', '상세', '#18181b'),
+    cellRenderer: detailLinkRenderer<ArticleRow>('/articles', '상세', 'var(--text-default)'),
   },
 ];
 
@@ -138,7 +138,7 @@ export default function ArticlesPage() {
       onClick={() => router.push('/articles/new')}
       style={{
         padding: '8px 14px', borderRadius: 8, border: 0, cursor: 'pointer',
-        background: '#18181b', color: '#fff', fontSize: 13, fontWeight: 600,
+        background: 'var(--action-primary-bg)', color: 'var(--action-primary-text)', fontSize: 13, fontWeight: 600,
       }}
     >
       + 새 아티클

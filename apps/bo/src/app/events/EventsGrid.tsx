@@ -39,7 +39,7 @@ const searchFields: SearchField[] = [
 
 const columnDefs: ColDef<EventRow>[] = [
   { field: 'timestamp', headerName: '시간', flex: 0.8, minWidth: 130, filter: false,
-    cellStyle: { color: '#9ca3af', fontVariantNumeric: 'tabular-nums', fontSize: '12px' },
+    cellStyle: { color: 'var(--text-disabled)', fontVariantNumeric: 'tabular-nums', fontSize: '12px' },
   },
   { field: 'eventType', headerName: '이벤트', flex: 1, minWidth: 130, filter: true,
     cellRenderer: dotTextRenderer(EVENT_TYPE_DOT),
@@ -48,10 +48,10 @@ const columnDefs: ColDef<EventRow>[] = [
     cellRenderer: dotTextRenderer(ACTOR_DOT),
   },
   { field: 'target', headerName: '대상', flex: 0.8, minWidth: 120, filter: true,
-    cellStyle: { color: '#6b7280' },
+    cellStyle: { color: 'var(--text-subdued)' },
   },
   { field: 'meta', headerName: '메타', flex: 1.2, minWidth: 150, filter: true,
-    cellStyle: { color: '#9ca3af', fontSize: '12px' },
+    cellStyle: { color: 'var(--text-disabled)', fontSize: '12px' },
   },
 ];
 
