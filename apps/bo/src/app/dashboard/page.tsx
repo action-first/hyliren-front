@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AdminPage, Spinner } from '@hyliren/ui';
 import { BOSidebar } from '@/components/BOSidebar';
@@ -38,6 +38,21 @@ const PROPOSAL_STATUS_LABEL_KR: Record<string, string> = {
 function localizeStatusItems<T extends { name: string; status: string }>(items: T[], map: Record<string, string>): T[] {
   return items.map((it) => ({ ...it, name: map[it.status] ?? it.name }));
 }
+
+// Dashboard 차트 카드 공통 스타일 (4회 반복) — design token 기반.
+const CHART_CARD_STYLE: React.CSSProperties = {
+  background: 'var(--surface-default)',
+  borderRadius: 16,
+  padding: 24,
+  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+  border: '1px solid var(--border-subdued)',
+};
+const CHART_TITLE_STYLE: React.CSSProperties = {
+  fontSize: 15, fontWeight: 650, color: 'var(--text-default)',
+};
+const CHART_SUBTITLE_STYLE: React.CSSProperties = {
+  fontSize: 12, color: 'var(--text-disabled)', marginTop: 2,
+};
 
 const EVENT_STYLE: Record<string, { bg: string; text: string }> = {
   concern_submit: { bg: '#EEF2FF', text: '#4F46E5' },
@@ -100,37 +115,28 @@ function DashboardContent({ data }: { data: AdminDashboardSummary }) {
       />
 
       {/* 전환 퍼널 */}
-      <div style={{
-        background: '#fff', borderRadius: 16, padding: 24,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9',
-      }}>
+      <div style={CHART_CARD_STYLE}>
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 15, fontWeight: 650, color: '#0f172a' }}>전환 퍼널</div>
-          <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>고민 등록 → 병원 선택 | 선택률 {kpi.selectRate}%</div>
+          <div style={CHART_TITLE_STYLE}>전환 퍼널</div>
+          <div style={CHART_SUBTITLE_STYLE}>고민 등록 → 병원 선택 | 선택률 {kpi.selectRate}%</div>
         </div>
         <ConversionFunnel data={funnel} />
       </div>
 
       {/* 차트 1행: 고민 상태 도넛 + 제안서 바 */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <div style={{
-          background: '#fff', borderRadius: 16, padding: 24,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9',
-        }}>
+        <div style={CHART_CARD_STYLE}>
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 15, fontWeight: 650, color: '#0f172a' }}>고민 상태 분포</div>
-            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>총 {kpi.concernCount}건</div>
+            <div style={CHART_TITLE_STYLE}>고민 상태 분포</div>
+            <div style={CHART_SUBTITLE_STYLE}>총 {kpi.concernCount}건</div>
           </div>
           <ConcernStatusPie data={concernStatusPie} total={kpi.concernCount} />
         </div>
 
-        <div style={{
-          background: '#fff', borderRadius: 16, padding: 24,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9',
-        }}>
+        <div style={CHART_CARD_STYLE}>
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 15, fontWeight: 650, color: '#0f172a' }}>제안서 현황</div>
-            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>총 {kpi.proposalCount}건</div>
+            <div style={CHART_TITLE_STYLE}>제안서 현황</div>
+            <div style={CHART_SUBTITLE_STYLE}>총 {kpi.proposalCount}건</div>
           </div>
           <ProposalStatusBar data={proposalStatusBar} />
         </div>
@@ -138,34 +144,27 @@ function DashboardContent({ data }: { data: AdminDashboardSummary }) {
 
       {/* 차트 2행: 부위 트리맵 + 최근 이벤트 */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <div style={{
-          background: '#fff', borderRadius: 16, padding: 24,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9',
-        }}>
+        <div style={CHART_CARD_STYLE}>
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 15, fontWeight: 650, color: '#0f172a' }}>부위별 고민 분포</div>
-            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>총 {kpi.concernCount}건</div>
+            <div style={CHART_TITLE_STYLE}>부위별 고민 분포</div>
+            <div style={CHART_SUBTITLE_STYLE}>총 {kpi.concernCount}건</div>
           </div>
           <BodyAreaTreemap data={bodyAreaDistribution} total={kpi.concernCount} />
         </div>
 
-        <div style={{
-          background: '#fff', borderRadius: 16, padding: 24,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9',
-          display: 'flex', flexDirection: 'column',
-        }}>
+        <div style={{ ...CHART_CARD_STYLE, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 650, color: '#0f172a' }}>최근 이벤트</div>
-              <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{recentEvents.length}건</div>
+              <div style={CHART_TITLE_STYLE}>최근 이벤트</div>
+              <div style={CHART_SUBTITLE_STYLE}>{recentEvents.length}건</div>
             </div>
             <Link href="/events" style={{
-              fontSize: 13, fontWeight: 500, color: '#18181b', textDecoration: 'none',
-              padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb',
+              fontSize: 13, fontWeight: 500, color: 'var(--text-default)', textDecoration: 'none',
+              padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border-default)',
             }}>전체보기</Link>
           </div>
           {recentEvents.length === 0 ? (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 13 }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-disabled)', fontSize: 13 }}>
               아직 이벤트가 없습니다
             </div>
           ) : (
@@ -177,13 +176,13 @@ function DashboardContent({ data }: { data: AdminDashboardSummary }) {
                   <div key={ev.id} style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '10px 0',
-                    borderBottom: i < 5 ? '1px solid #f8fafc' : 'none',
+                    borderBottom: i < 5 ? '1px solid var(--border-subdued)' : 'none',
                   }}>
                     <span style={{
                       display: 'inline-block', padding: '3px 10px', borderRadius: 6,
                       fontSize: 12, fontWeight: 500, background: style.bg, color: style.text,
                     }}>{label}</span>
-                    <span style={{ fontSize: 11, color: '#94a3b8', fontVariantNumeric: 'tabular-nums' }}>
+                    <span style={{ fontSize: 11, color: 'var(--text-disabled)', fontVariantNumeric: 'tabular-nums' }}>
                       {new Date(ev.timestamp).toLocaleTimeString('ko', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
