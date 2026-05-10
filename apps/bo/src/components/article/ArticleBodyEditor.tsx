@@ -3,7 +3,7 @@
 import { Editor } from '@tinymce/tinymce-react';
 import { marked } from 'marked';
 import { useMemo, useRef } from 'react';
-import { uploadArticleImage } from '@/lib/api/admin-uploads';
+import { uploadArticleImage, validateImageFile, translateUploadError } from '@/lib/api/admin-uploads';
 
 /**
  * body 가 markdown 형식이면 HTML 로 변환.
@@ -82,8 +82,13 @@ export function ArticleBodyEditor({ value, onChange, disabled = false }: Props) 
         images_upload_handler: async (blobInfo: { blob: () => Blob; filename: () => string }) => {
           const blob = blobInfo.blob();
           const file = new File([blob], blobInfo.filename(), { type: blob.type });
-          const url = await uploadArticleImage(file);
-          return url;
+          const v = validateImageFile(file);
+          if (!v.ok) throw new Error(v.error);
+          try {
+            return await uploadArticleImage(file);
+          } catch (e: unknown) {
+            throw new Error(translateUploadError(e));
+          }
         },
         // 외부 URL 이미지 paste 도 허용 (타 사이트 이미지 인용)
         paste_data_images: true,
