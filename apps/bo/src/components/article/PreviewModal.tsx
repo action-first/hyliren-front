@@ -153,6 +153,7 @@ export function PreviewModal({
             categoryLabel={CATEGORY_LABEL_KR[category]}
             tagColor={CATEGORY_TAG_COLOR[category]}
             primaryAreaLabel={primaryArea}
+            mascotVideoUrl="https://mi-myo.com/character/mimyo.mp4"
           />
         </div>
       </div>
