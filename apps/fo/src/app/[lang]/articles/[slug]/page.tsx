@@ -3,15 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Link } from '@/components/i18n/Link';
-import { Badge, Button, Spinner } from '@hyliren/ui';
+import { ArticleView, Button, Spinner } from '@hyliren/ui';
+import type { ArticleTagColor } from '@hyliren/ui';
 import { ArrowLeft, ArrowRight, Clock, Eye } from 'lucide-react';
 import { useLocaleStore } from '@/store/locale';
-import { getArticle, mapArticleDetail, type ArticleDetail, type ArticleImage } from '@/lib/api/article';
+import { getArticle, mapArticleDetail, type ArticleDetail } from '@/lib/api/article';
 import { ARTICLE_QUIZZES } from '@/lib/article-quizzes';
 
 /**
- * 조회수 압축 표기 — 로케일별 자연스러운 단위 적용 (Intl.NumberFormat compact).
- * - ko: 1.5만 / zh-CN: 1.5万 / ja: 1.5万 / en: 15K
+ * 조회수 압축 표기 — 로케일별 자연스러운 단위 (Intl.NumberFormat compact).
+ *  ko: 1.5만 / zh-CN: 1.5万 / ja: 1.5万 / en: 15K
  */
 function formatViews(n: number, locale: string): string {
   return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(n);
@@ -26,168 +27,31 @@ const CATEGORY_LABEL_KEY: Record<string, string> = {
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
 
-/* ── Markdown → JSX (lightweight) ──
- * quiz 콘텐츠는 현재 article-quizzes.ts 의 한국어 raw — locale 별 자연어 콘텐츠는
- * 후속 트랙 (콘텐츠 다국어). 본 PR 단계에선 ko locale 만 quiz 노출, 그 외엔 skip.
- */
-function renderBody(article: ArticleDetail, t: TFn, locale: string) {
-  const lines = article.body.split('\n');
-  const elements: React.ReactNode[] = [];
-  const imageByType = (type: 'hero' | 'procedure' | 'lifestyle'): ArticleImage | undefined =>
-    article.images.find(img => img.type === type);
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-
-    if (line.trim().startsWith('[IMAGE:')) {
-      const type = line.trim().replace('[IMAGE:', '').replace(']', '').trim() as 'hero' | 'procedure' | 'lifestyle';
-      if (type === 'hero') { i++; continue; }
-      if (type === 'lifestyle') {
-        const quiz = ARTICLE_QUIZZES[article.slug];
-        // 한국어 raw 콘텐츠 — 다국어 번역 트랙 완료까지 ko locale 만 노출.
-        if (quiz && locale === 'ko') {
-          elements.push(
-            <div key={`quiz-${i}`} className="my-6 rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)] p-5">
-              <p className="text-[15px] font-bold text-[var(--color-text)] mb-4">{quiz.title}</p>
-              <div className="flex flex-col gap-3">
-                {quiz.items.map((item, qi) => (
-                  <div key={qi}>
-                    <p className="text-[12px] font-medium text-[var(--color-text-secondary)] mb-1.5">{item.question}</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {item.options.map((opt, oi) => (
-                        <span key={oi} className="px-3 py-1.5 rounded-full bg-[var(--color-bg)] text-[12px] text-[var(--color-text)] border border-[var(--color-border-light)]">
-                          {opt}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <p className="text-[10.5px] text-[var(--color-text-dim)] mt-4">{t('mypage.articleHelpHint')}</p>
-            </div>,
-          );
-        }
-        i++;
-        continue;
-      }
-      const img = imageByType(type);
-      if (img) {
-        elements.push(
-          <div key={`img-${i}`} className="my-5 rounded-[var(--app-radius)] overflow-hidden">
-            <img src={img.url} alt={article.title} className="w-full" loading="lazy" />
-          </div>,
-        );
-      }
-      i++;
-      continue;
-    }
-
-    if (line.trim() === '---') {
-      elements.push(<hr key={`hr-${i}`} className="my-6 border-[var(--color-border-light)]" />);
-      i++;
-      continue;
-    }
-
-    if (line.startsWith('### ')) {
-      elements.push(
-        <h3 key={`h3-${i}`} className="text-[15px] font-bold text-[var(--color-text)] mt-5 mb-2">
-          {renderInline(line.slice(4))}
-        </h3>,
-      );
-      i++;
-      continue;
-    }
-    if (line.startsWith('## ')) {
-      elements.push(
-        <h2 key={`h2-${i}`} className="text-[1.125rem] font-bold text-[var(--color-text)] mt-6 mb-3">
-          {renderInline(line.slice(3))}
-        </h2>,
-      );
-      i++;
-      continue;
-    }
-
-    if (line.startsWith('> ')) {
-      const quoteLines: string[] = [];
-      while (i < lines.length && lines[i].startsWith('> ')) {
-        quoteLines.push(lines[i].slice(2));
-        i++;
-      }
-      elements.push(
-        <blockquote key={`bq-${i}`} className="border-l-3 border-[var(--color-primary)] pl-3.5 my-4 text-[13px] text-[var(--color-text-secondary)] italic leading-[1.7]">
-          {quoteLines.map((ql, qi) => (
-            <p key={qi} className="mb-1 last:mb-0">{renderInline(ql)}</p>
-          ))}
-        </blockquote>,
-      );
-      continue;
-    }
-
-    if (line.startsWith('- ')) {
-      const items: string[] = [];
-      while (i < lines.length && lines[i].startsWith('- ')) {
-        items.push(lines[i].slice(2));
-        i++;
-      }
-      elements.push(
-        <ul key={`ul-${i}`} className="my-3 flex flex-col gap-1.5 pl-4">
-          {items.map((item, li) => (
-            <li key={li} className="text-[13px] text-[var(--color-text-secondary)] leading-[1.7] list-disc">
-              {renderInline(item)}
-            </li>
-          ))}
-        </ul>,
-      );
-      continue;
-    }
-
-    if (/^\d+\.\s/.test(line)) {
-      const items: string[] = [];
-      while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
-        items.push(lines[i].replace(/^\d+\.\s/, ''));
-        i++;
-        while (i < lines.length && lines[i].startsWith('   ') && !lines[i].startsWith('   -')) {
-          items[items.length - 1] += ' ' + lines[i].trim();
-          i++;
-        }
-      }
-      elements.push(
-        <ol key={`ol-${i}`} className="my-3 flex flex-col gap-1.5 pl-4">
-          {items.map((item, li) => (
-            <li key={li} className="text-[13px] text-[var(--color-text-secondary)] leading-[1.7] list-decimal">
-              {renderInline(item)}
-            </li>
-          ))}
-        </ol>,
-      );
-      continue;
-    }
-
-    if (line.trim() === '') {
-      i++;
-      continue;
-    }
-
-    elements.push(
-      <p key={`p-${i}`} className="text-[13px] text-[var(--color-text-secondary)] leading-[1.8] mb-3">
-        {renderInline(line)}
-      </p>,
-    );
-    i++;
-  }
-
-  return elements;
-}
-
-function renderInline(text: string): React.ReactNode {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} className="font-semibold text-[var(--color-text)]">{part.slice(2, -2)}</strong>;
-    }
-    return part;
-  });
+/** quiz UI — body 안 [IMAGE: lifestyle] 위치에 삽입. 한국어 raw 콘텐츠 정합 위해 ko locale 만 노출. */
+function QuizSlot({ slug, locale, t }: { slug: string; locale: string; t: TFn }) {
+  if (locale !== 'ko') return null;
+  const quiz = ARTICLE_QUIZZES[slug];
+  if (!quiz) return null;
+  return (
+    <div className="my-6 rounded-[var(--app-radius-md)] bg-[var(--color-bg-secondary)] p-5">
+      <p className="text-[15px] font-bold text-[var(--color-text)] mb-4">{quiz.title}</p>
+      <div className="flex flex-col gap-3">
+        {quiz.items.map((item, qi) => (
+          <div key={qi}>
+            <p className="text-[12px] font-medium text-[var(--color-text-secondary)] mb-1.5">{item.question}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {item.options.map((opt, oi) => (
+                <span key={oi} className="px-3 py-1.5 rounded-full bg-[var(--color-bg)] text-[12px] text-[var(--color-text)] border border-[var(--color-border-light)]">
+                  {opt}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="text-[10.5px] text-[var(--color-text-dim)] mt-4">{t('mypage.articleHelpHint')}</p>
+    </div>
+  );
 }
 
 export default function ArticleDetailPage() {
@@ -234,56 +98,27 @@ export default function ArticleDetailPage() {
   const heroImg = article.images.find(img => img.type === 'hero');
 
   return (
-    <div className="flex flex-col pb-10">
-      {/* Back */}
-      <div className="px-5 pt-4 pb-2">
+    <ArticleView
+      title={article.title}
+      body={article.body}
+      coverImageUrl={article.coverImageUrl ?? heroImg?.url ?? null}
+      categoryLabel={t(CATEGORY_LABEL_KEY[article.category] ?? 'articles2.categoryAll')}
+      tagColor={article.tagColor as ArticleTagColor}
+      primaryAreaLabel={article.primaryArea !== 'all' ? t(`common.bodyArea.${article.primaryArea}`) : undefined}
+      readTimeLabel={
+        <span className="flex items-center gap-1"><Clock size={11} /> {t('articles.readTime', { min: article.readTime })}</span>
+      }
+      viewCountLabel={
+        <span className="flex items-center gap-1"><Eye size={11} /> {formatViews(article.viewCount, locale)}</span>
+      }
+      publishedAtLabel={article.publishedAt ? article.publishedAt.slice(0, 10) : undefined}
+      topSlot={
         <Link href="/articles" className="flex items-center gap-1 text-[12px] text-[var(--color-text-dim)] no-underline">
           <ArrowLeft size={14} /> {t('articles.backToList')}
         </Link>
-      </div>
-
-      {/* Hero image */}
-      {(article.coverImageUrl || heroImg) && (
-        <div className="px-5 mb-4">
-          <div className="rounded-[var(--app-radius-md)] overflow-hidden">
-            <img
-              src={article.coverImageUrl ?? heroImg!.url}
-              alt={article.title}
-              className="w-full aspect-[16/9] object-cover"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Meta */}
-      <div className="px-5 mb-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Badge variant={article.tagColor} size="sm">
-            {t(CATEGORY_LABEL_KEY[article.category] ?? 'articles2.categoryAll')}
-          </Badge>
-          {article.primaryArea !== 'all' && (
-            <span className="text-[10px] text-[var(--color-text-dim)]">
-              {t(`common.bodyArea.${article.primaryArea}`)}
-            </span>
-          )}
-        </div>
-        <h1 className="text-[1.25rem] font-bold text-[var(--color-text)] leading-[1.35] tracking-[-0.3px] mb-2">
-          {article.title}
-        </h1>
-        <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-dim)]">
-          <span className="flex items-center gap-1"><Clock size={11} /> {t('articles.readTime', { min: article.readTime })}</span>
-          <span className="flex items-center gap-1"><Eye size={11} /> {formatViews(article.viewCount, locale)}</span>
-          {article.publishedAt && <span>{article.publishedAt.slice(0, 10)}</span>}
-        </div>
-      </div>
-
-      {/* Body */}
-      <div className="px-5">
-        {renderBody(article, t, locale)}
-      </div>
-
-      {/* Bottom CTA */}
-      <div className="px-5 mt-6">
+      }
+      lifestyleSlot={<QuizSlot slug={article.slug} locale={locale} t={t} />}
+      bottomSlot={
         <div className="flex items-center gap-3 px-4 py-3.5 rounded-[var(--app-radius-md)] fo-gradient-accent">
           <div className="flex-1">
             <span className="text-[13px] font-semibold text-[var(--color-text)] block">{t('articles.bottomTitle')}</span>
@@ -293,7 +128,7 @@ export default function ArticleDetailPage() {
             <Button variant="primary" size="sm">{t('articles.bottomCta')} <ArrowRight size={12} /></Button>
           </Link>
         </div>
-      </div>
-    </div>
+      }
+    />
   );
 }
