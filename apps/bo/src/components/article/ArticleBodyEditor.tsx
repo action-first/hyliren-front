@@ -66,15 +66,17 @@ export function ArticleBodyEditor({ value, onChange, disabled = false }: Props) 
         height: 480,
         menubar: false,
         plugins: [
+          // preview plugin 제거 — BO 자체 'FO 실 게시 미리보기' 모달이 정본 (PreviewModal).
+          // TinyMCE 자체 preview 는 에디터 내부 콘텐츠만 보여줘 운영자에게 혼란.
           'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
-          'preview', 'anchor', 'searchreplace', 'visualblocks', 'code',
+          'anchor', 'searchreplace', 'visualblocks', 'code',
           'fullscreen', 'insertdatetime', 'media', 'table', 'help', 'wordcount',
         ],
         toolbar:
           'undo redo | blocks | bold italic underline | ' +
           'alignleft aligncenter alignright | ' +
           'bullist numlist outdent indent | link image | ' +
-          'removeformat | code preview',
+          'removeformat | code',
         content_style: [
           'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; }',
           // 업로드/인라인 이미지가 에디터 width 초과 시 스크롤 발생 방지 — 에디터 안에서 자동 축소.
