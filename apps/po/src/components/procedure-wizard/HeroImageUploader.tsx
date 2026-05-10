@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { uploadProcedureImage } from '@/lib/api/uploads';
+import { uploadProcedureImage, validateImageFile, translateUploadError } from '@/lib/api/uploads';
 
 interface Props {
   value: string | null;
@@ -18,13 +18,18 @@ export function HeroImageUploader({ value, onChange }: Props) {
   const [err, setErr] = useState<string | null>(null);
 
   async function handleFile(file: File) {
+    const v = validateImageFile(file);
+    if (!v.ok) {
+      setErr(v.error);
+      return;
+    }
     setUploading(true);
     setErr(null);
     try {
       const url = await uploadProcedureImage(file);
       onChange(url);
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : '업로드 실패');
+      setErr(translateUploadError(e));
     } finally {
       setUploading(false);
     }

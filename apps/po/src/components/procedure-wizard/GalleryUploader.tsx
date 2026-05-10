@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { Plus, X } from 'lucide-react';
-import { uploadProcedureImage } from '@/lib/api/uploads';
+import { uploadProcedureImage, validateImageFile, translateUploadError } from '@/lib/api/uploads';
 
 interface Props {
   urls: string[];
@@ -28,13 +28,18 @@ export function GalleryUploader({ urls, onChange, max = 8, addLabel }: Props) {
 
   async function handleFile(file: File) {
     if (urls.length >= max) return;
+    const v = validateImageFile(file);
+    if (!v.ok) {
+      setErr(v.error);
+      return;
+    }
     setUploading(true);
     setErr(null);
     try {
       const url = await uploadProcedureImage(file);
       onChange([...urls, url]);
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : '업로드 실패');
+      setErr(translateUploadError(e));
     } finally {
       setUploading(false);
     }

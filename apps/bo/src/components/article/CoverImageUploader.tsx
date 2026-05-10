@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { uploadArticleImage } from '@/lib/api/admin-uploads';
+import { uploadArticleImage, validateImageFile, translateUploadError } from '@/lib/api/admin-uploads';
 
 interface Props {
   value: string | null;
@@ -17,13 +17,18 @@ export function CoverImageUploader({ value, onChange }: Props) {
   const [err, setErr] = useState<string | null>(null);
 
   async function handleFile(file: File) {
+    const v = validateImageFile(file);
+    if (!v.ok) {
+      setErr(v.error);
+      return;
+    }
     setUploading(true);
     setErr(null);
     try {
       const url = await uploadArticleImage(file);
       onChange(url);
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : '업로드 실패');
+      setErr(translateUploadError(e));
     } finally {
       setUploading(false);
     }
