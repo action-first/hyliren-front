@@ -143,8 +143,8 @@ export function PreviewModal({
           </div>
         )}
 
-        {/* 미리보기 영역 — FO 모바일 프레임 폭과 정합 */}
-        <div className="flex-1 overflow-y-auto bg-[var(--color-bg, #fff)]">
+        {/* 미리보기 영역 — FO 모바일 프레임 폭과 정합. 탭과 cover 간 호흡 위해 pt-5. */}
+        <div className="flex-1 overflow-y-auto bg-[var(--color-bg, #fff)] pt-5">
           <ArticleView
             title={usedTranslation.title || '(제목 미입력)'}
             body={usedTranslation.body || '(본문 미입력)'}
