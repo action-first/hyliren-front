@@ -6,6 +6,7 @@ import { AdminPage, Select, Spinner } from '@hyliren/ui';
 import { BOSidebar } from '@/components/BOSidebar';
 import { ArticleBodyEditor } from '@/components/article/ArticleBodyEditor';
 import { CoverImageUploader } from '@/components/article/CoverImageUploader';
+import { PreviewModal } from '@/components/article/PreviewModal';
 import {
   getArticle, createArticle, updateArticle, updateArticleStatus, deleteArticle,
   type AdminArticleDetail, type AdminArticleTranslation,
@@ -112,6 +113,7 @@ export default function ArticleDetailPage({ params }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (isNew) return;
@@ -220,6 +222,10 @@ export default function ArticleDetailPage({ params }: Props) {
           />
         </div>
       )}
+      <button type="button" onClick={() => setPreviewOpen(true)} disabled={saving}
+        style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border-default)', background: 'var(--surface-default)', color: 'var(--text-default)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+        미리보기
+      </button>
       {!isNew && (
         <button type="button" onClick={handleDelete} disabled={saving}
           style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid var(--color-danger-soft)', background: 'var(--surface-default)', color: 'var(--color-danger)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
@@ -408,6 +414,16 @@ export default function ArticleDetailPage({ params }: Props) {
           </FormField>
         </div>
       </div>
+
+      <PreviewModal
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        translations={form.translations}
+        sourceLocale={form.sourceLocale}
+        category={form.category}
+        coverImageUrl={form.coverImageUrl}
+        bodyAreas={form.bodyAreas}
+      />
     </AdminPage>
   );
 }

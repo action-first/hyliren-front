@@ -94,3 +94,7 @@ export type { AppHeaderProps } from './layout/AppHeader';
 
 export { AdminPage } from './layout/AdminPage';
 export type { AdminPageProps } from './layout/AdminPage';
+
+// Article (FO/BO 공통 — 미리보기 / 본문 표시)
+export { ArticleView } from './article';
+export type { ArticleViewProps, ArticleTagColor } from './article';
