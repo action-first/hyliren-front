@@ -5,6 +5,7 @@ import { Input, Select } from '@hyliren/ui';
 import { BODY_AREAS, proceduresByArea, PROCEDURE_TYPE_AREAS } from '@hyliren/shared';
 import type { BodyArea, ProcedureType, Locale } from '@hyliren/shared';
 import { LocaleTabs } from './LocaleTabs';
+import { HeroImageUploader } from './HeroImageUploader';
 import { useLocaleStore } from '@/store/locale';
 import type { WizardForm } from '@/lib/wizard/types';
 
@@ -102,20 +103,16 @@ export function Step1Basics({ form, onChange }: Step1Props) {
       </div>
 
       <div>
-        <Input
-          label={t('po.wizardHeroImageUrl')}
-          value={form.heroImageUrl}
-          onChange={e => onChange({ heroImageUrl: e.target.value })}
-          placeholder="https://…"
+        <label className="block text-[var(--text-xs)] font-semibold text-[var(--text-disabled)] mb-1.5">
+          {t('po.wizardHeroImageUrl')}
+        </label>
+        <HeroImageUploader
+          value={form.heroImageUrl || null}
+          onChange={url => onChange({ heroImageUrl: url ?? '' })}
         />
         <p className="text-[var(--app-text-micro)] text-[var(--text-disabled)] mt-1.5">
           {t('po.wizardHeroImageHelp')}
         </p>
-        {form.heroImageUrl && (
-          <div className="mt-3 w-full h-40 rounded-md overflow-hidden bg-[var(--surface-subdued)]">
-            <img src={form.heroImageUrl} alt="" className="w-full h-full object-cover" />
-          </div>
-        )}
       </div>
 
       <div>
