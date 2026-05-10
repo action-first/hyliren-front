@@ -40,6 +40,8 @@ export interface ArticleViewProps {
   topSlot?: React.ReactNode;
   /** 본문 아래 CTA 영역. */
   bottomSlot?: React.ReactNode;
+  /** 미묘 마스코트 인사 동영상 URL — 본문 아래 CTA 직전에 자동 등장 (autoplay loop muted). */
+  mascotVideoUrl?: string;
 }
 
 const TAG_BG: Record<ArticleTagColor, string> = {
@@ -64,6 +66,7 @@ export function ArticleView({
   lifestyleSlot,
   topSlot,
   bottomSlot,
+  mascotVideoUrl,
 }: ArticleViewProps) {
   return (
     <div className="flex flex-col pb-10">
@@ -108,6 +111,21 @@ export function ArticleView({
       <div className="px-5">
         <ArticleBody body={body} lifestyleSlot={lifestyleSlot} />
       </div>
+
+      {mascotVideoUrl && (
+        <div className="px-5 mt-8 flex flex-col items-center gap-2">
+          <video
+            src={mascotVideoUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-32 h-32 rounded-[var(--app-radius-md)] object-cover"
+            aria-label="미묘 마스코트"
+          />
+          <span className="text-[11px] text-[var(--color-text-dim)]">미묘가 친구처럼 정리해드릴게요</span>
+        </div>
+      )}
 
       {bottomSlot && <div className="px-5 mt-6">{bottomSlot}</div>}
     </div>

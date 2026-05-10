@@ -118,6 +118,7 @@ export default function ArticleDetailPage() {
         </Link>
       }
       lifestyleSlot={<QuizSlot slug={article.slug} locale={locale} t={t} />}
+      mascotVideoUrl="/character/mimyo.mp4"
       bottomSlot={
         <div className="flex items-center gap-3 px-4 py-3.5 rounded-[var(--app-radius-md)] fo-gradient-accent">
           <div className="flex-1">
