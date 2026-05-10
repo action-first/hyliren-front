@@ -9,6 +9,33 @@ import { request } from './client';
 
 export type AssetCategory = 'article_image' | 'user_avatar' | 'concern_photo' | 'proposal_image';
 
+// BE constants.ts (libs/common/src/storage) 와 정합. BE 가 SSOT 이지만 FE 즉시 피드백 위해 동일 값 미러링.
+const ALLOWED_IMAGE_MIME: readonly string[] = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
+
+/** FE pre-validation — BE 400 영문 메시지 도달 전에 한국어로 즉시 거부. */
+export function validateImageFile(file: File): { ok: true } | { ok: false; error: string } {
+  if (!ALLOWED_IMAGE_MIME.includes(file.type)) {
+    return { ok: false, error: '이미지 형식이 올바르지 않습니다. (jpg, png, webp만 가능)' };
+  }
+  if (file.size > MAX_IMAGE_SIZE_BYTES) {
+    return { ok: false, error: `파일 크기가 너무 큽니다. (최대 ${MAX_IMAGE_SIZE_BYTES / 1024 / 1024}MB)` };
+  }
+  return { ok: true };
+}
+
+/**
+ * BE BadRequestException 영문 메시지 → 한국어 매핑.
+ * 우회 케이스 또는 정책 변경으로 BE 만 거부 시 fallback.
+ */
+export function translateUploadError(e: unknown): string {
+  const msg = e instanceof Error ? e.message : '';
+  if (/is not allowed/i.test(msg)) return '이미지 형식이 올바르지 않습니다. (jpg, png, webp만 가능)';
+  if (/exceeds the limit/i.test(msg)) return '파일 크기가 너무 큽니다. (최대 10MB)';
+  if (/R2 업로드 실패|publicUrl 미발급/.test(msg)) return msg;
+  return msg || '업로드 실패';
+}
+
 interface PresignResponse {
   uploadUrl: string;
   method: 'PUT';
