@@ -75,7 +75,12 @@ export function ArticleBodyEditor({ value, onChange, disabled = false }: Props) 
           'alignleft aligncenter alignright | ' +
           'bullist numlist outdent indent | link image | ' +
           'removeformat | code preview',
-        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; }',
+        content_style: [
+          'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; }',
+          // 업로드/인라인 이미지가 에디터 width 초과 시 스크롤 발생 방지 — 에디터 안에서 자동 축소.
+          // 저장된 HTML 의 <img> 태그는 그대로. FO 표시는 FO 측 CSS 별도 책임.
+          'img { max-width: 100%; height: auto; display: block; }',
+        ].join(' '),
         // 한국어 입력 정합 (chrome IME)
         browser_spellcheck: true,
         // 인라인 이미지 업로드 — R2 presign 흐름
