@@ -5,6 +5,7 @@ import { Input, Textarea, Button, SectionHeader } from '@hyliren/ui';
 import { X, Plus, AlertTriangle } from 'lucide-react';
 import type { Locale } from '@hyliren/shared';
 import { LocaleTabs } from './LocaleTabs';
+import { GalleryUploader } from './GalleryUploader';
 import { useLocaleStore } from '@/store/locale';
 import type { WizardForm } from '@/lib/wizard/types';
 
@@ -42,22 +43,6 @@ export function Step3Content({ form, onChange }: Step3Props) {
 
   function removeIndication(idx: number) {
     updateBlock({ indications: block.indications.filter((_, i) => i !== idx) });
-  }
-
-  const [pendingUrl, setPendingUrl] = useState('');
-  const [adding, setAdding] = useState(false);
-
-  function removeGalleryAt(i: number) {
-    onChange({ galleryImageUrls: form.galleryImageUrls.filter((_, idx) => idx !== i) });
-  }
-
-  function commitPendingUrl() {
-    const u = pendingUrl.trim();
-    setPendingUrl('');
-    setAdding(false);
-    if (!u) return;
-    if (form.galleryImageUrls.length >= 8) return;
-    onChange({ galleryImageUrls: [...form.galleryImageUrls, u] });
   }
 
   return (
@@ -144,66 +129,12 @@ export function Step3Content({ form, onChange }: Step3Props) {
           </p>
         </div>
 
-        <div className="grid grid-cols-5 gap-2">
-          {form.galleryImageUrls.map((url, i) => (
-            <div
-              key={i}
-              className="
-                relative group aspect-square rounded-md overflow-hidden
-                border border-[var(--border-default)] bg-[var(--surface-subdued)]
-              "
-            >
-              <img src={url} alt="" className="w-full h-full object-cover" />
-              <button
-                type="button"
-                onClick={() => removeGalleryAt(i)}
-                title={t('po.wizardImageDelete')}
-                className="
-                  absolute top-1 right-1 p-1 rounded-full
-                  bg-black/55 text-white opacity-0 group-hover:opacity-100
-                  transition-opacity
-                "
-              >
-                <X size={11} />
-              </button>
-            </div>
-          ))}
-
-          {form.galleryImageUrls.length < 8 && (
-            adding ? (
-              <div className="aspect-square rounded-md border border-dashed border-[var(--interactive-default)] bg-white flex flex-col items-center justify-center p-2 gap-1">
-                <Input
-                  autoFocus
-                  value={pendingUrl}
-                  onChange={e => setPendingUrl(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') { e.preventDefault(); commitPendingUrl(); }
-                    if (e.key === 'Escape') { setPendingUrl(''); setAdding(false); }
-                  }}
-                  onBlur={commitPendingUrl}
-                  placeholder="https://…"
-                  className="w-full text-[var(--app-text-micro)]"
-                />
-                <span className="text-[10px] text-[var(--text-disabled)]">{t('po.wizardEnterEscHelp')}</span>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setAdding(true)}
-                className="
-                  aspect-square rounded-md border border-dashed border-[var(--border-default)]
-                  flex flex-col items-center justify-center gap-1
-                  text-[var(--text-disabled)] hover:text-[var(--interactive-default)]
-                  hover:border-[var(--interactive-default)] hover:bg-[var(--color-info-soft)]
-                  transition-colors
-                "
-              >
-                <Plus size={20} />
-                <span className="text-[var(--app-text-micro)]">{t('po.wizardImageAdd')}</span>
-              </button>
-            )
-          )}
-        </div>
+        <GalleryUploader
+          urls={form.galleryImageUrls}
+          onChange={urls => onChange({ galleryImageUrls: urls })}
+          max={8}
+          addLabel={t('po.wizardImageAdd')}
+        />
       </div>
     </div>
   );
