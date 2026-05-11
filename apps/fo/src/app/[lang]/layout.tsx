@@ -33,6 +33,25 @@ function buildAlternates(restPath: string): Record<string, string> {
 }
 
 /**
+ * 검색엔진 owner verification metadata.
+ *
+ * - `google` 은 Next.js 가 google-site-verification meta 로 자동 emit.
+ * - `naver-site-verification` / `baidu-site-verification` 은 `other` 키에 raw name 그대로.
+ * - 환경변수 토큰이 비어있으면 해당 키를 추가하지 않는다 → meta tag 미노출.
+ *
+ * Why: 토큰이 없을 때 빈 content="" meta 가 박히면 verification 실패 + lint warning.
+ */
+function buildVerification(): Metadata['verification'] | undefined {
+  const result: NonNullable<Metadata['verification']> = {};
+  if (env.verification.google) result.google = env.verification.google;
+  const other: Record<string, string> = {};
+  if (env.verification.naver) other['naver-site-verification'] = env.verification.naver;
+  if (env.verification.baidu) other['baidu-site-verification'] = env.verification.baidu;
+  if (Object.keys(other).length > 0) result.other = other;
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
+/**
  * `[lang]` layout — locale 별 본체 (FOHeader, FOTabBar, metadata 등).
  *
  * locale SSOT 는 `params.lang` (path). middleware 가 모든 진입을 `/{lang}/...` 로 강제하므로
@@ -73,6 +92,32 @@ export async function generateMetadata({
       canonical,
       languages: buildAlternates(restPath),
     },
+    verification: buildVerification(),
+  };
+}
+
+/**
+ * Organization schema.org JSON-LD — 모든 페이지에 1회 노출.
+ *
+ * 효과:
+ *   - Google Knowledge Panel 자격 (브랜드명 검색 시 우측 박스 노출)
+ *   - 검색결과 brand mention 시 logo / sameAs 링크 자동 매핑
+ *   - Article 등 다른 JSON-LD 의 publisher 와 cross-reference
+ *
+ * Note: SNS 채널이 추가되면 sameAs 에 등록 → brand entity linking 강화.
+ */
+function buildOrganizationJsonLd(): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'MIMYO',
+    alternateName: ['미묘', '美妙', 'ミミョ'],
+    url: env.siteUrl,
+    logo: `${env.siteUrl}/icon.svg`,
+    description: '한국 K-뷰티 시술 매칭 플랫폼 — 슈링크·물광·리프팅·필러 등 20-30대 여성 시술 고민을 검증된 한국 병원이 직접 제안합니다.',
+    sameAs: [
+      // 향후 공식 SNS / 채널 추가 시 등록 (Instagram / X / 小红书 / Xiaohongshu 등)
+    ],
   };
 }
 
@@ -86,8 +131,16 @@ export default async function LangLayout({
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
 
+  const organizationJsonLd = buildOrganizationJsonLd();
+
   return (
     <LocaleStoreProvider initialLocale={lang}>
+      {/* Organization JSON-LD — 모든 lang 페이지에 공통 노출 (검색엔진 brand entity 등록용) */}
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
       <SessionBootstrap />
       <div className="fo-shell">
         <div className="fo-frame">
