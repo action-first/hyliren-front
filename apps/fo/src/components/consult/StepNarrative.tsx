@@ -9,7 +9,7 @@ import { useLocaleStore } from '@/store/locale';
 import { PhotoUploadPanel } from './PhotoUploadPanel';
 import { NARRATIVE_QUALITY_THRESHOLD, narrativeQualityScore } from '@/lib/consult/narrative-quality';
 
-const VALID_BODY_AREAS = new Set(['eyes', 'nose', 'lifting', 'skin', 'diet', 'etc']);
+const VALID_BODY_AREAS = new Set(['skin', 'lifting', 'eyes', 'diet', 'nose', 'etc']);
 
 export function StepNarrative() {
   const t = useLocaleStore(s => s.t);

@@ -212,7 +212,7 @@
     "budgetUnder100Hint": "Simple procedures",
     "budget100to300Hint": "Most popular range",
     "budget300to500Hint": "Includes combined procedures",
-    "budgetOver500Hint": "Surgery + combined",
+    "budgetOver500Hint": "Long-term lifting / anti-aging package",
     "budgetUndecided": "Haven't decided on a budget yet",
     "visitTitle": "Visit timing",
     "stayTitle": "Stay duration",
@@ -220,7 +220,7 @@
     "visitWithin3mHint": "Getting ready",
     "visitWithin6mHint": "Planning stage",
     "stayUnder3dHint": "Simple procedure",
-    "stay5to7dHint": "Standard surgery",
+    "stay5to7dHint": "Common procedures (lifting · boosters)",
     "stay2weeksHint": "Surgery + recovery",
     "visitUndecided": "Haven't decided yet",
     "stayUndecided": "Haven't decided yet",
@@ -686,7 +686,7 @@
     "poDescription": "Hospital management system",
     "boTitle": "MIMYO Business Office",
     "boDescription": "Internal management system",
-    "description": "K-beauty decision platform. Register your concern and verified Korean hospitals will send tailored proposals.",
+    "description": "Korea aesthetic treatment matching platform. HIFU lifting, skin boosters, fillers — register your concern about K-beauty procedures and verified Korean clinics will send tailored proposals. For women in their 20s and 30s.",
     "ogImageAlt": "MIMYO — It's OK to start with worries."
   },
   "dateFilter": {
