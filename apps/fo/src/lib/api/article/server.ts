@@ -59,9 +59,13 @@ export async function fetchArticleServer(slug: string, locale: string): Promise<
  *
  * Cache 정책: `no-store` — sitemap.ts 가 force-dynamic 이므로 매 호출 시 BE 에 fresh fetch.
  * 빌드 시점 BE 미가용 (cold start, env 미등록) 에 빈 array 가 영구 cache 되는 결함을 차단.
+ *
+ * limit 제한: BE customer API 의 ListArticles DTO 에 limit max=100 validator 가 있어
+ *   limit>100 은 HTTP 400 반환. articles 가 100개 넘는 단계에선 페이지네이션 필요
+ *   (현재 11개라 100 으로 충분).
  */
 export async function fetchAllArticleSlugsServer(): Promise<string[]> {
-  const url = `${env.customerApiBaseUrl}/api/v1/articles?limit=200`;
+  const url = `${env.customerApiBaseUrl}/api/v1/articles?limit=100`;
   try {
     const list = await envelopeFetch<ArticleListWire>(url, undefined, { cache: 'no-store' });
     return list.articles.map((a) => a.slug);
