@@ -30,6 +30,10 @@ const STATIC_PATHS = [
   '/mypage',
   '/mypage/reports',
   '/proposals',
+  // 법무 페이지 — 검색엔진 인덱싱 + GSC 인증 시점에 검출 가능하도록 sitemap 노출
+  '/privacy',
+  '/terms',
+  '/medical-disclaimer',
 ] as const;
 
 function buildEntry(
