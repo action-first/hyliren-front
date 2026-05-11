@@ -212,7 +212,7 @@
     "budgetUnder100Hint": "간단한 시술 위주",
     "budget100to300Hint": "가장 많이 선택하는 범위",
     "budget300to500Hint": "복합 시술 포함",
-    "budgetOver500Hint": "수술 + 복합 구성",
+    "budgetOver500Hint": "장기 리프팅 / 안티에이징 패키지",
     "budgetUndecided": "아직 정해진 예산은 없어요",
     "visitTitle": "방문 시기",
     "stayTitle": "체류 기간",
@@ -220,7 +220,7 @@
     "visitWithin3mHint": "준비 중",
     "visitWithin6mHint": "계획 단계",
     "stayUnder3dHint": "간단한 시술",
-    "stay5to7dHint": "일반적인 수술",
+    "stay5to7dHint": "일반적인 시술 (리프팅·부스터)",
     "stay2weeksHint": "수술 + 회복",
     "visitUndecided": "아직 시기는 정하지 않았어요",
     "stayUndecided": "아직 정하지 않았어요",
@@ -686,7 +686,7 @@
     "poDescription": "병원 관리 시스템",
     "boTitle": "MIMYO 비즈니스 오피스",
     "boDescription": "내부 관리 시스템",
-    "description": "K-성형 의사결정 플랫폼. 고민을 등록하면 검증된 한국 병원이 맞춤 제안서를 보내드립니다.",
+    "description": "한국 K-뷰티 시술 매칭 플랫폼. 슈링크·물광·리프팅·필러 — 20-30대 여성 뷰티 시술 고민을 등록하면 검증된 한국 병원이 맞춤 제안서를 보내드립니다.",
     "ogImageAlt": "MIMYO — 고민부터 해도 괜찮아요."
   },
   "dateFilter": {
