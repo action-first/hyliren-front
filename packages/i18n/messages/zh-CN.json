@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "meimiao",
-    "appNameZh": "meimiao",
+    "appName": "美妙",
+    "appNameZh": "美妙",
     "login": "登录",
     "signup": "注册",
     "next": "下一步",
@@ -209,18 +209,18 @@
     "visitPlanLabel": "访问计划",
     "budgetTitle": "预算大概在什么范围?",
     "budgetDesc": "不需要精确,医院能参考的范围就足够了",
-    "budgetUnder100Hint": "简单手术为主",
+    "budgetUnder100Hint": "简单项目为主",
     "budget100to300Hint": "选择最多的范围",
-    "budget300to500Hint": "包含复合手术",
-    "budgetOver500Hint": "手术 + 复合构成",
+    "budget300to500Hint": "包含复合项目",
+    "budgetOver500Hint": "长效提拉 / 抗老套餐",
     "budgetUndecided": "尚未确定预算",
     "visitTitle": "访问时间",
     "stayTitle": "停留期间",
     "visitWithin1mHint": "即将访问",
     "visitWithin3mHint": "准备中",
     "visitWithin6mHint": "计划阶段",
-    "stayUnder3dHint": "简单手术",
-    "stay5to7dHint": "一般手术",
+    "stayUnder3dHint": "简单项目",
+    "stay5to7dHint": "常规项目 (提拉·补水)",
     "stay2weeksHint": "手术 + 恢复",
     "visitUndecided": "尚未确定时间",
     "stayUndecided": "尚未确定",
@@ -681,13 +681,13 @@
     "categorySafety": "安全信息"
   },
   "metadata": {
-    "title": "meimiao — 适合您的手术,医院主动提供方案",
-    "poTitle": "meimiao 合作伙伴办公室",
+    "title": "美妙 — 适合你的美容项目,医院主动给你方案",
+    "poTitle": "美妙 合作医院后台",
     "poDescription": "医院管理系统",
-    "boTitle": "meimiao 业务管理后台",
+    "boTitle": "美妙 业务管理后台",
     "boDescription": "内部管理系统",
-    "description": "韩国整形决策平台。提交您的诉求，经过认证的韩国医院将为您发送定制方案。",
-    "ogImageAlt": "meimiao — 先聊聊也没关系。"
+    "description": "韩国 K-美容项目匹配平台。超声炮·水光针·线雕·填充 — 20-30 岁女性美容项目烦恼登记后,认证过的韩国医院会主动发来定制方案。",
+    "ogImageAlt": "美妙 — 先聊聊也没关系。"
   },
   "dateFilter": {
     "today": "今天",
@@ -1418,7 +1418,7 @@
     "ERR_PASSWORD_RULE": "密码须至少包含 1 位字母和 1 位数字。"
   },
   "home": {
-    "bannerTitle": "与 meimiao 一起开始",
+    "bannerTitle": "和美妙一起开始",
     "bannerDesc": "获取经认证的韩国医院的定制方案",
     "newProposalAlert": "收到 {count} 份新方案"
   }

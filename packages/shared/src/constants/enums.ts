@@ -156,10 +156,15 @@ export type PayoutTrigger = typeof PAYOUT_TRIGGERS[number];
 // --- Body Area (DB: concerns.primary_area VARCHAR(50), body_areas JSONB) ---
 
 // 정책 (i18n QA Stage 3):
-//   - DB/wire shape 는 stable enum key (eyes/nose/lifting/skin/diet/etc)
+//   - DB/wire shape 는 stable enum key (skin/lifting/eyes/diet/nose/etc)
 //   - 한국어 표시 라벨은 i18n 메시지 키 common.bodyArea.{key} 로 분리
 //   - mapper.ts 의 toBodyArea() 가 DB 에 저장된 unknown 값을 'etc' 로 정규화
-export const BODY_AREAS = ['eyes', 'nose', 'lifting', 'skin', 'diet', 'etc'] as const;
+//
+// 노출 순서 정책 (2026-05-11 biz-target shift):
+//   외국인 방한 의료관광 통계 — 피부 시술 75% / 리프팅 디바이스 / 다이어트 / 수술(쌍꺼풀·코) 12%.
+//   타겟 = 20-30대 여성. UI enumerate 시 high-volume 카테고리(skin/lifting) 가 앞에 오도록 재배치.
+//   DB enum 값 집합은 unchanged — UI 노출 순서만 영향 (PO 시술 등록 wizard 등).
+export const BODY_AREAS = ['skin', 'lifting', 'eyes', 'diet', 'nose', 'etc'] as const;
 export type BodyArea = typeof BODY_AREAS[number];
 
 /** i18n 키 prefix — t(`common.bodyArea.${area}`) 로 표시 라벨 매핑. */

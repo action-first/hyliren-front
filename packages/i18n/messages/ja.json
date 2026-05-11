@@ -212,7 +212,7 @@
     "budgetUnder100Hint": "シンプルな施術中心",
     "budget100to300Hint": "最も選ばれる範囲",
     "budget300to500Hint": "複合施術を含む",
-    "budgetOver500Hint": "手術 + 複合構成",
+    "budgetOver500Hint": "長期リフティング / アンチエイジングパッケージ",
     "budgetUndecided": "予算はまだ決めていません",
     "visitTitle": "訪問時期",
     "stayTitle": "滞在期間",
@@ -220,7 +220,7 @@
     "visitWithin3mHint": "準備中",
     "visitWithin6mHint": "計画段階",
     "stayUnder3dHint": "シンプルな施術",
-    "stay5to7dHint": "一般的な手術",
+    "stay5to7dHint": "一般的な施術 (リフティング・ブースター)",
     "stay2weeksHint": "手術 + 回復",
     "visitUndecided": "訪問時期はまだ決めていません",
     "stayUndecided": "まだ決めていません",
@@ -686,7 +686,7 @@
     "poDescription": "病院管理システム",
     "boTitle": "MIMYO ビジネスオフィス",
     "boDescription": "内部管理システム",
-    "description": "韓国美容医療マッチングプラットフォーム。ご要望を登録すると、認証された韓国の医院がカスタマイズされた提案書をお送りします。",
+    "description": "韓国 K-ビューティ施術マッチングプラットフォーム。シュリンク・水光注射・リフティング・フィラー — 20-30 代女性の美容施術の悩みを登録すると、認証された韓国の医院がカスタマイズされた提案書を送ります。",
     "ogImageAlt": "MIMYO — 迷ってから相談しても大丈夫。"
   },
   "dateFilter": {
