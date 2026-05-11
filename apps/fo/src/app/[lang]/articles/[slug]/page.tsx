@@ -46,9 +46,20 @@ function buildAlternates(slug: string): Record<string, string> {
   return out;
 }
 
-/** SEO description fallback — excerpt 없으면 body 첫 160자 (markdown 기호 제거). */
+/**
+ * SEO description — body 첫 160자에서 derive (markdown 기호 제거).
+ *
+ * 왜 excerpt 안 쓰는가:
+ *   BE 의 article 응답에서 `excerpt` 가 article.locale 과 일치하는 lang 으로 채워졌음을
+ *   보장하지 않는다. article_translations 의 lang 별 excerpt 컬럼이 비면 BE 가 sourceLocale
+ *   (ko) 의 excerpt 로 fallback → 결과적으로 zh-CN/ja/en 페이지의 meta description 이
+ *   한국어로 출력되는 결함이 발생했음. body 는 lang 별 picked single shape 이 일관되게
+ *   동작하므로 body 첫 N자에서 derive 하는 게 안전.
+ *
+ *   향후 BO 가 lang 별 excerpt 마이크로카피를 명시 입력하는 단계가 되면 다시 article.excerpt
+ *   우선 사용 가능 (단 article.locale === article.sourceLocale 일 때만 신뢰).
+ */
 function deriveDescription(article: ArticleDetail): string {
-  if (article.excerpt && article.excerpt.trim()) return article.excerpt.trim();
   const plain = article.body
     .replace(/\[IMAGE:[^\]]*\]/gi, '')
     .replace(/[#*_`>|\-]+/g, ' ')
@@ -106,6 +117,16 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 
   const heroImg = article.images.find((img) => img.type === 'hero');
   const heroUrl = article.coverImageUrl ?? heroImg?.url ?? undefined;
+  // JSON-LD 의 image 필드는 schema.org 규격상 절대 URL 요구. BE 가 상대 path 로 응답하면
+  // metadataBase 가 자동 변환해 주는 OG image 와 달리 JSON-LD 는 raw JSON 이라 변환되지
+  // 않는다. siteUrl prefix 를 직접 부여해 Google rich result 자격 확보.
+  const heroAbsoluteUrl = heroUrl
+    ? (heroUrl.startsWith('http') ? heroUrl : `${env.siteUrl}${heroUrl.startsWith('/') ? '' : '/'}${heroUrl}`)
+    : undefined;
+
+  // description 은 generateMetadata 와 동일 로직 (body 첫 160자 derive) — article.excerpt 가
+  // sourceLocale (ko) 로 fallback 되어 lang 불일치를 초래하던 결함 회피.
+  const jsonLdDescription = deriveDescription(article);
 
   // schema.org Article — Google rich result 자격 확보 (의료·뷰티 도메인은 NewsArticle 보다
   // Article + about/keywords 조합이 더 적합. medical disclaimer 는 hasPart 가 아니라 본문 내).
@@ -113,8 +134,8 @@ export default async function ArticleDetailPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: article.title,
-    description: article.excerpt ?? undefined,
-    image: heroUrl ? [heroUrl] : undefined,
+    description: jsonLdDescription,
+    image: heroAbsoluteUrl ? [heroAbsoluteUrl] : undefined,
     datePublished: article.publishedAt ?? undefined,
     dateModified: article.updatedAt,
     inLanguage: lang,

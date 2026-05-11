@@ -21,17 +21,25 @@ import type { ArticleDetailWire, ArticleListWire } from './types';
 
 const REVALIDATE_SECONDS = 3600; // 1h
 
+interface FetchOpts {
+  /** 'isr' (default) = next.revalidate 캐시 사용 / 'no-store' = 매번 fresh fetch */
+  cache?: 'isr' | 'no-store';
+}
+
 function isApiEnvelope<T>(json: unknown): json is { success: boolean; data: T } {
   return typeof json === 'object' && json !== null && 'success' in json;
 }
 
-async function envelopeFetch<T>(url: string, locale?: string): Promise<T> {
+async function envelopeFetch<T>(url: string, locale?: string, opts?: FetchOpts): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (locale) headers['Accept-Language'] = locale;
-  const res = await fetch(url, {
-    headers,
-    next: { revalidate: REVALIDATE_SECONDS },
-  });
+  const fetchInit: RequestInit = { headers };
+  if (opts?.cache === 'no-store') {
+    fetchInit.cache = 'no-store';
+  } else {
+    (fetchInit as RequestInit & { next?: { revalidate: number } }).next = { revalidate: REVALIDATE_SECONDS };
+  }
+  const res = await fetch(url, fetchInit);
   if (!res.ok) throw new Error(`Article server fetch failed: ${res.status} ${url}`);
   const json: unknown = await res.json();
   if (!isApiEnvelope<T>(json) || !json.success) {
@@ -46,15 +54,21 @@ export async function fetchArticleServer(slug: string, locale: string): Promise<
   return envelopeFetch<ArticleDetailWire>(url, locale);
 }
 
-/** Sitemap 용 — published article slugs 일괄 조회 (limit 200, 향후 페이지네이션 필요 시 확장). */
+/**
+ * Sitemap 용 — published article slugs 일괄 조회.
+ *
+ * Cache 정책: `no-store` — sitemap.ts 가 force-dynamic 이므로 매 호출 시 BE 에 fresh fetch.
+ * 빌드 시점 BE 미가용 (cold start, env 미등록) 에 빈 array 가 영구 cache 되는 결함을 차단.
+ */
 export async function fetchAllArticleSlugsServer(): Promise<string[]> {
   const url = `${env.customerApiBaseUrl}/api/v1/articles?limit=200`;
   try {
-    const list = await envelopeFetch<ArticleListWire>(url);
+    const list = await envelopeFetch<ArticleListWire>(url, undefined, { cache: 'no-store' });
     return list.articles.map((a) => a.slug);
   } catch (e) {
-    // sitemap build 시점에 BE 가 응답 못 해도 정적 path 만으로 sitemap 생성되도록 graceful fail
-    console.error('[sitemap] article slug fetch failed:', e);
+    // sitemap build 시점에 BE 가 응답 못 해도 정적 path 만으로 sitemap 생성되도록 graceful fail.
+    // log 에 현재 env 값 노출해 Vercel build log 에서 어떤 base URL 로 시도했는지 확인 가능.
+    console.error(`[sitemap] article slug fetch failed (base=${env.customerApiBaseUrl}):`, e);
     return [];
   }
 }
