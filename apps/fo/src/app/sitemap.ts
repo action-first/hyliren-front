@@ -17,9 +17,13 @@ import { fetchAllArticleSlugsServer } from '@/lib/api/article/server';
  *   - `/concerns/[id]`, `/mypage/reports/[proposalId]` 등 인증 필요 path (robots disallow)
  *   - `/procedures/[slug]` — 시술 카탈로그 정책 미정 (사용자 결정 후 추가)
  *
- * Revalidate: Next 자체 sitemap revalidation 정책 따름.
- *   `fetchAllArticleSlugsServer` 내부 fetch 가 1시간 ISR 캐싱.
+ * Force-dynamic 사유:
+ *   Vercel build 시점에 BE 가 cold start / 또는 env 미등록 fallback 으로 인해 빈 array 가
+ *   사이트맵에 cache 되는 결함을 차단. 매 sitemap.xml 요청마다 BE 에 fresh fetch (BE 응답
+ *   자체는 fetchAllArticleSlugsServer 의 fetch options 에서 no-store).
+ *   sitemap 접근은 검색엔진 크롤러만 가끔 호출 → 비용 영향 미미.
  */
+export const dynamic = 'force-dynamic';
 
 const STATIC_PATHS = [
   '',
