@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { AdminPage, Spinner } from '@hyliren/ui';
 import {
-  AdminPage, DataGrid, Spinner,
+  DataGrid,
   badgeCellRenderer, dotTextRenderer, detailLinkRenderer,
-} from '@hyliren/ui';
-import type { SearchField } from '@hyliren/ui';
+} from '@hyliren/ui/datagrid';
+import type { SearchField } from '@hyliren/ui/datagrid';
 import type { ColDef } from 'ag-grid-community';
 import { BOSidebar } from '@/components/BOSidebar';
 import {

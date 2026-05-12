@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Spinner, DataGrid, AdminPage, badgeCellRenderer, detailLinkRenderer } from '@hyliren/ui';
-import type { SearchField } from '@hyliren/ui';
+import { Spinner, AdminPage } from '@hyliren/ui';
+import { DataGrid, badgeCellRenderer, detailLinkRenderer } from '@hyliren/ui/datagrid';
+import type { SearchField } from '@hyliren/ui/datagrid';
 import type { ColDef } from 'ag-grid-community';
 import { BOSidebar } from '@/components/BOSidebar';
 import { listPartners, type AdminPartnerListItem } from '@/lib/api/admin-partners';

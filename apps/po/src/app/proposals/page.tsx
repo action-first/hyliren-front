@@ -7,10 +7,9 @@ import {
   formatDateKR,
   formatBudget,
 } from '@hyliren/shared';
-import {
-  AdminPage, Card, Spinner, Button, DataGrid,
-} from '@hyliren/ui';
-import type { SearchField } from '@hyliren/ui';
+import { AdminPage, Card, Spinner, Button } from '@hyliren/ui';
+import { DataGrid } from '@hyliren/ui/datagrid';
+import type { SearchField } from '@hyliren/ui/datagrid';
 import { AlertTriangle } from 'lucide-react';
 import type { ColDef } from 'ag-grid-community';
 import { POSidebar } from '@/components/POSidebar';
