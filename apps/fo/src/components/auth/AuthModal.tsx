@@ -31,12 +31,17 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
   const [name, setName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // 한국 개인정보보호법 제22조 / 의료법 / 정보통신망법 — 회원가입 시 약관·개인정보처리방침
+  // 동의 필수. 두 항목을 개별 체크박스로 분리 (전체 동의 단일화 X — 분리 동의가 법무 안전).
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
 
   if (!open) { return null; }
 
   const emailValid = /.+@.+\..+/.test(email);
   const passwordValid = PASSWORD_RULE.test(password);
   const passwordMatch = password === passwordConfirm;
+  const consentsValid = agreeTerms && agreePrivacy;
 
   function resetState() {
     setStep('methods');
@@ -46,6 +51,8 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
     setName('');
     setSubmitting(false);
     setErrorMessage(null);
+    setAgreeTerms(false);
+    setAgreePrivacy(false);
   }
 
   /**
@@ -90,7 +97,7 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
   }
 
   async function handleRegisterSubmit() {
-    if (!passwordValid || !passwordMatch || !name.trim()) { return; }
+    if (!passwordValid || !passwordMatch || !name.trim() || !consentsValid) { return; }
     setSubmitting(true);
     setErrorMessage(null);
     try {
@@ -286,7 +293,7 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
             value={name}
             onChange={e => setName(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter' && name.trim() && passwordValid && passwordMatch && !submitting) {
+              if (e.key === 'Enter' && name.trim() && passwordValid && passwordMatch && consentsValid && !submitting) {
                 e.preventDefault();
                 void handleRegisterSubmit();
               }
@@ -306,7 +313,7 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
               value={password}
               onChange={e => setPassword(e.target.value)}
               onKeyDown={e => {
-                if (e.key === 'Enter' && name.trim() && passwordValid && passwordMatch && !submitting) {
+                if (e.key === 'Enter' && name.trim() && passwordValid && passwordMatch && consentsValid && !submitting) {
                   e.preventDefault();
                   void handleRegisterSubmit();
                 }
@@ -328,7 +335,7 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
             value={passwordConfirm}
             onChange={e => setPasswordConfirm(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter' && name.trim() && passwordValid && passwordMatch && !submitting) {
+              if (e.key === 'Enter' && name.trim() && passwordValid && passwordMatch && consentsValid && !submitting) {
                 e.preventDefault();
                 void handleRegisterSubmit();
               }
@@ -344,9 +351,55 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
             <p className="text-[11px] text-[var(--color-danger)] mb-3 px-1">{errorMessage}</p>
           )}
 
+          {/* 약관 / 개인정보처리방침 동의 — 한국 개인정보보호법·정보통신망법·의료법 상 필수.
+              개별 체크박스 분리 ("전체 동의" 단일화 금지 — 법무 안전성). 각 라벨에 보기 링크
+              은 새 탭으로 / locale 매핑은 path 기반 (자동 lang 매칭). */}
+          <div className="flex flex-col gap-2 mb-3 px-1">
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreeTerms}
+                onChange={e => setAgreeTerms(e.target.checked)}
+                className="mt-0.5 w-3.5 h-3.5 accent-[var(--color-primary)] cursor-pointer shrink-0"
+              />
+              <span className="text-[12px] text-[var(--color-text)] leading-[1.4] flex-1">
+                {t('auth.agreeTermsRequired')}
+              </span>
+              <a
+                href={`/${locale}/terms`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[12px] text-[var(--color-primary)] no-underline shrink-0"
+                onClick={e => e.stopPropagation()}
+              >
+                {t('auth.viewTerms')}
+              </a>
+            </label>
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreePrivacy}
+                onChange={e => setAgreePrivacy(e.target.checked)}
+                className="mt-0.5 w-3.5 h-3.5 accent-[var(--color-primary)] cursor-pointer shrink-0"
+              />
+              <span className="text-[12px] text-[var(--color-text)] leading-[1.4] flex-1">
+                {t('auth.agreePrivacyRequired')}
+              </span>
+              <a
+                href={`/${locale}/privacy`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[12px] text-[var(--color-primary)] no-underline shrink-0"
+                onClick={e => e.stopPropagation()}
+              >
+                {t('auth.viewPrivacy')}
+              </a>
+            </label>
+          </div>
+
           <Button variant="primary" size="xl" fullWidth
             onClick={handleRegisterSubmit}
-            disabled={!name.trim() || !passwordValid || !passwordMatch || submitting}>
+            disabled={!name.trim() || !passwordValid || !passwordMatch || !consentsValid || submitting}>
             {submitting ? t('common.loading') : t('auth.createAccount')}
           </Button>
           <BackButton onClick={() => setStep(backMap[step] ?? 'password')} />
