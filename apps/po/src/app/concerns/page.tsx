@@ -7,11 +7,12 @@ import {
   formatDateKR, formatDateRange, formatBudget,
 } from '@hyliren/shared';
 import type { BadgeColor } from '@hyliren/shared';
+import { AdminPage, Card, Spinner, Button } from '@hyliren/ui';
 import {
-  AdminPage, Card, Spinner, Button, DataGrid,
+  DataGrid,
   badgeCellRenderer, countBadgeCellRenderer,
-} from '@hyliren/ui';
-import type { SearchField } from '@hyliren/ui';
+} from '@hyliren/ui/datagrid';
+import type { SearchField } from '@hyliren/ui/datagrid';
 import { AlertTriangle } from 'lucide-react';
 import { POSidebar } from '@/components/POSidebar';
 import { useToastStore } from '@/store/toast';

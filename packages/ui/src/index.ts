@@ -71,16 +71,9 @@ export type { ToastItem, ToastType, ToastContainerProps } from './primitives/Toa
 export { DateFilter } from './primitives/DateFilter';
 export type { DateFilterProps, DateFilterLabels, DateRange } from './primitives/DateFilter';
 
-export { DataGrid } from './primitives/DataGrid';
-export type { DataGridProps, DataGridLabels, SearchField } from './primitives/DataGrid';
-
-export {
-  badgeCellRenderer,
-  dotTextRenderer,
-  countBadgeCellRenderer,
-  actionCellRenderer,
-  detailLinkRenderer,
-} from './primitives/grid-renderers';
+// DataGrid + grid-renderers 는 ag-grid 의존이라 별도 sub-entry `@hyliren/ui/datagrid` 로 분리.
+// FO 처럼 DataGrid 안 쓰는 앱이 barrel 통해 ag-grid 를 transitively 끌고 가지 않도록.
+// BO/PO 등 사용 앱은 `import { DataGrid } from '@hyliren/ui/datagrid'` 로 import.
 
 // Layout
 export { PageContainer } from './layout/PageContainer';

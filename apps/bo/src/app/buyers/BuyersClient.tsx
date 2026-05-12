@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CONCERN_STATUS_KR, CONCERN_STATUS_BADGE, formatDateKR } from '@hyliren/shared';
-import { DataGrid, AdminPage, detailLinkRenderer, Spinner } from '@hyliren/ui';
-import type { SearchField } from '@hyliren/ui';
+import { AdminPage, Spinner } from '@hyliren/ui';
+import { DataGrid, detailLinkRenderer } from '@hyliren/ui/datagrid';
+import type { SearchField } from '@hyliren/ui/datagrid';
 import type { ColDef } from 'ag-grid-community';
 import { BOSidebar } from '@/components/BOSidebar';
 import { listBuyers, type AdminBuyerListItem } from '@/lib/api/admin-buyers';
