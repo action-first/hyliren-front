@@ -426,8 +426,6 @@
     "language": "언어",
     "notifications": "알림 설정",
     "privacy": "개인정보 처리방침",
-    "terms": "이용약관",
-    "medicalDisclaimer": "의료 안내 면책 조항",
     "support": "고객센터",
     "logout": "로그아웃",
     "loginToManage": "로그인하고 내 고민과 제안을\n한 곳에서 관리하세요",
@@ -685,6 +683,12 @@
     "categoryComparison": "시술 비교",
     "categoryGuide": "시술 가이드",
     "categorySafety": "안전 정보"
+  },
+  "footer": {
+    "privacy": "개인정보 처리방침",
+    "terms": "이용약관",
+    "medicalDisclaimer": "의료 안내",
+    "copyright": "© 2026 MIMYO"
   },
   "metadata": {
     "title": "MIMYO — 나에게 맞는 시술, 병원이 먼저 제안합니다",

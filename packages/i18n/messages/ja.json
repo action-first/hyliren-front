@@ -426,8 +426,6 @@
     "language": "言語",
     "notifications": "通知設定",
     "privacy": "個人情報処理方針",
-    "terms": "利用規約",
-    "medicalDisclaimer": "医療情報の免責事項",
     "support": "カスタマーサポート",
     "logout": "ログアウト",
     "loginToManage": "ログインして、悩みと提案を\n一括で管理しましょう",
@@ -685,6 +683,12 @@
     "categoryComparison": "施術比較",
     "categoryGuide": "施術ガイド",
     "categorySafety": "安全情報"
+  },
+  "footer": {
+    "privacy": "プライバシーポリシー",
+    "terms": "利用規約",
+    "medicalDisclaimer": "医療情報の案内",
+    "copyright": "© 2026 ミミョ"
   },
   "metadata": {
     "title": "MIMYO — あなたに合う施術、病院から先にご提案",
