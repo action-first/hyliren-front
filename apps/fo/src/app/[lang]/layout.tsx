@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { isLocale, LOCALES, type Locale } from '@hyliren/shared';
 import { t } from '@hyliren/i18n';
 import { FOHeader } from '@/components/layout/FOHeader';
+import { FOFooter } from '@/components/layout/FOFooter';
 import { FOTabBar } from '@/components/layout/FOTabBar';
 import Toast from '@/components/common/Toast';
 import { SessionBootstrap } from '@/components/auth/SessionBootstrap';
@@ -146,6 +147,8 @@ export default async function LangLayout({
         <div className="fo-frame">
           <FOHeader />
           <main className="fo-main">{children}</main>
+          {/* 글로벌 footer — 법무 페이지 진입 동선 + copyright. main scroll 흐름 끝 */}
+          <FOFooter />
         </div>
       </div>
       {/* 하단 탭바 — fixed 로 항상 플로팅 */}
