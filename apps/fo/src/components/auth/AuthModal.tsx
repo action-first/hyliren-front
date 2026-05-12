@@ -6,6 +6,8 @@ import { Mail, CheckCircle, Shield, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useLocaleStore } from '@/store/locale';
 import { ApiError } from '@/lib/api';
+import { PrivacyContent } from '@/components/legal/PrivacyContent';
+import { TermsContent } from '@/components/legal/TermsContent';
 
 interface Props {
   open: boolean;
@@ -13,7 +15,7 @@ interface Props {
   onClose?: () => void;
 }
 
-type Step = 'methods' | 'email' | 'password' | 'register' | 'welcome';
+type Step = 'methods' | 'email' | 'password' | 'register' | 'welcome' | 'view-terms' | 'view-privacy';
 
 // API RegisterDto와 동일한 규칙 — 영문+숫자 포함 8자 이상, 72자 이하.
 const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,72}$/;
@@ -131,6 +133,8 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
     password: 'email',
     register: 'password',
     welcome: null,
+    'view-terms': 'register',
+    'view-privacy': 'register',
   };
 
   const canDismissBackdrop = step !== 'welcome' && step !== 'password';
@@ -352,8 +356,9 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
           )}
 
           {/* 약관 / 개인정보처리방침 동의 — 한국 개인정보보호법·정보통신망법·의료법 상 필수.
-              개별 체크박스 분리 ("전체 동의" 단일화 금지 — 법무 안전성). 각 라벨에 보기 링크
-              은 새 탭으로 / locale 매핑은 path 기반 (자동 lang 매칭). */}
+              개별 체크박스 분리 ("전체 동의" 단일화 금지 — 법무 안전성). "보기" 는 같은
+              BottomSheet 안에서 본문 step (view-terms / view-privacy) 으로 전환 — 새 탭
+              열기 X (모바일 UX + 회원가입 컨텍스트 유지). */}
           <div className="flex flex-col gap-2 mb-3 px-1">
             <label className="flex items-start gap-2 cursor-pointer">
               <input
@@ -365,15 +370,13 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
               <span className="text-[12px] text-[var(--color-text)] leading-[1.4] flex-1">
                 {t('auth.agreeTermsRequired')}
               </span>
-              <a
-                href={`/${locale}/terms`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[12px] text-[var(--color-primary)] no-underline shrink-0"
-                onClick={e => e.stopPropagation()}
+              <button
+                type="button"
+                onClick={e => { e.preventDefault(); setStep('view-terms'); }}
+                className="text-[12px] text-[var(--color-primary)] bg-transparent border-0 p-0 cursor-pointer shrink-0"
               >
                 {t('auth.viewTerms')}
-              </a>
+              </button>
             </label>
             <label className="flex items-start gap-2 cursor-pointer">
               <input
@@ -385,15 +388,13 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
               <span className="text-[12px] text-[var(--color-text)] leading-[1.4] flex-1">
                 {t('auth.agreePrivacyRequired')}
               </span>
-              <a
-                href={`/${locale}/privacy`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[12px] text-[var(--color-primary)] no-underline shrink-0"
-                onClick={e => e.stopPropagation()}
+              <button
+                type="button"
+                onClick={e => { e.preventDefault(); setStep('view-privacy'); }}
+                className="text-[12px] text-[var(--color-primary)] bg-transparent border-0 p-0 cursor-pointer shrink-0"
               >
                 {t('auth.viewPrivacy')}
-              </a>
+              </button>
             </label>
           </div>
 
@@ -404,6 +405,36 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
           </Button>
           <BackButton onClick={() => setStep(backMap[step] ?? 'password')} />
         </>
+      )}
+
+      {/* ═══ STEP: View Terms (BottomSheet 안 약관 본문) ═══ */}
+      {step === 'view-terms' && (
+        <div className="flex flex-col">
+          <h2 className="text-[1.125rem] font-bold text-[var(--color-text)] mb-3">
+            {t('footer.terms')}
+          </h2>
+          <div className="max-h-[60vh] overflow-y-auto -mx-5 px-5 pb-2 text-[13px] leading-[1.7] text-[var(--color-text)]">
+            <TermsContent locale={locale} />
+          </div>
+          <Button variant="primary" size="xl" fullWidth onClick={() => setStep('register')}>
+            {t('common.back')}
+          </Button>
+        </div>
+      )}
+
+      {/* ═══ STEP: View Privacy (BottomSheet 안 처리방침 본문) ═══ */}
+      {step === 'view-privacy' && (
+        <div className="flex flex-col">
+          <h2 className="text-[1.125rem] font-bold text-[var(--color-text)] mb-3">
+            {t('footer.privacy')}
+          </h2>
+          <div className="max-h-[60vh] overflow-y-auto -mx-5 px-5 pb-2 text-[13px] leading-[1.7] text-[var(--color-text)]">
+            <PrivacyContent locale={locale} />
+          </div>
+          <Button variant="primary" size="xl" fullWidth onClick={() => setStep('register')}>
+            {t('common.back')}
+          </Button>
+        </div>
       )}
 
       {/* ═══ STEP: Welcome ═══ */}
