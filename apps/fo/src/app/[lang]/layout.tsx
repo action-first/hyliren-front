@@ -146,9 +146,12 @@ export default async function LangLayout({
       <div className="fo-shell">
         <div className="fo-frame">
           <FOHeader />
-          <main className="fo-main">{children}</main>
-          {/* 글로벌 footer — 법무 페이지 진입 동선 + copyright. main scroll 흐름 끝 */}
-          <FOFooter />
+          {/* main 안에 footer 를 두면 .fo-main 의 padding-bottom (FOTabBar 높이) 안에서
+              footer 가 scroll 흐름 끝에 자연스럽게 노출 — FOTabBar 가 footer 를 덮지 않음. */}
+          <main className="fo-main">
+            {children}
+            <FOFooter />
+          </main>
         </div>
       </div>
       {/* 하단 탭바 — fixed 로 항상 플로팅 */}
