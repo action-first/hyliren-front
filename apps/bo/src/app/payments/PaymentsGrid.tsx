@@ -1,7 +1,7 @@
 'use client';
 
-import { DataGrid, badgeCellRenderer, dotTextRenderer } from '@hyliren/ui';
-import type { SearchField } from '@hyliren/ui';
+import { DataGrid, badgeCellRenderer, dotTextRenderer } from '@hyliren/ui/datagrid';
+import type { SearchField } from '@hyliren/ui/datagrid';
 import type { ColDef } from 'ag-grid-community';
 import { formatKRW } from '@hyliren/shared';
 
