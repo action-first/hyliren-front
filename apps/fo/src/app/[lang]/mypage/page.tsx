@@ -5,7 +5,7 @@ import { Link } from '@/components/i18n/Link';
 import type { Locale, Proposal } from '@hyliren/shared';
 import { useAuthStore } from '@/store/auth';
 import { Badge, BottomSheet, Button, Spinner } from '@hyliren/ui';
-import { Check, ChevronRight, FileText, Globe, Bell, HelpCircle, LogOut, ShieldCheck, ScrollText, Stethoscope } from 'lucide-react';
+import { Check, ChevronRight, FileText, Globe, Bell, HelpCircle, LogOut } from 'lucide-react';
 import { STATUS_LABELS, STATUS_COLORS } from '@/domain/lifecycle';
 
 import { AREA_ACCENT } from '@/lib/area-styles';
@@ -194,11 +194,8 @@ export default function MyPage() {
             { icon: FileText, label: t('mypage.purchasedReportsMenu'), value: `${purchasedIds.size}${t('common.items')}`, href: '/mypage/reports', iconColor: 'text-[var(--color-primary)]' },
             { icon: Globe, label: t('mypage.language'), value: t(localeToLabelKey(locale)), action: () => setShowLocaleSheet(true), iconColor: 'text-[var(--color-primary)]' },
             { icon: Bell, label: t('mypage.notifications'), value: '', iconColor: 'text-[var(--color-text-dim)]' },
-            // 법무 페이지 3종 — 한국 개인정보보호법 제30조 등 컴플라이언스 진입 동선.
-            { icon: ShieldCheck, label: t('mypage.privacy'), value: '', href: '/privacy', iconColor: 'text-[var(--color-text-dim)]' },
-            { icon: ScrollText, label: t('mypage.terms'), value: '', href: '/terms', iconColor: 'text-[var(--color-text-dim)]' },
-            { icon: Stethoscope, label: t('mypage.medicalDisclaimer'), value: '', href: '/medical-disclaimer', iconColor: 'text-[var(--color-text-dim)]' },
             { icon: HelpCircle, label: t('mypage.support'), value: '', iconColor: 'text-[var(--color-text-dim)]' },
+            // 법무 페이지 진입 동선은 글로벌 FOFooter 로 이동 (마이페이지 list 과부하 회피).
           ].map((item, i) => {
             const Icon = item.icon;
             const inner = (

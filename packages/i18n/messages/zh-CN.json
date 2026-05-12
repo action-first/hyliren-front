@@ -426,8 +426,6 @@
     "language": "语言",
     "notifications": "通知设置",
     "privacy": "隐私政策",
-    "terms": "服务条款",
-    "medicalDisclaimer": "医疗信息免责声明",
     "support": "客服中心",
     "logout": "退出登录",
     "loginToManage": "登录后,在一个页面\n管理我的诉求与提案",
@@ -685,6 +683,12 @@
     "categoryComparison": "项目对比",
     "categoryGuide": "项目指南",
     "categorySafety": "安全信息"
+  },
+  "footer": {
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "medicalDisclaimer": "医疗信息说明",
+    "copyright": "© 2026 美妙"
   },
   "metadata": {
     "title": "美妙 — 适合你的美容项目,医院主动给你方案",
