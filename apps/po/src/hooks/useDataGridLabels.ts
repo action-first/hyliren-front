@@ -2,7 +2,7 @@
 
 import { ko, zhCN, ja, enUS } from 'date-fns/locale';
 import type { Locale as DateFnsLocale } from 'date-fns';
-import type { DataGridLabels } from '@hyliren/ui';
+import type { DataGridLabels } from '@hyliren/ui/datagrid';
 import { useLocaleStore } from '@/store/locale';
 import type { Locale as AppLocale } from '@hyliren/shared';
 

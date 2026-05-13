@@ -7,11 +7,12 @@ import {
   formatBudget,
   CREDIT_COST,
 } from '@hyliren/shared';
+import { Card, AdminPage, Spinner, Button } from '@hyliren/ui';
 import {
-  Card, AdminPage, DataGrid, Spinner, Button,
+  DataGrid,
   badgeCellRenderer, dotTextRenderer,
-} from '@hyliren/ui';
-import type { SearchField } from '@hyliren/ui';
+} from '@hyliren/ui/datagrid';
+import type { SearchField } from '@hyliren/ui/datagrid';
 import { AlertTriangle, FileEdit } from 'lucide-react';
 import { POSidebar } from '@/components/POSidebar';
 import { MyProposalSheet } from '@/components/concerns/MyProposalSheet';

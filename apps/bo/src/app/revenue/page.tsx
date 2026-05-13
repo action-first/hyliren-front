@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Card, SectionHeader, AdminPage, DataGrid, Spinner } from '@hyliren/ui';
-import type { SearchField } from '@hyliren/ui';
+import { Card, SectionHeader, AdminPage, Spinner } from '@hyliren/ui';
+import { DataGrid } from '@hyliren/ui/datagrid';
+import type { SearchField } from '@hyliren/ui/datagrid';
 import { ORDER_STATUS_KR, formatKRW, formatDateKR } from '@hyliren/shared';
 import { BOSidebar } from '@/components/BOSidebar';
 import { listPayments, type AdminPaymentListItem, type PaymentType, type PaymentStatus } from '@/lib/api/admin-payments';

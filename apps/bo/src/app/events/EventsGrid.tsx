@@ -1,7 +1,7 @@
 'use client';
 
-import { DataGrid, dotTextRenderer } from '@hyliren/ui';
-import type { SearchField } from '@hyliren/ui';
+import { DataGrid, dotTextRenderer } from '@hyliren/ui/datagrid';
+import type { SearchField } from '@hyliren/ui/datagrid';
 import type { ColDef } from 'ag-grid-community';
 
 interface EventRow {

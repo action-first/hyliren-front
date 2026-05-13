@@ -7,8 +7,9 @@ import {
   formatDateKR, formatKRW,
 } from '@hyliren/shared';
 import { BOSidebar } from '@/components/BOSidebar';
-import { DataGrid, AdminPage, dotTextRenderer, detailLinkRenderer, Spinner } from '@hyliren/ui';
-import type { SearchField } from '@hyliren/ui';
+import { AdminPage, Spinner } from '@hyliren/ui';
+import { DataGrid, dotTextRenderer, detailLinkRenderer } from '@hyliren/ui/datagrid';
+import type { SearchField } from '@hyliren/ui/datagrid';
 import type { ColDef } from 'ag-grid-community';
 import { listProposals, type AdminProposalListItem } from '@/lib/api/admin-proposals';
 
