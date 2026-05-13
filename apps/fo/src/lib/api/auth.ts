@@ -55,6 +55,19 @@ function toUser(raw: RawMeResponse): User {
   };
 }
 
+/**
+ * 이메일 회원 존재 여부 확인 — AuthModal 단일 이메일 입력 후 분기 (로그인 vs 가입) 용.
+ * email enumeration trade-off 감수하고 UX 우선. 200 OK 의 envelope.data 만 사용.
+ */
+export async function checkEmailExists(email: string): Promise<boolean> {
+  const res = await request<{ exists: boolean }>('/auth/check-email', {
+    method: 'POST',
+    auth: false,
+    body: { email },
+  });
+  return res.exists;
+}
+
 export async function login(input: LoginInput): Promise<TokenPair> {
   const tokens = await request<TokenPair>('/auth/login', {
     method: 'POST',
