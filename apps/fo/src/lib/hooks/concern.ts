@@ -9,13 +9,23 @@ import {
   mapConcernListItem, mapConcernDetail, mapConcernPhoto,
 } from '@/lib/api/concern';
 import type { CreateConcernBody, UpdateConcernBody } from '@/lib/api/concern';
+import { useAuthStore } from '@/store/auth';
 
 export function useMyConcerns() {
+  const isLoggedIn = useAuthStore(s => s.isLoggedIn);
   const [concerns, setConcerns] = useState<Concern[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
 
   const fetch = useCallback(async () => {
+    // 비로그인 상태에선 BE 호출 자체를 skip — 401 폭주 + 강제 로그아웃 회로 차단.
+    // (이전엔 무조건 fetch 했고 401 → refresh 401 → notifyForcedLogout 까지 트리거)
+    if (!isLoggedIn) {
+      setConcerns([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -26,7 +36,7 @@ export function useMyConcerns() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isLoggedIn]);
 
   useEffect(() => { void fetch(); }, [fetch]);
 

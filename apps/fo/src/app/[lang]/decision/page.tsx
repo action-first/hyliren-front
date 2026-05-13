@@ -7,6 +7,7 @@ import { DecisionPageClient } from '@/components/decision/DecisionPageClient';
 import { listConcerns, mapConcernListItem } from '@/lib/api/concern';
 import { listProposals, mapProposal, mapProposalItem, extractHospitalInfo } from '@/lib/api/proposal';
 import type { ProposalWithHospital } from '@/lib/hooks/proposal';
+import { useAuthStore } from '@/store/auth';
 
 interface ProposalGroup {
   concern: Concern;
@@ -14,12 +15,21 @@ interface ProposalGroup {
 }
 
 export default function DecisionPage() {
+  const isLoggedIn = useAuthStore(s => s.isLoggedIn);
   const [groups, setGroups] = useState<ProposalGroup[]>([]);
   const [items, setItems] = useState<ProposalItem[]>([]);
   const [profiles, setProfiles] = useState<PartnerProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 비로그인 상태에선 BE 호출 skip (401 회피)
+    if (!isLoggedIn) {
+      setGroups([]);
+      setItems([]);
+      setProfiles([]);
+      setLoading(false);
+      return;
+    }
     listConcerns({ limit: 50 })
       .then(async (wireList) => {
         const activeConcerns = wireList.concerns.filter(c => c.proposalCount > 0);
@@ -80,7 +90,7 @@ export default function DecisionPage() {
         setProfiles([]);
         setLoading(false);
       });
-  }, []);
+  }, [isLoggedIn]);
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-[60vh]"><Spinner /></div>;
