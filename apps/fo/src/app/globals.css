@@ -60,6 +60,16 @@
     padding-bottom: calc(var(--fo-bottom-bar-height) + var(--fo-safe-area-bottom) + 8px);
   }
 
+  /* AuthModal BottomSheet step 전환 — slide-up + fade-in.
+     key={step} 변경 시 element 재 mount 로 animation 재실행 (별도 deps 없이 CSS only). */
+  @keyframes sheet-step-in {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .sheet-step-in {
+    animation: sheet-step-in 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   /* ---- FO Header ---- */
 
   .fo-header {
