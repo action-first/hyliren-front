@@ -639,6 +639,10 @@
     "agreePrivacyRequired": "I agree to the Privacy Policy (required)",
     "viewTerms": "View",
     "viewPrivacy": "View",
+    "noAccountTitle": "No account found for this email",
+    "noAccountDesc": "Would you like to sign up with this email?",
+    "continueToSignup": "Sign up with this email",
+    "tryAnotherEmail": "Try another email",
     "error": {
       "invalidCredentials": "Email or password is incorrect",
       "emailTaken": "Email already registered",

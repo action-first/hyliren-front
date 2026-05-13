@@ -639,6 +639,10 @@
     "agreePrivacyRequired": "同意隐私政策(必需)",
     "viewTerms": "查看",
     "viewPrivacy": "查看",
+    "noAccountTitle": "该邮箱还未注册",
+    "noAccountDesc": "用这个邮箱新建账号吗?",
+    "continueToSignup": "用这个邮箱注册",
+    "tryAnotherEmail": "换个邮箱再试",
     "error": {
       "invalidCredentials": "邮箱或密码不正确",
       "emailTaken": "该邮箱已被注册",

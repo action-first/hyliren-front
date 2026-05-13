@@ -639,6 +639,10 @@
     "agreePrivacyRequired": "개인정보처리방침 동의 (필수)",
     "viewTerms": "보기",
     "viewPrivacy": "보기",
+    "noAccountTitle": "이 이메일로 가입된 계정이 없어요",
+    "noAccountDesc": "이 이메일로 새로 가입하시겠어요?",
+    "continueToSignup": "이 이메일로 가입하기",
+    "tryAnotherEmail": "다른 이메일 입력",
     "error": {
       "invalidCredentials": "이메일 또는 비밀번호가 올바르지 않습니다",
       "emailTaken": "이미 등록된 이메일입니다",
