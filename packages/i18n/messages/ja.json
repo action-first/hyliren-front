@@ -639,6 +639,10 @@
     "agreePrivacyRequired": "プライバシーポリシーに同意 (必須)",
     "viewTerms": "見る",
     "viewPrivacy": "見る",
+    "noAccountTitle": "このメールで登録されたアカウントがありません",
+    "noAccountDesc": "このメールで新しく登録しますか?",
+    "continueToSignup": "このメールで登録する",
+    "tryAnotherEmail": "別のメールを入力",
     "error": {
       "invalidCredentials": "メールアドレスまたはパスワードが正しくありません",
       "emailTaken": "すでに登録されているメールアドレスです",
