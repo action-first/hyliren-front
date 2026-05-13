@@ -34,7 +34,7 @@ interface Props {
  *     일관 모션 (외부 deps 없이 CSS only).
  */
 
-type Step = 'email' | 'login-password' | 'signup-info' | 'view-terms' | 'view-privacy' | 'welcome';
+type Step = 'email' | 'login-password' | 'signup-confirm' | 'signup-info' | 'view-terms' | 'view-privacy' | 'welcome';
 
 // API RegisterDto와 동일한 규칙 — 영문+숫자 포함 8자 이상, 72자 이하.
 const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,72}$/;
@@ -102,7 +102,9 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
     setErrorMessage(null);
     try {
       const exists = await checkEmailExists(email);
-      setStep(exists ? 'login-password' : 'signup-info');
+      // 회원이면 비밀번호 입력으로 직진. 비회원이면 "가입 의사 확인" 중간 step —
+      // 사용자가 이메일 오타/잘못 입력한 케이스 분리.
+      setStep(exists ? 'login-password' : 'signup-confirm');
     } catch (err) {
       setErrorMessage(mapError(err));
     } finally {
@@ -155,7 +157,8 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
   const backMap: Record<Step, Step | null> = {
     email: null,
     'login-password': 'email',
-    'signup-info': 'email',
+    'signup-confirm': 'email',
+    'signup-info': 'signup-confirm',
     welcome: null,
     'view-terms': 'signup-info',
     'view-privacy': 'signup-info',
@@ -254,6 +257,27 @@ export function AuthModal({ open, onSuccess, onClose }: Props) {
               {submitting ? t('common.loading') : t('auth.continue')}
             </Button>
             <BackButton onClick={() => setStep(backMap[step] ?? 'email')} />
+          </>
+        )}
+
+        {/* ═══ STEP: Signup Confirm — "계정 없음 + 가입 의사 확인" 중간 단계 ═══ */}
+        {step === 'signup-confirm' && (
+          <>
+            <h2 className="text-[1.125rem] font-bold text-[var(--color-text)] mb-1.5">
+              {t('auth.noAccountTitle')}
+            </h2>
+            <p className="text-[12px] text-[var(--color-text-dim)] mb-1">{email}</p>
+            <p className="text-[13px] text-[var(--color-text)] leading-[1.55] mt-3 mb-5">
+              {t('auth.noAccountDesc')}
+            </p>
+            <Button variant="primary" size="xl" fullWidth onClick={() => setStep('signup-info')}>
+              {t('auth.continueToSignup')}
+            </Button>
+            <button type="button"
+              onClick={() => { setErrorMessage(null); setStep('email'); }}
+              className="w-full mt-3 py-3 text-[13px] text-[var(--color-text-dim)] bg-transparent border-0 cursor-pointer underline underline-offset-2">
+              {t('auth.tryAnotherEmail')}
+            </button>
           </>
         )}
 
