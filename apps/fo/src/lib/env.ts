@@ -20,10 +20,15 @@ const verification = {
 } as const;
 
 /**
- * Google Analytics 4 Measurement ID — Vercel project env `NEXT_PUBLIC_GA_MEASUREMENT_ID`.
- * 형식: `G-XXXXXXXXXX`. 미설정 시 GA script 미주입 (no-op).
+ * Google Analytics 4 Measurement ID — production FO 측정 ID `G-MW3RSV59NY` 를 fallback.
+ *
+ * 우선순위:
+ *   1. Vercel project env `NEXT_PUBLIC_GA_MEASUREMENT_ID` (preview/dev 분리용 override)
+ *   2. fallback `G-MW3RSV59NY` (production 메인 속성 — public 노출 가능 정보)
+ *
+ * 측정 ID 자체는 HTML 에 평문 노출되는 공개 정보이므로 소스 박기 안전.
  */
-const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || undefined;
+const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-MW3RSV59NY';
 
 export const env = {
   customerApiBaseUrl: process.env.NEXT_PUBLIC_CUSTOMER_API_BASE_URL ?? 'http://localhost:3001/customer',
