@@ -111,16 +111,12 @@ export default function MyPage() {
         </div>
       </div>
 
-      {/* ── Stats ── */}
+      {/* ── Stats ── (1차 오픈 범위 = 고민 + AI 상담만. 받은 제안서 카드 hide — 2차 오픈 시 4 cols 복원) */}
       <div className="px-5 mb-5">
-        <div className="grid grid-cols-4 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)] py-4">
+        <div className="grid grid-cols-3 rounded-[var(--app-radius)] bg-[var(--color-bg-secondary)] py-4">
           <Link href="/dashboard" className="flex flex-col items-center gap-1 no-underline">
             <span className="text-[1.125rem] font-bold text-[var(--color-text)]">{concerns.length}</span>
             <span className="text-[10px] text-[var(--color-text-dim)]">{t('mypage.registeredConcerns')}</span>
-          </Link>
-          <Link href="/decision" className="flex flex-col items-center gap-1 no-underline border-l border-[var(--color-border-light)]">
-            <span className="text-[1.125rem] font-bold text-[var(--color-text)]">{proposalCount}</span>
-            <span className="text-[10px] text-[var(--color-text-dim)]">{t('mypage.receivedProposals')}</span>
           </Link>
           <Link href="/mypage/reports" className="flex flex-col items-center gap-1 no-underline border-l border-[var(--color-border-light)]">
             <span className="text-[1.125rem] font-bold text-[var(--color-text)]">{purchasedIds.size}</span>
