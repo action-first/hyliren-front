@@ -19,8 +19,15 @@ const verification = {
   baidu: process.env.NEXT_PUBLIC_BAIDU_VERIFICATION || undefined,
 } as const;
 
+/**
+ * Google Analytics 4 Measurement ID — Vercel project env `NEXT_PUBLIC_GA_MEASUREMENT_ID`.
+ * 형식: `G-XXXXXXXXXX`. 미설정 시 GA script 미주입 (no-op).
+ */
+const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || undefined;
+
 export const env = {
   customerApiBaseUrl: process.env.NEXT_PUBLIC_CUSTOMER_API_BASE_URL ?? 'http://localhost:3001/customer',
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL,
   verification,
+  gaMeasurementId,
 } as const;
