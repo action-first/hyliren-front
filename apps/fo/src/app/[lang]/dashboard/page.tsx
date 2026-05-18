@@ -5,7 +5,7 @@ import { Link } from '@/components/i18n/Link';
 import type { Proposal } from '@hyliren/shared';
 import { track, formatBudget } from '@hyliren/shared';
 import { useMyConcerns } from '@/lib/hooks/concern';
-import { listProposals, mapProposal } from '@/lib/api/proposal';
+// listProposals/mapProposal — 1차 오픈 범위 외 (병원 매칭 미오픈). 2차 오픈 시 import 복원.
 import { Button, Badge, Spinner } from '@hyliren/ui';
 import {
   ArrowRight, Plus, FileText, Clock, ChevronRight,
@@ -33,25 +33,14 @@ export default function DashboardPage() {
   const { concerns: apiConcerns, loading: concernsLoading } = useMyConcerns();
   const userConcerns = apiConcerns.filter(c => !c.deletedAt);
 
-  // 사용자 전체 unread/per-concern proposal 집계용으로 concern 별로 listProposals 를
-  // 병렬 호출. 백엔드에 user-level aggregate endpoint 가 추가되면 단일 호출로 교체.
-  const [realProposals, setRealProposals] = useState<Proposal[] | null>(null);
-  useEffect(() => {
-    if (concernsLoading) return;
-    if (apiConcerns.length === 0) {
-      setRealProposals([]);
-      return;
-    }
-    Promise.all(
-      apiConcerns.map(c => listProposals(c.id).then(w => w.proposals.map(mapProposal)).catch(() => [] as Proposal[])),
-    ).then(results => {
-      setRealProposals(results.flat());
-    });
-  }, [apiConcerns, concernsLoading]);
+  // 1차 오픈 범위 = 고민 등록 + AI 상담. 병원 매칭 미오픈이라 proposal fetch 자체 skip
+  // (불필요 BE 호출 차단 + dashboard 가 proposal 의존 UI 노출 안 함).
+  // 2차 오픈 시 아래 useEffect 의 listProposals 병렬 호출 복원.
+  const realProposals: Proposal[] = [];
 
-  const ready = !concernsLoading && realProposals !== null;
+  const ready = !concernsLoading;
   const dashboardPhase = ready
-    ? computeDashboardState(userConcerns, realProposals ?? []).phase
+    ? computeDashboardState(userConcerns, realProposals).phase
     : null;
 
   useEffect(() => {
@@ -69,7 +58,7 @@ export default function DashboardPage() {
     );
   }
 
-  const userProposals = realProposals ?? [];
+  const userProposals = realProposals;
   const dashboard = computeDashboardState(userConcerns, userProposals);
 
   return (

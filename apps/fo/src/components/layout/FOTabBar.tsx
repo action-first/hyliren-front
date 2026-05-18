@@ -2,13 +2,14 @@
 
 import { Link } from '@/components/i18n/Link';
 import { usePathname } from 'next/navigation';
-import { Home, LayoutDashboard, Scale, BookOpen, User } from 'lucide-react';
+import { Home, LayoutDashboard, BookOpen, User } from 'lucide-react';
 import { useLocaleStore } from '@/store/locale';
 
+// 1차 오픈 범위 = 고민 등록 + AI 상담. 병원 매칭 영역 미오픈 — 'decision' (제안서 비교) 탭 hide.
+// 2차 오픈 (병원 섭외 완료) 시 다시 추가. 코드는 keep — 페이지 자체는 redirect 처리.
 const TAB_DEFS = [
   { href: '/', icon: Home, key: 'nav.home' },
   { href: '/dashboard', icon: LayoutDashboard, key: 'nav.myConsult' },
-  { href: '/decision', icon: Scale, key: 'nav.decision' },
   { href: '/articles', icon: BookOpen, key: 'nav.articles' },
   { href: '/mypage', icon: User, key: 'nav.my' },
 ];
