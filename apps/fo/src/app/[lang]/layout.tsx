@@ -6,6 +6,7 @@ import { t } from '@hyliren/i18n';
 import { FOHeader } from '@/components/layout/FOHeader';
 import { FOFooter } from '@/components/layout/FOFooter';
 import { FOTabBar } from '@/components/layout/FOTabBar';
+import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 import Toast from '@/components/common/Toast';
 import { SessionBootstrap } from '@/components/auth/SessionBootstrap';
 import { LocaleStoreProvider } from '@/store/locale';
@@ -142,6 +143,8 @@ export default async function LangLayout({
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
       />
+      {/* GA4 — Vercel env NEXT_PUBLIC_GA_MEASUREMENT_ID 미설정 시 no-op */}
+      <GoogleAnalytics measurementId={env.gaMeasurementId} />
       <SessionBootstrap />
       <div className="fo-shell">
         <div className="fo-frame">
